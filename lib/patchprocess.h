@@ -19,7 +19,6 @@ namespace PatchProcess {
      * @param output the output directory
      * @param descriptors the descriptors
      * @param patchWiimmfi whether to patch the game with Wiimmfi
-     * @param riivPath the path to Riivolution
      * @return a future resolving to whether the save was successful
      */
     QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi);
