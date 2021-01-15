@@ -1,5 +1,6 @@
 #include "internalnametable.h"
 #include "lib/powerpcasm.h"
+#include <cstring>
 
 quint32 InternalNameTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;

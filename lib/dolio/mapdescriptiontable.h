@@ -2,6 +2,7 @@
 #define MAPDESCRIPTIONTABLE_H
 
 #include "doliotable.h"
+#include <cstring>
 
 class MapDescriptionTable : public DolIOTable
 {
