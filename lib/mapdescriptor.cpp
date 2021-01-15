@@ -40,7 +40,7 @@ QString MapDescriptor::toMd() const {
     stream << "## Features\n\n";
     stream << "### Map Properties\n\n";
 
-    // todo implement the rest of this function
+    // TODO implement the rest of this function
     return result;
 }
 
@@ -80,7 +80,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
 }
 
 QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj) {
-    // todo add more info here?
+    // TODO add more info here?
     debugStream << "MapDescriptor(" << obj.names["en"] << ", firstFile=" << obj.frbFiles[0] << ")";
     return debugStream;
 }

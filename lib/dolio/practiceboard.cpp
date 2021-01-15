@@ -5,7 +5,7 @@ void PracticeBoard::writeAsm(QDataStream &stream, const AddressMapper &addressMa
     short easyPracticeBoard = -1;
     short standardPracticeBoard = -1;
 
-    // todo validation?
+    // TODO validation?
 
     // li r0,0x29                                                                 -> li r0,easyPracticeBoard
     stream.device()->seek(addressMapper.boomToFileAddress(0x80173bf8)); stream << PowerPcAsm::li(0, easyPracticeBoard);

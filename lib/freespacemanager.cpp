@@ -4,7 +4,7 @@
 
 void FreeSpaceManager::addFreeSpace(quint32 start, quint32 end) {
     if (startedAllocating) {
-        // todo throw exception here
+        // TODO throw exception here
     }
     totalFreeSpaceBlocks[end] = start;
     remainingFreeSpaceBlocks[end] = start;
@@ -23,7 +23,7 @@ quint32 FreeSpaceManager::findSuitableFreeSpaceBlock(int requiredSize) const {
         }
     }
     if (smallestFreeSpaceBlockEnd == std::numeric_limits<quint32>::max()) {
-        // todo notify of lack of free space
+        // TODO notify of lack of free space
     }
     return smallestFreeSpaceBlockEnd;
 }
@@ -49,7 +49,7 @@ quint32 FreeSpaceManager::findLargestFreeSpaceBlock(const QMap<quint32, quint32>
             largestBlockEnd = it.key();
         }
     }
-    // todo check largest block end == std::numeric_limits<quint32>::max()?
+    // TODO check largest block end == std::numeric_limits<quint32>::max()?
     return largestBlockEnd;
 }
 
@@ -60,7 +60,7 @@ int FreeSpaceManager::calculateLargestFreeSpaceBlockSize() const {
 
 int FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize() const {
     quint32 end = findLargestFreeSpaceBlock(remainingFreeSpaceBlocks);
-    // todo edit below to remainingFreeSpaceBlocks?
+    // TODO edit below to remainingFreeSpaceBlocks?
     return end - totalFreeSpaceBlocks[end];
 }
 

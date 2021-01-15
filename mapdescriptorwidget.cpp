@@ -27,11 +27,11 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     int colIdx = 0;
 
     QPushButton *importMdButton = new QPushButton("Import .md");
-    // todo implement importMd
+    // TODO implement importMd
     setCellWidget(row, colIdx++, importMdButton);
 
     QPushButton *exportMdButton = new QPushButton("Export .md");
-    // todo implement exportMd
+    // TODO implement exportMd
     setCellWidget(row, colIdx++, exportMdButton);
 
     setItem(row, colIdx++, new QTableWidgetItem(descriptor.names["en"]));

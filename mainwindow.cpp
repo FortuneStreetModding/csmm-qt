@@ -25,7 +25,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::openFile() {
-    // todo add *.dol
+    // TODO add *.dol
     QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory");
     if (dirname.isEmpty()) {
         return;
@@ -51,24 +51,40 @@ void MainWindow::openFile() {
 
 #ifdef Q_OS_WIN
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.03a-r8245-cygwin.zip"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-cygwin32.zip"
 #elif defined(Q_OS_MACOS)
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.03a-r8245-mac.tar.gz"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-mac.tar.gz"
 #else
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.03a-r8245-x86_64.tar.gz"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-x86_64.tar.gz"
 #endif
 
 QFuture<bool> MainWindow::checkForRequiredFiles() {
     QDir appDir(QApplication::applicationDirPath());
-    QString wit = appDir.filePath(WIT_NAME);
-    QFileInfo witCheck(wit);
-    if (!witCheck.exists() || !witCheck.isFile()) {
-        DownloadCLIDialog dialog(WIT_URL, this);
+    QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
+    QFileInfo witCheck(wit), wszstCheck(wszst), wimgtCheck(wimgt);
+    if (!witCheck.exists() || !witCheck.isFile()
+            || !wszstCheck.exists() || wszstCheck.isFile()
+            || !wimgtCheck.exists() || !wimgtCheck.isFile()) {
+        DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
         if (dialog.exec() == QDialog::Accepted) {
-            return AsyncFuture::observe(downloadRequiredFiles(dialog.getWitURL(), [=](const QString &file) {
+            auto downloadWit = downloadRequiredFiles(dialog.getWitURL(), [=](const QString &file) {
                 return QFileInfo(file).fileName() == WIT_NAME ? appDir.filePath(WIT_NAME) : "";
-            })).subscribe([&](bool result) {
+            });
+            auto downloadWszst = downloadRequiredFiles(dialog.getWszstURL(), [=](const QString &file) {
+                auto filename = QFileInfo(file).fileName();
+                if (filename == WSZST_NAME || filename == WIMGT_NAME) {
+                    return appDir.filePath(filename);
+                }
+                return QString();
+            });
+            return (AsyncFuture::combine() << downloadWit << downloadWszst).subscribe([=]() {
+                bool result = downloadWit.result() && downloadWszst.result();
                 if (result) {
-                    QMessageBox::information(this, "Download", "Successfuly downloaded and extracted Wit.");
+                    QMessageBox::information(this, "Download", "Successfuly downloaded and extracted the programs.");
+                } else {
+                    QMessageBox::critical(this, "Download", "Error downloading or extracting the programs.");
                 }
                 return result;
             }).future();
@@ -86,7 +102,7 @@ template<class InToOutFiles>
 QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) {
     QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
     if (tempDir->isValid()) {
-        auto witArchiveFile = new QFile(tempDir->filePath("temp"), this);
+        auto witArchiveFile = new QFile(tempDir->filePath("temp_wit"), this);
         if (witArchiveFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
             QNetworkReply *reply = manager->get(QNetworkRequest(witURL));
             connect(reply, &QNetworkReply::readyRead, this, [=]() {
@@ -116,11 +132,9 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
                 if (r == ARCHIVE_OK) {
                     r = extractFileTo(a, ext, func);
                     if (r != ARCHIVE_OK) {
-                        QMessageBox::critical(this, "Download", "Error reading archive.");
                         return false;
                     }
                 } else {
-                    QMessageBox::critical(this, "Download", QString("Error opening archive: %1").arg(archive_error_string(a)));
                     return false;
                 }
                 archive_read_close(a);
@@ -131,13 +145,11 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
                 return true;
             }).future();
         } else {
-            QMessageBox::critical(this, "Download", "Error opening file for download");
             auto def = AsyncFuture::deferred<bool>();
             def.complete(false);
             return def.future();
         }
     } else {
-        QMessageBox::critical(this, "Download", "Error creating temporary directory");
         auto def = AsyncFuture::deferred<bool>();
         def.complete(false);
         return def.future();

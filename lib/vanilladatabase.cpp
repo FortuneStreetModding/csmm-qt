@@ -207,4 +207,49 @@ const QString &getVentureCardDesc(int ventureCard) {
     return VENTURE_CARD_DESCS[ventureCard];
 }
 
+struct Background {
+    QString background;
+    QString description;
+    quint32 bgmId;
+    QString mapIcon;
+    QString mapTpl;
+};
+
+static const Background BACKGROUND_TABLE[] = {
+    { "bg101"  , "Trodain Castle"    , 17 , "p_bg_101" , "ui_menu007_bg101.tpl" },
+    { "bg109"  , "The Observatory"   , 21 , "p_bg_109" , "ui_menu007_bg109.tpl" },
+    { "bg102"  , "Ghost Ship"        ,  3 , "p_bg_102" , "ui_menu007_bg102.tpl" },
+    { "bg105"  , "Slimenia"          ,  6 , "p_bg_105" , "ui_menu007_bg105.tpl" },
+    { "bg104"  , "Mt. Magmageddon"   ,  5 , "p_bg_104" , "ui_menu007_bg104.tpl" },
+    { "bg106"  , "Robbin' Hood Ruins",  7 , "p_bg_106" , "ui_menu007_bg106.tpl" },
+    { "bg004"  , "Mario Stadium"     , 12 , "p_bg_004" , "ui_menu007_bg004.tpl" },
+    { "bg008"  , "Starship Mario"    , 15 , "p_bg_008" , "ui_menu007_bg008.tpl" },
+    { "bg002"  , "Mario Circuit"     ,  0 , "p_bg_002" , "ui_menu007_bg002.tpl" },
+    { "bg001"  , "Yoshi's Island"    , 11 , "p_bg_001" , "ui_menu007_bg001.tpl" },
+    { "bg005"  , "Delfino Plaza"     , 13 , "p_bg_005" , "ui_menu007_bg005.tpl" },
+    { "bg003"  , "Peach's Castle"    ,  1 , "p_bg_003" , "ui_menu007_bg003.tpl" },
+    { "bg107"  , "Alefgard"          ,  9 , "p_bg_107" , "ui_menu007_bg107.tpl" },
+    { "bg006"  , "Super Mario Bros"  , 14 , "p_bg_006" , "ui_menu007_bg006.tpl" },
+    { "bg007"  , "Bowser's Castle"   ,  2 , "p_bg_007" , "ui_menu007_bg007.tpl" },
+    { "bg009"  , "Good Egg Galaxy"   , 16 , "p_bg_009" , "ui_menu007_bg009.tpl" },
+    { "bg103"  , "The Colossus"      ,  4 , "p_bg_103" , "ui_menu007_bg103.tpl" },
+    { "bg103_e", "The Colossus Easy" ,  4 , "p_bg_103" , "ui_menu007_bg103.tpl" },
+    { "bg108"  , "Alltrades Abbey"   , 19 , "p_bg_108" , "ui_menu007_bg108.tpl" },
+    { "bg901"  , "Practice Board"    , 22 , "p_bg_901", ""}
+};
+
+QString getVanillaTpl(const QString &mapIcon) {
+    for (auto &entry: BACKGROUND_TABLE) {
+        if (entry.mapIcon == mapIcon) return entry.mapTpl;
+    }
+    return "";
+}
+
+bool hasVanillaTpl(const QString &mapIcon) {
+    for (auto &entry: BACKGROUND_TABLE) {
+        if (entry.mapIcon == mapIcon) return true;
+    }
+    return false;
+}
+
 }

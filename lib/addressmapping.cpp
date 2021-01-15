@@ -35,7 +35,7 @@ qint64 AddressSectionMapper::map(qint64 address) const {
     if (sectionPtr) {
         return (int)sectionPtr->toFileAddress(address);
     }
-    return std::numeric_limits<qint64>::max(); // todo flag exception
+    return std::numeric_limits<qint64>::max(); // TODO flag exception
 }
 qint64 AddressSectionMapper::inverseMap(qint64 address) const {
     for (auto &section: sections) {

@@ -3,8 +3,8 @@ TARGET = CSMM
 # update this for release
 VERSION = 1.0.0.0
 
-INCLUDEPATH += /usr/local/opt/libarchive/include
-LIBS += -L/usr/local/opt/libarchive/lib -larchive
+INCLUDEPATH += /usr/local/opt/libarchive/include /usr/local/include
+LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -larchive -lmxml -lpthread
 
 QT       += core gui network concurrent
 
@@ -19,6 +19,12 @@ CONFIG += c++14
 SOURCES += \
     downloadclidialog.cpp \
     lib/addressmapping.cpp \
+    lib/benzin/brlan.c \
+    lib/benzin/brlyt.c \
+    lib/benzin/endian.c \
+    lib/benzin/general.c \
+    lib/benzin/memfile.c \
+    lib/benzin/xml.c \
     lib/dolio/backgroundtable.cpp \
     lib/dolio/bgmidtable.cpp \
     lib/dolio/bgsequencetable.cpp \
@@ -51,6 +57,8 @@ SOURCES += \
     lib/mapdescriptor.cpp \
     lib/patchprocess.cpp \
     lib/powerpcasm.cpp \
+    lib/pugixml/pugixml.cpp \
+    lib/uimenu1900a.cpp \
     lib/uimessage.cpp \
     lib/vanilladatabase.cpp \
     main.cpp \
@@ -63,6 +71,13 @@ HEADERS += \
     lib/addressmapping.h \
     lib/archiveutil.h \
     lib/asyncfuture.h \
+    lib/benzin/brlan.h \
+    lib/benzin/brlyt.h \
+    lib/benzin/endian.h \
+    lib/benzin/general.h \
+    lib/benzin/memfile.h \
+    lib/benzin/types.h \
+    lib/benzin/xml.h \
     lib/datafileset.h \
     lib/dolio/backgroundtable.h \
     lib/dolio/bgmidtable.h \
@@ -98,6 +113,9 @@ HEADERS += \
     lib/orderedmap.h \
     lib/patchprocess.h \
     lib/powerpcasm.h \
+    lib/pugixml/pugiconfig.hpp \
+    lib/pugixml/pugixml.hpp \
+    lib/uimenu1900a.h \
     lib/uimessage.h \
     lib/vanilladatabase.h \
     mainwindow.h \

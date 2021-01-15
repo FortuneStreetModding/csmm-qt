@@ -12,9 +12,10 @@ class DownloadCLIDialog : public QDialog
     Q_OBJECT
 
 public:
-    DownloadCLIDialog(const QString &defaultWitURL, QWidget *parent = nullptr);
+    DownloadCLIDialog(const QString &defaultWitURL, const QString &defaultWszstURL, QWidget *parent = nullptr);
     ~DownloadCLIDialog();
     QString getWitURL();
+    QString getWszstURL();
 private:
     Ui::DownloadCLIDialog *ui;
 };

@@ -82,7 +82,7 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
 }
 
 QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
-    // todo add patches
+    // TODO add patches
     QVector<QSharedPointer<DolIO>> patches;
     patches.append(QSharedPointer<DolIO>(new MapOriginTable()));
     // map description table must be after map origin table

@@ -23,6 +23,7 @@ private:
     QNetworkAccessManager *manager;
 
     void openFile();
+    void saveFile();
     QFuture<bool> checkForRequiredFiles();
     template<class InToOutFiles>
     QFuture<bool> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
