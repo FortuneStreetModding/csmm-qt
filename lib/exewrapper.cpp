@@ -6,7 +6,11 @@
 #include <QDataStream>
 #include <QProcess>
 
+#ifdef Q_OS_WIN
+#include <process.h>
+#else
 #include <unistd.h>
+#endif
 
 namespace ExeWrapper {
 
