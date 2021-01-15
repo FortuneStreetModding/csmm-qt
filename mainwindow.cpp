@@ -65,7 +65,7 @@ QFuture<bool> MainWindow::checkForRequiredFiles() {
     QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
     QFileInfo witCheck(wit), wszstCheck(wszst), wimgtCheck(wimgt);
     if (!witCheck.exists() || !witCheck.isFile()
-            || !wszstCheck.exists() || wszstCheck.isFile()
+            || !wszstCheck.exists() || !wszstCheck.isFile()
             || !wimgtCheck.exists() || !wimgtCheck.isFile()) {
         DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
         if (dialog.exec() == QDialog::Accepted) {
