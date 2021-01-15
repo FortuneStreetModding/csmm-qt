@@ -3,14 +3,13 @@ TARGET = CSMM
 # update this for release
 VERSION = 1.0.0.0
 
-INCLUDEPATH += /usr/local/opt/libarchive/include
-LIBS += -L/usr/local/opt/libarchive/lib -larchive
-
 QT       += core gui network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++14
+CONFIG += conan_basic_setup
+include(conanbuildinfo.pri)
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
