@@ -155,7 +155,7 @@ static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescript
         if (mainDolFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&mainDolFile);
             MainDol mainDolObj(stream, addressSections);
-            mainDolFile.resize(0);
+            //mainDolFile.resize(0);
             mainDolObj.writeMainDol(stream, mapDescriptors);
         }
     }).future();

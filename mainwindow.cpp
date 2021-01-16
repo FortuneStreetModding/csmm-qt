@@ -9,6 +9,7 @@
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
+#include "lib/qtshell/qtshell.h"
 #include "downloadclidialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -17,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
+    connect(ui->actionExport, &QAction::triggered, this, &MainWindow::saveFile);
 }
 
 MainWindow::~MainWindow()
@@ -46,6 +48,8 @@ void MainWindow::openFile() {
         for (auto &descriptor: descriptors) {
             ui->tableWidget->appendMapDescriptor(descriptor);
         }
+        setWindowFilePath(dirname);
+        ui->actionExport->setEnabled(true);
     });
 }
 
@@ -154,4 +158,21 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
         def.complete(false);
         return def.future();
     }
+}
+
+void MainWindow::saveFile() {
+    // TODO change placeholder directory to the result of a save operation
+    QtShell::cp("-R", windowFilePath(), QApplication::applicationDirPath());
+    auto saveDir = QApplication::applicationDirPath() + "/" + QFileInfo(windowFilePath()).baseName();
+    auto descriptorPtrs = ui->tableWidget->getDescriptors();
+    QVector<MapDescriptor> descriptors;
+    std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [&](auto &ptr) { return *ptr; });
+    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false))
+            .subscribe([=](bool result) {
+        if (result) {
+            QMessageBox::information(this, "Save", "Saved successfuly.");
+        } else {
+            QMessageBox::critical(this, "Save", "An error occurred while saving.");
+        }
+    });
 }

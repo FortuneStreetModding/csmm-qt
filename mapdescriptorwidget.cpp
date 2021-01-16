@@ -94,3 +94,7 @@ void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
     insertRow(descriptors.size()-1);
     loadRowWithMapDescriptor(descriptors.size()-1, descriptor);
 }
+
+const QVector<QSharedPointer<MapDescriptor> > &MapDescriptorWidget::getDescriptors() {
+    return descriptors;
+}

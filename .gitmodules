@@ -1,0 +1,3 @@
+[submodule "lib/qtshell"]
+	path = lib/qtshell
+	url = https://github.com/benlau/qtshell

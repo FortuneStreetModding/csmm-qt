@@ -59,25 +59,25 @@ AddressMapper MainDol::setupAddressMapper(QDataStream &stream, const QVector<Add
 FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
     FreeSpaceManager result;
     // Venture Card Table
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80410648), addressMapper.boomStreetToStandard(0x80411b9b));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x80410648), addressMapper.boomStreetToStandard(0x80411b9b));
     // Map Data String Table and Map Data Table
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80428978), addressMapper.boomStreetToStandard(0x804298cf));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x80428978), addressMapper.boomStreetToStandard(0x804298cf));
     // Map Default Settings Table
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x804363c8), addressMapper.boomStreetToStandard(0x80436a87));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x804363c8), addressMapper.boomStreetToStandard(0x80436a87));
     // Unused costume string table 1
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8042bc78), addressMapper.boomStreetToStandard(0x8042c23f));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x8042bc78), addressMapper.boomStreetToStandard(0x8042c23f));
     // Unused costume string table 2
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8042dfc0), addressMapper.boomStreetToStandard(0x8042e22f));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x8042dfc0), addressMapper.boomStreetToStandard(0x8042e22f));
     // Unused costume string table 3
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8042ef30), addressMapper.boomStreetToStandard(0x8042f7ef));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x8042ef30), addressMapper.boomStreetToStandard(0x8042f7ef));
     // Unused menu id=0x06 (MapSelectScene_E3)
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x801f8520), addressMapper.boomStreetToStandard(0x801f94bb));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x801f8520), addressMapper.boomStreetToStandard(0x801f94bb));
     // Unused menu id=0x38 (WorldMenuScene)
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x801ed6a8), addressMapper.boomStreetToStandard(0x801edab7));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x801ed6a8), addressMapper.boomStreetToStandard(0x801edab7));
     // Unused menu id=0x39 (FreePlayScene)
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x801edad4), addressMapper.boomStreetToStandard(0x801ee71f));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x801edad4), addressMapper.boomStreetToStandard(0x801ee71f));
     // Unused menu class (SelectMapUI)
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x801fce28), addressMapper.boomStreetToStandard(0x801ff777));
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x801fce28), addressMapper.boomStreetToStandard(0x801ff777));
     return result;
 }
 
@@ -112,6 +112,7 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     patches.append(QSharedPointer<DolIO>(new BGSequenceTable()));
     patches.append(QSharedPointer<DolIO>(new InternalNameTable()));
     patches.append(QSharedPointer<DolIO>(new ForceSimulatedButtonPress()));
+
     return patches;
 }
 

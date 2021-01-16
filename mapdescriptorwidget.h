@@ -11,6 +11,7 @@ public:
     explicit MapDescriptorWidget(QWidget *parent = nullptr);
     void loadRowWithMapDescriptor(int row, const MapDescriptor &descriptor);
     void appendMapDescriptor(const MapDescriptor &descriptor);
+    const QVector<QSharedPointer<MapDescriptor>> &getDescriptors();
 private:
     QVector<QSharedPointer<MapDescriptor>> descriptors;
 };
