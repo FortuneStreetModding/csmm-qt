@@ -93,4 +93,6 @@ struct MapDescriptor {
     friend QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj);
 };
 
+void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs);
+
 #endif // MAPDESCRIPTOR_H

@@ -122,7 +122,9 @@ QVector<MapDescriptor> MainDol::readMainDol(QDataStream &stream) {
     stream >> opcode;
     qint16 count = PowerPcAsm::getOpcodeParameter(opcode);
     QVector<MapDescriptor> mapDescriptors(count);
+    int idx = 0;
     for (auto &patch: patches) {
+        qDebug() << idx++;
         patch->readAsm(stream, addressMapper, mapDescriptors);
     }
     return mapDescriptors;

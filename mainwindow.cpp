@@ -176,5 +176,10 @@ void MainWindow::saveFile() {
             QMessageBox::critical(this, "Save", "An error occurred while saving.");
         }
     });
-    // TODO update descriptors
+
+    // reload map descriptors
+    int idx = 0;
+    for (auto &descriptor: descriptors) {
+        ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
+    }
 }
