@@ -16,7 +16,7 @@ UiMessage fileToMessage(QFile *file) {
 void messageToFile(QFile *file, const UiMessage &message) {
     QTextStream stream(file);
     for (auto it=message.begin(); it!=message.end(); ++it) {
-        stream << QString("%1,\"%2\"").arg(it.key()).arg(it.value());
+        stream << QString("%1,\"%2\"\n").arg(it.key()).arg(it.value());
     }
 }
 

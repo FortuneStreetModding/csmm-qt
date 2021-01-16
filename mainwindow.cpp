@@ -175,4 +175,5 @@ void MainWindow::saveFile() {
             QMessageBox::critical(this, "Save", "An error occurred while saving.");
         }
     });
+    // TODO update descriptors
 }
