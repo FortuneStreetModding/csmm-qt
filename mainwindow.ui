@@ -67,19 +67,13 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
-    <addaction name="actionExport"/>
+    <addaction name="actionExport_To_Folder"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
      <string>Optional Patches</string>
     </property>
     <addaction name="actionPatch_Wiimmfi"/>
-   </widget>
-   <widget class="QMenu" name="menuSettings">
-    <property name="title">
-     <string>Settings</string>
-    </property>
-    <addaction name="actionVerbose"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -89,7 +83,6 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuOptions"/>
-   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -114,12 +107,12 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionExport">
+  <action name="actionExport_To_Folder">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Export</string>
+    <string>Export To Folder</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>

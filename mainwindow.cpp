@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
-    connect(ui->actionExport, &QAction::triggered, this, &MainWindow::saveFile);
+    connect(ui->actionExport_To_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
 }
 
 MainWindow::~MainWindow()
@@ -49,7 +49,7 @@ void MainWindow::openFile() {
             ui->tableWidget->appendMapDescriptor(descriptor);
         }
         setWindowFilePath(dirname);
-        ui->actionExport->setEnabled(true);
+        ui->actionExport_To_Folder->setEnabled(true);
     });
 }
 
@@ -160,15 +160,17 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
     }
 }
 
-void MainWindow::saveFile() {
-    // TODO change placeholder directory to the result of a save operation
-    auto saveDir = QApplication::applicationDirPath() + "/" + QFileInfo(windowFilePath()).baseName();
-    QtShell::rm("-R", saveDir);
-    QtShell::cp("-R", windowFilePath(), QApplication::applicationDirPath());
+void MainWindow::exportToFolder() {
+    auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory");
+    if (!QDir(saveDir).isEmpty()) {
+        QMessageBox::critical(this, "Save", "Directory is non-empty");
+        return;
+    }
+    QtShell::cp("-R", windowFilePath() + "/*", saveDir);
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     QVector<MapDescriptor> descriptors;
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [&](auto &ptr) { return *ptr; });
-    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false))
+    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false /* TODO  */))
             .subscribe([=](bool result) {
         if (result) {
             QMessageBox::information(this, "Save", "Saved successfuly.");
