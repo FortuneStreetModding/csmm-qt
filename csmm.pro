@@ -4,7 +4,7 @@ TARGET = CSMM
 VERSION = 1.0.0.0
 
 INCLUDEPATH += /usr/local/opt/libarchive/include /usr/local/include
-LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -larchive -lmxml -lpthread
+LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -larchive -lmxml -lpthread -lyaml-cpp
 
 QT       += core gui network concurrent
 

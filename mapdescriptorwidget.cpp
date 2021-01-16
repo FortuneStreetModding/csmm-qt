@@ -1,7 +1,10 @@
 #include "mapdescriptorwidget.h"
 
+#include <QFileDialog>
 #include <QHeaderView>
 #include <QPushButton>
+#include <QTextStream>
+#include "lib/datafileset.h"
 #include "venturecarddialog.h"
 
 MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
@@ -23,6 +26,8 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
 
 void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor &descriptor) {
     descriptors[row] = QSharedPointer<MapDescriptor>::create(descriptor);
+    // Descriptor pointer is so that the button event handlers work properly when descriptors
+    // are shifted
     auto descriptorPtr = descriptors[row];
     int colIdx = 0;
 
@@ -31,7 +36,24 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     setCellWidget(row, colIdx++, importMdButton);
 
     QPushButton *exportMdButton = new QPushButton("Export .md");
-    // TODO implement exportMd
+    connect(exportMdButton, &QPushButton::clicked, this, [=](bool) {
+        auto gameDirectory = getGameDirectory();
+        auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .md", "", "Map Descriptor Files (*.md)");
+        QFile saveMdToFile(saveMdTo);
+        if (!saveMdTo.isEmpty() && saveMdToFile.open(QIODevice::WriteOnly)) {
+            QTextStream stream(&saveMdToFile);
+            stream << descriptorPtr->toMd();
+
+            // export frb files
+            for (auto &frbFile: descriptorPtr->frbFiles) {
+                if (frbFile.isEmpty()) continue;
+                auto frbFileFrom = QDir(gameDirectory).filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                auto frbFileTo = QFileInfo(saveMdTo).dir().filePath(frbFile + ".frb");
+                QFile(frbFileTo).remove();
+                QFile::copy(frbFileFrom, frbFileTo);
+            }
+        }
+    });
     setCellWidget(row, colIdx++, exportMdButton);
 
     setItem(row, colIdx++, new QTableWidgetItem(descriptor.names["en"]));
@@ -97,4 +119,8 @@ void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
 
 const QVector<QSharedPointer<MapDescriptor> > &MapDescriptorWidget::getDescriptors() {
     return descriptors;
+}
+
+void MapDescriptorWidget::setGameDirectoryFunction(const std::function<QString()> &fn) {
+    getGameDirectory = fn;
 }

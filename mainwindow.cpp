@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow), manager(new QNetworkAccessManager(this))
 {
     ui->setupUi(this);
+    ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
     connect(ui->actionExport_To_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
 }
@@ -166,11 +167,14 @@ void MainWindow::exportToFolder() {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
         return;
     }
+    if (ui->actionPatch_Wiimmfi->isChecked()) {
+        ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
+    }
     QtShell::cp("-R", windowFilePath() + "/*", saveDir);
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     QVector<MapDescriptor> descriptors;
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [&](auto &ptr) { return *ptr; });
-    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false /* TODO  */))
+    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false))
             .subscribe([=](bool result) {
         if (result) {
             QMessageBox::information(this, "Save", "Saved successfuly.");

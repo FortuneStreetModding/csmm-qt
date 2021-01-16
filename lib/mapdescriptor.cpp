@@ -1,5 +1,6 @@
 #include "mapdescriptor.h"
 #include <QDebug>
+#include "yaml-cpp/yaml.h"
 
 bool OriginPoint::operator==(const OriginPoint &other) const {
     return x == other.x && y == other.y;
@@ -30,18 +31,65 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
-QString MapDescriptor::toMd() const {
-    QString result;
-    QTextStream stream(&result);
-    stream << "# " << names["en"] << "\n\n";
-    stream << descs["en"] << "\n\n";
-    stream << "# Screenshots\n\n";
-    stream << "<Placeholder for screenshots>\n\n";
-    stream << "## Features\n\n";
-    stream << "### Map Properties\n\n";
-
-    // TODO implement the rest of this function
+static std::map<std::string, std::string> toStdStrMap(const QMap<QString, QString> &map) {
+    std::map<std::string, std::string> result;
+    for (auto it=map.begin(); it!=map.end(); ++it) {
+        result[it.key().toStdString()] = it.value().toStdString();
+    }
     return result;
+}
+
+QString MapDescriptor::toMd() const {
+    YAML::Emitter out;
+
+    out << YAML::BeginMap;
+
+    out << YAML::Key << "name" << YAML::Value << toStdStrMap(names);
+    out << YAML::Key << "desc" << YAML::Value << toStdStrMap(descs);
+    out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == 0 ? "Easy" : "Standard");
+    out << YAML::Key << "initialCash" << YAML::Value << initialCash;
+    out << YAML::Key << "targetAmount" << YAML::Value << targetAmount;
+    out << YAML::Key << "baseSalary" << YAML::Value << baseSalary;
+    out << YAML::Key << "salaryIncrement" << YAML::Value << salaryIncrement;
+    out << YAML::Key << "maxDiceRoll" << YAML::Value << maxDiceRoll;
+    for (int i=0; i<4; ++i) {
+        out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
+    }
+
+    out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
+    for (auto &originPoint: switchRotationOrigins) {
+        out << YAML::BeginMap;
+        out << YAML::Key << "x" << YAML::Value << originPoint.x;
+        out << YAML::Key << "y" << YAML::Value << originPoint.y;
+        out << YAML::EndMap;
+    }
+    out << YAML::EndSeq;
+
+    out << YAML::Key << "looping" << YAML::Value << YAML::BeginMap;
+    static const char *loopingModes[] = {"None", "Vertical", "Both"};
+    out << YAML::Key << "mode" << YAML::Value << loopingModes[loopingMode];
+    out << YAML::Key << "radius" << YAML::Value << loopingModeRadius;
+    out << YAML::Key << "horizontalPadding" << YAML::Value << loopingModeHorizontalPadding;
+    out << YAML::Key << "verticalSquareCount" << YAML::Value << loopingModeVerticalSquareCount;
+    out << YAML::EndMap;
+
+    out << YAML::Key << "tourMode" << YAML::Value << YAML::BeginMap;
+    out << YAML::Key << "bankruptcyLimit" << YAML::Value << tourBankruptcyLimit;
+    out << YAML::Key << "initialCash" << YAML::Value << tourInitialCash;
+    for (int i=0; i<3; ++i) {
+        out << YAML::Key << QString("opponent%1").arg(i+1).toStdString() << YAML::Value << tourCharacterToString(tourCharacters[i]).toStdString();
+    }
+    out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
+    out << YAML::EndMap;
+
+    out << YAML::Key << "bgmId" << YAML::Value << bgmId;
+    out << YAML::Key << "background" << YAML::Value << background.toStdString();
+    out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
+    out << YAML::Key << "ventureCards" << YAML::Value << std::vector<int>(std::begin(ventureCards), std::end(ventureCards));
+
+    out << YAML::EndMap;
+
+    return out.c_str();
 }
 
 bool MapDescriptor::operator==(const MapDescriptor &other) const {
