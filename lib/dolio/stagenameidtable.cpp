@@ -13,9 +13,9 @@ void StageNameIDTable::writeAsm(QDataStream &stream, const AddressMapper &addres
 
     // --- Update Table Addr ---
     // mulli r0,r3,0x38 ->  mulli r0,r3,0x04
-    stream.device()->seek(addressMapper.boomToFileAddress(0x801cca80)); stream << PowerPcAsm::mulli(0, 3, 0x04);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801cca6c)); stream << PowerPcAsm::mulli(0, 3, 0x04);
     // r3 <- 0x80428e50 ->  r3 <- tableAddr
-    stream.device()->seek(addressMapper.boomToFileAddress(0x801cca84)); stream << PowerPcAsm::lis(3, v.upper) << PowerPcAsm::addi(3, 3, v.lower);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801cca70)); stream << PowerPcAsm::lis(3, v.upper) << PowerPcAsm::addi(3, 3, v.lower);
 }
 
 void StageNameIDTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
