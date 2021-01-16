@@ -124,3 +124,34 @@ QString tourCharacterToString(Character character) {
 Character stringToTourCharacter(const QString &str) {
     return stringToTourCharacters.value(str);
 }
+
+void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
+    // TODO improve error stuff
+    easyPracticeBoard = -1;
+    standardPracticeBoard = -1;
+    for (int i=0; i<descriptors.size(); ++i) {
+        if (descriptors[i].isPracticeBoard) {
+            if (descriptors[i].mapSet == 0) {
+                if (easyPracticeBoard == -1) {
+                    easyPracticeBoard = i;
+                } else {
+                    errorMsgs << "There can be only 1 practice board for the easy map set";
+                }
+            } else if (descriptors[i].mapSet == 1) {
+                if (standardPracticeBoard == -1) {
+                    standardPracticeBoard = i;
+                } else {
+                    errorMsgs << "There can be only 1 practice board for the standard map set";
+                }
+            } else {
+                errorMsgs << "A practice board can only be set for map sets 0 or 1";
+            }
+        }
+    }
+    if (easyPracticeBoard == -1) {
+        errorMsgs << "Easy map set needs at least 1 practice board";
+    }
+    if (standardPracticeBoard == -1) {
+        errorMsgs << "Standard map set needs at least 1 practice board";
+    }
+}
