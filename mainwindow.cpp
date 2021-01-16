@@ -162,8 +162,9 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
 
 void MainWindow::saveFile() {
     // TODO change placeholder directory to the result of a save operation
-    QtShell::cp("-R", windowFilePath(), QApplication::applicationDirPath());
     auto saveDir = QApplication::applicationDirPath() + "/" + QFileInfo(windowFilePath()).baseName();
+    QtShell::rm("-R", saveDir);
+    QtShell::cp("-R", windowFilePath(), QApplication::applicationDirPath());
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     QVector<MapDescriptor> descriptors;
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [&](auto &ptr) { return *ptr; });

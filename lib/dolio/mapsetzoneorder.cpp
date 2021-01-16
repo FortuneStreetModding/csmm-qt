@@ -23,7 +23,7 @@ void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &address
 
     // --- Game::GameSequenceDataAdapter::GetNumMapsInZone ---
     quint32 subroutineGetNumMapsInZone = allocate(writeSubroutineGetNumMapsInZone(mapDescriptors));
-    quint8 hijackAddr = addressMapper.boomStreetToStandard(0x8020f3ac);
+    quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8020f3ac);
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // li r3,0x6 ->  b subroutineGetNumMapsInZone
     stream << PowerPcAsm::b(hijackAddr, subroutineGetNumMapsInZone);

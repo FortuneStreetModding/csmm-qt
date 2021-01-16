@@ -129,6 +129,7 @@ QVector<MapDescriptor> MainDol::readMainDol(QDataStream &stream) {
 }
 
 QVector<MapDescriptor> MainDol::writeMainDol(QDataStream &stream, const QVector<MapDescriptor> &mapDescriptors) {
+    //decltype (patches) writePatches(patches.begin(), patches.begin() + 4);
     for (auto &patch: patches) {
         patch->write(stream, addressMapper, mapDescriptors, freeSpaceManager);
     }
