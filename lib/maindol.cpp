@@ -122,16 +122,13 @@ QVector<MapDescriptor> MainDol::readMainDol(QDataStream &stream) {
     stream >> opcode;
     qint16 count = PowerPcAsm::getOpcodeParameter(opcode);
     QVector<MapDescriptor> mapDescriptors(count);
-    int idx = 0;
     for (auto &patch: patches) {
-        qDebug() << idx++;
         patch->readAsm(stream, addressMapper, mapDescriptors);
     }
     return mapDescriptors;
 }
 
 QVector<MapDescriptor> MainDol::writeMainDol(QDataStream &stream, const QVector<MapDescriptor> &mapDescriptors) {
-    //decltype (patches) writePatches(patches.begin(), patches.begin() + 4);
     for (auto &patch: patches) {
         patch->write(stream, addressMapper, mapDescriptors, freeSpaceManager);
     }

@@ -17,27 +17,27 @@ void FrbMapTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
 
     // --- Game::GetMapFrbName ---
     // mulli r3,r3,0x38  ->  mulli r3,r3,0x10
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccab0)); stream << PowerPcAsm::mulli(3, 3, 0x10);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccab0)); stream << PowerPcAsm::mulli(3, 3, 0x10);
     // r5 <- 0x80428e50  ->  r5 <- tableAddr
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccab4)); stream << PowerPcAsm::lis(5, v.upper);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccab4)); stream << PowerPcAsm::lis(5, v.upper);
     stream.skipRawData(0x4); stream << PowerPcAsm::addi(5, 5, v.lower);
     // lwz r3,0x18(r3)   ->  lwz r3,0x0(r3)
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccac8)); stream << PowerPcAsm::lwz(3, 0x0, 3);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccac8)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 
     // --- Game::GetMapMapNum ---
     // mulli r0,r3,0x38  ->  mulli r0,r3,0x10
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccad0)); stream << PowerPcAsm::mulli(0, 3, 0x10);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccad0)); stream << PowerPcAsm::mulli(0, 3, 0x10);
     // r4 <- 0x80428e50  ->  r4 <- tableAddr
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccad4)); stream << PowerPcAsm::lis(4, v.upper);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccad4)); stream << PowerPcAsm::lis(4, v.upper);
     stream.skipRawData(0x4); stream << PowerPcAsm::addi(4, 4, v.lower);
     // lwz r0,0x18(r4)   ->  lwz r0,0x0(r4)
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccae4)); stream << PowerPcAsm::lwz(0, 0x0, 4);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccae4)); stream << PowerPcAsm::lwz(0, 0x0, 4);
     // lwz r0,0x1c(r4)   ->  lwz r0,0x4(r4)
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccaf0)); stream << PowerPcAsm::lwz(0, 0x4, 4);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccaf0)); stream << PowerPcAsm::lwz(0, 0x4, 4);
     // lwz r0,0x20(r4)   ->  lwz r0,0x8(r4)
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccb00)); stream << PowerPcAsm::lwz(0, 0x8, 4);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb00)); stream << PowerPcAsm::lwz(0, 0x8, 4);
     // lwz r0,0x24(r4)   ->  lwz r0,0xc(r4)
-    stream.device()->seek(addressMapper.boomStreetToStandard(0x801ccb10)); stream << PowerPcAsm::lwz(0, 0xc, 4);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb10)); stream << PowerPcAsm::lwz(0, 0xc, 4);
 }
 
 void FrbMapTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {

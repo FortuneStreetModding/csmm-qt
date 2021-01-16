@@ -14,7 +14,10 @@ quint32 DolIO::allocate(const QVector<quint32> &words) {
 }
 
 quint32 DolIO::allocate(const QString &str) {
-    QByteArray data(str.toUtf8().data());
+    if (str.isEmpty()) {
+        return 0;
+    }
+    QByteArray data(str.toUtf8());
     data.append('\0');
     return allocate(data);
 }
