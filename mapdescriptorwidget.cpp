@@ -1,5 +1,6 @@
 #include "mapdescriptorwidget.h"
 
+#include <QCheckBox>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -16,7 +17,7 @@ static constexpr int ORDER_TYPE = QTableWidgetItem::UserType + 2;
 
 MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
     QStringList labels{"", "", "Name", "MapSet [Editable]", "Zone [Editable]", "Order [Editable]",
-                       "Is Practice Board", "Ruleset", "Initial Cash", "Target Amount",
+                       "Is Practice Board [Editable]", "Ruleset", "Initial Cash", "Target Amount",
                        "Base Salary", "Salary Increment", "Max. Dice Roll",
                        "Venture Cards", "FRB Files", "Switch Origin Points",
                        "Board Theme", "Background", "Background Music ID",
@@ -35,7 +36,7 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
         if (theItem->type() < QTableWidgetItem::UserType) return;
 
         bool ok;
-        qint8 value = theItem->text().toInt(&ok);
+        int value = theItem->text().toInt(&ok);
         if (!ok) return;
         if (theItem->type() == MAP_SET_TYPE) {
             descriptors[row]->mapSet = value;
@@ -60,20 +61,21 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     auto descriptorPtr = descriptors[row];
     int colIdx = 0;
 
-    QPushButton *importMdButton = new QPushButton("Import .md");
+    auto importMdButton = new QPushButton("Import .md");
     connect(importMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
         auto openMd = QFileDialog::getOpenFileName(this, "Import .md", "", "Map Descriptor Files (*.md)");
         MapDescriptor newDescriptor;
         if (PatchProcess::importMd(gameDirectory, openMd, newDescriptor, tmpDir.path())) {
-            loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), newDescriptor);
+            descriptorPtr->setFromImport(newDescriptor);
+            loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
         } else {
             QMessageBox::critical(this, "Import .md", "There was an error loading the .md file");
         }
     });
     setCellWidget(row, colIdx++, importMdButton);
 
-    QPushButton *exportMdButton = new QPushButton("Export .md");
+    auto exportMdButton = new QPushButton("Export .md");
     connect(exportMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
         auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .md", descriptorPtr->internalName + ".md", "Map Descriptor Files (*.md)");
@@ -86,7 +88,14 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.mapSet), MAP_SET_TYPE));
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.zone), ZONE_TYPE));
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.order), ORDER_TYPE));
-    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.isPracticeBoard)));
+
+    auto isPracticeBoardCheck = new QCheckBox();
+    isPracticeBoardCheck->setChecked(descriptor.isPracticeBoard);
+    connect(isPracticeBoardCheck, &QCheckBox::clicked, this, [&](bool isChecked) {
+        descriptorPtr->isPracticeBoard = isChecked;
+    });
+    setCellWidget(row, colIdx++, isPracticeBoardCheck);
+
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.ruleSet)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.initialCash)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.targetAmount)));
@@ -142,7 +151,13 @@ void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
     loadRowWithMapDescriptor(descriptors.size()-1, descriptor);
 }
 
-const QVector<QSharedPointer<MapDescriptor> > &MapDescriptorWidget::getDescriptors() {
+void MapDescriptorWidget::clearDescriptors() {
+    clearContents();
+    setRowCount(0);
+    descriptors.clear();
+}
+
+const QVector<QSharedPointer<MapDescriptor>> &MapDescriptorWidget::getDescriptors() {
     return descriptors;
 }
 

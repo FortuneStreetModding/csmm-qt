@@ -46,6 +46,7 @@ void MainWindow::openFile() {
             QMessageBox::critical(this, "Open", "Bad Fortune Street directory");
             return;
         }
+        ui->tableWidget->clearDescriptors();
         for (auto &descriptor: descriptors) {
             ui->tableWidget->appendMapDescriptor(descriptor);
         }

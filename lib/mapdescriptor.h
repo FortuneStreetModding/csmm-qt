@@ -94,6 +94,8 @@ struct MapDescriptor {
     // return value: whether this was successful
     bool fromMd(const YAML::Node &yaml);
 
+    MapDescriptor &setFromImport(const MapDescriptor &other);
+
     friend QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj);
 };
 

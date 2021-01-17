@@ -45,7 +45,7 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::Key << "name" << YAML::Value << toStdStrMap(names);
     out << YAML::Key << "desc" << YAML::Value << toStdStrMap(descs);
-    out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == 0 ? "Easy" : "Standard");
+    out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
     out << YAML::Key << "initialCash" << YAML::Value << initialCash;
     out << YAML::Key << "targetAmount" << YAML::Value << targetAmount;
     out << YAML::Key << "baseSalary" << YAML::Value << baseSalary;
@@ -176,6 +176,13 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
     } catch (const YAML::Exception &exception) {
         return false;
     }
+}
+
+MapDescriptor &MapDescriptor::setFromImport(const MapDescriptor &other) {
+    auto stuffToRetain = std::make_tuple(mapSet, zone, order, isPracticeBoard, unlockId, nameMsgId, descMsgId);
+    *this = other;
+    std::tie(mapSet, zone, order, isPracticeBoard, unlockId, nameMsgId, descMsgId) = stuffToRetain;
+    return *this;
 }
 
 QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj) {
