@@ -46,6 +46,8 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
             descriptors[row]->order = value;
         }
     });
+
+    setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
 static QTableWidgetItem *readOnlyItem(const QString &str) {
@@ -149,6 +151,15 @@ void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
     descriptors.append(QSharedPointer<MapDescriptor>::create(descriptor));
     insertRow(descriptors.size()-1);
     loadRowWithMapDescriptor(descriptors.size()-1, descriptor);
+}
+
+void MapDescriptorWidget::removeSelectedMapDescriptors() {
+    auto selectedRows = selectionModel()->selectedRows();
+    std::sort(selectedRows.begin(), selectedRows.end(), [](const QModelIndex &A, const QModelIndex &B) { return A.row() > B.row(); });
+    for (auto &selectedRow: selectedRows) {
+        descriptors.remove(selectedRow.row());
+        removeRow(selectedRow.row());
+    }
 }
 
 void MapDescriptorWidget::clearDescriptors() {

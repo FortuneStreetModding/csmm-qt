@@ -20,6 +20,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
     connect(ui->actionExport_To_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
+    connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
+    connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
+        if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
+            ui->tableWidget->removeSelectedMapDescriptors();
+        }
+    });
 }
 
 MainWindow::~MainWindow()
