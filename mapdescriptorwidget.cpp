@@ -96,7 +96,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     });
     setCellWidget(row, colIdx++, isPracticeBoardCheck);
 
-    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.ruleSet)));
+    setItem(row, colIdx++, readOnlyItem(descriptor.ruleSet == Easy ? "Easy" : "Standard"));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.initialCash)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.targetAmount)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.baseSalary)));
@@ -121,7 +121,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     for (auto &originPoint: descriptor.switchRotationOrigins) originPointsStrList.append(QString(originPoint));
     setItem(row, colIdx++, readOnlyItem(originPointsStrList.join("; ")));
 
-    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.theme)));
+    setItem(row, colIdx++, readOnlyItem(descriptor.theme == Mario ? "Mario" : "DragonQuest"));
     setItem(row, colIdx++, readOnlyItem(descriptor.background));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.bgmId)));
     setItem(row, colIdx++, readOnlyItem(descriptor.mapIcon));

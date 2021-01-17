@@ -46,6 +46,7 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "name" << YAML::Value << toStdStrMap(names);
     out << YAML::Key << "desc" << YAML::Value << toStdStrMap(descs);
     out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
+    out << YAML::Key << "theme" << YAML::Value << (theme == Mario ? "Mario" : "DragonQuest");
     out << YAML::Key << "initialCash" << YAML::Value << initialCash;
     out << YAML::Key << "targetAmount" << YAML::Value << targetAmount;
     out << YAML::Key << "baseSalary" << YAML::Value << baseSalary;
@@ -135,6 +136,7 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
             descs[QString::fromStdString(it->first.as<std::string>())] = QString::fromStdString(it->second.as<std::string>());
         }
         ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
+        theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
         initialCash = yaml["initialCash"].as<quint32>();
         targetAmount = yaml["targetAmount"].as<quint32>();
         baseSalary = yaml["baseSalary"].as<quint32>();
