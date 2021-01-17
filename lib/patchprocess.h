@@ -19,9 +19,20 @@ namespace PatchProcess {
      * @param output the output directory
      * @param descriptors the descriptors
      * @param patchWiimmfi whether to patch the game with Wiimmfi
+     * @param tempDir holds temporary files to copy to output if needed
      * @return a future resolving to whether the save was successful
      */
-    QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi);
+    QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tempDir);
+
+    /**
+     * @brief exportMd Exports the map descriptor file and .frb(s).
+     * @param dir the game directory
+     * @param mdFileDest the map descriptor file destination
+     * @param descriptor the map descriptor
+     */
+    void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &descriptor);
+
+    bool importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
 }
 
 #endif // PATCHPROCESS_H

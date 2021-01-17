@@ -174,7 +174,7 @@ void MainWindow::exportToFolder() {
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     QVector<MapDescriptor> descriptors;
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [&](auto &ptr) { return *ptr; });
-    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false))
+    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false, ui->tableWidget->getTmpDir().path()))
             .subscribe([=](bool result) {
         if (result) {
             QMessageBox::information(this, "Save", "Saved successfuly.");

@@ -6,6 +6,7 @@
 #include <QSet>
 #include <QString>
 #include <QVector>
+#include "yaml-cpp/yaml.h"
 #include "fortunestreetdata.h"
 
 enum RuleSet : quint32 {
@@ -89,6 +90,9 @@ struct MapDescriptor {
 
     QString toMd() const;
     bool operator==(const MapDescriptor &other) const;
+
+    // return value: whether this was successful
+    bool fromMd(const YAML::Node &yaml);
 
     friend QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj);
 };

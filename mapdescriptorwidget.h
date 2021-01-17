@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <QTableWidget>
+#include <QTemporaryDir>
 #include <QObject>
 #include "lib/mapdescriptor.h"
 
@@ -14,9 +15,11 @@ public:
     void appendMapDescriptor(const MapDescriptor &descriptor);
     const QVector<QSharedPointer<MapDescriptor>> &getDescriptors();
     void setGameDirectoryFunction(const std::function<QString()> &fn);
+    const QTemporaryDir &getTmpDir();
 private:
     QVector<QSharedPointer<MapDescriptor>> descriptors;
     std::function<QString()> getGameDirectory;
+    QTemporaryDir tmpDir;
 };
 
 #endif // MAPDESCRIPTORWIDGET_H

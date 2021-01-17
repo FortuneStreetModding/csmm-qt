@@ -178,6 +178,11 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }
 
     QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
+    if (!tempDir->isValid()) {
+        auto def = AsyncFuture::deferred<bool>();
+        def.complete(false);
+        return def.future();
+    }
     QDir tempDirObj(tempDir->path());
 
     /** maps the path of the various variants of the game_sequenceXXXXXXXX.arc files to their respective extraction path in the tmp directory */
@@ -289,13 +294,74 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }).future();
 }
 
-QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi) {
+QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tempDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     return AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() -> QFuture<bool> {
         return injectMapIcons(descriptors, output);
+    }).subscribe([=](bool result) {
+        if (result) {
+            // copy frb files from temp dir to output
+            for (auto &descriptor: descriptors) {
+                for (auto &frbFile: descriptor.frbFiles) {
+                    if (frbFile.isEmpty()) continue;
+                    auto frbFileFrom = tempDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                    auto frbFileTo = output.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                    QFileInfo frbFileFromInfo(frbFileFrom);
+                    if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
+                        continue;
+                    }
+                    QFile(frbFileTo).remove();
+                    QFile::copy(frbFileFrom, frbFileTo);
+                }
+            }
+        }
+        return result;
     }).future();
     // TODO handle wiimmfi stuff
+}
+
+void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &descriptor) {
+    QFile saveMdToFile(mdFileDest);
+    if (!mdFileDest.isEmpty() && saveMdToFile.open(QIODevice::WriteOnly)) {
+        QTextStream stream(&saveMdToFile);
+        stream << descriptor.toMd();
+
+        // export frb files
+        for (auto &frbFile: descriptor.frbFiles) {
+            if (frbFile.isEmpty()) continue;
+            auto frbFileFrom = dir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+            auto frbFileTo = QFileInfo(mdFileDest).dir().filePath(frbFile + ".frb");
+            QFile(frbFileTo).remove();
+            QFile::copy(frbFileFrom, frbFileTo);
+        }
+    }
+}
+
+bool importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
+    auto node = YAML::LoadFile(mdFileSrc.toStdString());
+    if (descriptor.fromMd(node)) {
+        // import frb files
+        for (auto &frbFile: descriptor.frbFiles) {
+            if (frbFile.isEmpty()) continue;
+            auto frbFileFrom = QFileInfo(mdFileSrc).dir().filePath(frbFile + ".frb");
+            QFileInfo frbFileFromInfo(frbFileFrom);
+            if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
+                return false;
+            }
+            if (!tmpDir.mkpath(PARAM_FOLDER+"/"+frbFile)) {
+                return false;
+            }
+            auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+            QFile(frbFileTo).remove();
+            QFile::copy(frbFileFrom, frbFileTo);
+        }
+
+        // set internal name
+        descriptor.internalName = QFileInfo(mdFileSrc).baseName();
+        return true;
+    }
+    return false;
 }
 
 }

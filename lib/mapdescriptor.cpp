@@ -1,6 +1,5 @@
 #include "mapdescriptor.h"
 #include <QDebug>
-#include "yaml-cpp/yaml.h"
 
 bool OriginPoint::operator==(const OriginPoint &other) const {
     return x == other.x && y == other.y;
@@ -125,6 +124,58 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && descs == other.descs
             && internalName == other.internalName
             && mapDescriptorFilePath == other.mapDescriptorFilePath;
+}
+
+bool MapDescriptor::fromMd(const YAML::Node &yaml) {
+    try {
+        for (auto it=yaml["name"].begin(); it!=yaml["name"].end(); ++it) {
+            names[QString::fromStdString(it->first.as<std::string>())] = QString::fromStdString(it->second.as<std::string>());
+        }
+        for (auto it=yaml["desc"].begin(); it!=yaml["desc"].end(); ++it) {
+            descs[QString::fromStdString(it->first.as<std::string>())] = QString::fromStdString(it->second.as<std::string>());
+        }
+        ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
+        initialCash = yaml["initialCash"].as<quint32>();
+        targetAmount = yaml["targetAmount"].as<quint32>();
+        baseSalary = yaml["baseSalary"].as<quint32>();
+        salaryIncrement = yaml["salaryIncrement"].as<quint32>();
+        maxDiceRoll = yaml["maxDiceRoll"].as<quint32>();
+        for (int i=0; i<4; ++i) {
+            frbFiles[i] = QString::fromStdString(yaml[QString("frbFile%1").arg(i+1).toStdString()].as<std::string>());
+        }
+        switchRotationOrigins.clear();
+        for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
+            switchRotationOrigins.append({originPoint["x"].as<float>(), originPoint["y"].as<float>(),});
+        }
+        auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
+        if (loopingModeStr == "Vertical") {
+            loopingMode = Vertical;
+        } else if (loopingModeStr == "Both") {
+            loopingMode = Both;
+        } else {
+            loopingMode = None;
+        }
+        loopingModeRadius = yaml["looping"]["radius"].as<float>();
+        loopingModeHorizontalPadding = yaml["looping"]["horizontalPadding"].as<float>();
+        loopingModeVerticalSquareCount = yaml["looping"]["verticalSquareCount"].as<float>();
+        tourBankruptcyLimit = yaml["tourMode"]["bankruptcyLimit"].as<quint32>();
+        tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
+        for (int i=0; i<3; ++i) {
+            tourCharacters[i] = stringToTourCharacter(
+                        QString::fromStdString(yaml["tourMode"][QString("opponent%1").arg(i+1).toStdString()].as<std::string>())
+                    );
+        }
+        tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
+        bgmId = yaml["bgmId"].as<quint32>();
+        background = QString::fromStdString(yaml["background"].as<std::string>());
+        mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+        for (quint32 i=0; i<sizeof(ventureCards); ++i) {
+            ventureCards[i] = yaml["ventureCards"][i].as<int>();
+        }
+        return true;
+    } catch (const YAML::Exception &exception) {
+        return false;
+    }
 }
 
 QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj) {

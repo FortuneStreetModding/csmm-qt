@@ -2,13 +2,20 @@
 
 #include <QFileDialog>
 #include <QHeaderView>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QTextStream>
 #include "lib/datafileset.h"
+#include "lib/patchprocess.h"
 #include "venturecarddialog.h"
 
+// Internal types for table items
+static constexpr int MAP_SET_TYPE = QTableWidgetItem::UserType;
+static constexpr int ZONE_TYPE = QTableWidgetItem::UserType + 1;
+static constexpr int ORDER_TYPE = QTableWidgetItem::UserType + 2;
+
 MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
-    QStringList labels{"", "", "Name", "MapSet", "Zone", "Order",
+    QStringList labels{"", "", "Name", "MapSet [Editable]", "Zone [Editable]", "Order [Editable]",
                        "Is Practice Board", "Ruleset", "Initial Cash", "Target Amount",
                        "Base Salary", "Salary Increment", "Max. Dice Roll",
                        "Venture Cards", "FRB Files", "Switch Origin Points",
@@ -21,7 +28,29 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
     setColumnCount(labels.size());
     setHorizontalHeaderLabels(labels);
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    connect(this, &MapDescriptorWidget::cellChanged, this, [&](int row, int col) {
+        auto theItem = item(row, col);
+
+        if (theItem->type() < QTableWidgetItem::UserType) return;
+
+        bool ok;
+        qint8 value = theItem->text().toInt(&ok);
+        if (!ok) return;
+        if (theItem->type() == MAP_SET_TYPE) {
+            descriptors[row]->mapSet = value;
+        } else if (theItem->type() == ZONE_TYPE) {
+            descriptors[row]->zone = value;
+        } else if (theItem->type() == ORDER_TYPE) {
+            descriptors[row]->order = value;
+        }
+    });
+}
+
+static QTableWidgetItem *readOnlyItem(const QString &str) {
+    auto item = new QTableWidgetItem(str);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+    return item;
 }
 
 void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor &descriptor) {
@@ -32,42 +61,38 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     int colIdx = 0;
 
     QPushButton *importMdButton = new QPushButton("Import .md");
-    // TODO implement importMd
+    connect(importMdButton, &QPushButton::clicked, this, [=](bool) {
+        auto gameDirectory = getGameDirectory();
+        auto openMd = QFileDialog::getOpenFileName(this, "Import .md", "", "Map Descriptor Files (*.md)");
+        MapDescriptor newDescriptor;
+        if (PatchProcess::importMd(gameDirectory, openMd, newDescriptor, tmpDir.path())) {
+            loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), newDescriptor);
+        } else {
+            QMessageBox::critical(this, "Import .md", "There was an error loading the .md file");
+        }
+    });
     setCellWidget(row, colIdx++, importMdButton);
 
     QPushButton *exportMdButton = new QPushButton("Export .md");
     connect(exportMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .md", "", "Map Descriptor Files (*.md)");
-        QFile saveMdToFile(saveMdTo);
-        if (!saveMdTo.isEmpty() && saveMdToFile.open(QIODevice::WriteOnly)) {
-            QTextStream stream(&saveMdToFile);
-            stream << descriptorPtr->toMd();
-
-            // export frb files
-            for (auto &frbFile: descriptorPtr->frbFiles) {
-                if (frbFile.isEmpty()) continue;
-                auto frbFileFrom = QDir(gameDirectory).filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
-                auto frbFileTo = QFileInfo(saveMdTo).dir().filePath(frbFile + ".frb");
-                QFile(frbFileTo).remove();
-                QFile::copy(frbFileFrom, frbFileTo);
-            }
-        }
+        auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .md", descriptorPtr->internalName + ".md", "Map Descriptor Files (*.md)");
+        PatchProcess::exportMd(gameDirectory, saveMdTo, *descriptorPtr);
     });
     setCellWidget(row, colIdx++, exportMdButton);
 
-    setItem(row, colIdx++, new QTableWidgetItem(descriptor.names["en"]));
+    setItem(row, colIdx++, readOnlyItem(descriptor.names["en"]));
 
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.mapSet)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.zone)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.order)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.isPracticeBoard)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.ruleSet)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.initialCash)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.targetAmount)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.baseSalary)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.salaryIncrement)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.maxDiceRoll)));
+    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.mapSet), MAP_SET_TYPE));
+    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.zone), ZONE_TYPE));
+    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.order), ORDER_TYPE));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.isPracticeBoard)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.ruleSet)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.initialCash)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.targetAmount)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.baseSalary)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.salaryIncrement)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.maxDiceRoll)));
 
     QPushButton *ventureButton = new QPushButton("View Venture Cards"); // note: setCellWidget takes control of button
     connect(ventureButton, &QPushButton::clicked, this, [=](bool) {
@@ -81,34 +106,34 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
             frbFilesList.append(str);
         }
     }
-    setItem(row, colIdx++, new QTableWidgetItem(frbFilesList.join("; ")));
+    setItem(row, colIdx++, readOnlyItem(frbFilesList.join("; ")));
 
     QStringList originPointsStrList;
     for (auto &originPoint: descriptor.switchRotationOrigins) originPointsStrList.append(QString(originPoint));
-    setItem(row, colIdx++, new QTableWidgetItem(originPointsStrList.join("; ")));
+    setItem(row, colIdx++, readOnlyItem(originPointsStrList.join("; ")));
 
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.theme)));
-    setItem(row, colIdx++, new QTableWidgetItem(descriptor.background));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.bgmId)));
-    setItem(row, colIdx++, new QTableWidgetItem(descriptor.mapIcon));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.loopingMode)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.loopingModeRadius)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.loopingModeHorizontalPadding)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.loopingModeVerticalSquareCount)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.tourBankruptcyLimit)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.tourInitialCash)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.theme)));
+    setItem(row, colIdx++, readOnlyItem(descriptor.background));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.bgmId)));
+    setItem(row, colIdx++, readOnlyItem(descriptor.mapIcon));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingMode)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingModeRadius)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingModeHorizontalPadding)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingModeVerticalSquareCount)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.tourBankruptcyLimit)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.tourInitialCash)));
 
     QStringList tourOpponentsList;
     for (auto character: descriptor.tourCharacters) tourOpponentsList.append(tourCharacterToString(character));
-    setItem(row, colIdx++, new QTableWidgetItem(tourOpponentsList.join("; ")));
+    setItem(row, colIdx++, readOnlyItem(tourOpponentsList.join("; ")));
 
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.tourClearRank)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.unlockId)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.nameMsgId)));
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.descMsgId)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.tourClearRank)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.unlockId)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.nameMsgId)));
+    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.descMsgId)));
 
-    setItem(row, colIdx++, new QTableWidgetItem(descriptor.descs["en"]));
-    setItem(row, colIdx++, new QTableWidgetItem(descriptor.internalName));
+    setItem(row, colIdx++, readOnlyItem(descriptor.descs["en"]));
+    setItem(row, colIdx++, readOnlyItem(descriptor.internalName));
 }
 
 void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
@@ -123,4 +148,8 @@ const QVector<QSharedPointer<MapDescriptor> > &MapDescriptorWidget::getDescripto
 
 void MapDescriptorWidget::setGameDirectoryFunction(const std::function<QString()> &fn) {
     getGameDirectory = fn;
+}
+
+const QTemporaryDir &MapDescriptorWidget::getTmpDir() {
+    return tmpDir;
 }
