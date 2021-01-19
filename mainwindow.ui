@@ -19,7 +19,10 @@
      <widget class="MapDescriptorWidget" name="tableWidget"/>
     </item>
     <item>
-     <widget class="QWidget" name="widget" native="true">
+     <widget class="QWidget" name="mapToolbar" native="true">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QPushButton" name="addMap">
@@ -67,6 +70,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionImport_WBFS_ISO"/>
     <addaction name="actionExport_To_Folder"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
@@ -91,17 +95,9 @@
     <string>CSMM Help</string>
    </property>
   </action>
-  <action name="actionVerbose">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Verbose</string>
-   </property>
-  </action>
   <action name="actionOpen">
    <property name="text">
-    <string>Open</string>
+    <string>Open Game Folder</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -127,6 +123,14 @@
    </property>
    <property name="text">
     <string>Patch Wiimmfi</string>
+   </property>
+  </action>
+  <action name="actionImport_WBFS_ISO">
+   <property name="text">
+    <string>Import WBFS/ISO</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>

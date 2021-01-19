@@ -3,6 +3,7 @@
 
 #include <archive.h>
 #include <archive_entry.h>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProgressDialog>
@@ -21,7 +22,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
+    connect(ui->actionImport_WBFS_ISO, &QAction::triggered, this, &MainWindow::openIsoWbfs);
     connect(ui->actionExport_To_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
+    connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
+        QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
+    });
     connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
         if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
@@ -36,7 +41,6 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::openFile() {
-    // TODO add *.dol
     QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory");
     if (dirname.isEmpty()) {
         return;
@@ -54,13 +58,51 @@ void MainWindow::openFile() {
             QMessageBox::critical(this, "Open", "Bad Fortune Street directory");
             return;
         }
-        ui->tableWidget->clearDescriptors();
-        for (auto &descriptor: descriptors) {
-            ui->tableWidget->appendMapDescriptor(descriptor);
-        }
+        loadDescriptors(descriptors);
         setWindowFilePath(dirname);
-        ui->actionExport_To_Folder->setEnabled(true);
     });
+}
+
+void MainWindow::openIsoWbfs() {
+    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso)");
+    if (isoWbfs.isEmpty()) return;
+    auto progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
+    AsyncFuture::observe(checkForRequiredFiles())
+            .subscribe([=](bool result) {
+        if (result) {
+            progress->setValue(0);
+            return ExeWrapper::extractWbfsIso(isoWbfs, tempGameDir.path());
+        }
+        auto deferred = AsyncFuture::deferred<bool>();
+        deferred.cancel();
+        return deferred.future();
+    }).subscribe([=](bool result) {
+        if (!result) {
+            QMessageBox::critical(this, "Import", "Error extracting WBFS/ISO");
+            auto deferred = AsyncFuture::deferred<QVector<MapDescriptor>>();
+            deferred.cancel();
+            return deferred.future();
+        }
+        progress->setValue(1);
+        return PatchProcess::openDir(tempGameDir.path());
+    }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
+        if (descriptors.isEmpty()) {
+            QMessageBox::critical(this, "Import", "Error loading WBFS/ISO file contents");
+            return;
+        }
+        progress->setValue(2);
+        loadDescriptors(descriptors);
+        setWindowFilePath(tempGameDir.path());
+    });
+}
+
+void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
+    ui->tableWidget->clearDescriptors();
+    for (auto &descriptor: descriptors) {
+        ui->tableWidget->appendMapDescriptor(descriptor);
+    }
+    ui->mapToolbar->setEnabled(true);
+    ui->actionExport_To_Folder->setEnabled(true);
 }
 
 #ifdef Q_OS_WIN

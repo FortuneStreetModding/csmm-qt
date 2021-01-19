@@ -94,20 +94,20 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
     }).future();
 }
 
-QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder) {
+QFuture<bool> extractArcFile(const QString &arcFile, const QString &dFolder) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"EXTRACT", "--overwrite", arcFile, "--dest", dFolder});
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=]() { delete proc; }).future();
+            .subscribe([=](int code) { delete proc; return code == 0; }).future();
 }
-QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
+QFuture<bool> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
     proc->setProcessChannelMode(QProcess::ForwardedChannels);
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=]() { delete proc; }).future();
+            .subscribe([=](int code) { delete proc; return code == 0; }).future();
 }
 void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile) {
     auto brlytFileArr = brlytFile.toUtf8();
@@ -128,11 +128,25 @@ void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile) {
         make_brlan(xmlytFileArr.data(), brlytFileArr.data());
     }
 }
-QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
+QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWimgtPath(), {"ENCODE", "--overwrite", pngFile, "--dest", tplFile});
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=]() { delete proc; }).future();
+            .subscribe([=](int code) { delete proc; return code == 0; }).future();
+}
+QFuture<bool> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->start(getWitPath(), {"COPY", "--overwrite", "--fst", wbfsFile, extractDir});
+    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
+            .subscribe([=](int code) { delete proc; return code == 0; }).future();
+}
+QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->start(getWitPath(), {"COPY", "--overwrite", sourceDir, wbfsFile});
+    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
+            .subscribe([=](int code) { delete proc; return code == 0; }).future();
 }
 }

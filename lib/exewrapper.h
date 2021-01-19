@@ -16,11 +16,13 @@
 
 namespace ExeWrapper {
     QFuture<QVector<AddressSection>> readSections(const QString &inputFile);
-    QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder);
-    QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile);
+    QFuture<bool> extractArcFile(const QString &arcFile, const QString &dFolder);
+    QFuture<bool> packDfolderToArc(const QString &dFolder, const QString &arcFile);
     void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile);
     void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile);
-    QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile);
+    QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile);
+    QFuture<bool> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
+    QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile);
 }
 
 #endif // EXEWRAPPER_H

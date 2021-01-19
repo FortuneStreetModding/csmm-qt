@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QFuture>
 #include <QtNetwork>
+#include <QTemporaryDir>
+#include "lib/mapdescriptor.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,8 +24,12 @@ private:
 
     QNetworkAccessManager *manager;
 
+    QTemporaryDir tempGameDir;
+
     void openFile();
+    void openIsoWbfs();
     void exportToFolder();
+    void loadDescriptors(const QVector<MapDescriptor> &descriptors);
     QFuture<bool> checkForRequiredFiles();
     template<class InToOutFiles>
     QFuture<bool> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
