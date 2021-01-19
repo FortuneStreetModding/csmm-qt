@@ -37,18 +37,21 @@ bool injectMapIconsLayout(const QString &xmlytFile, const QMap<QString, QString>
         return false;
     }
 
+    // TEXTURES
     auto tplEntriesNode = doc.select_node("/xmlyt/tag[@type='txl1']/entries");
     auto tplEntryNameList = doc.select_nodes("/xmlyt/tag[@type='txl1']/entries/name");
     for (auto &tplEntryName: tplEntryNameList) {
-        if (isMapTpl(tplEntryName.node().value())) {
+        if (isMapTpl(tplEntryName.node().text().get())) {
             tplEntriesNode.node().remove_child(tplEntryName.node());
         }
     }
     auto values = mapIconToTplName.values();
     for (auto &tpl: values) {
-        tplEntriesNode.node().append_child("name").set_value(tpl.toUtf8());
+        auto newNode = tplEntriesNode.node().append_child("name");
+        newNode.text().set(tpl.toUtf8().data());
     }
 
+    // MATERIALS
     auto materialNodesTexture = doc.select_nodes("/xmlyt/tag[@type='mat1']/entries/texture");
     pugi::xml_node templateMaterialNode;
     QSet<QString> nonMapIconMatNames;
@@ -58,8 +61,9 @@ bool injectMapIconsLayout(const QString &xmlytFile, const QMap<QString, QString>
         if (isMapTpl(tplName)) {
             if (templateMaterialNode.type() == pugi::node_null) {
                 templateMaterialNode = materialNode;
+            } else {
+                materialNode.parent().remove_child(materialNode);
             }
-            materialNode.parent().remove_child(materialNode);
         } else {
             nonMapIconMatNames.insert(materialNode.attribute("name").value());
         }
@@ -70,7 +74,9 @@ bool injectMapIconsLayout(const QString &xmlytFile, const QMap<QString, QString>
         newElem.attribute("name").set_value(it.key().toUtf8().data());
         newElem.child("texture").attribute("name").set_value(it.value().toUtf8().data());
     }
+    templateMaterialNode.parent().remove_child(templateMaterialNode);
 
+    // PICS
     auto picNodesMaterial = doc.select_nodes("/xmlyt/tag[@type='pic1']/material");
     pugi::xml_node templatePicNode;
     pugi::xml_node insertionPoint;
@@ -83,15 +89,18 @@ bool injectMapIconsLayout(const QString &xmlytFile, const QMap<QString, QString>
             }
             if (templatePicNode.type() == pugi::node_null) {
                 templatePicNode = picNode;
+            } else {
+                picNode.parent().remove_child(picNode);
             }
-            picNode.parent().remove_child(picNode);
         }
     }
-    for (auto &mapIcon: mapIconToTplName) {
-        auto newElem = insertionPoint.append_copy(templatePicNode);
+    auto keys = mapIconToTplName.keys();
+    for (auto &mapIcon: keys) {
+        auto newElem = insertionPoint.parent().insert_copy_after(templatePicNode, insertionPoint);
         newElem.attribute("name").set_value(mapIcon.toUtf8().data());
         newElem.child("material").attribute("name").set_value(mapIcon.toUtf8().data());
     }
+    templatePicNode.parent().remove_child(templatePicNode);
 
     return doc.save_file(xmlytFile.toUtf8());
 }
@@ -112,16 +121,19 @@ bool injectMapIconsAnimation(const QString &xmlanFile, const QMap<QString, QStri
         if (!ignorePanes.contains(paneNode.node().attribute("name").value())) {
             if (animationPaneTemplate.type() == pugi::node_null) {
                 animationPaneTemplate = paneNode.node();
+            } else {
+                paneNode.parent().remove_child(paneNode.node());
             }
-            paneNode.parent().remove_child(paneNode.node());
         }
     }
     auto animationEntriesRefNode = doc.select_node("/xmlan/pai1/pane[@name='n_rank_leaf']");
     auto animationEntriesNodeParent = doc.select_node("/xmlan/pai1");
-    for (auto &mapIcon: mapIconToTplName) {
+    auto keys = mapIconToTplName.keys();
+    for (auto &mapIcon: keys) {
         auto newElem = animationEntriesNodeParent.node().insert_copy_after(animationPaneTemplate, animationEntriesRefNode.node());
         newElem.attribute("name").set_value(mapIcon.toUtf8().data());
     }
+    animationPaneTemplate.parent().remove_child(animationPaneTemplate);
 
     return doc.save_file(xmlanFile.toUtf8());
 }

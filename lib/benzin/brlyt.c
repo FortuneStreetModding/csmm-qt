@@ -310,6 +310,12 @@ void SetupConstants( )
         strcpy( tevswapsel[2]  , "GX_TEV_SWAP2" );
         strcpy( tevswapsel[3]  , "GX_TEV_SWAP3" );
 	
+        materials = (char*)malloc(12);
+        numberOfMaterials = 0;
+        lengthOfMaterials = 0;
+        textures = (char*)malloc(12);
+        numberOfTextures = 0;
+        lengthOfTextures = 0;
 }
 
 static int FourCCsMatch(fourcc cc1, fourcc cc2)
@@ -1271,12 +1277,6 @@ void parse_brlyt(char *filename, char *filenameout)
 {
 	SetupConstants();
 
-	materials = (char*)malloc(12);
-	numberOfMaterials = 0;
-	lengthOfMaterials = 0;
-	textures = (char*)malloc(12);
-	numberOfTextures = 0;
-	lengthOfTextures = 0;
 	FILE* fp = fopen(filename, "rb");
 	if(fp == NULL) {
 		printf("Error! Couldn't open %s!\n", filename);
@@ -3798,13 +3798,14 @@ void write_brlyt(char *infile, char *outfile)
 
 	for(node = mxmlFindElement(tree, tree, "tag", NULL, NULL, MXML_DESCEND); node != NULL; node = mxmlFindElement(node, tree, "tag", NULL, NULL, MXML_DESCEND)) {
 
-		char tempType[4];
+		char tempType[5] = {0};
 		if(mxmlElementGetAttr(node, "type") != NULL)
-			strcpy(tempType, mxmlElementGetAttr(node, "type"));
+			strncpy(tempType, mxmlElementGetAttr(node, "type"), 5);
 		else{
 			printf("No type attribute found!\n");
 			exit(1);
 		}
+		//fputs(tempType, stdout);
 
 		u32 chunkHeaderOffset = fileOffset;
 

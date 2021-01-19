@@ -67,6 +67,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     connect(importMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
         auto openMd = QFileDialog::getOpenFileName(this, "Import .md", "", "Map Descriptor Files (*.md)");
+        if (openMd.isEmpty()) return;
         MapDescriptor newDescriptor;
         if (PatchProcess::importMd(gameDirectory, openMd, newDescriptor, tmpDir.path())) {
             descriptorPtr->setFromImport(newDescriptor);
@@ -81,6 +82,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     connect(exportMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
         auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .md", descriptorPtr->internalName + ".md", "Map Descriptor Files (*.md)");
+        if (saveMdTo.isEmpty()) return;
         PatchProcess::exportMd(gameDirectory, saveMdTo, *descriptorPtr);
     });
     setCellWidget(row, colIdx++, exportMdButton);

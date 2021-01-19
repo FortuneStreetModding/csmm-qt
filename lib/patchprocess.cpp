@@ -2,7 +2,6 @@
 
 #include <QFileInfo>
 #include <QRegularExpression>
-#include <QTemporaryDir>
 #include "asyncfuture.h"
 #include "datafileset.h"
 #include "exewrapper.h"
@@ -161,7 +160,7 @@ static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescript
     }).future();
 }
 
-static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir) {
+static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, const QDir &tmpDir) {
     // first check if we need to inject any map icons in the first place. We do not need to if only vanilla map icons are used.
     bool allMapIconsVanilla = true;
     for (auto &mapDescriptor: mapDescriptors){
@@ -171,44 +170,39 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
             break;
         }
     }
+
     if (allMapIconsVanilla) {
         auto def = AsyncFuture::deferred<bool>();
         def.complete(true);
         return def.future();
     }
 
-    QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
-    if (!tempDir->isValid()) {
-        auto def = AsyncFuture::deferred<bool>();
-        def.complete(false);
-        return def.future();
-    }
-    QDir tempDirObj(tempDir->path());
+    QDir tmpDirObj(tmpDir.path());
 
     /** maps the path of the various variants of the game_sequenceXXXXXXXX.arc files to their respective extraction path in the tmp directory */
-    QSharedPointer<QMap<QString, QString>> gameSequenceExtractPaths;
+    auto gameSequenceExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     /** maps the path of the various variants of the game_sequenceXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
-    QSharedPointer<QMap<QString, QString>> gameSequenceToXmlytBasePaths;
+    auto gameSequenceToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
     for (auto &locale: FS_LOCALES) {
         auto gameSequencePath = dir.filePath(gameSequenceArc(locale));
 
-        auto extractPath = tempDirObj.filePath(QFileInfo(gameSequencePath).baseName());
-        tempDirObj.mkpath(extractPath);
+        auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
+        tmpDirObj.mkpath(extractPath);
         (*gameSequenceExtractPaths)[gameSequencePath] = extractPath;
 
-        auto xmlytPath = tempDirObj.filePath(QFileInfo(gameSequencePath).baseName() + ".");
-        tempDirObj.mkpath(xmlytPath);
+        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName() + "_");
+        tmpDirObj.mkpath(xmlytPath);
         (*gameSequenceToXmlytBasePaths)[gameSequencePath] = xmlytPath;
     }
     for (auto &locale: FS_LOCALES) {
         auto gameSequencePath = dir.filePath(gameSequenceWifiArc(locale));
 
-        auto extractPath = tempDirObj.filePath(QFileInfo(gameSequencePath).baseName());
-        tempDirObj.mkpath(extractPath);
+        auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
+        tmpDirObj.mkpath(extractPath);
         (*gameSequenceExtractPaths)[gameSequencePath] = extractPath;
 
-        auto xmlytPath = tempDirObj.filePath(QFileInfo(gameSequencePath).baseName() + ".");
-        tempDirObj.mkpath(xmlytPath);
+        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName() + "_");
+        tmpDirObj.mkpath(xmlytPath);
         (*gameSequenceToXmlytBasePaths)[gameSequencePath] = xmlytPath;
     }
 
@@ -220,18 +214,19 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     return extractArcTasks.subscribe([=]() {
         // convert the png files to tpl and copy them to the correct location
         auto convertTasks = AsyncFuture::combine();
-        QSharedPointer<QMap<QString, QString>> mapIconToTplName;
+
+        QMap<QString, QString> mapIconToTplName;
         for (auto &mapDescriptor: mapDescriptors) {
             if (mapDescriptor.mapIcon.isEmpty()) continue;
             if (VanillaDatabase::hasVanillaTpl(mapDescriptor.mapIcon)) {
-                (*mapIconToTplName)[mapDescriptor.mapIcon] = VanillaDatabase::getVanillaTpl(mapDescriptor.mapIcon);
+                mapIconToTplName[mapDescriptor.mapIcon] = VanillaDatabase::getVanillaTpl(mapDescriptor.mapIcon);
             } else {
-                QString mapIconPng = mapDescriptor.mapIcon + ".png"; // TODO change this to point to right directory
+                QString mapIconPng = tmpDirObj.filePath(PARAM_FOLDER + "/" + mapDescriptor.mapIcon + ".png");
                 QFileInfo mapIconPngInfo(mapIconPng);
-                QString mapIconTpl = mapIconPngInfo.baseName() + ".tpl";
+                QString mapIconTpl = tmpDirObj.filePath(PARAM_FOLDER + "/" + mapDescriptor.mapIcon + ".tpl");
                 auto tplName = Ui_menu_19_00a::constructMapIconTplName(mapDescriptor.mapIcon);
-                if (!mapIconToTplName->contains(mapDescriptor.mapIcon)) {
-                    (*mapIconToTplName)[mapDescriptor.mapIcon] = tplName;
+                if (!mapIconToTplName.contains(mapDescriptor.mapIcon)) {
+                    (mapIconToTplName)[mapDescriptor.mapIcon] = tplName;
                 }
                 if (mapIconPngInfo.exists() && mapIconPngInfo.isFile()) {
                     convertTasks << AsyncFuture::observe(ExeWrapper::convertPngToTpl(mapIconPng, mapIconTpl))
@@ -251,61 +246,61 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
         for (auto it=gameSequenceExtractPaths->begin(); it!=gameSequenceExtractPaths->end(); ++it) {
             auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_menu_19_00a.brlyt");
             auto xmlytFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
-            convertTasks << AsyncFuture::observe(ExeWrapper::convertBryltToXmlyt(brlytFile, xmlytFile))
-                            .subscribe([=]() {
-                Ui_menu_19_00a::injectMapIconsLayout(xmlytFile, *mapIconToTplName);
-                return ExeWrapper::convertXmlytToBrylt(xmlytFile, brlytFile);
-            }).subscribe([=]() {
-                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-                QFile brlytFileObj(brlytFile);
-                if (brlytFileObj.open(QIODevice::ReadOnly)) {
-                    brlytFileObj.putChar('R');
-                }
-            }).future();
-        }
 
+            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+            Ui_menu_19_00a::injectMapIconsLayout(xmlytFile, mapIconToTplName);
+            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            QFile brlytFileObj(brlytFile);
+            if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                brlytFileObj.seek(0);
+                brlytFileObj.putChar('R');
+            }
+        }
         // convert the brlan files to xmlan, inject the map icons and convert it back
         for (auto it=gameSequenceExtractPaths->begin(); it!=gameSequenceExtractPaths->end(); ++it) {
             QDir brlanFileDir(QDir(it.value()).filePath("arc/anim"));
-            auto brlanFiles = brlanFileDir.entryList({"ui_menu_19_00a_Tag_*.brlan"}, QDir::Files);
-            for (auto &brlanFile: brlanFiles) {
-                auto xlmanFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlanFile).baseName() + ".xmlan");
-                convertTasks << AsyncFuture::observe(ExeWrapper::convertBryltToXmlyt(brlanFile, xlmanFile))
-                                .subscribe([=]() {
-                    Ui_menu_19_00a::injectMapIconsLayout(xlmanFile, *mapIconToTplName);
-                    return ExeWrapper::convertXmlytToBrylt(xlmanFile, brlanFile);
-                }).subscribe([=]() {
-                    // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-                    QFile brlytFileObj(brlanFile);
-                    if (brlytFileObj.open(QIODevice::ReadOnly)) {
-                        brlytFileObj.putChar('R');
-                    }
-                }).future();
+            auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_menu_19_00a_Tag_*.brlan"}, QDir::Files);
+            for (auto &brlanFileInfo: brlanFilesInfo) {
+                auto brlanFile = brlanFileInfo.absoluteFilePath();
+                auto xlmanFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
+
+                ExeWrapper::convertBrlytToXmlyt(brlanFile, xlmanFile);
+                Ui_menu_19_00a::injectMapIconsAnimation(xlmanFile, mapIconToTplName);
+                ExeWrapper::convertXmlytToBrlyt(xlmanFile, brlanFile);
+
+                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+                QFile brlytFileObj(brlanFileInfo.absoluteFilePath());
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
             }
         }
 
         return convertTasks.future();
-    }).subscribe([=]() -> bool {
+    }).subscribe([=]() {
         auto packArcFileTasks = AsyncFuture::combine();
         for (auto it=gameSequenceExtractPaths->begin(); it!=gameSequenceExtractPaths->end(); ++it) {
             packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
         }
-        return true;
-    }).future();
+        return packArcFileTasks;
+    }).subscribe([]() { return true; }).future();
 }
 
-QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tempDir) {
+QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     return AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() -> QFuture<bool> {
-        return injectMapIcons(descriptors, output);
+        return injectMapIcons(descriptors, output, tmpDir);
     }).subscribe([=](bool result) {
         if (result) {
             // copy frb files from temp dir to output
             for (auto &descriptor: descriptors) {
                 for (auto &frbFile: descriptor.frbFiles) {
                     if (frbFile.isEmpty()) continue;
-                    auto frbFileFrom = tempDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                    auto frbFileFrom = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
                     auto frbFileTo = output.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
                     QFileInfo frbFileFromInfo(frbFileFrom);
                     if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
@@ -323,7 +318,7 @@ QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
 
 void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &descriptor) {
     QFile saveMdToFile(mdFileDest);
-    if (!mdFileDest.isEmpty() && saveMdToFile.open(QIODevice::WriteOnly)) {
+    if (saveMdToFile.open(QIODevice::WriteOnly)) {
         QTextStream stream(&saveMdToFile);
         stream << descriptor.toMd();
 
@@ -343,18 +338,34 @@ bool importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor,
     if (descriptor.fromMd(node)) {
         // import frb files
         for (auto &frbFile: descriptor.frbFiles) {
-            if (frbFile.isEmpty()) continue;
+            if (frbFile.isEmpty()) continue; // skip unused slots
+
             auto frbFileFrom = QFileInfo(mdFileSrc).dir().filePath(frbFile + ".frb");
             QFileInfo frbFileFromInfo(frbFileFrom);
             if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
                 return false;
             }
-            if (!tmpDir.mkpath(PARAM_FOLDER+"/"+frbFile)) {
+            if (!tmpDir.mkpath(PARAM_FOLDER)) {
                 return false;
             }
             auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
             QFile(frbFileTo).remove();
             QFile::copy(frbFileFrom, frbFileTo);
+        }
+
+        // import map icons if needed
+        if (!VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
+            auto mapIconFileFrom = QFileInfo(mdFileSrc).dir().filePath(descriptor.mapIcon + ".png");
+            auto mapIconFileTo = tmpDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
+            QFileInfo mapIconFileFromInfo(mapIconFileFrom);
+            if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
+                return false;
+            }
+            if (!tmpDir.mkpath(PARAM_FOLDER)) {
+                return false;
+            }
+            QFile(mapIconFileTo).remove();
+            QFile::copy(mapIconFileFrom, mapIconFileTo);
         }
 
         // set internal name

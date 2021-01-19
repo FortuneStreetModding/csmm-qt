@@ -97,7 +97,7 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
 QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWszstPath(), {"EXTRACT", arcFile, "--dest", dFolder});
+    proc->start(getWszstPath(), {"EXTRACT", "--overwrite", arcFile, "--dest", dFolder});
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
             .subscribe([=]() { delete proc; }).future();
 }
@@ -105,28 +105,28 @@ QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
+    proc->setProcessChannelMode(QProcess::ForwardedChannels);
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
             .subscribe([=]() { delete proc; }).future();
 }
-QFuture<void> convertBryltToXmlyt(const QString &bryltFile, const QString &xmlytFile) {
-    if (QFileInfo(bryltFile).suffix() == "brylt") {
-        parse_brlyt(bryltFile.toUtf8().data(), xmlytFile.toUtf8().data());
+void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile) {
+    auto brlytFileArr = brlytFile.toUtf8();
+    auto xmlytFileArr = xmlytFile.toUtf8();
+    if (QFileInfo(brlytFile).suffix() == "brlyt") {
+        parse_brlyt(brlytFileArr.data(), xmlytFileArr.data());
     } else {
-        parse_brlan(bryltFile.toUtf8().data(), xmlytFile.toUtf8().data());
+        parse_brlan(brlytFileArr.data(), xmlytFileArr.data());
     }
-    auto def = AsyncFuture::deferred<void>();
-    def.complete();
-    return def.future();
 }
-QFuture<void> convertXmlytToBrylt(const QString &xmlytFile, const QString &bryltFile) {
-    if (QFileInfo(bryltFile).suffix() == "brylt") {
-        make_brlyt(xmlytFile.toUtf8().data(), bryltFile.toUtf8().data());
+void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile) {
+    auto brlytFileArr = brlytFile.toUtf8();
+    auto xmlytFileArr = xmlytFile.toUtf8();
+    if (QFileInfo(brlytFile).suffix() == "brlyt") {
+        //qDebug() << xmlytFileArr << brlytFileArr;
+        make_brlyt(xmlytFileArr.data(), brlytFileArr.data());
     } else {
-        make_brlan(xmlytFile.toUtf8().data(), bryltFile.toUtf8().data());
+        make_brlan(xmlytFileArr.data(), brlytFileArr.data());
     }
-    auto def = AsyncFuture::deferred<void>();
-    def.complete();
-    return def.future();
 }
 QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
     QProcess *proc = new QProcess();

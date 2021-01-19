@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/xml">
-        <file>resources/injectMapIconsLayout.xml</file>
-    </qresource>
-</RCC>

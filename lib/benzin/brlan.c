@@ -1195,10 +1195,13 @@ void write_brlan(char *infile, char* outfile)
 
 
 
-	rlanhead.file_size = fileSize;
+    rlanhead.file_size = fileSize;
 	rlanhead.pai1_count = chunk_count;
 	fseek(fp, 0, SEEK_SET);
 	WriteBRLANHeader(rlanhead, fp);
+
+    fclose(fpx);
+    fclose(fp);
 }
 
 void make_brlan(char* infile, char* outfile)

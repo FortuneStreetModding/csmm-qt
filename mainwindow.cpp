@@ -170,6 +170,7 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
 
 void MainWindow::exportToFolder() {
     auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory");
+    if (saveDir.isEmpty()) return;
     if (!QDir(saveDir).isEmpty()) {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
         return;
