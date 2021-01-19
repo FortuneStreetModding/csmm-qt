@@ -5,6 +5,8 @@
 #include <archive_entry.h>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QProgressDialog>
+#include <QtConcurrent>
 #include "lib/archiveutil.h"
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
@@ -178,22 +180,38 @@ void MainWindow::exportToFolder() {
     if (ui->actionPatch_Wiimmfi->isChecked()) {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
-    QtShell::cp("-R", windowFilePath() + "/*", saveDir);
-    auto descriptorPtrs = ui->tableWidget->getDescriptors();
-    QVector<MapDescriptor> descriptors;
-    std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [&](auto &ptr) { return *ptr; });
-    AsyncFuture::observe(PatchProcess::saveDir(saveDir, descriptors, false, ui->tableWidget->getTmpDir().path()))
+
+    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+    progress->setWindowModality(Qt::WindowModal);
+    progress->setValue(0);
+
+    auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
+    auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
+    AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
+        if (!result) {
+            auto def = AsyncFuture::deferred<bool>();
+            def.complete(false);
+            return def.future();
+        }
+        progress->setValue(1);
+        auto descriptorPtrs = ui->tableWidget->getDescriptors();
+        std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [&](auto &ptr) { return *ptr; });
+        return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpDir().path());
+    }).subscribe([=](bool result) {
+        progress->setValue(2);
         if (result) {
             QMessageBox::information(this, "Save", "Saved successfuly.");
         } else {
             QMessageBox::critical(this, "Save", "An error occurred while saving.");
         }
+
+        // reload map descriptors
+        int idx = 0;
+        for (auto &descriptor: *descriptors) {
+            ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
+        }
     });
 
-    // reload map descriptors
-    int idx = 0;
-    for (auto &descriptor: descriptors) {
-        ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
-    }
+
 }
