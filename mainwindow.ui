@@ -71,7 +71,8 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionImport_WBFS_ISO"/>
-    <addaction name="actionExport_To_Folder"/>
+    <addaction name="actionExport_to_Folder"/>
+    <addaction name="actionExport_to_WBFS_ISO"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
@@ -103,15 +104,15 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionExport_To_Folder">
+  <action name="actionExport_to_Folder">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Export To Folder</string>
+    <string>Export to Folder</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+E</string>
+    <string>Ctrl+Shift+E</string>
    </property>
   </action>
   <action name="actionPatch_Wiimmfi">
@@ -131,6 +132,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionExport_to_WBFS_ISO">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Export to WBFS/ISO</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
  </widget>

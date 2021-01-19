@@ -29,6 +29,7 @@ private:
     void openFile();
     void openIsoWbfs();
     void exportToFolder();
+    void exportIsoWbfs();
     void loadDescriptors(const QVector<MapDescriptor> &descriptors);
     QFuture<bool> checkForRequiredFiles();
     template<class InToOutFiles>

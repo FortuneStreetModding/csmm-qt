@@ -23,7 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
     connect(ui->actionImport_WBFS_ISO, &QAction::triggered, this, &MainWindow::openIsoWbfs);
-    connect(ui->actionExport_To_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
+    connect(ui->actionExport_to_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
+    connect(ui->actionExport_to_WBFS_ISO, &QAction::triggered, this, &MainWindow::exportIsoWbfs);
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
     });
@@ -64,12 +65,17 @@ void MainWindow::openFile() {
 }
 
 void MainWindow::openIsoWbfs() {
+    if (!tempGameDir.isValid()) {
+        QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
+        return;
+    }
     QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso)");
     if (isoWbfs.isEmpty()) return;
     auto progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
     AsyncFuture::observe(checkForRequiredFiles())
             .subscribe([=](bool result) {
         if (result) {
+            progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
             return ExeWrapper::extractWbfsIso(isoWbfs, tempGameDir.path());
         }
@@ -102,7 +108,8 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
         ui->tableWidget->appendMapDescriptor(descriptor);
     }
     ui->mapToolbar->setEnabled(true);
-    ui->actionExport_To_Folder->setEnabled(true);
+    ui->actionExport_to_Folder->setEnabled(true);
+    ui->actionExport_to_WBFS_ISO->setEnabled(true);
 }
 
 #ifdef Q_OS_WIN
@@ -239,7 +246,7 @@ void MainWindow::exportToFolder() {
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [&](auto &ptr) { return *ptr; });
-        return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpDir().path());
+        return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpResourcesDir().path());
     }).subscribe([=](bool result) {
         progress->setValue(2);
         if (result) {
@@ -254,6 +261,59 @@ void MainWindow::exportToFolder() {
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
         }
     });
+}
 
+void MainWindow::exportIsoWbfs() {
+    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso)");
+    if (saveFile.isEmpty()) return;
 
+    auto intermediateResults = QSharedPointer<QTemporaryDir>::create();
+    if (!intermediateResults->isValid()) {
+        QMessageBox::critical(this, "Export WBFS/ISO", "Could not create a temporary directory for patching");
+        return;
+    }
+
+    auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
+
+    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 3, this);
+    progress->setWindowModality(Qt::WindowModal);
+    progress->setValue(0);
+
+    bool patchWiimmfi = ui->actionPatch_Wiimmfi->isChecked();
+    auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediateResults->path()); });
+    AsyncFuture::observe(copyTask)
+            .subscribe([=](bool result) {
+        if (!result) {
+            auto def = AsyncFuture::deferred<bool>();
+            def.complete(false);
+            return def.future();
+        }
+        progress->setValue(1);
+        auto descriptorPtrs = ui->tableWidget->getDescriptors();
+        std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [&](auto &ptr) { return *ptr; });
+        return PatchProcess::saveDir(intermediateResults->path(), *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
+    }).subscribe([=](bool result) {
+        if (!result) {
+            auto def = AsyncFuture::deferred<bool>();
+            def.complete(false);
+            return def.future();
+        }
+        progress->setValue(2);
+        return ExeWrapper::createWbfsIso(intermediateResults->path(), saveFile, patchWiimmfi);
+    }).subscribe([=](bool result) {
+        (void)intermediateResults; // keep temporary directory active while creating wbfs/iso
+
+        progress->setValue(3);
+        if (result) {
+            QMessageBox::information(this, "Export", "Exported successfuly.");
+        } else {
+            QMessageBox::critical(this, "Export", "An error occurred while exporting.");
+        }
+
+        // reload map descriptors
+        int idx = 0;
+        for (auto &descriptor: *descriptors) {
+            ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
+        }
+    });
 }

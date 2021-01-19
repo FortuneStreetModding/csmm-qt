@@ -178,6 +178,6 @@ void MapDescriptorWidget::setGameDirectoryFunction(const std::function<QString()
     getGameDirectory = fn;
 }
 
-const QTemporaryDir &MapDescriptorWidget::getTmpDir() {
+const QTemporaryDir &MapDescriptorWidget::getTmpResourcesDir() {
     return tmpDir;
 }

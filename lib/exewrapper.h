@@ -22,7 +22,7 @@ namespace ExeWrapper {
     void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile);
     QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile);
     QFuture<bool> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
-    QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile);
+    QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, bool patchWiimmfi);
 }
 
 #endif // EXEWRAPPER_H

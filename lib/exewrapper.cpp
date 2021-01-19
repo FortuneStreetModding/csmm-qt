@@ -21,19 +21,19 @@ static const QString &getWitPath() {
 }
 
 static const QString &getWszstPath() {
-    static QString witPath;
-    if (witPath.isEmpty()) {
-        witPath = QDir(QApplication::applicationDirPath()).filePath(WSZST_NAME);
+    static QString wszstPath;
+    if (wszstPath.isEmpty()) {
+        wszstPath = QDir(QApplication::applicationDirPath()).filePath(WSZST_NAME);
     }
-    return witPath;
+    return wszstPath;
 }
 
 static const QString &getWimgtPath() {
-    static QString witPath;
-    if (witPath.isEmpty()) {
-        witPath = QDir(QApplication::applicationDirPath()).filePath(WIMGT_NAME);
+    static QString wimgtPath;
+    if (wimgtPath.isEmpty()) {
+        wimgtPath = QDir(QApplication::applicationDirPath()).filePath(WIMGT_NAME);
     }
-    return witPath;
+    return wimgtPath;
 }
 
 static const QStringList &getWiimmsEnv() {
@@ -138,14 +138,16 @@ QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
 QFuture<bool> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWitPath(), {"COPY", "--overwrite", "--fst", wbfsFile, extractDir});
+    proc->start(getWitPath(), {"COPY", "--psel", "data", "--preserve", "--overwrite", "--fst", wbfsFile, extractDir});
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
             .subscribe([=](int code) { delete proc; return code == 0; }).future();
 }
-QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile) {
+QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, bool patchWiimmfi) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWitPath(), {"COPY", "--overwrite", sourceDir, wbfsFile});
+    QStringList args{"COPY", "--id", ".....2", "--overwrite", sourceDir, wbfsFile};
+    if (patchWiimmfi) args << "--wiimmfi";
+    proc->start(getWitPath(), args);
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
             .subscribe([=](int code) { delete proc; return code == 0; }).future();
 }
