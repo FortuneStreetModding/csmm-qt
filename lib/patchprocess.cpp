@@ -321,6 +321,7 @@ void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &d
     QFile saveMdToFile(mdFileDest);
     if (saveMdToFile.open(QIODevice::WriteOnly)) {
         QTextStream stream(&saveMdToFile);
+        stream.setCodec("UTF-8");
         stream << descriptor.toMd();
 
         // export frb files
