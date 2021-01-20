@@ -4,6 +4,7 @@
 
 UiMessage fileToMessage(QFile *file) {
     QTextStream stream(file);
+    stream.setCodec("UTF-8");
     UiMessage result;
     QString line;
     while (stream.readLineInto(&line)) {
@@ -15,6 +16,7 @@ UiMessage fileToMessage(QFile *file) {
 
 void messageToFile(QFile *file, const UiMessage &message) {
     QTextStream stream(file);
+    stream.setCodec("UTF-8");
     for (auto it=message.begin(); it!=message.end(); ++it) {
         stream << QString("%1,\"%2\"\n").arg(it.key()).arg(it.value());
     }
