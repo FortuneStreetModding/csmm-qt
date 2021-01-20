@@ -1,3 +1,10 @@
 [submodule "lib/qtshell"]
 	path = lib/qtshell
 	url = https://github.com/benlau/qtshell
+[submodule "lib/mxml"]
+	path = lib/mxml
+	url = https://github.com/michaelrsweet/mxml
+[submodule "lib/yaml-cpp"]
+	path = lib/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp
+

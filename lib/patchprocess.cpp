@@ -31,6 +31,7 @@ static void loadUiMessages(QVector<MapDescriptor> &descriptors, const QDir &dir)
 
 QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
     QString mainDol = dir.filePath(MAIN_DOL);
+    //qDebug() << dir;
     return AsyncFuture::observe(ExeWrapper::readSections(mainDol))
             .subscribe([=](const QVector<AddressSection> &addressSections) -> QVector<MapDescriptor> {
         QFile mainDolFile(mainDol);

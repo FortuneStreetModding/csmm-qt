@@ -1,14 +1,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#ifdef Q_OS_WIN
+#include "lib/zip/zip.h"
+#else
 #include <archive.h>
 #include <archive_entry.h>
+#include "lib/archiveutil.h"
+#endif
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QtConcurrent>
-#include "lib/archiveutil.h"
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
@@ -71,12 +75,14 @@ void MainWindow::openIsoWbfs() {
     }
     QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso)");
     if (isoWbfs.isEmpty()) return;
-    auto progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
+
+    auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
     AsyncFuture::observe(checkForRequiredFiles())
             .subscribe([=](bool result) {
+        *progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
         if (result) {
-            progress->setWindowModality(Qt::WindowModal);
-            progress->setValue(0);
+            (*progress)->setWindowModality(Qt::WindowModal);
+            (*progress)->setValue(0);
             return ExeWrapper::extractWbfsIso(isoWbfs, tempGameDir.path());
         }
         auto deferred = AsyncFuture::deferred<bool>();
@@ -89,14 +95,14 @@ void MainWindow::openIsoWbfs() {
             deferred.cancel();
             return deferred.future();
         }
-        progress->setValue(1);
+        (*progress)->setValue(1);
         return PatchProcess::openDir(tempGameDir.path());
     }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
         if (descriptors.isEmpty()) {
             QMessageBox::critical(this, "Import", "Error loading WBFS/ISO file contents");
             return;
         }
-        progress->setValue(2);
+        (*progress)->setValue(2);
         loadDescriptors(descriptors);
         setWindowFilePath(tempGameDir.path());
     });
@@ -133,11 +139,15 @@ QFuture<bool> MainWindow::checkForRequiredFiles() {
         DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
         if (dialog.exec() == QDialog::Accepted) {
             auto downloadWit = downloadRequiredFiles(dialog.getWitURL(), [=](const QString &file) {
-                return QFileInfo(file).fileName() == WIT_NAME ? appDir.filePath(WIT_NAME) : "";
+                auto filename = QFileInfo(file).fileName();
+                if (filename == WIT_NAME || filename.endsWith(".dll")) {
+                    return appDir.filePath(filename);
+                }
+                return QString();
             });
             auto downloadWszst = downloadRequiredFiles(dialog.getWszstURL(), [=](const QString &file) {
                 auto filename = QFileInfo(file).fileName();
-                if (filename == WSZST_NAME || filename == WIMGT_NAME) {
+                if (filename == WSZST_NAME || filename == WIMGT_NAME || filename.endsWith(".dll")) {
                     return appDir.filePath(filename);
                 }
                 return QString();
@@ -173,12 +183,37 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
             });
             return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> bool {
                 if (reply->error() != QNetworkReply::NoError) {
-                    QMessageBox::critical(this, "Download", "Error occurred while downloading");
+                    //QMessageBox::critical(this, "Download", "Error occurred while downloading");
                     reply->deleteLater();
                     return false;
                 }
                 reply->deleteLater();
 
+                (void)tempDir; // keep alive
+
+#ifdef Q_OS_WIN
+                QString fname = witArchiveFile->fileName();
+                witArchiveFile->close();
+
+                zip_t *zip = zip_open(fname.toUtf8(), 0, 'r');
+                //qDebug() << zip;
+                int n = zip_total_entries(zip);
+                //qDebug() << n;
+                for (int i=0; i<n; ++i) {
+                    zip_entry_openbyindex(zip, i);
+
+                    auto name = zip_entry_name(zip);
+                    QString output = func(name);
+                    //qDebug() << name << output;
+                    if (!zip_entry_isdir(zip) && !output.isEmpty()) {
+                        zip_entry_fread(zip, output.toUtf8());
+                    }
+
+
+                    zip_entry_close(zip);
+                }
+                zip_close(zip);
+#else
                 int flags = ARCHIVE_EXTRACT_TIME;
                 flags |= ARCHIVE_EXTRACT_PERM;
                 flags |= ARCHIVE_EXTRACT_ACL;
@@ -204,7 +239,9 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
                 archive_read_free(a);
                 archive_write_close(ext);
                 archive_write_free(ext);
+#endif
                 witArchiveFile->deleteLater();
+
                 return true;
             }).future();
         } else {

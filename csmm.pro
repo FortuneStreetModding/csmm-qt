@@ -4,15 +4,19 @@ TARGET = CSMM
 VERSION = 1.0.0.0
 
 INCLUDEPATH += /usr/local/opt/libarchive/include /usr/local/include
-LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -larchive -lmxml -lpthread -lyaml-cpp
+LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -lpthread
+win32: INCLUDEPATH += lib/mxml lib/yaml-cpp/include
+win32: LIBS += -L$$_PRO_FILE_PWD_/lib/mxml/vcnet/Release/x64 -L$$_PRO_FILE_PWD_/lib/yaml-cpp/build
+win32: LIBS += -lmxml1 -lyaml-cpp
+!win32: LIBS += -larchive -lmxml -lyaml-cpp
 
 QT       += core gui network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++14
-CONFIG += conan_basic_setup
-win32: include(conanbuildinfo.pri)
+#CONFIG += conan_basic_setup
+#win32: include(conanbuildinfo.pri)
 
 include(lib/qtshell/qtshell.pri)
 
@@ -66,6 +70,7 @@ SOURCES += \
     lib/uimenu1900a.cpp \
     lib/uimessage.cpp \
     lib/vanilladatabase.cpp \
+    lib/zip/zip.c \
     main.cpp \
     mainwindow.cpp \
     mapdescriptorwidget.cpp \
@@ -123,6 +128,8 @@ HEADERS += \
     lib/uimenu1900a.h \
     lib/uimessage.h \
     lib/vanilladatabase.h \
+    lib/zip/miniz.h \
+    lib/zip/zip.h \
     mainwindow.h \
     mapdescriptorwidget.h \
     venturecarddialog.h
@@ -139,3 +146,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
+
+DISTFILES +=
