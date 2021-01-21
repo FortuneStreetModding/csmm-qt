@@ -677,7 +677,7 @@ void create_entries_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, brlan_en
 			data2 = (tag_data2**)malloc(sizeof(tag_data2*) * head->entry_count);
 		} else {
 			data = (tag_data**)realloc(data, sizeof(tag_data*) * head->entry_count);
-			data2 = (tag_data2**)realloc(data, sizeof(tag_data2*) * head->entry_count);
+            data2 = (tag_data2**)realloc(data2, sizeof(tag_data2*) * head->entry_count);
 		}
 		data[x] = NULL;
 		data2[x] = NULL;
@@ -801,9 +801,9 @@ void create_entries_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, brlan_en
 			}
 		}
 	}
-	if ( entryinfo[0].data_type == 0x200 )
+    if ( data )
 		free(data);
-	if ( entryinfo[0].data_type == 0x100 )
+    if ( data2 )
 		free(data2);
 	u32 oldpos = ftell(fp);
 	fseek(fp, entryloc, SEEK_SET);

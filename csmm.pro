@@ -6,8 +6,8 @@ VERSION = 1.0.0.0
 INCLUDEPATH += /usr/local/opt/libarchive/include /usr/local/include
 LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -lpthread
 win32: INCLUDEPATH += lib/mxml lib/yaml-cpp/include
-win32: LIBS += -L$$_PRO_FILE_PWD_/lib/mxml/vcnet/Release/x64 -L$$_PRO_FILE_PWD_/lib/yaml-cpp/build
-win32: LIBS += -lmxml1 -lyaml-cpp
+win32: LIBS += -L$$_PRO_FILE_PWD_/lib/mxml/ -L$$_PRO_FILE_PWD_/lib/yaml-cpp/build
+win32: LIBS += -lmxml -lyaml-cpp
 !win32: LIBS += -larchive -lmxml -lyaml-cpp
 
 QT       += core gui network concurrent
@@ -23,7 +23,7 @@ include(lib/qtshell/qtshell.pri)
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-DEFINES += NOMINMAX 
+DEFINES += NOMINMAX
 
 SOURCES += \
     downloadclidialog.cpp \

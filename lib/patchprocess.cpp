@@ -212,6 +212,7 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     for (auto it=gameSequenceExtractPaths->begin(); it!=gameSequenceExtractPaths->end(); ++it) {
         extractArcTasks << ExeWrapper::extractArcFile(it.key(), it.value());
     }
+
     return extractArcTasks.subscribe([=]() {
         // convert the png files to tpl and copy them to the correct location
         auto convertTasks = AsyncFuture::combine();
@@ -227,7 +228,7 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
                 QString mapIconTpl = tmpDirObj.filePath(PARAM_FOLDER + "/" + mapDescriptor.mapIcon + ".tpl");
                 auto tplName = Ui_menu_19_00a::constructMapIconTplName(mapDescriptor.mapIcon);
                 if (!mapIconToTplName.contains(mapDescriptor.mapIcon)) {
-                    (mapIconToTplName)[mapDescriptor.mapIcon] = tplName;
+                    mapIconToTplName[mapDescriptor.mapIcon] = tplName;
                 }
                 if (mapIconPngInfo.exists() && mapIconPngInfo.isFile()) {
                     convertTasks << AsyncFuture::observe(ExeWrapper::convertPngToTpl(mapIconPng, mapIconTpl))
@@ -265,20 +266,26 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
             auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_menu_19_00a_Tag_*.brlan"}, QDir::Files);
             for (auto &brlanFileInfo: brlanFilesInfo) {
                 auto brlanFile = brlanFileInfo.absoluteFilePath();
-                auto xlmanFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
+                auto xmlanFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
 
-                ExeWrapper::convertBrlytToXmlyt(brlanFile, xlmanFile);
-                Ui_menu_19_00a::injectMapIconsAnimation(xlmanFile, mapIconToTplName);
-                ExeWrapper::convertXmlytToBrlyt(xlmanFile, brlanFile);
+                ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
+                Ui_menu_19_00a::injectMapIconsAnimation(xmlanFile, mapIconToTplName);
+                ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
 
                 // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-                QFile brlytFileObj(brlanFileInfo.absoluteFilePath());
+                QFile brlytFileObj(brlanFile);
                 if (brlytFileObj.open(QIODevice::ReadWrite)) {
                     brlytFileObj.seek(0);
                     brlytFileObj.putChar('R');
                 }
             }
         }
+
+        // add dummy deferred here for edge case where there
+        // are no images to convert
+        auto def = AsyncFuture::deferred<void>();
+        def.complete();
+        convertTasks << def;
 
         return convertTasks.future();
     }).subscribe([=]() {

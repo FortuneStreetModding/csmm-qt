@@ -122,7 +122,6 @@ void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile) {
     auto brlytFileArr = brlytFile.toUtf8();
     auto xmlytFileArr = xmlytFile.toUtf8();
     if (QFileInfo(brlytFile).suffix() == "brlyt") {
-        //qDebug() << xmlytFileArr << brlytFileArr;
         make_brlyt(xmlytFileArr.data(), brlytFileArr.data());
     } else {
         make_brlan(xmlytFileArr.data(), brlytFileArr.data());
