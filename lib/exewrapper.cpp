@@ -5,17 +5,17 @@ extern "C" {
 #include "benzin/brlan.h"
 #include "benzin/brlyt.h"
 }
-#include <QApplication>
 #include <QDir>
 #include <QDataStream>
 #include <QProcess>
+#include <QStandardPaths>
 
 namespace ExeWrapper {
 
 static const QString &getWitPath() {
     static QString witPath;
     if (witPath.isEmpty()) {
-        witPath = QDir(QApplication::applicationDirPath()).filePath(WIT_NAME);
+        witPath = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath(WIT_NAME);
     }
     return witPath;
 }
@@ -23,7 +23,7 @@ static const QString &getWitPath() {
 static const QString &getWszstPath() {
     static QString wszstPath;
     if (wszstPath.isEmpty()) {
-        wszstPath = QDir(QApplication::applicationDirPath()).filePath(WSZST_NAME);
+        wszstPath = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath(WSZST_NAME);
     }
     return wszstPath;
 }
@@ -31,7 +31,7 @@ static const QString &getWszstPath() {
 static const QString &getWimgtPath() {
     static QString wimgtPath;
     if (wimgtPath.isEmpty()) {
-        wimgtPath = QDir(QApplication::applicationDirPath()).filePath(WIMGT_NAME);
+        wimgtPath = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath(WIMGT_NAME);
     }
     return wimgtPath;
 }

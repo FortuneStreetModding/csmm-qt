@@ -62,7 +62,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>24</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -73,6 +73,7 @@
     <addaction name="actionImport_WBFS_ISO"/>
     <addaction name="actionExport_to_Folder"/>
     <addaction name="actionExport_to_WBFS_ISO"/>
+    <addaction name="action_Re_Download_External_Tools"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
@@ -143,6 +144,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="action_Re_Download_External_Tools">
+   <property name="text">
+    <string>(Re-)Download External Tools</string>
    </property>
   </action>
  </widget>

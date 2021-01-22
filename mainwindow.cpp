@@ -12,6 +12,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QStandardPaths>
 #include <QtConcurrent>
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
@@ -29,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionImport_WBFS_ISO, &QAction::triggered, this, &MainWindow::openIsoWbfs);
     connect(ui->actionExport_to_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
     connect(ui->actionExport_to_WBFS_ISO, &QAction::triggered, this, &MainWindow::exportIsoWbfs);
+    connect(ui->action_Re_Download_External_Tools, &QAction::triggered, this, [&]() {
+        checkForRequiredFiles(true);
+    });
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
     });
@@ -129,11 +133,12 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
 #define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-x86_64.tar.gz"
 #endif
 
-QFuture<bool> MainWindow::checkForRequiredFiles() {
-    QDir appDir(QApplication::applicationDirPath());
+QFuture<bool> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
+    QDir appDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    appDir.mkpath(".");
     QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
     QFileInfo witCheck(wit), wszstCheck(wszst), wimgtCheck(wimgt);
-    if (!witCheck.exists() || !witCheck.isFile()
+    if (alwaysAsk || !witCheck.exists() || !witCheck.isFile()
             || !wszstCheck.exists() || !wszstCheck.isFile()
             || !wimgtCheck.exists() || !wimgtCheck.isFile()) {
         DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
@@ -196,19 +201,21 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
                 witArchiveFile->close();
 
                 zip_t *zip = zip_open(fname.toUtf8(), 0, 'r');
-                //qDebug() << zip;
+                if (!zip) {
+                    return false;
+                }
                 int n = zip_total_entries(zip);
-                //qDebug() << n;
                 for (int i=0; i<n; ++i) {
                     zip_entry_openbyindex(zip, i);
 
                     auto name = zip_entry_name(zip);
                     QString output = func(name);
-                    //qDebug() << name << output;
                     if (!zip_entry_isdir(zip) && !output.isEmpty()) {
-                        zip_entry_fread(zip, output.toUtf8());
+                        if (zip_entry_fread(zip, output.toUtf8()) < 0) {
+                            zip_close(zip);
+                            return false;
+                        }
                     }
-
 
                     zip_entry_close(zip);
                 }

@@ -31,7 +31,7 @@ private:
     void exportToFolder();
     void exportIsoWbfs();
     void loadDescriptors(const QVector<MapDescriptor> &descriptors);
-    QFuture<bool> checkForRequiredFiles();
+    QFuture<bool> checkForRequiredFiles(bool alwaysAsk = false);
     template<class InToOutFiles>
     QFuture<bool> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
 };
