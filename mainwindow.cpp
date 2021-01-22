@@ -282,7 +282,7 @@ void MainWindow::exportToFolder() {
         }
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
-        std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [&](auto &ptr) { return *ptr; });
+        std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpResourcesDir().path());
     }).subscribe([=](bool result) {
         progress->setValue(2);
@@ -317,7 +317,8 @@ void MainWindow::exportIsoWbfs() {
     progress->setValue(0);
 
     bool patchWiimmfi = ui->actionPatch_Wiimmfi->isChecked();
-    auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediateResults->path()); });
+    QString intermediatePath = intermediateResults->path();
+    auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediatePath); });
     AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
         if (!result) {
@@ -327,8 +328,8 @@ void MainWindow::exportIsoWbfs() {
         }
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
-        std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [&](auto &ptr) { return *ptr; });
-        return PatchProcess::saveDir(intermediateResults->path(), *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
+        std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
+        return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
     }).subscribe([=](bool result) {
         if (!result) {
             auto def = AsyncFuture::deferred<bool>();
@@ -336,7 +337,7 @@ void MainWindow::exportIsoWbfs() {
             return def.future();
         }
         progress->setValue(2);
-        return ExeWrapper::createWbfsIso(intermediateResults->path(), saveFile, patchWiimmfi);
+        return ExeWrapper::createWbfsIso(intermediatePath, saveFile, patchWiimmfi);
     }).subscribe([=](bool result) {
         (void)intermediateResults; // keep temporary directory active while creating wbfs/iso
 

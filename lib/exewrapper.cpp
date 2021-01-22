@@ -105,7 +105,6 @@ QFuture<bool> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
-    proc->setProcessChannelMode(QProcess::ForwardedChannels);
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
             .subscribe([=](int code) { delete proc; return code == 0; }).future();
 }

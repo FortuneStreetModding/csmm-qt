@@ -293,8 +293,10 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
         for (auto it=gameSequenceExtractPaths->begin(); it!=gameSequenceExtractPaths->end(); ++it) {
             packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
         }
-        return packArcFileTasks;
-    }).subscribe([]() { return true; }).future();
+        return packArcFileTasks.future();
+    }).subscribe([]() {
+        return true;
+    }).future();
 }
 
 QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
@@ -321,7 +323,6 @@ QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
         }
         return result;
     }).future();
-    // TODO handle wiimmfi stuff
 }
 
 void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &descriptor) {
