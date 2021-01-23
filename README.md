@@ -1,7 +1,7 @@
 # csmm-qt
 Custom Street Map Manager cross-platform port
 
-**IMPORTANT: Make sure to use --recursive when cloning this repository, in order to initialized the submodules!**
+**IMPORTANT: Make sure to use --recursive when cloning this repository, in order to initialize the submodules!**
 
 ## Building on Windows (MinGW)
 
