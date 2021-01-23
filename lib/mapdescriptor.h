@@ -99,6 +99,10 @@ struct MapDescriptor {
     friend QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj);
 };
 
+// VALIDATION FUNCTIONS
 void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs);
+QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList &errorMsgs);
+QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs);
+QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs);
 
 #endif // MAPDESCRIPTOR_H

@@ -19,6 +19,7 @@
 #include "lib/patchprocess.h"
 #include "lib/qtshell/qtshell.h"
 #include "downloadclidialog.h"
+#include "validationerrordialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
     });
+    connect(ui->actionValidate, &QAction::triggered, this, &MainWindow::validateMaps);
     connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
         if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
@@ -118,6 +120,7 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
         ui->tableWidget->appendMapDescriptor(descriptor);
     }
     ui->mapToolbar->setEnabled(true);
+    ui->menuTools->setEnabled(true);
     ui->actionExport_to_Folder->setEnabled(true);
     ui->actionExport_to_WBFS_ISO->setEnabled(true);
 }
@@ -361,4 +364,36 @@ void MainWindow::exportIsoWbfs() {
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
         }
     });
+}
+
+void MainWindow::validateMaps() {
+    QStringList errorMsgs;
+    QVector<MapDescriptor> descriptors;
+    auto descriptorPtrs = ui->tableWidget->getDescriptors();
+    std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
+
+    short easyPracticeBoard, standardPracticeBoard;
+    getPracticeBoards(descriptors, easyPracticeBoard, standardPracticeBoard, errorMsgs);
+
+    auto descriptorToMapSet = getMapSets(descriptors, errorMsgs);
+    auto mapSets = descriptorToMapSet.values();
+    std::sort(mapSets.begin(), mapSets.end());
+    mapSets.erase(std::unique(mapSets.begin(), mapSets.end()), mapSets.end());
+
+    for (int mapSet: qAsConst(mapSets)) {
+        auto descriptorToZone = getMapZones(descriptors, mapSet, errorMsgs);
+        auto zones = descriptorToZone.values();
+        std::sort(zones.begin(), zones.end());
+        zones.erase(std::unique(zones.begin(), zones.end()), zones.end());
+
+        for (int zone: qAsConst(zones)) {
+            getMapOrderings(descriptors, mapSet, zone, errorMsgs);
+        }
+    }
+
+    if (errorMsgs.isEmpty()) {
+        QMessageBox::information(this, "Validation", "Validation passed.");
+    } else {
+        (new ValidationErrorDialog(errorMsgs, this))->exec();
+    }
 }

@@ -74,9 +74,11 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     mapdescriptorwidget.cpp \
+    validationerrordialog.cpp \
     venturecarddialog.cpp
 
 HEADERS += \
+    darkdetect.h \
     downloadclidialog.h \
     lib/addressmapping.h \
     lib/archiveutil.h \
@@ -132,11 +134,13 @@ HEADERS += \
     lib/zip/zip.h \
     mainwindow.h \
     mapdescriptorwidget.h \
+    validationerrordialog.h \
     venturecarddialog.h
 
 FORMS += \
     downloadclidialog.ui \
     mainwindow.ui \
+    validationerrordialog.ui \
     venturecarddialog.ui
 
 # Default rules for deployment.

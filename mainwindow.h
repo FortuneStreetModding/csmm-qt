@@ -34,5 +34,6 @@ private:
     QFuture<bool> checkForRequiredFiles(bool alwaysAsk = false);
     template<class InToOutFiles>
     QFuture<bool> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
+    void validateMaps();
 };
 #endif // MAINWINDOW_H

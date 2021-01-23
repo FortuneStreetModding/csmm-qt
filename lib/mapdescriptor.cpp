@@ -243,16 +243,16 @@ void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPra
                 if (easyPracticeBoard == -1) {
                     easyPracticeBoard = i;
                 } else {
-                    errorMsgs << "There can be only 1 practice board for the easy map set";
+                    errorMsgs << QString("[board %1] There can be only 1 practice board for the easy map set").arg(i+1);
                 }
             } else if (descriptors[i].mapSet == 1) {
                 if (standardPracticeBoard == -1) {
                     standardPracticeBoard = i;
                 } else {
-                    errorMsgs << "There can be only 1 practice board for the standard map set";
+                    errorMsgs << QString("[board %1] There can be only 1 practice board for the standard map set").arg(i+1);
                 }
-            } else {
-                errorMsgs << "A practice board can only be set for map sets 0 or 1";
+            } else if (descriptors[i].mapSet == -1) {
+                errorMsgs << QString("[board %1] A practice board can only be set for map sets 0 or 1").arg(i+1);
             }
         }
     }
@@ -262,4 +262,81 @@ void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPra
     if (standardPracticeBoard == -1) {
         errorMsgs << "Standard map set needs at least 1 practice board";
     }
+}
+
+QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList &errorMsgs) {
+    QMap<int, int> result;
+    for (int i=0; i<descriptors.size(); ++i) {
+        if (descriptors[i].mapSet == 0 || descriptors[i].mapSet == 1) {
+            result[i] = descriptors[i].mapSet;
+        } else if (descriptors[i].mapSet != -1) {
+            errorMsgs << QString("[board %1] A board can only be in map sets -1, 0, or 1").arg(i+1);
+        }
+    }
+
+    // note: the iterators here are by value, not by key
+    for (int mapSetVal: {0, 1}) {
+        if (std::find(result.begin(), result.end(), mapSetVal) == result.end()) {
+            errorMsgs << QString("There much be at least one map in map set %1").arg(mapSetVal);
+        }
+    }
+
+    return result;
+}
+
+QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs) {
+    QMap<int, int> result;
+    QMap<int, int> numMapsPerZone, numMapsPerZoneOtherSet;
+    for (int i=0; i<descriptors.size(); ++i) {
+        if (descriptors[i].mapSet == mapSet) {
+            if (descriptors[i].zone >= 0 && descriptors[i].zone <= 2) {
+                result[i] = descriptors[i].zone;
+                ++numMapsPerZone[descriptors[i].zone];
+            } else if (descriptors[i].zone != -1) {
+                errorMsgs << QString("[board %1] A board can only be in zones -1, 0, 1, or 2").arg(i+1);
+            }
+        } else {
+            ++numMapsPerZoneOtherSet[descriptors[i].zone];
+        }
+    }
+    for (int zoneVal: {0, 1, 2}) {
+        if (numMapsPerZone[zoneVal] != numMapsPerZoneOtherSet[zoneVal]) {
+            errorMsgs << QString("The number of boards in zone %1 must be the same in map sets 0 and 1").arg(zoneVal);
+        }
+        if (numMapsPerZone[zoneVal] < 6) {
+            errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at least 6").arg(mapSet).arg(zoneVal);
+        }
+        if (numMapsPerZone[zoneVal] > 16) {
+            errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at most 16").arg(mapSet).arg(zoneVal);
+        }
+    }
+    return result;
+}
+
+QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs) {
+    QMap<int, int> result;
+
+    for (int i=0; i<descriptors.size(); ++i) {
+        if (descriptors[i].mapSet == mapSet && descriptors[i].zone == zone) {
+            if (descriptors[i].order >= 0) {
+                result[i] = descriptors[i].order;
+            } else {
+                errorMsgs << QString("[board %1] All orders in a zone must be nonnegative").arg(i+1);
+            }
+        }
+    }
+
+    auto orders = result.values();
+    std::sort(orders.begin(), orders.end());
+    auto uniqueEnd = std::unique(orders.begin(), orders.end());
+    if (uniqueEnd != orders.end()) {
+        errorMsgs << QString("[mapset %1, zone %2] The order value within a zone must be unique").arg(mapSet).arg(zone);
+    }
+    if (orders.front() != 0) {
+        errorMsgs << QString("[mapset %1, zone %2] The lowest order within a zone must be 0").arg(mapSet).arg(zone);
+    }
+    if (orders.back() != uniqueEnd - orders.begin() - 1) {
+        errorMsgs << QString("[mapset %1, zone %2] There must be no gaps in the ordering").arg(mapSet).arg(zone);
+    }
+    return result;
 }
