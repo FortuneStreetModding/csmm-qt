@@ -41,6 +41,8 @@ static std::map<std::string, std::string> toStdStrMap(const QMap<QString, QStrin
 QString MapDescriptor::toMd() const {
     YAML::Emitter out;
 
+    out << YAML::BeginDoc;
+
     out << YAML::BeginMap;
 
     out << YAML::Key << "name" << YAML::Value << toStdStrMap(names);
@@ -88,6 +90,8 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "ventureCards" << YAML::Value << std::vector<int>(std::begin(ventureCards), std::end(ventureCards));
 
     out << YAML::EndMap;
+
+    out << YAML::EndDoc;
 
     return out.c_str();
 }

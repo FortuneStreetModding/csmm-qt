@@ -3,6 +3,8 @@ TARGET = CSMM
 # update this for release
 VERSION = 1.0.0.0
 
+QMAKE_TARGET_BUNDLE_PREFIX = com.fortunestreetmodding
+
 INCLUDEPATH += /usr/local/opt/libarchive/include /usr/local/include
 LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -lpthread
 win32: INCLUDEPATH += lib/mxml lib/yaml-cpp/include
