@@ -91,8 +91,7 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::EndMap;
 
-    // we need to add a BeginDoc tag here (corresponding to a '---') which is needed to be recognized as a front matter for jekyll
-    out << YAML::BeginDoc;
+    out << YAML::EndDoc;
 
     return out.c_str();
 }
