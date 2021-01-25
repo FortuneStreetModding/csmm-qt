@@ -1,5 +1,6 @@
 #include "mapdescriptor.h"
 #include <QDebug>
+#include "vanilladatabase.h"
 
 bool OriginPoint::operator==(const OriginPoint &other) const {
     return x == other.x && y == other.y;
@@ -87,7 +88,12 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
     out << YAML::Key << "background" << YAML::Value << background.toStdString();
     out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
-    out << YAML::Key << "ventureCards" << YAML::Value << std::vector<int>(std::begin(ventureCards), std::end(ventureCards));
+
+    out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
+    for (int i=0; i<128; ++i) {
+        out << YAML::Value << (int) ventureCards[i] << YAML::Comment(VanillaDatabase::getVentureCardDesc(i).toStdString());
+    }
+    out << YAML::EndSeq;
 
     out << YAML::EndMap;
 
