@@ -1,10 +1,12 @@
 [submodule "lib/qtshell"]
 	path = lib/qtshell
 	url = https://github.com/benlau/qtshell
+  ignore = dirty
 [submodule "lib/mxml"]
 	path = lib/mxml
 	url = https://github.com/michaelrsweet/mxml
+  ignore = dirty
 [submodule "lib/yaml-cpp"]
 	path = lib/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
-
+  ignore = dirty
