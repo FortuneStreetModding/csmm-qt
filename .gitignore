@@ -70,11 +70,3 @@ Thumbs.db
 # --------
 *.dll
 *.exe
-
-
-# Conan Files
-conan.lock
-conanbuildinfo.pri
-conanbuildinfo.txt
-conaninfo.txt
-graph_info.json

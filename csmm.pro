@@ -17,8 +17,6 @@ QT       += core gui network concurrent
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++14
-#CONFIG += conan_basic_setup
-#win32: include(conanbuildinfo.pri)
 
 include(lib/qtshell/qtshell.pri)
 
