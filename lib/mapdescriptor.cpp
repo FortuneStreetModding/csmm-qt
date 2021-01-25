@@ -248,16 +248,16 @@ void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPra
                 if (easyPracticeBoard == -1) {
                     easyPracticeBoard = i;
                 } else {
-                    errorMsgs << QString("[board %1] There can be only 1 practice board for the easy map set").arg(i+1);
+                    errorMsgs << QString("[board %1] There can be only 1 practice board for the easy map set").arg(i);
                 }
             } else if (descriptors[i].mapSet == 1) {
                 if (standardPracticeBoard == -1) {
                     standardPracticeBoard = i;
                 } else {
-                    errorMsgs << QString("[board %1] There can be only 1 practice board for the standard map set").arg(i+1);
+                    errorMsgs << QString("[board %1] There can be only 1 practice board for the standard map set").arg(i);
                 }
             } else if (descriptors[i].mapSet == -1) {
-                errorMsgs << QString("[board %1] A practice board can only be set for map sets 0 or 1").arg(i+1);
+                errorMsgs << QString("[board %1] A practice board can only be set for map sets 0 or 1").arg(i);
             }
         }
     }
@@ -275,7 +275,7 @@ QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList
         if (descriptors[i].mapSet == 0 || descriptors[i].mapSet == 1) {
             result[i] = descriptors[i].mapSet;
         } else if (descriptors[i].mapSet != -1) {
-            errorMsgs << QString("[board %1] A board can only be in map sets -1, 0, or 1").arg(i+1);
+            errorMsgs << QString("[board %1] A board can only be in map sets -1, 0, or 1").arg(i);
         }
     }
 
@@ -298,7 +298,7 @@ QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet
                 result[i] = descriptors[i].zone;
                 ++numMapsPerZone[descriptors[i].zone];
             } else if (descriptors[i].zone != -1) {
-                errorMsgs << QString("[board %1] A board can only be in zones -1, 0, 1, or 2").arg(i+1);
+                errorMsgs << QString("[board %1] A board can only be in zones -1, 0, 1, or 2").arg(i);
             }
         } else {
             ++numMapsPerZoneOtherSet[descriptors[i].zone];
@@ -326,7 +326,7 @@ QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int ma
             if (descriptors[i].order >= 0) {
                 result[i] = descriptors[i].order;
             } else {
-                errorMsgs << QString("[board %1] All orders in a zone must be nonnegative").arg(i+1);
+                errorMsgs << QString("[board %1] All orders in a zone must be nonnegative").arg(i);
             }
         }
     }
