@@ -63,6 +63,8 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     auto descriptorPtr = descriptors[row];
     int colIdx = 0;
 
+    setVerticalHeaderItem(row, readOnlyItem(QString::number(row)));
+
     auto importMdButton = new QPushButton("Import .md");
     connect(importMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
