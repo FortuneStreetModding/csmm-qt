@@ -129,7 +129,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setItem(row, colIdx++, readOnlyItem(descriptor.theme == Mario ? "Mario" : "DragonQuest"));
     setItem(row, colIdx++, readOnlyItem(descriptor.background));
-    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.bgmId)));
+    setItem(row, colIdx++, readOnlyItem(bgmIdToString(descriptor.bgmId)));
     setItem(row, colIdx++, readOnlyItem(descriptor.mapIcon));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingMode)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingModeRadius)));

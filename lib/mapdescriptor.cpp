@@ -84,7 +84,7 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
     out << YAML::EndMap;
 
-    out << YAML::Key << "bgmId" << YAML::Value << bgmId;
+    out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
     out << YAML::Key << "background" << YAML::Value << background.toStdString();
     out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
     out << YAML::Key << "ventureCards" << YAML::Value << std::vector<int>(std::begin(ventureCards), std::end(ventureCards));
@@ -173,7 +173,7 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
                     );
         }
         tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
-        bgmId = yaml["bgmId"].as<quint32>();
+        bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
         background = QString::fromStdString(yaml["background"].as<std::string>());
         mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
         for (quint32 i=0; i<sizeof(ventureCards); ++i) {
@@ -236,6 +236,52 @@ QString tourCharacterToString(Character character) {
 }
 Character stringToTourCharacter(const QString &str) {
     return stringToTourCharacters.value(str);
+}
+
+static const QMap<QString, BgmId> stringToBgmIds = {
+    {"BGM_MAP_CIRCUIT", BGM_MAP_CIRCUIT},
+    {"BGM_MAP_PEACH", BGM_MAP_PEACH},
+    {"BGM_MAP_KOOPA", BGM_MAP_KOOPA},
+    {"BGM_MAP_GHOSTSHIP", BGM_MAP_GHOSTSHIP},
+    {"BGM_MAP_MAJINZOU", BGM_MAP_MAJINZOU},
+    {"BGM_MAP_SINOKAZAN", BGM_MAP_SINOKAZAN},
+    {"BGM_MAP_SLABACCA", BGM_MAP_SLABACCA},
+    {"BGM_MAP_KANDATA", BGM_MAP_KANDATA},
+    {"BGM_MAP_KANDATA_old", BGM_MAP_KANDATA_old},
+    {"BGM_MAP_ALEFGARD", BGM_MAP_ALEFGARD},
+    {"BGM_MAP_ALEFGARD_old", BGM_MAP_ALEFGARD_old},
+    {"BGM_MAP_YOSHI", BGM_MAP_YOSHI},
+    {"BGM_MAP_STADIUM", BGM_MAP_STADIUM},
+    {"BGM_MAP_DOLPIC", BGM_MAP_DOLPIC},
+    {"BGM_MAP_SMB", BGM_MAP_SMB},
+    {"BGM_MAP_STARSHIP", BGM_MAP_STARSHIP},
+    {"BGM_MAP_EGG", BGM_MAP_EGG},
+    {"BGM_MAP_TRODAIN", BGM_MAP_TRODAIN},
+    {"BGM_MAP_TRODAIN_old", BGM_MAP_TRODAIN_old},
+    {"BGM_MAP_DHAMA", BGM_MAP_DHAMA},
+    {"BGM_MAP_DHAMA_old", BGM_MAP_DHAMA_old},
+    {"BGM_MAP_ANGEL", BGM_MAP_ANGEL},
+    {"BGM_MENU", BGM_MENU},
+    {"BGM_GOALPROP", BGM_GOALPROP},
+    {"BGM_WINNER", BGM_WINNER},
+    {"BGM_CHANCECARD", BGM_CHANCECARD},
+    {"BGM_STOCK", BGM_STOCK},
+    {"BGM_AUCTION", BGM_AUCTION},
+    {"BGM_CASINO_SLOT", BGM_CASINO_SLOT},
+    {"BGM_CASINO_BLOCK", BGM_CASINO_BLOCK},
+    {"BGM_CASINO_RACE", BGM_CASINO_RACE},
+    {"BGM_TITLE", BGM_TITLE},
+    {"BGM_SAVELOAD", BGM_SAVELOAD},
+    {"BGM_SAVELOAD_old", BGM_SAVELOAD_old},
+    {"BGM_WIFI", BGM_WIFI},
+    {"BGM_ENDING", BGM_ENDING}
+};
+
+QString bgmIdToString(BgmId bgmId) {
+    return stringToBgmIds.key(bgmId);
+}
+BgmId stringToBgmId(const QString &str) {
+    return stringToBgmIds.value(str);
 }
 
 void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {

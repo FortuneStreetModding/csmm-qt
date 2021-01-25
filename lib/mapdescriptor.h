@@ -52,6 +52,47 @@ enum Character : quint32 {
 QString tourCharacterToString(Character character);
 Character stringToTourCharacter(const QString &str);
 
+enum BgmId: quint32 {
+    BGM_MAP_CIRCUIT      =  0,
+    BGM_MAP_PEACH        =  1,
+    BGM_MAP_KOOPA        =  2,
+    BGM_MAP_GHOSTSHIP    =  3,
+    BGM_MAP_MAJINZOU     =  4,
+    BGM_MAP_SINOKAZAN    =  5,
+    BGM_MAP_SLABACCA     =  6,
+    BGM_MAP_KANDATA      =  7,
+    BGM_MAP_KANDATA_old  =  8,
+    BGM_MAP_ALEFGARD     =  9,
+    BGM_MAP_ALEFGARD_old = 10,
+    BGM_MAP_YOSHI        = 11,
+    BGM_MAP_STADIUM      = 12,
+    BGM_MAP_DOLPIC       = 13,
+    BGM_MAP_SMB          = 14,
+    BGM_MAP_STARSHIP     = 15,
+    BGM_MAP_EGG          = 16,
+    BGM_MAP_TRODAIN      = 17,
+    BGM_MAP_TRODAIN_old  = 18,
+    BGM_MAP_DHAMA        = 19,
+    BGM_MAP_DHAMA_old    = 20,
+    BGM_MAP_ANGEL        = 21,
+    BGM_MENU             = 22,
+    BGM_GOALPROP         = 23,
+    BGM_WINNER           = 24,
+    BGM_CHANCECARD       = 25,
+    BGM_STOCK            = 26,
+    BGM_AUCTION          = 27,
+    BGM_CASINO_SLOT      = 28,
+    BGM_CASINO_BLOCK     = 29,
+    BGM_CASINO_RACE      = 32,
+    BGM_TITLE            = 33,
+    BGM_SAVELOAD         = 35,
+    BGM_SAVELOAD_old     = 36,
+    BGM_WIFI             = 37,
+    BGM_ENDING           = 39
+};
+QString bgmIdToString(BgmId bgmId);
+BgmId stringToBgmId(const QString &str);
+
 struct MapDescriptor {
     qint8 mapSet = -1;
     qint8 zone = -1;
@@ -68,7 +109,7 @@ struct MapDescriptor {
     QVector<OriginPoint> switchRotationOrigins;
     BoardTheme theme = Mario;
     QString background;
-    quint32 bgmId = 0;
+    BgmId bgmId = BGM_MAP_CIRCUIT;
     QString mapIcon;
     LoopingMode loopingMode = None;
     float loopingModeRadius = 0;
