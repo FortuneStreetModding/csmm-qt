@@ -69,8 +69,14 @@ QString MapDescriptor::toMd() const {
     out << YAML::EndSeq;
 
     out << YAML::Key << "looping" << YAML::Value << YAML::BeginMap;
-    static const char *loopingModes[] = {"None", "Vertical", "Both"};
-    out << YAML::Key << "mode" << YAML::Value << loopingModes[loopingMode];
+    out << YAML::Key << "mode" << YAML::Value;
+    if (loopingMode == None) {
+        out << "None";
+    } else if (loopingMode == Vertical) {
+        out << "Vertical";
+    } else {
+        out << "Both";
+    }
     out << YAML::Key << "radius" << YAML::Value << loopingModeRadius;
     out << YAML::Key << "horizontalPadding" << YAML::Value << loopingModeHorizontalPadding;
     out << YAML::Key << "verticalSquareCount" << YAML::Value << loopingModeVerticalSquareCount;
