@@ -22,6 +22,9 @@ static void loadUiMessages(QVector<MapDescriptor> &descriptors, const QDir &dir)
     }
     for (auto &descriptor: descriptors) {
         for (auto &locale: FS_LOCALES) {
+            if (locale == "uk") {
+                continue; // we treat uk as the same as en here
+            }
             descriptor.names[locale] = uiMessages[locale].value(descriptor.nameMsgId);
             descriptor.descs[locale] = uiMessages[locale].value(descriptor.descMsgId);
         }
@@ -31,7 +34,6 @@ static void loadUiMessages(QVector<MapDescriptor> &descriptors, const QDir &dir)
 
 QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
     QString mainDol = dir.filePath(MAIN_DOL);
-    //qDebug() << dir;
     return AsyncFuture::observe(ExeWrapper::readSections(mainDol))
             .subscribe([=](const QVector<AddressSection> &addressSections) -> QVector<MapDescriptor> {
         QFile mainDolFile(mainDol);

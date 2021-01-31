@@ -1,6 +1,7 @@
 #include "mapdescriptor.h"
 #include <QDebug>
 #include "vanilladatabase.h"
+#include "fslocale.h"
 
 bool OriginPoint::operator==(const OriginPoint &other) const {
     return x == other.x && y == other.y;
@@ -31,10 +32,12 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
-static std::map<std::string, std::string> toStdStrMap(const QMap<QString, QString> &map) {
+static std::map<std::string, std::string> toLocaleMap(const QMap<QString, QString> &map) {
     std::map<std::string, std::string> result;
     for (auto it=map.begin(); it!=map.end(); ++it) {
-        result[it.key().toStdString()] = it.value().toStdString();
+        if (it.key() != "uk") {
+            result[localeToYamlKey(it.key()).toStdString()] = it.value().toStdString();
+        }
     }
     return result;
 }
@@ -46,8 +49,8 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::BeginMap;
 
-    out << YAML::Key << "name" << YAML::Value << toStdStrMap(names);
-    out << YAML::Key << "desc" << YAML::Value << toStdStrMap(descs);
+    out << YAML::Key << "name" << YAML::Value << toLocaleMap(names);
+    out << YAML::Key << "desc" << YAML::Value << toLocaleMap(descs);
     out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
     out << YAML::Key << "theme" << YAML::Value << (theme == Mario ? "Mario" : "DragonQuest");
     out << YAML::Key << "initialCash" << YAML::Value << initialCash;
@@ -146,11 +149,14 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
 bool MapDescriptor::fromMd(const YAML::Node &yaml) {
     try {
         for (auto it=yaml["name"].begin(); it!=yaml["name"].end(); ++it) {
-            names[QString::fromStdString(it->first.as<std::string>())] = QString::fromStdString(it->second.as<std::string>());
+            names[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
         }
         for (auto it=yaml["desc"].begin(); it!=yaml["desc"].end(); ++it) {
-            descs[QString::fromStdString(it->first.as<std::string>())] = QString::fromStdString(it->second.as<std::string>());
+            descs[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
         }
+        names.remove("uk");
+        descs.remove("uk");
+
         ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
         theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
         initialCash = yaml["initialCash"].as<quint32>();
