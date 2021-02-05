@@ -79,7 +79,7 @@ void MainWindow::openIsoWbfs() {
         QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
         return;
     }
-    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso)");
+    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
     if (isoWbfs.isEmpty()) return;
 
     auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
@@ -311,7 +311,7 @@ void MainWindow::exportToFolder() {
 }
 
 void MainWindow::exportIsoWbfs() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso)");
+    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
     if (saveFile.isEmpty()) return;
 
     auto intermediateResults = QSharedPointer<QTemporaryDir>::create();
