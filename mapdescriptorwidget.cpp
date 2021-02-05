@@ -97,7 +97,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     auto isPracticeBoardCheck = new QCheckBox();
     isPracticeBoardCheck->setChecked(descriptor.isPracticeBoard);
-    connect(isPracticeBoardCheck, &QCheckBox::clicked, this, [&](bool isChecked) {
+    connect(isPracticeBoardCheck, &QCheckBox::clicked, this, [=](bool isChecked) {
         descriptorPtr->isPracticeBoard = isChecked;
     });
     setCellWidget(row, colIdx++, isPracticeBoardCheck);
