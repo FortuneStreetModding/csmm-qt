@@ -72,19 +72,19 @@ QString MapDescriptor::toMd() const {
     }
     out << YAML::EndSeq;
 
-    out << YAML::Key << "looping" << YAML::Value << YAML::BeginMap;
-    out << YAML::Key << "mode" << YAML::Value;
-    if (loopingMode == None) {
-        out << "None";
-    } else if (loopingMode == Vertical) {
-        out << "Vertical";
-    } else {
-        out << "Both";
+    if (loopingMode != None) {
+        out << YAML::Key << "looping" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "mode" << YAML::Value;
+        if (loopingMode == Vertical) {
+            out << "Vertical";
+        } else {
+            out << "Both";
+        }
+        out << YAML::Key << "radius" << YAML::Value << loopingModeRadius;
+        out << YAML::Key << "horizontalPadding" << YAML::Value << loopingModeHorizontalPadding;
+        out << YAML::Key << "verticalSquareCount" << YAML::Value << loopingModeVerticalSquareCount;
+        out << YAML::EndMap;
     }
-    out << YAML::Key << "radius" << YAML::Value << loopingModeRadius;
-    out << YAML::Key << "horizontalPadding" << YAML::Value << loopingModeHorizontalPadding;
-    out << YAML::Key << "verticalSquareCount" << YAML::Value << loopingModeVerticalSquareCount;
-    out << YAML::EndMap;
 
     out << YAML::Key << "tourMode" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "bankruptcyLimit" << YAML::Value << tourBankruptcyLimit;
@@ -179,17 +179,21 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
         for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
             switchRotationOrigins.append({originPoint["x"].as<float>(), originPoint["y"].as<float>(),});
         }
-        auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
-        if (loopingModeStr == "Vertical") {
-            loopingMode = Vertical;
-        } else if (loopingModeStr == "Both") {
-            loopingMode = Both;
+        if(yaml["looping"]) {
+            auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
+            if (loopingModeStr == "Vertical") {
+                loopingMode = Vertical;
+            } else if (loopingModeStr == "Both") {
+                loopingMode = Both;
+            } else {
+                loopingMode = None;
+            }
+            loopingModeRadius = yaml["looping"]["radius"].as<float>();
+            loopingModeHorizontalPadding = yaml["looping"]["horizontalPadding"].as<float>();
+            loopingModeVerticalSquareCount = yaml["looping"]["verticalSquareCount"].as<float>();
         } else {
             loopingMode = None;
         }
-        loopingModeRadius = yaml["looping"]["radius"].as<float>();
-        loopingModeHorizontalPadding = yaml["looping"]["horizontalPadding"].as<float>();
-        loopingModeVerticalSquareCount = yaml["looping"]["verticalSquareCount"].as<float>();
         tourBankruptcyLimit = yaml["tourMode"]["bankruptcyLimit"].as<quint32>();
         tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
         for (int i=0; i<3; ++i) {
