@@ -59,7 +59,8 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "salaryIncrement" << YAML::Value << salaryIncrement;
     out << YAML::Key << "maxDiceRoll" << YAML::Value << maxDiceRoll;
     for (int i=0; i<4; ++i) {
-        out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
+        if(!frbFiles[i].isEmpty())
+            out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
     }
 
     out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
@@ -167,7 +168,12 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
         salaryIncrement = yaml["salaryIncrement"].as<quint32>();
         maxDiceRoll = yaml["maxDiceRoll"].as<quint32>();
         for (int i=0; i<4; ++i) {
-            frbFiles[i] = QString::fromStdString(yaml[QString("frbFile%1").arg(i+1).toStdString()].as<std::string>());
+            auto key = QString("frbFile%1").arg(i+1).toStdString();
+            if(yaml[key] || i==0) {
+                frbFiles[i] = QString::fromStdString(yaml[key].as<std::string>());
+            } else {
+                frbFiles[i] = "";
+            }
         }
         switchRotationOrigins.clear();
         for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
