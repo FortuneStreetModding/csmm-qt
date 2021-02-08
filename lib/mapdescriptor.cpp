@@ -63,14 +63,16 @@ QString MapDescriptor::toMd() const {
             out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
     }
 
-    out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
-    for (auto &originPoint: switchRotationOrigins) {
-        out << YAML::BeginMap;
-        out << YAML::Key << "x" << YAML::Value << originPoint.x;
-        out << YAML::Key << "y" << YAML::Value << originPoint.y;
-        out << YAML::EndMap;
+    if(!switchRotationOrigins.empty()) {
+        out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
+        for (auto &originPoint: switchRotationOrigins) {
+            out << YAML::BeginMap;
+            out << YAML::Key << "x" << YAML::Value << originPoint.x;
+            out << YAML::Key << "y" << YAML::Value << originPoint.y;
+            out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
     }
-    out << YAML::EndSeq;
 
     if (loopingMode != None) {
         out << YAML::Key << "looping" << YAML::Value << YAML::BeginMap;
