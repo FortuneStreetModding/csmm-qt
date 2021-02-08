@@ -100,7 +100,7 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
     for (int i=0; i<128; ++i) {
-        out << YAML::Value << (int) ventureCards[i] << YAML::Comment(VanillaDatabase::getVentureCardDesc(i).toStdString());
+        out << YAML::Value << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
     }
     out << YAML::EndSeq;
 
