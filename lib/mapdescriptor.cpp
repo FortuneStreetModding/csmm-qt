@@ -94,9 +94,11 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
     out << YAML::EndMap;
 
-    out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
     out << YAML::Key << "background" << YAML::Value << background.toStdString();
-    out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
+    if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
+        out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
+    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
+        out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
 
     out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
     for (int i=0; i<128; ++i) {
@@ -190,9 +192,21 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
                     );
         }
         tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
-        bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
         background = QString::fromStdString(yaml["background"].as<std::string>());
-        mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+        if(VanillaDatabase::hasDefaultMapIcon(background)) {
+            mapIcon = VanillaDatabase::getDefaultMapIcon(background);
+            if(yaml["mapIcon"])
+                mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+        } else {
+            mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+        }
+        if(VanillaDatabase::hasDefaultBgmId(background)) {
+            bgmId = VanillaDatabase::getDefaultBgmId(background);
+            if(yaml["bgmId"])
+                bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
+        } else {
+            bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
+        }
         for (quint32 i=0; i<sizeof(ventureCards); ++i) {
             ventureCards[i] = yaml["ventureCards"][i].as<int>();
         }
