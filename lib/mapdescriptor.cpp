@@ -106,11 +106,13 @@ QString MapDescriptor::toMd() const {
     if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
         out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
 
-    out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
-    for (int i=0; i<128; ++i) {
-        out << YAML::Value << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
+    if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
+        out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
+        for (int i=0; i<128; ++i) {
+            out << YAML::Value << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
+        }
+        out << YAML::EndSeq;
     }
-    out << YAML::EndSeq;
 
     out << YAML::EndMap;
 
@@ -224,8 +226,12 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
         } else {
             bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
         }
-        for (quint32 i=0; i<sizeof(ventureCards); ++i) {
-            ventureCards[i] = yaml["ventureCards"][i].as<int>();
+        if(yaml["ventureCards"]) {
+            for (quint32 i=0; i<sizeof(ventureCards); ++i) {
+                ventureCards[i] = yaml["ventureCards"][i].as<int>();
+            }
+        } else {
+            VanillaDatabase::setDefaultVentureCards(ruleSet, ventureCards);
         }
         return true;
     } catch (const YAML::Exception &exception) {

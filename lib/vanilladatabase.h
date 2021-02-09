@@ -15,6 +15,8 @@ BgmId getDefaultBgmId(const QString &background);
 bool hasDefaultBgmId(const QString &background);
 QString getDefaultMapIcon(const QString &background);
 bool hasDefaultMapIcon(const QString &background);
+bool isDefaultVentureCards(const bool ventureCards[], RuleSet ruleSet);
+void setDefaultVentureCards(RuleSet ruleSet, bool outVentureCards[]);
 }
 
 #endif // VANILLADATABASE_H
