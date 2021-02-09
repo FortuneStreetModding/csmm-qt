@@ -32,16 +32,6 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
-static std::map<std::string, std::string> toLocaleMap(const QMap<QString, QString> &map) {
-    std::map<std::string, std::string> result;
-    for (auto it=map.begin(); it!=map.end(); ++it) {
-        if (it.key() != "uk") {
-            result[localeToYamlKey(it.key()).toStdString()] = it.value().toStdString();
-        }
-    }
-    return result;
-}
-
 QString MapDescriptor::toMd() const {
     YAML::Emitter out;
 
@@ -49,8 +39,20 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::BeginMap;
 
-    out << YAML::Key << "name" << YAML::Value << toLocaleMap(names);
-    out << YAML::Key << "desc" << YAML::Value << toLocaleMap(descs);
+    out << YAML::Key << "name" << YAML::Value << YAML::BeginMap;
+    for (auto &fslocale: FS_LOCALES) {
+        if(fslocale == "uk")
+            continue;
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << names[fslocale].toStdString();
+    }
+    out << YAML::EndMap;
+    out << YAML::Key << "desc" << YAML::Value << YAML::BeginMap;
+    for (auto &fslocale: FS_LOCALES) {
+        if(fslocale == "uk")
+            continue;
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << descs[fslocale].toStdString();
+    }
+    out << YAML::EndMap;
     out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
     out << YAML::Key << "theme" << YAML::Value << (theme == Mario ? "Mario" : "DragonQuest");
     out << YAML::Key << "initialCash" << YAML::Value << initialCash;
