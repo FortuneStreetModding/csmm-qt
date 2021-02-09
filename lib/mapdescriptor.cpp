@@ -41,14 +41,14 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::Key << "name" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk")
+        if(fslocale == "uk" || names[fslocale].isEmpty())
             continue;
         out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << names[fslocale].toStdString();
     }
     out << YAML::EndMap;
     out << YAML::Key << "desc" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk")
+        if(fslocale == "uk" || names[fslocale].isEmpty())
             continue;
         out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << descs[fslocale].toStdString();
     }
