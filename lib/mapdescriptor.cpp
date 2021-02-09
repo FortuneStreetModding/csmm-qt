@@ -90,7 +90,8 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::Key << "tourMode" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "bankruptcyLimit" << YAML::Value << tourBankruptcyLimit;
-    out << YAML::Key << "initialCash" << YAML::Value << tourInitialCash;
+    if(tourInitialCash != initialCash)
+        out << YAML::Key << "initialCash" << YAML::Value << tourInitialCash;
     for (int i=0; i<3; ++i) {
         out << YAML::Key << QString("opponent%1").arg(i+1).toStdString() << YAML::Value << tourCharacterToString(tourCharacters[i]).toStdString();
     }
@@ -165,6 +166,7 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
         ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
         theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
         initialCash = yaml["initialCash"].as<quint32>();
+        tourInitialCash = initialCash;
         targetAmount = yaml["targetAmount"].as<quint32>();
         baseSalary = yaml["baseSalary"].as<quint32>();
         salaryIncrement = yaml["salaryIncrement"].as<quint32>();
@@ -197,7 +199,8 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
             loopingMode = None;
         }
         tourBankruptcyLimit = yaml["tourMode"]["bankruptcyLimit"].as<quint32>();
-        tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
+        if(yaml["tourMode"]["initialCash"])
+            tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
         for (int i=0; i<3; ++i) {
             tourCharacters[i] = stringToTourCharacter(
                         QString::fromStdString(yaml["tourMode"][QString("opponent%1").arg(i+1).toStdString()].as<std::string>())
