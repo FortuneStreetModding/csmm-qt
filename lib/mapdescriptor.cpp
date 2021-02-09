@@ -65,6 +65,12 @@ QString MapDescriptor::toMd() const {
             out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
     }
 
+    out << YAML::Key << "background" << YAML::Value << background.toStdString();
+    if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
+        out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
+    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
+        out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
+
     if(!switchRotationOrigins.empty()) {
         out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
         for (auto &originPoint: switchRotationOrigins) {
@@ -99,12 +105,6 @@ QString MapDescriptor::toMd() const {
     }
     out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
     out << YAML::EndMap;
-
-    out << YAML::Key << "background" << YAML::Value << background.toStdString();
-    if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
-        out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
-    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
-        out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
 
     if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
         out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
