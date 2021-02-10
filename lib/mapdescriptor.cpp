@@ -32,16 +32,6 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
-static std::map<std::string, std::string> toLocaleMap(const QMap<QString, QString> &map) {
-    std::map<std::string, std::string> result;
-    for (auto it=map.begin(); it!=map.end(); ++it) {
-        if (it.key() != "uk") {
-            result[localeToYamlKey(it.key()).toStdString()] = it.value().toStdString();
-        }
-    }
-    return result;
-}
-
 QString MapDescriptor::toMd() const {
     YAML::Emitter out;
 
@@ -49,8 +39,20 @@ QString MapDescriptor::toMd() const {
 
     out << YAML::BeginMap;
 
-    out << YAML::Key << "name" << YAML::Value << toLocaleMap(names);
-    out << YAML::Key << "desc" << YAML::Value << toLocaleMap(descs);
+    out << YAML::Key << "name" << YAML::Value << YAML::BeginMap;
+    for (auto &fslocale: FS_LOCALES) {
+        if(fslocale == "uk" || names[fslocale].isEmpty())
+            continue;
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << names[fslocale].toStdString();
+    }
+    out << YAML::EndMap;
+    out << YAML::Key << "desc" << YAML::Value << YAML::BeginMap;
+    for (auto &fslocale: FS_LOCALES) {
+        if(fslocale == "uk" || names[fslocale].isEmpty())
+            continue;
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << descs[fslocale].toStdString();
+    }
+    out << YAML::EndMap;
     out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
     out << YAML::Key << "theme" << YAML::Value << (theme == Mario ? "Mario" : "DragonQuest");
     out << YAML::Key << "initialCash" << YAML::Value << initialCash;
@@ -59,50 +61,58 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "salaryIncrement" << YAML::Value << salaryIncrement;
     out << YAML::Key << "maxDiceRoll" << YAML::Value << maxDiceRoll;
     for (int i=0; i<4; ++i) {
-        out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
+        if(!frbFiles[i].isEmpty())
+            out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
     }
 
-    out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
-    for (auto &originPoint: switchRotationOrigins) {
-        out << YAML::BeginMap;
-        out << YAML::Key << "x" << YAML::Value << originPoint.x;
-        out << YAML::Key << "y" << YAML::Value << originPoint.y;
+    out << YAML::Key << "background" << YAML::Value << background.toStdString();
+    if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
+        out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
+    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
+        out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
+
+    if(!switchRotationOrigins.empty()) {
+        out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
+        for (auto &originPoint: switchRotationOrigins) {
+            out << YAML::BeginMap;
+            out << YAML::Key << "x" << YAML::Value << originPoint.x;
+            out << YAML::Key << "y" << YAML::Value << originPoint.y;
+            out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
+    }
+
+    if (loopingMode != None) {
+        out << YAML::Key << "looping" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "mode" << YAML::Value;
+        if (loopingMode == Vertical) {
+            out << "Vertical";
+        } else {
+            out << "Both";
+        }
+        out << YAML::Key << "radius" << YAML::Value << loopingModeRadius;
+        out << YAML::Key << "horizontalPadding" << YAML::Value << loopingModeHorizontalPadding;
+        out << YAML::Key << "verticalSquareCount" << YAML::Value << loopingModeVerticalSquareCount;
         out << YAML::EndMap;
     }
-    out << YAML::EndSeq;
-
-    out << YAML::Key << "looping" << YAML::Value << YAML::BeginMap;
-    out << YAML::Key << "mode" << YAML::Value;
-    if (loopingMode == None) {
-        out << "None";
-    } else if (loopingMode == Vertical) {
-        out << "Vertical";
-    } else {
-        out << "Both";
-    }
-    out << YAML::Key << "radius" << YAML::Value << loopingModeRadius;
-    out << YAML::Key << "horizontalPadding" << YAML::Value << loopingModeHorizontalPadding;
-    out << YAML::Key << "verticalSquareCount" << YAML::Value << loopingModeVerticalSquareCount;
-    out << YAML::EndMap;
 
     out << YAML::Key << "tourMode" << YAML::Value << YAML::BeginMap;
     out << YAML::Key << "bankruptcyLimit" << YAML::Value << tourBankruptcyLimit;
-    out << YAML::Key << "initialCash" << YAML::Value << tourInitialCash;
+    if(tourInitialCash != initialCash)
+        out << YAML::Key << "initialCash" << YAML::Value << tourInitialCash;
     for (int i=0; i<3; ++i) {
         out << YAML::Key << QString("opponent%1").arg(i+1).toStdString() << YAML::Value << tourCharacterToString(tourCharacters[i]).toStdString();
     }
     out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
     out << YAML::EndMap;
 
-    out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
-    out << YAML::Key << "background" << YAML::Value << background.toStdString();
-    out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
-
-    out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
-    for (int i=0; i<128; ++i) {
-        out << YAML::Value << (int) ventureCards[i] << YAML::Comment(VanillaDatabase::getVentureCardDesc(i).toStdString());
+    if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
+        out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
+        for (int i=0; i<128; ++i) {
+            out << YAML::Value << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
+        }
+        out << YAML::EndSeq;
     }
-    out << YAML::EndSeq;
 
     out << YAML::EndMap;
 
@@ -160,41 +170,68 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
         ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
         theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
         initialCash = yaml["initialCash"].as<quint32>();
+        tourInitialCash = initialCash;
         targetAmount = yaml["targetAmount"].as<quint32>();
         baseSalary = yaml["baseSalary"].as<quint32>();
         salaryIncrement = yaml["salaryIncrement"].as<quint32>();
         maxDiceRoll = yaml["maxDiceRoll"].as<quint32>();
         for (int i=0; i<4; ++i) {
-            frbFiles[i] = QString::fromStdString(yaml[QString("frbFile%1").arg(i+1).toStdString()].as<std::string>());
+            auto key = QString("frbFile%1").arg(i+1).toStdString();
+            if(yaml[key] || i==0) {
+                frbFiles[i] = QString::fromStdString(yaml[key].as<std::string>());
+            } else {
+                frbFiles[i] = "";
+            }
         }
         switchRotationOrigins.clear();
         for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
             switchRotationOrigins.append({originPoint["x"].as<float>(), originPoint["y"].as<float>(),});
         }
-        auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
-        if (loopingModeStr == "Vertical") {
-            loopingMode = Vertical;
-        } else if (loopingModeStr == "Both") {
-            loopingMode = Both;
+        if(yaml["looping"]) {
+            auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
+            if (loopingModeStr == "Vertical") {
+                loopingMode = Vertical;
+            } else if (loopingModeStr == "Both") {
+                loopingMode = Both;
+            } else {
+                loopingMode = None;
+            }
+            loopingModeRadius = yaml["looping"]["radius"].as<float>();
+            loopingModeHorizontalPadding = yaml["looping"]["horizontalPadding"].as<float>();
+            loopingModeVerticalSquareCount = yaml["looping"]["verticalSquareCount"].as<float>();
         } else {
             loopingMode = None;
         }
-        loopingModeRadius = yaml["looping"]["radius"].as<float>();
-        loopingModeHorizontalPadding = yaml["looping"]["horizontalPadding"].as<float>();
-        loopingModeVerticalSquareCount = yaml["looping"]["verticalSquareCount"].as<float>();
         tourBankruptcyLimit = yaml["tourMode"]["bankruptcyLimit"].as<quint32>();
-        tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
+        if(yaml["tourMode"]["initialCash"])
+            tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
         for (int i=0; i<3; ++i) {
             tourCharacters[i] = stringToTourCharacter(
                         QString::fromStdString(yaml["tourMode"][QString("opponent%1").arg(i+1).toStdString()].as<std::string>())
                     );
         }
         tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
-        bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
         background = QString::fromStdString(yaml["background"].as<std::string>());
-        mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
-        for (quint32 i=0; i<sizeof(ventureCards); ++i) {
-            ventureCards[i] = yaml["ventureCards"][i].as<int>();
+        if(VanillaDatabase::hasDefaultMapIcon(background)) {
+            mapIcon = VanillaDatabase::getDefaultMapIcon(background);
+            if(yaml["mapIcon"])
+                mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+        } else {
+            mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+        }
+        if(VanillaDatabase::hasDefaultBgmId(background)) {
+            bgmId = VanillaDatabase::getDefaultBgmId(background);
+            if(yaml["bgmId"])
+                bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
+        } else {
+            bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
+        }
+        if(yaml["ventureCards"]) {
+            for (quint32 i=0; i<sizeof(ventureCards); ++i) {
+                ventureCards[i] = yaml["ventureCards"][i].as<int>();
+            }
+        } else {
+            VanillaDatabase::setDefaultVentureCards(ruleSet, ventureCards);
         }
         return true;
     } catch (const YAML::Exception &exception) {
