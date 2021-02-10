@@ -1,5 +1,4 @@
 #include "vanilladatabase.h"
-#include "mapdescriptor.h"
 
 namespace VanillaDatabase {
 
