@@ -48,22 +48,37 @@ static const QStringList &getWiimmsEnv() {
     return witEnv;
 }
 
+static QFuture<void> observeProcess(QProcess *proc) {
+    auto fut1 = AsyncFuture::observe(proc, &QProcess::errorOccurred)
+            .subscribe([=](QProcess::ProcessError error) {
+                auto program = proc->program();
+                auto metaEnum = QMetaEnum::fromType<QProcess::ProcessError>();
+                delete proc;
+                throw Exception(QString("Process '%1' encountered an error: %2").arg(proc->program()).arg(metaEnum.valueToKey(error)));
+            }).future();
+    auto fut2 = AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
+            .subscribe([=](int code) {
+        auto program = proc->program();
+        delete proc;
+        if (code != 0) {
+            throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
+        }
+    }).future();
+    return (AsyncFuture::combine() << fut1 << fut2).future();
+}
+
 QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWitPath(), {"DUMP", "-l", inputFile});
     // have to use the old overload for now b/c AsyncFuture doesn't support
     // multiple arguments yet
-    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int exitCode) -> QVector<AddressSection> {
+    return AsyncFuture::observe(observeProcess(proc))
+            .subscribe([=]() -> QVector<AddressSection> {
         QVector<AddressSection> result;
-        if (exitCode != 0) {
-            delete proc;
-            // TODO report failure?
-            return result;
-        }
         QString line;
         QTextStream stream(proc);
+
         while (stream.readLineInto(&line)) {
             if (line.contains("Delta between file offset and virtual address:")) {
                 stream.readLine();
@@ -94,19 +109,17 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
     }).future();
 }
 
-QFuture<bool> extractArcFile(const QString &arcFile, const QString &dFolder) {
+QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"EXTRACT", "--overwrite", arcFile, "--dest", dFolder});
-    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int code) { delete proc; return code == 0; }).future();
+    return observeProcess(proc);
 }
-QFuture<bool> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
+QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
-    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int code) { delete proc; return code == 0; }).future();
+    return observeProcess(proc);
 }
 void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile) {
     auto brlytFileArr = brlytFile.toUtf8();
@@ -126,27 +139,30 @@ void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile) {
         make_brlan(xmlytFileArr.data(), brlytFileArr.data());
     }
 }
-QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
+QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWimgtPath(), {"ENCODE", "--overwrite", pngFile, "--dest", tplFile});
-    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int code) { delete proc; return code == 0; }).future();
+    return observeProcess(proc);
 }
-QFuture<bool> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {
+QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWitPath(), {"COPY", "--psel", "data", "--preserve", "--overwrite", "--fst", wbfsFile, extractDir});
-    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int code) { delete proc; return code == 0; }).future();
+    return observeProcess(proc);
 }
-QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, bool patchWiimmfi) {
+QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, bool patchWiimmfi) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     QStringList args{"COPY", "--id", ".....2", "--overwrite", sourceDir, wbfsFile};
     if (patchWiimmfi) args << "--wiimmfi";
     proc->start(getWitPath(), args);
-    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int code) { delete proc; return code == 0; }).future();
+    return observeProcess(proc);
 }
+
+Exception::Exception(const QString &msgVal) : message(msgVal) {}
+const QString &Exception::getMessage() const { return message; }
+void Exception::raise() const { throw *this; }
+Exception *Exception::clone() const { return new Exception(*this); }
+
 }

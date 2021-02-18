@@ -22,7 +22,7 @@ namespace PatchProcess {
      * @param tmpDir holds temporary files to copy to output if needed
      * @return a future resolving to whether the save was successful
      */
-    QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir);
+    QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir);
 
     /**
      * @brief exportMd Exports the map descriptor file and .frb(s).
@@ -40,7 +40,17 @@ namespace PatchProcess {
      * @param tmpDir the directory to place .frb files before saving, etc.
      * @return whether the import was successful
      */
-    bool importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
+    void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
+
+    class Exception : public QException {
+    public:
+        Exception(const QString &msgVal);
+        const QString &getMessage() const;
+        void raise() const override;
+        Exception *clone() const override;
+    private:
+        QString message;
+    };
 }
 
 #endif // PATCHPROCESS_H

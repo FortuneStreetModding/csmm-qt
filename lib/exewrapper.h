@@ -16,13 +16,23 @@
 
 namespace ExeWrapper {
     QFuture<QVector<AddressSection>> readSections(const QString &inputFile);
-    QFuture<bool> extractArcFile(const QString &arcFile, const QString &dFolder);
-    QFuture<bool> packDfolderToArc(const QString &dFolder, const QString &arcFile);
+    QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder);
+    QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile);
     void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile);
     void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile);
-    QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile);
-    QFuture<bool> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
-    QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, bool patchWiimmfi);
+    QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile);
+    QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
+    QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, bool patchWiimmfi);
+
+    class Exception : public QException {
+    public:
+        Exception(const QString &msgVal);
+        const QString &getMessage() const;
+        void raise() const override;
+        Exception *clone() const override;
+    private:
+        QString message;
+    };
 }
 
 #endif // EXEWRAPPER_H

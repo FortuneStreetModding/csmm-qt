@@ -57,13 +57,8 @@ void MainWindow::openFile() {
         return;
     }
     AsyncFuture::observe(checkForRequiredFiles())
-            .subscribe([=](bool result) {
-        if (result) {
-            return PatchProcess::openDir(QDir(dirname));
-        }
-        auto deferred = AsyncFuture::deferred<QVector<MapDescriptor>>();
-        deferred.cancel();
-        return deferred.future();
+            .subscribe([=]() {
+        return PatchProcess::openDir(QDir(dirname));
     }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
         if (descriptors.isEmpty()) {
             QMessageBox::critical(this, "Open", "Bad Fortune Street directory");
@@ -84,23 +79,12 @@ void MainWindow::openIsoWbfs() {
 
     auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
     AsyncFuture::observe(checkForRequiredFiles())
-            .subscribe([=](bool result) {
+            .subscribe([=]() {
         *progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
-        if (result) {
-            (*progress)->setWindowModality(Qt::WindowModal);
-            (*progress)->setValue(0);
-            return ExeWrapper::extractWbfsIso(isoWbfs, tempGameDir.path());
-        }
-        auto deferred = AsyncFuture::deferred<bool>();
-        deferred.cancel();
-        return deferred.future();
-    }).subscribe([=](bool result) {
-        if (!result) {
-            QMessageBox::critical(this, "Import", "Error extracting WBFS/ISO");
-            auto deferred = AsyncFuture::deferred<QVector<MapDescriptor>>();
-            deferred.cancel();
-            return deferred.future();
-        }
+        (*progress)->setWindowModality(Qt::WindowModal);
+        (*progress)->setValue(0);
+        return ExeWrapper::extractWbfsIso(isoWbfs, tempGameDir.path());
+    }).subscribe([=]() {
         (*progress)->setValue(1);
         return PatchProcess::openDir(tempGameDir.path());
     }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
@@ -136,7 +120,19 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
 #define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-x86_64.tar.gz"
 #endif
 
-QFuture<bool> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
+namespace {
+    class DownloadException : public QException {
+    public:
+        DownloadException(const QString &msgStr) : message(msgStr) {}
+        const QString &getMessage() const { return message; }
+        void raise() const override { throw *this; }
+        DownloadException *clone() const override { return new DownloadException(*this); }
+    private:
+        QString message;
+    };
+}
+
+QFuture<void> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
     QDir appDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
     appDir.mkpath(".");
     QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
@@ -160,40 +156,45 @@ QFuture<bool> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
                 }
                 return QString();
             });
-            return (AsyncFuture::combine() << downloadWit << downloadWszst).subscribe([=]() {
-                bool result = downloadWit.result() && downloadWszst.result();
-                if (result) {
-                    QMessageBox::information(this, "Download", "Successfuly downloaded and extracted the programs.");
-                } else {
-                    QMessageBox::critical(this, "Download", "Error downloading or extracting the programs.");
+            auto downloadFut = (AsyncFuture::combine() << downloadWit << downloadWszst);
+            return downloadFut.subscribe([=]() {
+                QMessageBox::information(this, "Download", "Successfuly downloaded and extracted the programs.");
+            }, [=]() {
+                try {
+                    auto _downloadWit = downloadWit;
+                    auto _downloadWszst = downloadWszst;
+                    _downloadWit.waitForFinished();
+                    _downloadWszst.waitForFinished();
+                } catch (const DownloadException &ex) {
+                    QMessageBox::critical(this, "Download", ex.getMessage());
                 }
-                return result;
             }).future();
         }
-        auto def = AsyncFuture::deferred<bool>();
-        def.complete(false);
+        auto def = AsyncFuture::deferred<void>();
+        def.cancel();
         return def.future();
     }
-    auto def = AsyncFuture::deferred<bool>();
-    def.complete(true);
+    auto def = AsyncFuture::deferred<void>();
+    def.complete();
     return def.future();
 }
 
 template<class InToOutFiles>
-QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) {
+QFuture<void> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) {
     QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
     if (tempDir->isValid()) {
         auto witArchiveFile = new QFile(tempDir->filePath("temp_wit"), this);
         if (witArchiveFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
             QNetworkReply *reply = manager->get(QNetworkRequest(witURL));
+            //manager->setTransferTimeout(1000);
             connect(reply, &QNetworkReply::readyRead, this, [=]() {
                 witArchiveFile->write(reply->readAll());
             });
-            return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> bool {
+            return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> void {
                 if (reply->error() != QNetworkReply::NoError) {
-                    //QMessageBox::critical(this, "Download", "Error occurred while downloading");
+                    DownloadException ex(QString("Error downloading: %1").arg(reply->errorString()));
                     reply->deleteLater();
-                    return false;
+                    throw ex;
                 }
                 reply->deleteLater();
 
@@ -205,7 +206,7 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
 
                 zip_t *zip = zip_open(fname.toUtf8(), 0, 'r');
                 if (!zip) {
-                    return false;
+                    throw DownloadException(QString("Error opening downloaded file %1").arg(fname));
                 }
                 int n = zip_total_entries(zip);
                 for (int i=0; i<n; ++i) {
@@ -216,7 +217,7 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
                     if (!zip_entry_isdir(zip) && !output.isEmpty()) {
                         if (zip_entry_fread(zip, output.toUtf8()) < 0) {
                             zip_close(zip);
-                            return false;
+                            throw DownloadException(QString("Error extracting downloaded file %1").arg(fname));
                         }
                     }
 
@@ -240,10 +241,10 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
                 if (r == ARCHIVE_OK) {
                     r = extractFileTo(a, ext, func);
                     if (r != ARCHIVE_OK) {
-                        return false;
+                        throw DownloadException(QString("Error extracting downloaded file %1").arg(witArchiveFile->fileName()));
                     }
                 } else {
-                    return false;
+                    throw DownloadException(QString("Error opening downloaded file %1").arg(witArchiveFile->fileName()));
                 }
                 archive_read_close(a);
                 archive_read_free(a);
@@ -251,18 +252,12 @@ QFuture<bool> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
                 archive_write_free(ext);
 #endif
                 witArchiveFile->deleteLater();
-
-                return true;
             }).future();
         } else {
-            auto def = AsyncFuture::deferred<bool>();
-            def.complete(false);
-            return def.future();
+            throw DownloadException(QString("Temporary file could not be created"));
         }
     } else {
-        auto def = AsyncFuture::deferred<bool>();
-        def.complete(false);
-        return def.future();
+        throw DownloadException(QString("Temporary directory could not be created"));
     }
 }
 
@@ -283,29 +278,33 @@ void MainWindow::exportToFolder() {
 
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
-    AsyncFuture::observe(copyTask)
+    auto fut = AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
         if (!result) {
-            auto def = AsyncFuture::deferred<bool>();
-            def.complete(false);
+            QMessageBox::critical(this, "Save", "Could not copy game data to temporary directory for modifying");
+            auto def = AsyncFuture::deferred<void>();
+            def.cancel();
             return def.future();
         }
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpResourcesDir().path());
-    }).subscribe([=](bool result) {
+    }).subscribe([=]() {
         progress->setValue(2);
-        if (result) {
-            QMessageBox::information(this, "Save", "Saved successfuly.");
-        } else {
-            QMessageBox::critical(this, "Save", "An error occurred while saving.");
-        }
+        QMessageBox::information(this, "Save", "Saved successfuly.");
 
         // reload map descriptors
         int idx = 0;
         for (auto &descriptor: *descriptors) {
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
+        }
+    });
+    fut.onCanceled([=]() {
+        try {
+            fut.future().waitForFinished();
+        } catch (const PatchProcess::Exception &exception) {
+            QMessageBox::critical(this, "Save", QString("Save failed: %1").arg(exception.getMessage()));
         }
     });
 }
@@ -329,39 +328,37 @@ void MainWindow::exportIsoWbfs() {
     bool patchWiimmfi = ui->actionPatch_Wiimmfi->isChecked();
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediatePath); });
-    AsyncFuture::observe(copyTask)
+    auto fut = AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
         if (!result) {
-            auto def = AsyncFuture::deferred<bool>();
-            def.complete(false);
+            auto def = AsyncFuture::deferred<void>();
+            def.complete();
             return def.future();
         }
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
-    }).subscribe([=](bool result) {
-        if (!result) {
-            auto def = AsyncFuture::deferred<bool>();
-            def.complete(false);
-            return def.future();
-        }
+    }).subscribe([=]() {
         progress->setValue(2);
         return ExeWrapper::createWbfsIso(intermediatePath, saveFile, patchWiimmfi);
-    }).subscribe([=](bool result) {
+    }).subscribe([=]() {
         (void)intermediateResults; // keep temporary directory active while creating wbfs/iso
 
         progress->setValue(3);
-        if (result) {
-            QMessageBox::information(this, "Export", "Exported successfuly.");
-        } else {
-            QMessageBox::critical(this, "Export", "An error occurred while exporting.");
-        }
+        QMessageBox::information(this, "Export", "Exported successfuly.");
 
         // reload map descriptors
         int idx = 0;
         for (auto &descriptor: *descriptors) {
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
+        }
+    });
+    fut.onCanceled([=]() {
+        try {
+            fut.future().waitForFinished();
+        } catch (const PatchProcess::Exception &exception) {
+            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
         }
     });
 }

@@ -71,11 +71,12 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         auto openMd = QFileDialog::getOpenFileName(this, "Import .md", "", "Map Descriptor Files (*.md)");
         if (openMd.isEmpty()) return;
         MapDescriptor newDescriptor;
-        if (PatchProcess::importMd(gameDirectory, openMd, newDescriptor, tmpDir.path())) {
+        try {
+            PatchProcess::importMd(gameDirectory, openMd, newDescriptor, tmpDir.path());
             descriptorPtr->setFromImport(newDescriptor);
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
-        } else {
-            QMessageBox::critical(this, "Import .md", "There was an error loading the .md file");
+        } catch (const PatchProcess::Exception &exception) {
+            QMessageBox::critical(this, "Import .md", QString("Error loading the .md file: %1").arg(exception.getMessage()));
         }
     });
     setCellWidget(row, colIdx++, importMdButton);

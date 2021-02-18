@@ -47,6 +47,8 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
             // open failed
             return QVector<MapDescriptor>();
         }
+    }, []() {
+        return QVector<MapDescriptor>();
     }).future();
 }
 
@@ -163,7 +165,7 @@ static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescript
     }).future();
 }
 
-static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, const QDir &tmpDir) {
+static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, const QDir &tmpDir) {
     // first check if we need to inject any map icons in the first place. We do not need to if only vanilla map icons are used.
     bool allMapIconsVanilla = true;
     for (auto &mapDescriptor: mapDescriptors){
@@ -301,29 +303,33 @@ static QFuture<bool> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }).future();
 }
 
-QFuture<bool> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
+QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
-    return AsyncFuture::observe(patchMainDolAsync(descriptors, output))
-            .subscribe([=]() -> QFuture<bool> {
+    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
+            .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
-    }).subscribe([=](bool result) {
-        if (result) {
-            // copy frb files from temp dir to output
-            for (auto &descriptor: descriptors) {
-                for (auto &frbFile: descriptor.frbFiles) {
-                    if (frbFile.isEmpty()) continue;
-                    auto frbFileFrom = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
-                    auto frbFileTo = output.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
-                    QFileInfo frbFileFromInfo(frbFileFrom);
-                    if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
-                        continue;
-                    }
-                    QFile(frbFileTo).remove();
-                    QFile::copy(frbFileFrom, frbFileTo);
+    });
+    return fut.subscribe([=]() {
+        // copy frb files from temp dir to output
+        for (auto &descriptor: descriptors) {
+            for (auto &frbFile: descriptor.frbFiles) {
+                if (frbFile.isEmpty()) continue;
+                auto frbFileFrom = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                auto frbFileTo = output.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                QFileInfo frbFileFromInfo(frbFileFrom);
+                if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
+                    continue;
                 }
+                QFile(frbFileTo).remove();
+                QFile::copy(frbFileFrom, frbFileTo);
             }
         }
-        return result;
+    }, [=]() {
+        try {
+            fut.future().waitForFinished();
+        } catch (const ExeWrapper::Exception &exception) {
+            throw Exception(exception.getMessage());
+        }
     }).future();
 }
 
@@ -345,7 +351,7 @@ void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &d
     }
 }
 
-bool importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
+void importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
     auto node = YAML::LoadFile(mdFileSrc.toStdString());
     if (descriptor.fromMd(node)) {
         // import frb files
@@ -355,10 +361,10 @@ bool importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor,
             auto frbFileFrom = QFileInfo(mdFileSrc).dir().filePath(frbFile + ".frb");
             QFileInfo frbFileFromInfo(frbFileFrom);
             if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
-                return false;
+                throw new Exception(QString("File %1 does not exist").arg(frbFileFrom));
             }
             if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                return false;
+                throw new Exception("Cannot create param folder in temporary directory");
             }
             auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
             QFile(frbFileTo).remove();
@@ -371,10 +377,10 @@ bool importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor,
             auto mapIconFileTo = tmpDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
             QFileInfo mapIconFileFromInfo(mapIconFileFrom);
             if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
-                return false;
+                throw new Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
             }
             if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                return false;
+                throw new Exception("Cannot create param folder in temporary directory");
             }
             QFile(mapIconFileTo).remove();
             QFile::copy(mapIconFileFrom, mapIconFileTo);
@@ -382,9 +388,14 @@ bool importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor,
 
         // set internal name
         descriptor.internalName = QFileInfo(mdFileSrc).baseName();
-        return true;
+    } else {
+        throw new Exception(QString("File %1 could not be parsed").arg(mdFileSrc));
     }
-    return false;
 }
+
+Exception::Exception(const QString &msgVal) : message(msgVal) {}
+const QString &Exception::getMessage() const { return message; }
+void Exception::raise() const { throw *this; }
+Exception *Exception::clone() const { return new Exception(*this); }
 
 }

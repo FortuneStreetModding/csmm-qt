@@ -31,9 +31,9 @@ private:
     void exportToFolder();
     void exportIsoWbfs();
     void loadDescriptors(const QVector<MapDescriptor> &descriptors);
-    QFuture<bool> checkForRequiredFiles(bool alwaysAsk = false);
+    QFuture<void> checkForRequiredFiles(bool alwaysAsk = false);
     template<class InToOutFiles>
-    QFuture<bool> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
+    QFuture<void> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
     void validateMaps();
 };
 #endif // MAINWINDOW_H
