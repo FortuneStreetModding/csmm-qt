@@ -48,23 +48,22 @@ static const QStringList &getWiimmsEnv() {
     return witEnv;
 }
 
-static QFuture<void> observeProcess(QProcess *proc) {
-    auto fut1 = AsyncFuture::observe(proc, &QProcess::errorOccurred)
-            .subscribe([=](QProcess::ProcessError error) {
-                auto program = proc->program();
-                auto metaEnum = QMetaEnum::fromType<QProcess::ProcessError>();
-                delete proc;
-                throw Exception(QString("Process '%1' encountered an error: %2").arg(proc->program()).arg(metaEnum.valueToKey(error)));
-            }).future();
-    auto fut2 = AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int code) {
-        auto program = proc->program();
+static QFuture<void> observeProcess(QProcess *proc, bool deleteProcAfterSuccess = true) {
+    auto program = proc->program();
+    if (proc->error() == QProcess::FailedToStart) {
         delete proc;
+        auto def = AsyncFuture::deferred<void>();
+        def.complete();
+        return def.subscribe([=] { throw Exception(QString("Process '%1' failed to start").arg(program)); }).future();
+    }
+    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
+            .subscribe([=](int code) {
         if (code != 0) {
+            delete proc;
             throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
         }
+        if (deleteProcAfterSuccess) delete proc;
     }).future();
-    return (AsyncFuture::combine() << fut1 << fut2).future();
 }
 
 QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
@@ -73,7 +72,7 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
     proc->start(getWitPath(), {"DUMP", "-l", inputFile});
     // have to use the old overload for now b/c AsyncFuture doesn't support
     // multiple arguments yet
-    return AsyncFuture::observe(observeProcess(proc))
+    return AsyncFuture::observe(observeProcess(proc, false))
             .subscribe([=]() -> QVector<AddressSection> {
         QVector<AddressSection> result;
         QString line;

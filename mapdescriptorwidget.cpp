@@ -65,10 +65,10 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setVerticalHeaderItem(row, readOnlyItem(QString::number(row)));
 
-    auto importMdButton = new QPushButton("Import .md");
+    auto importMdButton = new QPushButton("Import .md or .zip");
     connect(importMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto openMd = QFileDialog::getOpenFileName(this, "Import .md", "", "Map Descriptor Files (*.md)");
+        auto openMd = QFileDialog::getOpenFileName(this, "Import .md or .zip", QString(), "Map Descriptor Files (*.md);;Zip Files (*.zip)");
         if (openMd.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {

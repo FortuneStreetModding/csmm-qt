@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QTemporaryDir>
 #include "asyncfuture.h"
 #include "datafileset.h"
 #include "exewrapper.h"
@@ -9,6 +10,7 @@
 #include "uimessage.h"
 #include "uimenu1900a.h"
 #include "vanilladatabase.h"
+#include "zip/zip.h"
 
 namespace PatchProcess {
 
@@ -351,45 +353,68 @@ void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &d
     }
 }
 
-void importMd(const QDir &, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
-    auto node = YAML::LoadFile(mdFileSrc.toStdString());
-    if (descriptor.fromMd(node)) {
-        // import frb files
-        for (auto &frbFile: descriptor.frbFiles) {
-            if (frbFile.isEmpty()) continue; // skip unused slots
-
-            auto frbFileFrom = QFileInfo(mdFileSrc).dir().filePath(frbFile + ".frb");
-            QFileInfo frbFileFromInfo(frbFileFrom);
-            if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
-                throw new Exception(QString("File %1 does not exist").arg(frbFileFrom));
-            }
-            if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                throw new Exception("Cannot create param folder in temporary directory");
-            }
-            auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
-            QFile(frbFileTo).remove();
-            QFile::copy(frbFileFrom, frbFileTo);
+void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
+    if (QFileInfo(mdFileSrc).suffix() == "zip") {
+        QTemporaryDir intermediateDir;
+        if (!intermediateDir.isValid()) {
+            throw new Exception("Could not create an intermediate directory");
         }
-
-        // import map icons if needed
-        if (!VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
-            auto mapIconFileFrom = QFileInfo(mdFileSrc).dir().filePath(descriptor.mapIcon + ".png");
-            auto mapIconFileTo = tmpDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
-            QFileInfo mapIconFileFromInfo(mapIconFileFrom);
-            if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
-                throw new Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
+        QString extractedMdFile;
+        int extractResult = zip_extract(mdFileSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
+            auto mdFilePtr = (QString *)arg;
+            auto suffix = QFileInfo(candidate).suffix();
+            if (suffix == "md" || suffix == "yaml") {
+                *mdFilePtr = candidate;
             }
-            if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                throw new Exception("Cannot create param folder in temporary directory");
-            }
-            QFile(mapIconFileTo).remove();
-            QFile::copy(mapIconFileFrom, mapIconFileTo);
+            return 0;
+        }, &extractedMdFile);
+        if (extractResult < 0) {
+            throw new Exception("Could not extract zip file to intermediate directory");
         }
-
-        // set internal name
-        descriptor.internalName = QFileInfo(mdFileSrc).baseName();
+        if (extractedMdFile.isEmpty()) {
+            throw new Exception("Zip file has no map descriptor");
+        }
+        importMd(dir, extractedMdFile, descriptor, tmpDir);
     } else {
-        throw new Exception(QString("File %1 could not be parsed").arg(mdFileSrc));
+        auto node = YAML::LoadFile(mdFileSrc.toStdString());
+        if (descriptor.fromMd(node)) {
+            // import frb files
+            for (auto &frbFile: descriptor.frbFiles) {
+                if (frbFile.isEmpty()) continue; // skip unused slots
+
+                auto frbFileFrom = QFileInfo(mdFileSrc).dir().filePath(frbFile + ".frb");
+                QFileInfo frbFileFromInfo(frbFileFrom);
+                if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
+                    throw new Exception(QString("File %1 does not exist").arg(frbFileFrom));
+                }
+                if (!tmpDir.mkpath(PARAM_FOLDER)) {
+                    throw new Exception("Cannot create param folder in temporary directory");
+                }
+                auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                QFile(frbFileTo).remove();
+                QFile::copy(frbFileFrom, frbFileTo);
+            }
+
+            // import map icons if needed
+            if (!VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
+                auto mapIconFileFrom = QFileInfo(mdFileSrc).dir().filePath(descriptor.mapIcon + ".png");
+                auto mapIconFileTo = tmpDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
+                QFileInfo mapIconFileFromInfo(mapIconFileFrom);
+                if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
+                    throw new Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
+                }
+                if (!tmpDir.mkpath(PARAM_FOLDER)) {
+                    throw new Exception("Cannot create param folder in temporary directory");
+                }
+                QFile(mapIconFileTo).remove();
+                QFile::copy(mapIconFileFrom, mapIconFileTo);
+            }
+
+            // set internal name
+            descriptor.internalName = QFileInfo(mdFileSrc).baseName();
+        } else {
+            throw new Exception(QString("File %1 could not be parsed").arg(mdFileSrc));
+        }
     }
 }
 
