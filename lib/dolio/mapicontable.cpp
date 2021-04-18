@@ -111,6 +111,17 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021f880)); stream << PowerPcAsm::li(3, 0x6);
     // bl Game::GameSequenceDataAdapter::GetNumMapsInZone    -> li r3,0x6
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021ff4c)); stream << PowerPcAsm::li(3, 0x6);
+
+    // -- if the map id is -1, do not check if it has been unlocked or not ---
+    hijackAddr = addressMapper.boomStreetToStandard(0x8021e570);
+    returnContinueAddr = addressMapper.boomStreetToStandard(0x8021e574);
+    quint32 returnSkipMapUnlockedCheck = addressMapper.boomStreetToStandard(0x8021e5a8);
+    quint32 subroutineWriteSubroutineSkipMapUnlockCheck = allocate(writeSubroutineSkipMapUnlockCheck(0, returnContinueAddr, returnSkipMapUnlockedCheck));
+    stream.device()->seek(addressMapper.toFileAddress(subroutineWriteSubroutineSkipMapUnlockCheck));
+    insts = writeSubroutineSkipMapUnlockCheck(subroutineWriteSubroutineSkipMapUnlockCheck, returnContinueAddr, returnSkipMapUnlockedCheck); // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: qAsConst(insts)) stream << inst;
+    // or r3,r26,r26                                      ->  b subroutineWriteSubroutineSkipMapUnlockCheck
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineWriteSubroutineSkipMapUnlockCheck);
 }
 
 void MapIconTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
@@ -247,5 +258,17 @@ QVector<quint32> MapIconTable::writeSubroutineMakeNoneMapIconsInvisible(const Ad
         PowerPcAsm::lwz(0, 0x184, 3),                                           //   get map icon type (replaced opcode)
         PowerPcAsm::b(entryAddr, 11/*asm.Count*/, returnContinueAddr)           //   returnContinueAddr
                                                                                 // }
+    };
+}
+
+QVector<quint32> MapIconTable::writeSubroutineSkipMapUnlockCheck(quint32 entryAddr, quint32 returnContinueAddr, quint32 returnSkipMapUnlockedCheckAddr) {
+    // precondition:  r26  is mapid
+    //                 r3  is unused
+    // postcondition:  r3  is mapid
+    return {
+        PowerPcAsm::or_(3, 26, 26),                                                 // r3 <- mapid
+        PowerPcAsm::cmpwi(3, -1),                                                   // mapid == -1 ?
+        PowerPcAsm::beq(entryAddr, 2/*asm.Count*/, returnSkipMapUnlockedCheckAddr), //   goto skipMapUnlockedCheck
+        PowerPcAsm::b(entryAddr, 3/*asm.Count*/, returnContinueAddr),               // else goto returnContinueAddr
     };
 }

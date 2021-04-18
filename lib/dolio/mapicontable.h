@@ -21,6 +21,7 @@ protected:
 private:
     QVector<quint32> writeSubroutineInitMapIdsForMapIcons(const AddressMapper &addressMapper, quint32 entryAddr);
     QVector<quint32> writeSubroutineMakeNoneMapIconsInvisible(const AddressMapper &addressMapper, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnMakeInvisibleAddr);
+    QVector<quint32> writeSubroutineSkipMapUnlockCheck(quint32 entryAddr, quint32 returnContinueAddr, quint32 returnSkipMapUnlockedCheckAddr);
 };
 
 #endif // MAPICONTABLE_H
