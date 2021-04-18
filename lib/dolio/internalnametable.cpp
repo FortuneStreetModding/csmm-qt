@@ -26,6 +26,7 @@ void InternalNameTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &map
         quint32 addr;
         stream >> addr;
         mapDescriptor.internalName = resolveAddressToString(addr, stream, addressMapper).trimmed();
+        // clear the internal name of characters which are not allowed in a file system
         mapDescriptor.internalName.replace(QRegularExpression("[<>:/\\|?*\"]+"), "");
         if (isVanilla) {
             // in vanilla main.dol the table has other stuff in it like bgm id, map frb files, etc.
