@@ -111,7 +111,6 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021f880)); stream << PowerPcAsm::li(3, 0x6);
     // bl Game::GameSequenceDataAdapter::GetNumMapsInZone    -> li r3,0x6
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021ff4c)); stream << PowerPcAsm::li(3, 0x6);
-
     // -- if the map id is -1, do not check if it has been unlocked or not ---
     hijackAddr = addressMapper.boomStreetToStandard(0x8021e570);
     returnContinueAddr = addressMapper.boomStreetToStandard(0x8021e574);
@@ -122,6 +121,35 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     for (quint32 inst: qAsConst(insts)) stream << inst;
     // or r3,r26,r26                                      ->  b subroutineWriteSubroutineSkipMapUnlockCheck
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineWriteSubroutineSkipMapUnlockCheck);
+
+    // --- Fix Wifi Map Selection ---
+    // bl GameSequenceDataAdapter::GetMapOrigin(r3)                               -> nop
+    stream.device()->seek(addressMapper.toFileAddress(0x80185ac4)); stream << PowerPcAsm::nop();
+    // or r31,r3,r3                                                               -> or r31,r4,r4
+    stream.device()->seek(addressMapper.toFileAddress(0x80185ac8)); stream << PowerPcAsm::or_(31, 4, 4);
+    // li r5,0x1                                                                  -> li r5,0x2
+    stream.device()->seek(addressMapper.toFileAddress(0x80185b10)); stream << PowerPcAsm::li(5, 2);
+    // bl GameSequenceDataAdapter::GetMapOrigin(r3)                               -> nop
+    stream.device()->seek(addressMapper.toFileAddress(0x8024b1b8)); stream << PowerPcAsm::nop();
+    // bl GameSequenceDataAdapter::GetMapOrigin(r3)                               -> nop
+    stream.device()->seek(addressMapper.toFileAddress(0x802498a8));
+    for (int i = 0; i < 8; i++) stream << PowerPcAsm::nop();
+    // --- Default selected map button in wifi ---
+    // since Standard Mode is selected on default, we use this mapset to find the standard map
+    // TODO need asm hack to determine currently selected MapSet and rather use that ID
+    short defaultMap = 0;
+    for (short i = 0; i < mapDescriptors.count(); i++) {
+        MapDescriptor mapDescriptor = mapDescriptors.at(i);
+        if (mapDescriptor.mapSet == 1 && mapDescriptor.zone == 0 && mapDescriptor.order == 0) {
+            defaultMap = i;
+        }
+    }
+    // 0x9 = Castle Trodain
+    // li r3,0x9                                                                  -> li r3,0x9
+    stream.device()->seek(addressMapper.toFileAddress(0x8024afc8)); stream << PowerPcAsm::li(3, defaultMap);
+    // TODO 0x13 is some special handling map id. Need to check what is going on with it
+    // li r3,0x13                                                                 -> li r3,0x13
+    stream.device()->seek(addressMapper.toFileAddress(0x80243ae4)); stream << PowerPcAsm::li(5, 0x13);
 }
 
 void MapIconTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
