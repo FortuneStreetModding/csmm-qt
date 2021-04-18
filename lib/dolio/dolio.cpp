@@ -1,16 +1,16 @@
 #include "dolio.h"
 
-quint32 DolIO::allocate(const QByteArray &data) {
-    return fsmPtr->allocateUnusedSpace(data, *streamPtr, *mapperPtr);
+quint32 DolIO::allocate(const QByteArray &data, const QString &purpose) {
+    return fsmPtr->allocateUnusedSpace(data, *streamPtr, *mapperPtr, purpose);
 }
 
-quint32 DolIO::allocate(const QVector<quint32> &words) {
+quint32 DolIO::allocate(const QVector<quint32> &words, const QString &purpose) {
     QByteArray data;
     QDataStream dataStream(&data, QIODevice::WriteOnly);
     for (auto word: words) {
         dataStream << word;
     }
-    return allocate(data);
+    return allocate(data, purpose);
 }
 
 quint32 DolIO::allocate(const QString &str) {
@@ -19,7 +19,7 @@ quint32 DolIO::allocate(const QString &str) {
     }
     QByteArray data(str.toUtf8());
     data.append('\0');
-    return allocate(data);
+    return allocate(data, "");
 }
 
 void DolIO::write(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors, FreeSpaceManager &freeSpaceManager) {

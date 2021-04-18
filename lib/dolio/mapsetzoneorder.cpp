@@ -15,14 +15,14 @@ quint32 MapSetZoneOrder::writeTable(const QVector<MapDescriptor> &descriptors) {
         mapSetZoneOrderTable.append(zone);
         mapSetZoneOrderTable.append(descriptor.order);
     }
-    return allocate(mapSetZoneOrderTable);
+    return allocate(mapSetZoneOrderTable, "MapSetZoneOrderTable");
 }
 
 void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
 
     // --- Game::GameSequenceDataAdapter::GetNumMapsInZone ---
-    quint32 subroutineGetNumMapsInZone = allocate(writeSubroutineGetNumMapsInZone(mapDescriptors));
+    quint32 subroutineGetNumMapsInZone = allocate(writeSubroutineGetNumMapsInZone(mapDescriptors), "SubroutineGetNumMapsInZone");
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8020f3ac);
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // li r3,0x6 ->  b subroutineGetNumMapsInZone
@@ -31,7 +31,7 @@ void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &address
     // --- Game::GameSequenceDataAdapter::GetMapsInZone ---
     hijackAddr = addressMapper.boomStreetToStandard(0x8020f454);
     quint32 returnAddr = addressMapper.boomStreetToStandard(0x8020f554);
-    quint32 subroutineGetMapsInZone = allocate(writeSubroutineGetMapsInZone(addressMapper, mapDescriptors, tableAddr, 0, returnAddr));
+    quint32 subroutineGetMapsInZone = allocate(writeSubroutineGetMapsInZone(addressMapper, mapDescriptors, tableAddr, 0, returnAddr), "SubroutineGetMapsInZone");
     stream.device()->seek(addressMapper.toFileAddress(subroutineGetMapsInZone));
     auto insts = writeSubroutineGetMapsInZone(addressMapper, mapDescriptors, tableAddr, subroutineGetMapsInZone, returnAddr); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;

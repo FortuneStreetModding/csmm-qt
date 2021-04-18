@@ -4,7 +4,7 @@
 quint32 BGMIDTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.bgmId);
-    return allocate(table);
+    return allocate(table, "BGMIDTable");
 }
 
 void BGMIDTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

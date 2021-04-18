@@ -4,7 +4,7 @@
 quint32 BackgroundTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(allocate(descriptor.background));
-    return allocate(table);
+    return allocate(table, "BackgroundTable");
 }
 
 void BackgroundTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

@@ -68,7 +68,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
 
     // --- Hack to make icons invisible which do not have a map ---
     // -- Init Maps in the map array with -1 --
-    auto subroutineInitMapIdsForMapIcons = allocate(writeSubroutineInitMapIdsForMapIcons(addressMapper, 0));
+    auto subroutineInitMapIdsForMapIcons = allocate(writeSubroutineInitMapIdsForMapIcons(addressMapper, 0), "SubroutineInitMapIdsForMapIcons");
     stream.device()->seek(addressMapper.toFileAddress(subroutineInitMapIdsForMapIcons));
     auto insts = writeSubroutineInitMapIdsForMapIcons(addressMapper, subroutineInitMapIdsForMapIcons); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;
@@ -92,7 +92,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     hijackAddr = addressMapper.boomStreetToStandard(0x8021e73c);
     quint32 returnContinueAddr = addressMapper.boomStreetToStandard(0x8021e740);
     quint32 returnMakeInvisibleAddr = addressMapper.boomStreetToStandard(0x8021e808);
-    quint32 subroutineMakeNoneMapIconsInvisible = allocate(writeSubroutineMakeNoneMapIconsInvisible(addressMapper, 0, returnContinueAddr, returnMakeInvisibleAddr));
+    quint32 subroutineMakeNoneMapIconsInvisible = allocate(writeSubroutineMakeNoneMapIconsInvisible(addressMapper, 0, returnContinueAddr, returnMakeInvisibleAddr), "SubroutineMakeNoneMapIconsInvisibleMultiplayer");
     stream.device()->seek(addressMapper.toFileAddress(subroutineMakeNoneMapIconsInvisible));
     insts = writeSubroutineMakeNoneMapIconsInvisible(addressMapper, subroutineMakeNoneMapIconsInvisible, returnContinueAddr, returnMakeInvisibleAddr); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;
@@ -115,7 +115,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     hijackAddr = addressMapper.boomStreetToStandard(0x8021e570);
     returnContinueAddr = addressMapper.boomStreetToStandard(0x8021e574);
     quint32 returnSkipMapUnlockedCheck = addressMapper.boomStreetToStandard(0x8021e5a8);
-    quint32 subroutineWriteSubroutineSkipMapUnlockCheck = allocate(writeSubroutineSkipMapUnlockCheck(0, returnContinueAddr, returnSkipMapUnlockedCheck));
+    quint32 subroutineWriteSubroutineSkipMapUnlockCheck = allocate(writeSubroutineSkipMapUnlockCheck(0, returnContinueAddr, returnSkipMapUnlockedCheck), "SubroutineWriteSubroutineSkipMapUnlockCheck");
     stream.device()->seek(addressMapper.toFileAddress(subroutineWriteSubroutineSkipMapUnlockCheck));
     insts = writeSubroutineSkipMapUnlockCheck(subroutineWriteSubroutineSkipMapUnlockCheck, returnContinueAddr, returnSkipMapUnlockedCheck); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;
@@ -199,7 +199,7 @@ QMap<QString, quint32> MapIconTable::writeIconStrings(const QVector<MapDescripto
 
     // write each map icon into the main.dol and remember the location in the mapIcons dictionary
     QMap<QString, quint32> mapIcons;
-    for (auto &mapIcon: allUniqueMapIcons) {
+    for (auto &mapIcon: allUniqueMapIconsSorted) {
         mapIcons[mapIcon] = allocate(mapIcon);
     }
 
@@ -217,7 +217,7 @@ quint32 MapIconTable::writeIconTable(const QMap<QString, quint32> &mapIcons, QMa
         iconTableOffsetMap[it.key()] = i;
         i += 4;
     }
-    quint32 iconTableAddr = allocate(iconTable);
+    quint32 iconTableAddr = allocate(iconTable, "IconTable");
     for (auto it=iconTableOffsetMap.begin(); it!=iconTableOffsetMap.end(); ++it) {
         iconTableMap[it.key()] = iconTableAddr + it.value();
     }
@@ -233,7 +233,7 @@ quint32 MapIconTable::writeMapIconPointerTable(const QVector<MapDescriptor> &map
         }
         mapIconTable.append(mapIconAddr);
     }
-    return allocate(mapIconTable);
+    return allocate(mapIconTable, "MapIconPointerTable");
 }
 
 QString MapIconTable::resolveAddressAddressToString(quint32 virtualAddressAddress, QDataStream &stream, const AddressMapper &addressMapper) {

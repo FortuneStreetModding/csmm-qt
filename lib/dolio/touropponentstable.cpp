@@ -8,7 +8,7 @@ quint32 TourOpponentsTable::writeTable(const QVector<MapDescriptor> &descriptors
             table.append(character);
         }
     }
-    return allocate(table);
+    return allocate(table, "TourOpponentsTable");
 }
 
 void TourOpponentsTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

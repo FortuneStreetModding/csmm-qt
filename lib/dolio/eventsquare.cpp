@@ -25,13 +25,13 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     stream << (quint32)addressMapper.boomStreetToStandard(0x80088060);
 
     // --- Texture ---
-    quint32 customTextureHandler = allocate(writeGetTextureForCustomSquareRoutine(15, 14));
+    quint32 customTextureHandler = allocate(writeGetTextureForCustomSquareRoutine(15, 14), "GetTextureForCustomSquareRoutine");
     quint32 virtualPos = addressMapper.boomStreetToStandard(0x80086d98);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
     // li r15,0x1        -> bl customTextureHandler
     stream << PowerPcAsm::bl(virtualPos, customTextureHandler);
 
-    customTextureHandler = allocate(writeGetTextureForCustomSquareRoutine(31, 30));
+    customTextureHandler = allocate(writeGetTextureForCustomSquareRoutine(31, 30), "GetTextureForCustomSquareRoutine2");
     virtualPos = addressMapper.boomStreetToStandard(0x80087a24);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
     // li r31,0x1        -> bl customTextureHandler
@@ -47,7 +47,7 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     stream << (quint32)3336; // id of the message in ui_message.csv (3336 = "Switch square")
 
     // --- Description ---
-    quint32 customDescriptionRoutine = allocate(writeGetDescriptionForCustomSquareRoutine(addressMapper, 0));
+    quint32 customDescriptionRoutine = allocate(writeGetDescriptionForCustomSquareRoutine(addressMapper, 0), "GetDescriptionForCustomSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(customDescriptionRoutine));
     auto routineCode = writeGetDescriptionForCustomSquareRoutine(addressMapper, customDescriptionRoutine);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
@@ -85,7 +85,7 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // --- Behavior ---
     // the idea is that whenever someone stops at the event square, it sets our custom variable "ForceVentureCardVariable" to the id of the venture card and runs the Venture Card Mode (0x1c).
     // The custom variable is used to remember which venture card should be played the next time a venture card is executed.
-    quint32 procStopEventSquareRoutine = allocate(writeProcStopEventSquareRoutine(addressMapper, forceVentureCardVariable, 0));
+    quint32 procStopEventSquareRoutine = allocate(writeProcStopEventSquareRoutine(addressMapper, forceVentureCardVariable, 0), "procStopEventSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procStopEventSquareRoutine));
     routineCode = writeProcStopEventSquareRoutine(addressMapper, forceVentureCardVariable, procStopEventSquareRoutine);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
@@ -96,7 +96,7 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // --- Hijack Venture Card Mode ---
     // We are hijacking the execute venture card mode (0x1f) to check if our custom variable "ForceVentureCardVariable" has been set to anything other than 0.
     // If it was, then setup that specific venture card to be executed. Also reset our custom variable "ForceVentureCardVariable" so that normal venture cards still work.
-    quint32 forceFetchFakeVentureCard = allocate(writeSubroutineForceFetchFakeVentureCard(forceVentureCardVariable));
+    quint32 forceFetchFakeVentureCard = allocate(writeSubroutineForceFetchFakeVentureCard(forceVentureCardVariable), "forceFetchFakeVentureCard");
     virtualPos = addressMapper.boomStreetToStandard(0x801b7f44);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
     // li r4,-0x1   -> bl forceFetchFakeVentureCard

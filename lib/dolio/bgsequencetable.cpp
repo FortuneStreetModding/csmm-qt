@@ -6,7 +6,7 @@ quint32 BGSequenceTable::writeTable(const QVector<MapDescriptor> &descriptors, q
     // the BGSequence is only used for mario stadium to animate the Miis playing baseball in the background.
     // As such this will be hardcoded whenever bg004 is selected.
     for (auto &descriptor: descriptors) table.append(descriptor.background == "bg004" ? bgSequenceMarioStadium : 0);
-    return allocate(table);
+    return allocate(table, "BGSequenceTable");
 }
 
 void BGSequenceTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

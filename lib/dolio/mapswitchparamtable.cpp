@@ -17,11 +17,11 @@ quint32 MapSwitchParamTable::writeTable(const QVector<MapDescriptor> &descriptor
             for (auto &originPoint: descriptor.switchRotationOrigins) {
                 arrStream << originPoint.x << (quint32)0 << originPoint.y;
             }
-            quint32 loopingModeConfigAddr = allocate(arr);
+            quint32 loopingModeConfigAddr = allocate(arr, "MapRotationOriginPoints for " + descriptor.internalName);
             mapSwitchParamTable.append(loopingModeConfigAddr);
         }
     }
-    return allocate(mapSwitchParamTable);
+    return allocate(mapSwitchParamTable, "MapSwitchParamTable");
 }
 
 void MapSwitchParamTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

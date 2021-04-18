@@ -4,7 +4,7 @@
 quint32 TourBankruptcyLimitTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.tourBankruptcyLimit);
-    return allocate(table);
+    return allocate(table, "TourBankruptcyLimitTable");
 }
 
 void TourBankruptcyLimitTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

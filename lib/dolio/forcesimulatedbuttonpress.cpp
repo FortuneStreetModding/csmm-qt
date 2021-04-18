@@ -6,7 +6,7 @@ void ForceSimulatedButtonPress::writeAsm(QDataStream &stream, const AddressMappe
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x802bb120);
     quint32 returnAddr = addressMapper.boomStreetToStandard(0x802bb124);
 
-    quint32 uploadSimulatedButtonPress = allocate(writeUploadSimulatedButtonPress(addressMapper, 0, returnAddr));
+    quint32 uploadSimulatedButtonPress = allocate(writeUploadSimulatedButtonPress(addressMapper, 0, returnAddr), "UploadSimulatedButtonPress");
     stream.device()->seek(addressMapper.toFileAddress(uploadSimulatedButtonPress));
     auto insts = writeUploadSimulatedButtonPress(addressMapper, uploadSimulatedButtonPress, returnAddr); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;

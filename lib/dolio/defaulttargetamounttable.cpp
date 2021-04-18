@@ -4,7 +4,7 @@
 quint32 DefaultTargetAmountTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.targetAmount);
-    return allocate(table);
+    return allocate(table, "DefaultGoalMoneyTable");
 }
 
 void DefaultTargetAmountTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

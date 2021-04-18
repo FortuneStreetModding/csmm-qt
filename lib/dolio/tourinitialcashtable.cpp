@@ -4,7 +4,7 @@
 quint32 TourInitialCashTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.tourInitialCash);
-    return allocate(table);
+    return allocate(table, "TourInitialCashTable");
 }
 
 void TourInitialCashTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

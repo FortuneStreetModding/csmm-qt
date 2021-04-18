@@ -5,7 +5,7 @@
 quint32 InternalNameTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(allocate(descriptor.internalName));
-    return allocate(table);
+    return allocate(table, "InternalNameTable");
 }
 
 void InternalNameTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

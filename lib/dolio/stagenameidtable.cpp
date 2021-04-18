@@ -4,7 +4,7 @@
 quint32 StageNameIDTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.nameMsgId);
-    return allocate(table);
+    return allocate(table, "StageNameIDTable");
 }
 
 void StageNameIDTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

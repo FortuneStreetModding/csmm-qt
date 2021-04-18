@@ -4,7 +4,7 @@
 quint32 RuleSetTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.ruleSet);
-    return allocate(table);
+    return allocate(table, "RuleSetTable");
 }
 
 void RuleSetTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
@@ -22,7 +22,7 @@ void RuleSetTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     stream << PowerPcAsm::lwz(3, 0, 3);
 
     // --- ASM hack: Use the rule set from map instead of from global setting ---
-    auto ruleSetFromMapRoutine = allocate(writeRuleSetFromMapRoutine(addressMapper, 0));
+    auto ruleSetFromMapRoutine = allocate(writeRuleSetFromMapRoutine(addressMapper, 0), "writeRuleSetFromMapRoutine");
     stream.device()->seek(addressMapper.toFileAddress(ruleSetFromMapRoutine));
     auto insts = writeRuleSetFromMapRoutine(addressMapper, ruleSetFromMapRoutine); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;

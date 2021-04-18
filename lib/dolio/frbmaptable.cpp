@@ -8,7 +8,7 @@ quint32 FrbMapTable::writeTable(const QVector<MapDescriptor> &descriptors) {
             table.append(allocate(frbFile));
         }
     }
-    return allocate(table);
+    return allocate(table, "FrbMapTable");
 }
 
 void FrbMapTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

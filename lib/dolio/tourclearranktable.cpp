@@ -4,7 +4,7 @@
 quint32 TourClearRankTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.tourClearRank);
-    return allocate(table);
+    return allocate(table, "TourClearRankTable");
 }
 
 void TourClearRankTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

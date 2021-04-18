@@ -11,7 +11,7 @@ public:
     int calculateTotalFreeSpace() const;
     int calculateLargestFreeSpaceBlockSize() const;
     int calculateLargestRemainingFreeSpaceBlockSize() const;
-    quint32 allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper);
+    quint32 allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose);
     void nullTheFreeSpace(QDataStream &stream, const AddressMapper &addressMapper);
     void reset();
 private:
@@ -23,6 +23,7 @@ private:
     quint32 findSuitableFreeSpaceBlock(int requiredSize) const;
     int calculateFreeSpace(const QMap<quint32, quint32> &freeSpaceBlocks) const;
     quint32 findLargestFreeSpaceBlock(const QMap<quint32, quint32> &freeSpaceBlocks) const;
+    QString byteArrayToStringOrHex(const QByteArray &byteArray) const;
 };
 
 #endif // FREESPACEMANAGER_H

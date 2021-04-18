@@ -1,6 +1,7 @@
 #include "freespacemanager.h"
 #include <QDataStream>
 #include <limits>
+#include <QDebug>
 
 void FreeSpaceManager::addFreeSpace(quint32 start, quint32 end) {
     if (startedAllocating) {
@@ -64,9 +65,12 @@ int FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize() const {
     return end - totalFreeSpaceBlocks[end];
 }
 
-quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper) {
+quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose) {
+    QString purposeMsg = purpose.isEmpty() ? "" : QString(" for %1").arg(purpose);
+    QString byteArrayAsString = byteArrayToStringOrHex(bytes);
     startedAllocating = true;
     if (reuseValues.contains(bytes)) {
+        qDebug().noquote() << "Reuse " + byteArrayAsString + " at " + QString::number(reuseValues[bytes], 16) + purposeMsg;
         return reuseValues[bytes];
     }
     quint32 end = findSuitableFreeSpaceBlock(bytes.size());
@@ -84,6 +88,7 @@ quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStre
     QByteArray padding(newStart - start - bytes.size(), '\0');
     stream.writeRawData(padding, padding.size());
     reuseValues[bytes] = start;
+    qDebug().noquote() << "Allocate " + byteArrayAsString + " (" + QString::number(bytes.size()) + " bytes) at " + QString::number(reuseValues[bytes], 16) + purposeMsg;
     return start;
 }
 
@@ -99,4 +104,22 @@ void FreeSpaceManager::reset() {
     remainingFreeSpaceBlocks = totalFreeSpaceBlocks;
     reuseValues.clear();
     startedAllocating = false;
+}
+
+QString FreeSpaceManager::byteArrayToStringOrHex(const QByteArray &byteArray) const {
+    bool constainsAnsiCharsOnlyOrZero = true;
+    bool containsAtLeastOneAnsiChar = false;
+    for (int i = 0; i < byteArray.size(); ++i) {
+        if (byteArray.at(i) >= 32) {
+            // the character can be printed
+            containsAtLeastOneAnsiChar = true;
+        } else if(byteArray.at(i) != 0) {
+            // the character cannot be printed and is not the null terminator
+            constainsAnsiCharsOnlyOrZero = false;
+        }
+    }
+    if (constainsAnsiCharsOnlyOrZero && containsAtLeastOneAnsiChar)
+        return QString(byteArray);
+    else
+        return QString(byteArray.toHex());
 }

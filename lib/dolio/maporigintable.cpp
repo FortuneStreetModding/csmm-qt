@@ -4,7 +4,7 @@
 quint32 MapOriginTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.unlockId);
-    return allocate(table);
+    return allocate(table, "MapOriginTable");
 }
 
 void MapOriginTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

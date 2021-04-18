@@ -4,7 +4,7 @@
 quint32 MapDescriptionTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.descMsgId);
-    return allocate(table);
+    return allocate(table, "MapDescriptionTable");
 }
 
 void MapDescriptionTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

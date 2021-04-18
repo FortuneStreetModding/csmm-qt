@@ -12,10 +12,10 @@ quint32 MapGalaxyParamTable::writeTable(const QVector<MapDescriptor> &descriptor
             // write 4-byte floats
             dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
             dataStream << descriptor.loopingModeRadius << descriptor.loopingModeHorizontalPadding << descriptor.loopingModeVerticalSquareCount;
-            table.append(allocate(data));
+            table.append(allocate(data, "LoopingModeConfig for " + descriptor.internalName));
         }
     }
-    return allocate(table);
+    return allocate(table, "MapGalaxyParamTable");
 }
 
 void MapGalaxyParamTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {

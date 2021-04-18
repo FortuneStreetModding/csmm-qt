@@ -4,7 +4,7 @@
 quint32 DesignTypeTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.theme);
-    return allocate(table);
+    return allocate(table, "DesignTypeTable");
 }
 
 void DesignTypeTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
