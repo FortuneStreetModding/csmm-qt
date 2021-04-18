@@ -197,6 +197,10 @@ QMap<QString, quint32> MapIconTable::writeIconStrings(const QVector<MapDescripto
         }
     }
 
+    // sort the unique map icons (not really needed, but helps in debugging the console output)
+    QList<QString> allUniqueMapIconsSorted = allUniqueMapIcons.values();
+    std::sort(allUniqueMapIconsSorted.begin(), allUniqueMapIconsSorted.end());
+
     // write each map icon into the main.dol and remember the location in the mapIcons dictionary
     QMap<QString, quint32> mapIcons;
     for (auto &mapIcon: allUniqueMapIconsSorted) {

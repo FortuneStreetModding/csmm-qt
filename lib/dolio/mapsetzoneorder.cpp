@@ -121,7 +121,11 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapp
             mapSets.insert(mapDescriptor.mapSet);
         }
     }
-    for (qint8 mapSet: mapSets) {
+    // not really needed to sort, but helps in debugging
+    QList<qint8> mapSetsSorted = mapSets.values();
+    std::sort(mapSetsSorted.begin(), mapSetsSorted.end());
+
+    for (qint8 mapSet: qAsConst(mapSetsSorted)) {
         asm_.append(PowerPcAsm::cmpwi(5, mapSet));
         QSet<qint8> zones;
         for (auto &mapDescriptor: mapDescriptors) {
@@ -129,8 +133,11 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapp
                 zones.insert(mapDescriptor.zone);
             }
         }
+        // same again, helps in debugging
+        QList<qint8> zonesSorted = zones.values();
+        std::sort(zonesSorted.begin(), zonesSorted.end());
         asm_l2.clear();
-        for (quint8 zone: zones) {
+        for (quint8 zone: qAsConst(zonesSorted)) {
             asm_l2.append(PowerPcAsm::cmpwi(29, zone));
             QVector<MapDescriptor> maps;
             for (auto &mapDescriptor: mapDescriptors) {
