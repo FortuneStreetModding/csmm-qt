@@ -323,7 +323,7 @@ void MainWindow::exportIsoWbfs() {
 
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 3, this);
+    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 4, this);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
@@ -343,11 +343,18 @@ void MainWindow::exportIsoWbfs() {
         return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
     }).subscribe([=]() {
         progress->setValue(2);
-        return ExeWrapper::createWbfsIso(intermediatePath, saveFile, patchWiimmfi);
+        return ExeWrapper::createWbfsIso(intermediatePath, saveFile);
+    }).subscribe([=]() {
+        progress->setValue(3);
+        if(patchWiimmfi)
+            return ExeWrapper::patchWiimmfi(saveFile);
+        auto def = AsyncFuture::deferred<void>();
+        def.complete();
+        return def.future();
     }).subscribe([=]() {
         (void)intermediateResults; // keep temporary directory active while creating wbfs/iso
 
-        progress->setValue(3);
+        progress->setValue(4);
         QMessageBox::information(this, "Export", "Exported successfuly.");
 
         // reload map descriptors

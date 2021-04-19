@@ -22,7 +22,8 @@ namespace ExeWrapper {
     void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile);
     QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile);
     QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
-    QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, bool patchWiimmfi);
+    QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile);
+    QFuture<void> patchWiimmfi(const QString &wbfsFile);
 
     class Exception : public QException {
     public:
