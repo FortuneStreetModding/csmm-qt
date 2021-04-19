@@ -59,6 +59,7 @@ SOURCES += \
     lib/dolio/tourinitialcashtable.cpp \
     lib/dolio/touropponentstable.cpp \
     lib/dolio/venturecardtable.cpp \
+    lib/dolio/wififix.cpp \
     lib/exewrapper.cpp \
     lib/fortunestreetdata.cpp \
     lib/freespacemanager.cpp \
@@ -116,6 +117,7 @@ HEADERS += \
     lib/dolio/tourinitialcashtable.h \
     lib/dolio/touropponentstable.h \
     lib/dolio/venturecardtable.h \
+    lib/dolio/wififix.h \
     lib/exewrapper.h \
     lib/fortunestreetdata.h \
     lib/freespacemanager.h \

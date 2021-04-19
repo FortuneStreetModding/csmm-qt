@@ -23,6 +23,7 @@
 #include "dolio/tourinitialcashtable.h"
 #include "dolio/touropponentstable.h"
 #include "dolio/venturecardtable.h"
+#include "dolio/wififix.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections) {
@@ -112,6 +113,7 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     patches.append(QSharedPointer<DolIO>(new BGSequenceTable()));
     patches.append(QSharedPointer<DolIO>(new InternalNameTable()));
     patches.append(QSharedPointer<DolIO>(new ForceSimulatedButtonPress()));
+    patches.append(QSharedPointer<DolIO>(new WifiFix()));
 
     return patches;
 }
