@@ -45,6 +45,22 @@ void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &address
     stream << (short)0;
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020F45E));
     stream << (short)mapDescriptors.size();
+
+    // --- Skip "Random or Friend" Wifi Menu ---
+    // we disable that menu, since random cannot work with added maps anymore
+    stream.device()->seek(addressMapper.boomToFileAddress(0x802405b8));
+    stream << PowerPcAsm::li(0, 0x1be); // set state of WifiMenuScene to "ExecButton" after connecting to wifi server
+
+    // instead of checking which button was pressed (random or friend), check whether we are going forward or backward
+    quint32 GameSceneBase_IsForward = addressMapper.boomStreetToStandard(0x80167bcc);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80240b1c));
+    stream << PowerPcAsm::bl(addressMapper.boomStreetToStandard(0x80240b1c), GameSceneBase_IsForward);
+    // if going forward -> go to Friend Menu
+    // if going backward -> disconnect
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80240b3c));
+    stream << PowerPcAsm::li(4, 0x16d);        //
+    stream << PowerPcAsm::stw(4, 0x1d8, 31);   // this->wifiState = WIFI_CloseWifi (0x16d);
+    stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(0x80240b44), addressMapper.boomStreetToStandard(0x80240b78));
 }
 
 void MapSetZoneOrder::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
