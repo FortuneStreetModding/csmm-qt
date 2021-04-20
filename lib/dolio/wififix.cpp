@@ -46,5 +46,10 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     // TODO 0x13 is some special handling map id. Need to check what is going on with it
     // li r3,0x13                                                                 -> li r3,0x13
     stream.device()->seek(addressMapper.toFileAddress(0x80243ae4)); stream << PowerPcAsm::li(5, 0x13);
+    // -- fix text of selected map if the map id is 0x12 or 0x13 --
+    // beq                                                                 -> nop
+    stream.device()->seek(addressMapper.toFileAddress(0x8023ee28)); stream << PowerPcAsm::nop();
+    // beq                                                                 -> nop
+    stream.device()->seek(addressMapper.toFileAddress(0x8023ee30)); stream << PowerPcAsm::nop();
 }
 
