@@ -51,5 +51,17 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     stream.device()->seek(addressMapper.toFileAddress(0x8023ee28)); stream << PowerPcAsm::nop();
     // beq                                                                 -> nop
     stream.device()->seek(addressMapper.toFileAddress(0x8023ee30)); stream << PowerPcAsm::nop();
+    // -- send normal map id instead of bitset of map ids --
+    /*
+     * The game normally always sends a bitset of mapids over wifi. The reason for that is that in random match making mode
+     * you can select preferred maps you like. In this case the netcode sends the bitsets of maps you prefer to make a match
+     * with people which have the same maps selected. However, it also sends a bitset of map ids in friend wifi mode, where you
+     * select just a single map. Not only that, but it also packs other settings into the bitset as well, thus limiting us
+     * to only 16 maps. With this hack we send the id of the map not as a bitset but as the map id itself, breaking compatibility
+     * with random match making at the same time.
+     */
+    stream.device()->seek(addressMapper.toFileAddress(0x8020ef34)); stream << PowerPcAsm::nop();
+
+
 }
 
