@@ -270,8 +270,9 @@ QVector<quint32> MapIconTable::writeSubroutineSkipMapUnlockCheck(quint32 entryAd
     // postcondition:  r3  is mapid
     return {
         PowerPcAsm::or_(3, 26, 26),                                                 // r3 <- mapid
-        PowerPcAsm::cmpwi(3, -1),                                                   // mapid == -1 ?
-        PowerPcAsm::beq(entryAddr, 2/*asm.Count*/, returnSkipMapUnlockedCheckAddr), //   goto skipMapUnlockedCheck
-        PowerPcAsm::b(entryAddr, 3/*asm.Count*/, returnContinueAddr),               // else goto returnContinueAddr
+        PowerPcAsm::cmpwi(3, -1),                                                   // mapid == -1
+        PowerPcAsm::bne(2),                                                         // {
+        PowerPcAsm::b(entryAddr, 3/*asm.Count*/, returnSkipMapUnlockedCheckAddr),   //   goto returnSkipMapUnlockedCheckAddr
+        PowerPcAsm::b(entryAddr, 4/*asm.Count*/, returnContinueAddr),               // } else goto returnContinueAddr
     };
 }

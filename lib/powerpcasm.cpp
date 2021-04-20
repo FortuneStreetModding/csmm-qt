@@ -93,9 +93,6 @@ quint32 beq(qint32 currentPos, qint32 targetPos) {
 quint32 beq(qint32 offset) {
     return beq_opcode + ((4 * offset) & 0x0000FFFF);
 }
-quint32 beq(quint32 currentPos, qint32 offset, quint32 targetPos) {
-    return beq(currentPos + offset * 4, targetPos);
-}
 quint32 bge(qint32 currentPos, qint32 targetPos) {
     return bge(targetPos - currentPos);
 }
