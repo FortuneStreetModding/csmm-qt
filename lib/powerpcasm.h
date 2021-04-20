@@ -14,6 +14,7 @@ namespace PowerPcAsm {
     static constexpr quint32 lwz_opcode = 0x80000000;
     static constexpr quint32 lbz_opcode = 0x88000000;
     static constexpr quint32 stbx_opcode = 0x7c0001ae;
+    static constexpr quint32 stb_opcode = 0x98000000;
     static constexpr quint32 stw_opcode = 0x90000000;
 
     static constexpr quint32 li_opcode = 0x38000000;
@@ -85,6 +86,7 @@ namespace PowerPcAsm {
     quint32 srw(quint8 register1, quint8 register2, quint8 register3);
     quint32 rlwinm(quint8 register1, quint8 register2, quint8 value1, quint8 value2, quint8 value3);
     quint32 stw(quint8 register1, qint16 value, quint8 register2);
+    quint32 stb(quint8 register1, qint16 value, quint8 register2);
     quint32 andi(quint8 register1, quint8 register2, qint16 value);
     quint32 stbx(quint8 register1, quint8 register2, quint8 register3);
 }

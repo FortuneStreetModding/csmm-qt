@@ -137,6 +137,9 @@ quint32 rlwinm(quint8 register1, quint8 register2, quint8 value1, quint8 value2,
 quint32 stw(quint8 register1, qint16 value, quint8 register2) {
     return stw_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
+quint32 stb(quint8 register1, qint16 value, quint8 register2) {
+    return stb_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
+}
 quint32 andi(quint8 register1, quint8 register2, qint16 value) {
     return andi_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)value & 0x0000FFFF);
 }

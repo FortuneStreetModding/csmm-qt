@@ -70,7 +70,15 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
      * with random match making at the same time.
      */
     stream.device()->seek(addressMapper.toFileAddress(0x8020ef34)); stream << PowerPcAsm::nop();
-
-
+    stream.device()->seek(addressMapper.toFileAddress(0x8020f070)); stream << PowerPcAsm::nop();
+    // receive the map id from the lobby and set it directly instead of trying to unpack it as a bitset
+    stream.device()->seek(addressMapper.toFileAddress(0x8020f310)); stream << PowerPcAsm::nop();
+    // stw r7,0x98a0(r13)                                                              -> stw r6,0x98a0(r13)
+    stream.device()->seek(addressMapper.toFileAddress(0x8020f314)); stream << PowerPcAsm::stw(6,0x98a0,13);
+    // the map id (which was the map bitset before) can now indeed become 0, as such do not reload it from some other place
+    stream.device()->seek(addressMapper.toFileAddress(0x8014c538)); stream << PowerPcAsm::nop();
+    // store the map id directly and skip the whole "select a random map out of the bitset" stuff
+    stream.device()->seek(addressMapper.toFileAddress(0x8014c53c)); stream << PowerPcAsm::stb(31,0x20,1);
+    stream.device()->seek(addressMapper.toFileAddress(0x8014c540)); stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(0x8014c540), addressMapper.boomStreetToStandard(0x8014c66c));
 }
 
