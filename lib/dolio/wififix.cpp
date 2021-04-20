@@ -17,6 +17,13 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     stream << PowerPcAsm::li(4, 0x16d);        //
     stream << PowerPcAsm::stw(4, 0x1d8, 31);   // this->wifiState = WIFI_CloseWifi (0x16d);
     stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(0x80240b44), addressMapper.boomStreetToStandard(0x80240b78));
+    // now if we have created a lobby and exit the lobby we normally go into the "Random or Friend" wifi menu
+    // since we disabled this menu we would actually go directly to the main menu. Lets fix that and return just to the Friend wifi menu
+    //       0x28 = "Random or Friend" Wifi menu                                    0x2b = Friend Wifi Menu
+    // li r4,0x28                                                          -> li r4,0x2b
+    stream.device()->seek(addressMapper.toFileAddress(0x80248aa8)); stream << PowerPcAsm::li(4, 0x2b);
+    stream.device()->seek(addressMapper.toFileAddress(0x80248e40)); stream << PowerPcAsm::li(4, 0x2b);
+    stream.device()->seek(addressMapper.toFileAddress(0x802495bc)); stream << PowerPcAsm::li(4, 0x2b);
 
     // --- Fix Wifi Map Selection ---
     // bl GameSequenceDataAdapter::GetMapOrigin(r3)                               -> nop
@@ -30,6 +37,7 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     // bl GameSequenceDataAdapter::GetMapOrigin(r3)                               -> nop
     stream.device()->seek(addressMapper.toFileAddress(0x802498a8));
     for (int i = 0; i < 8; i++) stream << PowerPcAsm::nop();
+
     // --- Default selected map button in wifi ---
     // since Standard Mode is selected on default, we use this mapset to find the default map
     // TODO need asm hack to determine currently selected MapSet and rather use that ID
@@ -51,7 +59,8 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     stream.device()->seek(addressMapper.toFileAddress(0x8023ee28)); stream << PowerPcAsm::nop();
     // beq                                                                 -> nop
     stream.device()->seek(addressMapper.toFileAddress(0x8023ee30)); stream << PowerPcAsm::nop();
-    // -- send normal map id instead of bitset of map ids --
+
+    // --- send normal map id instead of bitset of map ids ---
     /*
      * The game normally always sends a bitset of mapids over wifi. The reason for that is that in random match making mode
      * you can select preferred maps you like. In this case the netcode sends the bitsets of maps you prefer to make a match
