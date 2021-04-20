@@ -14,17 +14,18 @@
 static constexpr int MAP_SET_TYPE = QTableWidgetItem::UserType;
 static constexpr int ZONE_TYPE = QTableWidgetItem::UserType + 1;
 static constexpr int ORDER_TYPE = QTableWidgetItem::UserType + 2;
+static constexpr int UNLOCK_ID_TYPE = QTableWidgetItem::UserType + 3;
 
 MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
     QStringList labels{"", "", "Name", "MapSet [Editable]", "Zone [Editable]", "Order [Editable]",
-                       "Is Practice Board [Editable]", "Ruleset", "Initial Cash", "Target Amount",
+                       "Is Practice Board [Editable]", "Unlock ID [Editable]", "Ruleset", "Initial Cash", "Target Amount",
                        "Base Salary", "Salary Increment", "Max. Dice Roll",
                        "Venture Cards", "FRB Files", "Switch Origin Points",
                        "Board Theme", "Background", "Background Music ID",
                        "Map Icon", "Looping Mode", "Looping Mode Radius",
                        "Looping Mode Horiz. Padding", "Looping Mode Vertical Square Count",
                        "Tour Bankruptcy Limit", "Tour Initial Cash", "Tour Opponents",
-                       "Tour Clear Rank", "Unlock ID", "Name Msg ID", "Desc Msg ID",
+                       "Tour Clear Rank", "Name Msg ID", "Desc Msg ID",
                        "Description", "Internal Name"};
     setColumnCount(labels.size());
     setHorizontalHeaderLabels(labels);
@@ -44,6 +45,8 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
             descriptors[row]->zone = value;
         } else if (theItem->type() == ORDER_TYPE) {
             descriptors[row]->order = value;
+        } else if (theItem->type() == UNLOCK_ID_TYPE) {
+            descriptors[row]->unlockId = value;
         }
     });
 
@@ -103,6 +106,8 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     });
     setCellWidget(row, colIdx++, isPracticeBoardCheck);
 
+    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.unlockId), UNLOCK_ID_TYPE));
+
     setItem(row, colIdx++, readOnlyItem(descriptor.ruleSet == Easy ? "Easy" : "Standard"));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.initialCash)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.targetAmount)));
@@ -144,7 +149,6 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     setItem(row, colIdx++, readOnlyItem(tourOpponentsList.join("; ")));
 
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.tourClearRank)));
-    setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.unlockId)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.nameMsgId)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.descMsgId)));
 

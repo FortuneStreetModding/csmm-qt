@@ -98,6 +98,7 @@ struct MapDescriptor {
     qint8 zone = -1;
     qint8 order = -1;
     bool isPracticeBoard = false;
+    quint32 unlockId = 0;
     RuleSet ruleSet = Standard;
     quint32 initialCash = 0;
     quint32 targetAmount = 0;
@@ -119,7 +120,6 @@ struct MapDescriptor {
     quint32 tourInitialCash = 0;
     Character tourCharacters[3] = {CharacterMario, Luigi, Peach};
     quint32 tourClearRank = 2;
-    quint32 unlockId = 0;
     quint32 nameMsgId = 0;
     quint32 descMsgId = 0;
     QMap<QString, QString> names;
