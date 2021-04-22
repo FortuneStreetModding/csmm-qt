@@ -80,5 +80,11 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     // store the map id directly and skip the whole "select a random map out of the bitset" stuff
     stream.device()->seek(addressMapper.toFileAddress(0x8014c53c)); stream << PowerPcAsm::stb(31,0x20,1);
     stream.device()->seek(addressMapper.toFileAddress(0x8014c540)); stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(0x8014c540), addressMapper.boomStreetToStandard(0x8014c66c));
+
+    // --- modify CRC check so that vanilla boom street cannot join csmm boom street ---
+    // Host CRC
+    stream.device()->seek(addressMapper.toFileAddress(0x8025aafc)); stream << PowerPcAsm::li(4,0x27);
+    // Client CRC
+    stream.device()->seek(addressMapper.toFileAddress(0x8025aa18)); stream << PowerPcAsm::li(4,0x27);
 }
 
