@@ -39,21 +39,41 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     for (int i = 0; i < 8; i++) stream << PowerPcAsm::nop();
 
     // --- Default selected map button in wifi ---
-    // since Standard Mode is selected on default, we use this mapset to find the default map
-    // TODO need asm hack to determine currently selected MapSet and rather use that ID
-    short defaultMap = 0;
+    // the game selects Castle Trodain as the default map in wifi mode when switching between Easy Mode and Standard Mode and the currently selected map has not been unlocked
+    // in that particular mode yet. The game also expects that the maps between Easy Mode and Standard Mode are the same and as such it does not reset the selected map when a
+    // different rule is selected. As such we need to implement an asm hack which selects the default map depending on the currently selected rule.
+    short defaultStandardMap = 0;
+    short defaultEasyMap = 0;
     for (short i = 0; i < mapDescriptors.count(); i++) {
         MapDescriptor mapDescriptor = mapDescriptors.at(i);
         if (mapDescriptor.mapSet == 1 && mapDescriptor.zone == 0 && mapDescriptor.order == 0) {
-            defaultMap = i;
+            defaultStandardMap = i;
+        }
+        if (mapDescriptor.mapSet == 0 && mapDescriptor.zone == 0 && mapDescriptor.order == 0) {
+            defaultEasyMap = i;
         }
     }
+    quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8024afc8);
+    quint32 returnContinueAddr = addressMapper.boomStreetToStandard(0x8024afcc);
+    quint32 subroutineGetDefaultMapId = allocate(writeSubroutineGetDefaultMapIdIntoR3(addressMapper, defaultEasyMap, defaultStandardMap, 0, returnContinueAddr), "SubroutineGetDefaultMapIdIntoR3");
+    stream.device()->seek(addressMapper.toFileAddress(subroutineGetDefaultMapId));
+    auto insts = writeSubroutineGetDefaultMapIdIntoR3(addressMapper, defaultEasyMap, defaultStandardMap, subroutineGetDefaultMapId, returnContinueAddr); // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: qAsConst(insts)) stream << inst;
+    // bne                                                                 -> nop
+    stream.device()->seek(addressMapper.toFileAddress(0x8024afc4)); stream << PowerPcAsm::nop();
     // 0x9 = Castle Trodain
-    // li r3,0x9                                                                  -> li r3,0x9
-    stream.device()->seek(addressMapper.toFileAddress(0x8024afc8)); stream << PowerPcAsm::li(3, defaultMap);
-    // TODO 0x13 is some special handling map id. Need to check what is going on with it
-    // li r3,0x13                                                                 -> li r3,0x13
-    stream.device()->seek(addressMapper.toFileAddress(0x80243ae4)); stream << PowerPcAsm::li(5, 0x13);
+    // li r3,0x9                                                           ->  b subroutineGetDefaultMapIdIntoR3
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineGetDefaultMapId);
+    // This code is for the time when the wifi menu is initially started
+    hijackAddr = addressMapper.boomStreetToStandard(0x8020eb78);
+    returnContinueAddr = addressMapper.boomStreetToStandard(0x8020eb7c);
+    subroutineGetDefaultMapId = allocate(writeSubroutineGetDefaultMapIdIntoR4(defaultEasyMap, defaultStandardMap, 0, returnContinueAddr), "SubroutineGetDefaultMapIdIntoR4");
+    stream.device()->seek(addressMapper.toFileAddress(subroutineGetDefaultMapId));
+    insts = writeSubroutineGetDefaultMapIdIntoR4(defaultEasyMap, defaultStandardMap, subroutineGetDefaultMapId, returnContinueAddr); // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: qAsConst(insts)) stream << inst;
+    // li r4,0x9                                                           ->  b subroutineGetDefaultMapIdIntoR4
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineGetDefaultMapId);
+
     // -- fix text of selected map if the map id is 0x12 or 0x13 --
     // beq                                                                 -> nop
     stream.device()->seek(addressMapper.toFileAddress(0x8023ee28)); stream << PowerPcAsm::nop();
@@ -86,5 +106,28 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     stream.device()->seek(addressMapper.toFileAddress(0x8025aafc)); stream << PowerPcAsm::li(4,0x27);
     // Client CRC
     stream.device()->seek(addressMapper.toFileAddress(0x8025aa18)); stream << PowerPcAsm::li(4,0x27);
+}
+
+QVector<quint32> WifiFix::writeSubroutineGetDefaultMapIdIntoR3(const AddressMapper &addressMapper, short defaultEasyMap, short defaultStandardMap, quint32 entryAddr, quint32 returnAddr) {
+    quint32 Game_GameSequenceDataAdapter_GetWifiMatchingRule = addressMapper.boomStreetToStandard(0x8020ebe8);
+    return {
+        PowerPcAsm::bl(entryAddr, 0, Game_GameSequenceDataAdapter_GetWifiMatchingRule), // get rules, 1 = Standard Rules, 0 = Easy Rules
+        PowerPcAsm::cmpwi(3, 0),
+        PowerPcAsm::li(3, defaultEasyMap),        // easy rule default map
+        PowerPcAsm::beq(2),
+        PowerPcAsm::li(3, defaultStandardMap),    // standard rule default map
+        PowerPcAsm::b(entryAddr, 5/*asm.Count*/, returnAddr)
+    };
+}
+
+QVector<quint32> WifiFix::writeSubroutineGetDefaultMapIdIntoR4(short defaultEasyMap, short defaultStandardMap, quint32 entryAddr, quint32 returnAddr) {
+    return {
+        // r5 is already ruleset at this point; 1 = Standard Rules, 0 = Easy Rules
+        PowerPcAsm::cmpwi(5, 0),
+        PowerPcAsm::li(4, defaultEasyMap),        // easy rule default map
+        PowerPcAsm::beq(2),
+        PowerPcAsm::li(4, defaultStandardMap),    // standard rule default map
+        PowerPcAsm::b(entryAddr, 4/*asm.Count*/, returnAddr)
+    };
 }
 
