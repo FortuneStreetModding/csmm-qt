@@ -37,6 +37,18 @@ void RuleSetTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     stream << PowerPcAsm::cmpwi(23, 0x0);
     // stw r25,0x53f4(r29) -> lha r0,0x28(r30)
     stream << PowerPcAsm::lha(0, 0x28, 30);
+
+    // -- Always enable the buttons for ON/OFF negotiations and "Add vacant plots"
+    // easy mode negotiations
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e237c)); stream << PowerPcAsm::nop();
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e238c)); stream << PowerPcAsm::nop();
+    // easy mode vacant plots
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e239c)); stream << PowerPcAsm::nop();
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e23ac)); stream << PowerPcAsm::nop();
+    // standard mode vacant plots
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e2544)); stream << PowerPcAsm::nop();
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e2554)); stream << PowerPcAsm::nop();
+
 }
 
 void RuleSetTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
