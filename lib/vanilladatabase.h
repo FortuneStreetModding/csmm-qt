@@ -17,6 +17,7 @@ QString getDefaultMapIcon(const QString &background);
 bool hasDefaultMapIcon(const QString &background);
 bool isDefaultVentureCards(const bool ventureCards[], RuleSet ruleSet);
 void setDefaultVentureCards(RuleSet ruleSet, bool outVentureCards[]);
+QSet<QString> getVanillaIcons();
 }
 
 #endif // VANILLADATABASE_H
