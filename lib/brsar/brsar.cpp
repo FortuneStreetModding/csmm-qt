@@ -12,49 +12,63 @@ QDataStream &operator>>(QDataStream &stream, Brsar::Header &data) {
     stream.readRawData(header, 4);
     if (QByteArray(header, 4) != data.magicNumber) {
         stream.setStatus(QDataStream::ReadCorruptData);
-    } else {
-        stream >> data.headerSize;
+        return stream;
     }
     return stream;
 }
 
 QDataStream &operator<<(QDataStream &stream, const Brsar::Header &data) {
     stream.writeRawData(data.magicNumber, 4);
-    stream << data.headerSize;
     return stream;
 }
 
+// --- SYMB ---
 QDataStream &operator>>(QDataStream &stream, Brsar::SymbSection &data) {
+    stream >> data.header;
+    stream >> data.sectionSize;
+    stream >> data.fileNameOffset;
+    stream >> data.maskTableOffestSounds;
+    stream >> data.maskTableOffestTypes;
+    stream >> data.maskTableOffestGroups;
+    stream >> data.maskTableOffestBanks;
     return stream;
 }
 
 QDataStream &operator<<(QDataStream &stream, const Brsar::SymbSection &data) {
+    stream << data.header;
+    stream << data.sectionSize;
+    stream << data.fileNameOffset;
+    stream << data.maskTableOffestSounds;
+    stream << data.maskTableOffestTypes;
+    stream << data.maskTableOffestGroups;
+    stream << data.maskTableOffestBanks;
     return stream;
 }
 
+// --- INFO ---
 QDataStream &operator>>(QDataStream &stream, Brsar::InfoSection &data) {
+    stream >> data.header;
     return stream;
 }
 
 QDataStream &operator<<(QDataStream &stream, const Brsar::InfoSection &data) {
+    stream << data.header;
     return stream;
 }
 
+// --- FILE ---
 QDataStream &operator>>(QDataStream &stream, Brsar::FileSection &data) {
+    stream >> data.header;
     return stream;
 }
 
 QDataStream &operator<<(QDataStream &stream, const Brsar::FileSection &data) {
+    stream << data.header;
     return stream;
 }
 
 QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
-    char header[4];
-    stream.readRawData(header, 4);
-    if (QByteArray(header, 4) != data.magicNumberValue) {
-        stream.setStatus(QDataStream::ReadCorruptData);
-        return stream;
-    }
+    stream >> data.header;
     quint16 byteOrderMark;
     stream >> byteOrderMark;
     if(byteOrderMark != data.byteOrderMark){
@@ -86,6 +100,13 @@ QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
     stream >> data.infoLength;
     stream >> data.fileOffset;
     stream >> data.fileLength;
+
+    stream.skipRawData(24);
+
+    stream >> data.symb;
+    stream >> data.info;
+    stream >> data.file;
+
     return stream;
 }
 
@@ -100,7 +121,7 @@ QDataStream &operator<<(QDataStream &stream, const Brsar::File &data) {
     QDataStream fileStream(&file, QIODevice::WriteOnly);
     symbStream << data.file;
 
-    stream.writeRawData(data.magicNumberValue, 4);
+    stream << data.header;
     stream << (quint16) data.byteOrderMark;
     stream << (quint16) data.fileFormatVersion;
     // file length
@@ -119,13 +140,13 @@ QDataStream &operator<<(QDataStream &stream, const Brsar::File &data) {
     stream << (quint32) data.headerSize + symb.length() + info.length();
     // file size
     stream << (quint32) file.length();
+    // padding
+    stream.writeRawData(QByteArray(24, 0), 24);
 
-    QByteArray padding = QByteArray(24, 0);
-    stream << padding;
+    stream.writeRawData(symb, symb.length());
+    stream.writeRawData(info, info.length());
+    stream.writeRawData(file, file.length());
 
-    stream << symb;
-    stream << info;
-    stream << file;
     return stream;
 }
 
