@@ -18,10 +18,20 @@ int main(int argc, char *argv[])
         QString path = qApp->applicationDirPath();
         path.append("/Itast.brsar");
         QFile f(path);
+        Brsar::File brsar;
         if (f.open(QIODevice::ReadOnly)) {
             QDataStream stream(&f);
-            Brsar::File brsar;
             stream >> brsar;
+            f.close();
+        }
+
+        path = qApp->applicationDirPath();
+        path.append("/Itast2.brsar");
+        QFile f2(path);
+        if (f2.open(QIODevice::WriteOnly)) {
+            QDataStream stream(&f2);
+            stream << brsar;
+            f2.close();
         }
         qDebug() << "Finish";
         QCoreApplication::exit(0);

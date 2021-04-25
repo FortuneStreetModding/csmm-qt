@@ -24,6 +24,29 @@ QDataStream &operator<<(QDataStream &stream, const Brsar::Header &data) {
     return stream;
 }
 
+QDataStream &operator>>(QDataStream &stream, Brsar::SymbSection &data) {
+    return stream;
+}
+
+QDataStream &operator<<(QDataStream &stream, const Brsar::SymbSection &data) {
+    return stream;
+}
+
+QDataStream &operator>>(QDataStream &stream, Brsar::InfoSection &data) {
+    return stream;
+}
+
+QDataStream &operator<<(QDataStream &stream, const Brsar::InfoSection &data) {
+    return stream;
+}
+
+QDataStream &operator>>(QDataStream &stream, Brsar::FileSection &data) {
+    return stream;
+}
+
+QDataStream &operator<<(QDataStream &stream, const Brsar::FileSection &data) {
+    return stream;
+}
 
 QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
     char header[4];
@@ -67,7 +90,42 @@ QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
 }
 
 QDataStream &operator<<(QDataStream &stream, const Brsar::File &data) {
-    qDebug() << "write";
+    QByteArray symb;
+    QDataStream symbStream(&symb, QIODevice::WriteOnly);
+    symbStream << data.symb;
+    QByteArray info;
+    QDataStream infoStream(&info, QIODevice::WriteOnly);
+    symbStream << data.info;
+    QByteArray file;
+    QDataStream fileStream(&file, QIODevice::WriteOnly);
+    symbStream << data.file;
+
+    stream.writeRawData(data.magicNumberValue, 4);
+    stream << (quint16) data.byteOrderMark;
+    stream << (quint16) data.fileFormatVersion;
+    // file length
+    stream << (quint32) data.headerSize + data.symbLength + data.infoLength + data.fileLength;
+    stream << (quint16) data.headerSize;
+    stream << (quint16) data.sectionCount;
+    // symb offset
+    stream << (quint32) data.headerSize;
+    // symb size
+    stream << (quint32) symb.length();
+    // info offset
+    stream << (quint32) data.headerSize + symb.length();
+    // info size
+    stream << (quint32) info.length();
+    // file offset
+    stream << (quint32) data.headerSize + symb.length() + info.length();
+    // file size
+    stream << (quint32) file.length();
+
+    QByteArray padding = QByteArray(24, 0);
+    stream << padding;
+
+    stream << symb;
+    stream << info;
+    stream << file;
     return stream;
 }
 

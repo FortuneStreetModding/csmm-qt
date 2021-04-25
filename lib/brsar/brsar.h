@@ -61,7 +61,7 @@ struct File {
     const quint16 byteOrderMark = 0xFEFF;
     const quint16 fileFormatVersion = 0x0104;
     quint32 fileSize;
-    const quint32 headerSize = 0x40;
+    const quint16 headerSize = 0x40;
     const quint16 sectionCount = 3;
     qint32 symbOffset;
     qint32 symbLength;
