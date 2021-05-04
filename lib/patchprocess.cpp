@@ -364,7 +364,7 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
     if (QFileInfo(mdFileSrc).suffix() == "zip") {
         QTemporaryDir intermediateDir;
         if (!intermediateDir.isValid()) {
-            throw new Exception("Could not create an intermediate directory");
+            throw Exception("Could not create an intermediate directory");
         }
         QString extractedMdFile;
         int extractResult = zip_extract(mdFileSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
@@ -376,10 +376,10 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
             return 0;
         }, &extractedMdFile);
         if (extractResult < 0) {
-            throw new Exception("Could not extract zip file to intermediate directory");
+            throw Exception("Could not extract zip file to intermediate directory");
         }
         if (extractedMdFile.isEmpty()) {
-            throw new Exception("Zip file has no map descriptor");
+            throw Exception("Zip file has no map descriptor");
         }
         importMd(dir, extractedMdFile, descriptor, tmpDir);
     } else {
@@ -392,10 +392,10 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
                 auto frbFileFrom = QFileInfo(mdFileSrc).dir().filePath(frbFile + ".frb");
                 QFileInfo frbFileFromInfo(frbFileFrom);
                 if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
-                    throw new Exception(QString("File %1 does not exist").arg(frbFileFrom));
+                    throw Exception(QString("File %1 does not exist").arg(frbFileFrom));
                 }
                 if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                    throw new Exception("Cannot create param folder in temporary directory");
+                    throw Exception("Cannot create param folder in temporary directory");
                 }
                 auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
                 QFile(frbFileTo).remove();
@@ -408,10 +408,10 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
                 auto mapIconFileTo = tmpDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
                 QFileInfo mapIconFileFromInfo(mapIconFileFrom);
                 if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
-                    throw new Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
+                    throw Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
                 }
                 if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                    throw new Exception("Cannot create param folder in temporary directory");
+                    throw Exception("Cannot create param folder in temporary directory");
                 }
                 QFile(mapIconFileTo).remove();
                 QFile::copy(mapIconFileFrom, mapIconFileTo);
@@ -420,7 +420,7 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
             // set internal name
             descriptor.internalName = QFileInfo(mdFileSrc).baseName();
         } else {
-            throw new Exception(QString("File %1 could not be parsed").arg(mdFileSrc));
+            throw Exception(QString("File %1 could not be parsed").arg(mdFileSrc));
         }
     }
 }
