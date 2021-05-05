@@ -25,12 +25,6 @@ QDataStream &operator<<(QDataStream &stream, const Brsar::Header &data) {
 // --- SYMB ---
 QDataStream &operator>>(QDataStream &stream, Brsar::SymbSection &data) {
     stream >> data.header;
-    stream >> data.sectionSize;
-    stream >> data.fileNameOffset;
-    stream >> data.maskTableOffestSounds;
-    stream >> data.maskTableOffestTypes;
-    stream >> data.maskTableOffestGroups;
-    stream >> data.maskTableOffestBanks;
     return stream;
 }
 
@@ -67,6 +61,8 @@ QDataStream &operator<<(QDataStream &stream, const Brsar::FileSection &data) {
     return stream;
 }
 
+// --- Brsar File ---
+
 QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
     stream >> data.header;
     quint16 byteOrderMark;
@@ -81,7 +77,8 @@ QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
         stream.setStatus(QDataStream::ReadCorruptData);
         return stream;
     }
-    stream >> data.fileLength;
+    quint32 fileSize;
+    stream >> fileSize;
     quint16 headerSize;
     stream >> headerSize;
     if(headerSize != data.headerSize){
@@ -94,12 +91,18 @@ QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
         stream.setStatus(QDataStream::ReadCorruptData);
         return stream;
     }
-    stream >> data.symbOffset;
-    stream >> data.symbLength;
-    stream >> data.infoOffset;
-    stream >> data.infoLength;
-    stream >> data.fileOffset;
-    stream >> data.fileLength;
+    quint32 symbOffset;
+    stream >> symbOffset;
+    quint32 symbLength;
+    stream >> symbLength;
+    quint32 infoOffset;
+    stream >> infoOffset;
+    quint32 infoLength;
+    stream >> infoLength;
+    quint32 fileOffset;
+    stream >> fileOffset;
+    quint32 fileLength;
+    stream >> fileLength;
 
     stream.skipRawData(24);
 
@@ -116,29 +119,29 @@ QDataStream &operator<<(QDataStream &stream, const Brsar::File &data) {
     symbStream << data.symb;
     QByteArray info;
     QDataStream infoStream(&info, QIODevice::WriteOnly);
-    symbStream << data.info;
+    infoStream << data.info;
     QByteArray file;
     QDataStream fileStream(&file, QIODevice::WriteOnly);
-    symbStream << data.file;
+    fileStream << data.file;
 
     stream << data.header;
     stream << (quint16) data.byteOrderMark;
     stream << (quint16) data.fileFormatVersion;
-    // file length
-    stream << (quint32) data.headerSize + data.symbLength + data.infoLength + data.fileLength;
+    // file size
+    stream << (quint32) data.headerSize + symb.length() + info.length() + file.length();
     stream << (quint16) data.headerSize;
     stream << (quint16) data.sectionCount;
-    // symb offset
+    // SYMB offset
     stream << (quint32) data.headerSize;
-    // symb size
+    // SYMB length
     stream << (quint32) symb.length();
-    // info offset
+    // INFO offset
     stream << (quint32) data.headerSize + symb.length();
-    // info size
+    // INFO length
     stream << (quint32) info.length();
-    // file offset
+    // FILE offset
     stream << (quint32) data.headerSize + symb.length() + info.length();
-    // file size
+    // FILE length
     stream << (quint32) file.length();
     // padding
     stream.writeRawData(QByteArray(24, 0), 24);
