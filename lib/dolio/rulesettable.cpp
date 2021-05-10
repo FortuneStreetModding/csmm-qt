@@ -43,9 +43,9 @@ void RuleSetTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
      * from GameSelectInfo.
      */
     quint32 returnAddr = addressMapper.boomStreetToStandard(0x801c4690);
-    auto getRuleSetRoutine = allocate(writeGetRuleSetRoutine(0, returnAddr), "writeRuleSetFromMapRoutine");
+    auto getRuleSetRoutine = allocate(writeGetRuleSetRoutine(addressMapper, 0, returnAddr), "writeRuleSetFromMapRoutine");
     stream.device()->seek(addressMapper.toFileAddress(getRuleSetRoutine));
-    insts = writeGetRuleSetRoutine(getRuleSetRoutine, returnAddr); // re-write the routine again since now we know where it is located in the main dol
+    insts = writeGetRuleSetRoutine(addressMapper, getRuleSetRoutine, returnAddr); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;
     virtualPos = addressMapper.boomStreetToStandard(0x801c468c);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
@@ -120,11 +120,13 @@ QVector<quint32> RuleSetTable::writeRuleSetFromMapRoutine(const AddressMapper &a
     };
 }
 
-QVector<quint32> RuleSetTable::writeGetRuleSetRoutine(quint32 routineStartAddress, quint32 routineReturnAddress) {
+QVector<quint32> RuleSetTable::writeGetRuleSetRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 routineReturnAddress) {
+    PowerPcAsm::Pair16Bit EasyMode = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x8055240f));
+
     return {
-        PowerPcAsm::lis(28, 0x8055),             // |
-        PowerPcAsm::addi(28, 28, 0x240f),        // / load address of global easy variable
-        PowerPcAsm::lbz(28, 0, 28),              // r28 <- easyMode
+        PowerPcAsm::lis(28, EasyMode.upper),             // |
+        PowerPcAsm::addi(28, 28, EasyMode.lower),        // / load address of global easy variable
+        PowerPcAsm::lbz(28, 0, 28),                      // r28 <- easyMode
         PowerPcAsm::b(routineStartAddress, 3/*asm.count*/, routineReturnAddress)
     };
 }

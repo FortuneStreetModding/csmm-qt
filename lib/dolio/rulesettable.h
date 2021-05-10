@@ -15,7 +15,7 @@ protected:
     quint32 readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
 private:
     QVector<quint32> writeRuleSetFromMapRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress);
-    QVector<quint32> writeGetRuleSetRoutine(quint32 routineStartAddress, quint32 routineReturnAddress);
+    QVector<quint32> writeGetRuleSetRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 routineReturnAddress);
 };
 
 #endif // RULESETTABLE_H
