@@ -16,22 +16,21 @@ int main(int argc, char *argv[])
 
     QTimer::singleShot(0,[](){
         QString path = qApp->applicationDirPath();
-        path.append("/Itast.brsar");
-        QFile f(path);
-        Brsar::File brsar;
-        if (f.open(QIODevice::ReadOnly)) {
-            QDataStream stream(&f);
-            stream >> brsar;
-            f.close();
-        }
-
+        path.append("/itast.csmm.brsar");
+        QFile orig(path);
         path = qApp->applicationDirPath();
-        path.append("/Itast2.brsar");
-        QFile f2(path);
-        if (f2.open(QIODevice::WriteOnly)) {
-            QDataStream stream(&f2);
-            stream << brsar;
-            f2.close();
+        path.append("/itast.csmm.patched.brsar");
+        if (QFile::exists(path))
+        {
+            QFile::remove(path);
+        }
+        orig.copy(path);
+        QFile f(path);
+        if (f.open(QIODevice::ReadWrite)) {
+            QDataStream stream(&f);
+            QVector<MapDescriptor> mapDescriptors;
+            Brsar::patch(stream, mapDescriptors);
+            f.close();
         }
         qDebug() << "Finish";
         QCoreApplication::exit(0);

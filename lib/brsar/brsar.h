@@ -3,104 +3,85 @@
 
 #include <QDataStream>
 #include <QVector>
+#include "../mapdescriptor.h"
 
-namespace Brsar {
+namespace Brsar{
 
-struct Header {
-    Header(const QByteArray &magicNumberValue) : magicNumber(magicNumberValue) {};
+struct SectionHeader {
+    SectionHeader(const QByteArray &magicNumberValue): magicNumber(magicNumberValue) {};
 
-    const QByteArray &getMagicNumber() const {
-        return magicNumber;
-    }
-
-    friend QDataStream &operator>>(QDataStream &stream, Header &data);
-    friend QDataStream &operator<<(QDataStream &stream, const Header &data);
-private:
     const QByteArray magicNumber;
+    quint32 sectionSize;
+    qint64 sectionStart; // the absolute file offset within the brsar file to the start of this section
+
+    friend QDataStream &operator>>(QDataStream &stream, SectionHeader &data);
 };
 
-// --- SYMB ---
+struct InfoSection {
+    InfoSection() : header("INFO") {}
 
-struct SymbMaskEntry {
-    static constexpr size_t HEADER_SIZE = 0x14;
-    quint16 flags;
-    qint16 bit;
-    qint32 leftId;
-    qint32 rightId;
-    qint32 stringId;
-    qint32 index;
-    friend QDataStream &operator>>(QDataStream &stream, SymbMaskEntry &data);
-    friend QDataStream &operator<<(QDataStream &stream, const SymbMaskEntry &data);
-private:
+    SectionHeader header;
+    const quint32 unknown1 = 0x01000000;
+    quint32 offsetSoundDataTable;
+    const quint32 unknown2 = 0x01000000;
+    quint32 offsetSoundbankTable;
+    const quint32 unknown3 = 0x01000000;
+    quint32 offsetPlayerInfoTable;
+    const quint32 unknown4 = 0x01000000;
+    quint32 offsetCollectionTable;
+    const quint32 unknown5 = 0x01000000;
+    quint32 offsetGroupTable;
+    const quint32 unknown6 = 0x01000000;
+    quint32 offsetSoundCountTable;
+
+    friend QDataStream &operator>>(QDataStream &stream, InfoSection &data);
 };
 
-struct SymbMaskHeader {
-    static constexpr size_t HEADER_SIZE = 0x8;
-    quint32 rootId;
-    quint32 numEntries;
-    QVector<SymbMaskEntry> entries;
-    friend QDataStream &operator>>(QDataStream &stream, SymbMaskHeader &data);
-    friend QDataStream &operator<<(QDataStream &stream, const SymbMaskHeader &data);
+struct SymbSectionFileNameTable {
+    SymbSectionFileNameTable(const SectionHeader *header) : header(header) {}
+
+    quint32 fileNameTableSize;
+    QVector<quint32> fileNameTableEntryOffsets;
+    QVector<QString> fileNameTableEntries;
+
+    friend QDataStream &operator>>(QDataStream &stream, SymbSectionFileNameTable &data);
 private:
+    const SectionHeader *header;
 };
 
 struct SymbSection {
-    static constexpr size_t HEADER_SIZE = 0x1c;
-    SymbSection() : header("SYMB") {}
-    quint32 sectionSize;
-    const quint32 fileNameOffset = 0x14;
-    SymbMaskHeader maskTableOffestSounds;
-    SymbMaskHeader maskTableOffestTypes;
-    SymbMaskHeader maskTableOffestGroups;
-    SymbMaskHeader maskTableOffestBanks;
+    SymbSection() : header("SYMB"), fileNameTable(&header) {}
+
+    SectionHeader header;
+    quint32 offsetFileNameTable;
+    quint32 maskTableOffset1;
+    quint32 maskTableOffset2;
+    quint32 maskTableOffset3;
+    quint32 maskTableOffset4;
+    SymbSectionFileNameTable fileNameTable;
+
     friend QDataStream &operator>>(QDataStream &stream, SymbSection &data);
-    friend QDataStream &operator<<(QDataStream &stream, const SymbSection &data);
-private:
-    Header header;
 };
-
-// --- INFO ---
-
-struct InfoSection {
-    static constexpr size_t HEADER_SIZE = 0x38;
-    InfoSection() : header("INFO") {}
-
-    friend QDataStream &operator>>(QDataStream &stream, InfoSection &data);
-    friend QDataStream &operator<<(QDataStream &stream, const InfoSection &data);
-private:
-    Header header;
-};
-
-// --- FILE ---
-
-struct FileSection {
-    static constexpr size_t HEADER_SIZE = 0x20;
-    FileSection() : header("FILE") {}
-
-    friend QDataStream &operator>>(QDataStream &stream, FileSection &data);
-    friend QDataStream &operator<<(QDataStream &stream, const FileSection &data);
-private:
-    Header header;
-};
-
-// --- Brsar File ---
 
 struct File {
-    static constexpr size_t HEADER_SIZE = 0x40;
-    File() : header("RSAR") {}
+    const QByteArray magicNumber = "RSAR";
     const quint16 byteOrderMark = 0xFEFF;
     const quint16 fileFormatVersion = 0x0104;
-    const quint16 headerSize = HEADER_SIZE;
+    quint32 fileSize;
+    const quint16 headerSize = 0x40;
     const quint16 sectionCount = 3;
+    quint32 symbOffset;
+    quint32 symbLength;
+    quint32 infoOffset;
+    quint32 infoLength;
+    quint32 fileOffset;
+    quint32 fileLength;
     SymbSection symb;
-    InfoSection info;
-    FileSection file;
 
     friend QDataStream &operator>>(QDataStream &stream, File &data);
-    friend QDataStream &operator<<(QDataStream &stream, const File &data);
-private:
-    Header header;
 };
+
+void patch(QDataStream &stream, const QVector<MapDescriptor> &mapDescriptors);
 
 }
 
