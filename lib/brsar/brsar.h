@@ -17,15 +17,40 @@ struct SectionHeader {
     friend QDataStream &operator>>(QDataStream &stream, SectionHeader &data);
 };
 
-struct InfoSectionCollectionTable {
-    InfoSectionCollectionTable(const SectionHeader *header) : header(header) {}
-
-    friend QDataStream &operator>>(QDataStream &stream, InfoSectionCollectionTable &data);
-private:
+struct SectionBase {
+    SectionBase(const SectionHeader *header) : header(header) {}
+    SectionBase(const SectionBase &other) : header(other.header) {}
     const SectionHeader *header;
 };
 
-struct InfoSectionSoundDataEntry {
+struct InfoSectionCollectionEntry : SectionBase {
+    InfoSectionCollectionEntry(const SectionHeader *header) : SectionBase(header) {}
+
+    quint32 externalFileLength; // important so that the tracks will not end abruptly prematurely
+    quint32 audioDataLength; // 0 for RSEQ or external files
+    static const quint32 unknown1 = 0xFFFFFFFF;
+    static const quint32 useOffset1 = 0x01000000;
+    quint32 externalFileNameOffset;
+    static const quint32 useOffset2 = 0x01000000;
+    quint32 offsetSecondSubsection;
+    // -- first subsection --
+    QString externalFileName;
+    friend QDataStream &operator>>(QDataStream &stream, InfoSectionCollectionEntry &data);
+};
+
+struct InfoSectionCollectionTable : SectionBase {
+    InfoSectionCollectionTable(const SectionHeader *header) : SectionBase(header) {}
+
+    quint32 collectionTableSize;
+    static const quint32 unknown = 0x01000000;
+    QVector<quint32> collectionTableEntryOffsets;
+    QVector<InfoSectionCollectionEntry> collectionTableEntries;
+
+    friend QDataStream &operator>>(QDataStream &stream, InfoSectionCollectionTable &data);
+};
+
+struct InfoSectionSoundDataEntry : SectionBase {
+    InfoSectionSoundDataEntry(const SectionHeader *header) : SectionBase(header) {}
     quint32 fileNameIndex;
     quint32 fileCollectionIndex;
     quint32 playerId;
@@ -58,8 +83,8 @@ struct InfoSectionSoundDataEntry {
     friend QDataStream &operator>>(QDataStream &stream, InfoSectionSoundDataEntry &data);
 };
 
-struct InfoSectionSoundDataTable {
-    InfoSectionSoundDataTable(const SectionHeader *header) : header(header) {}
+struct InfoSectionSoundDataTable : SectionBase {
+    InfoSectionSoundDataTable(const SectionHeader *header) : SectionBase(header) {}
 
     quint32 soundTableSize;
     static const quint32 unknown = 0x01000000;
@@ -67,8 +92,6 @@ struct InfoSectionSoundDataTable {
     QVector<InfoSectionSoundDataEntry> soundTableEntries;
 
     friend QDataStream &operator>>(QDataStream &stream, InfoSectionSoundDataTable &data);
-private:
-    const SectionHeader *header;
 };
 
 struct InfoSection {
@@ -94,16 +117,13 @@ struct InfoSection {
     friend QDataStream &operator>>(QDataStream &stream, InfoSection &data);
 };
 
-struct SymbSectionFileNameTable {
-    SymbSectionFileNameTable(const SectionHeader *header) : header(header) {}
-
+struct SymbSectionFileNameTable : SectionBase {
+    SymbSectionFileNameTable(const SectionHeader *header) : SectionBase(header) {}
     quint32 fileNameTableSize;
     QVector<quint32> fileNameTableEntryOffsets;
     QVector<QString> fileNameTableEntries;
 
     friend QDataStream &operator>>(QDataStream &stream, SymbSectionFileNameTable &data);
-private:
-    const SectionHeader *header;
 };
 
 struct SymbSection {

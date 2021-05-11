@@ -19,7 +19,59 @@ QDataStream &operator>>(QDataStream &stream, Brsar::SectionHeader &data) {
     return stream;
 }
 
+QDataStream &operator>>(QDataStream &stream, Brsar::InfoSectionCollectionEntry &data) {
+    stream >> data.externalFileLength;
+    stream >> data.audioDataLength;
+    quint32 unknown;
+    stream >> unknown;
+    if(unknown != data.unknown1){
+        stream.setStatus(QDataStream::ReadCorruptData);
+        return stream;
+    }
+    quint32 useOffset;
+    stream >> useOffset;
+    if(useOffset != data.useOffset1){
+        stream.setStatus(QDataStream::ReadCorruptData);
+        return stream;
+    }
+    stream >> data.externalFileNameOffset;
+    stream >> useOffset;
+    if(useOffset != data.useOffset1){
+        stream.setStatus(QDataStream::ReadCorruptData);
+        return stream;
+    }
+    stream >> data.offsetSecondSubsection;
+    // external file name
+    stream.device()->seek(data.header->sectionStart + data.externalFileNameOffset);
+    char buf[128+1] = {0};
+    stream.readRawData(buf, 128);
+    data.externalFileName = buf;
+
+    // we do not care about handling the second subsection
+    return stream;
+}
+
 QDataStream &operator>>(QDataStream &stream, Brsar::InfoSectionCollectionTable &data) {
+    stream >> data.collectionTableSize;
+
+    for(quint32 i = 0; i < data.collectionTableSize; i++) {
+        quint32 unknown;
+        stream >> unknown;
+        if(unknown != data.unknown){
+            stream.setStatus(QDataStream::ReadCorruptData);
+            return stream;
+        }
+        quint32 collectionTableEntryOffset;
+        stream >> collectionTableEntryOffset;
+        data.collectionTableEntryOffsets.append(collectionTableEntryOffset);
+    }
+    for(quint32 i = 0; i < data.collectionTableSize; i++) {
+        stream.device()->seek(data.header->sectionStart + data.collectionTableEntryOffsets[i]);
+        qDebug() << data.header->sectionStart + data.collectionTableEntryOffsets[i];
+        InfoSectionCollectionEntry collectionEntry(data.header);
+        stream >> collectionEntry;
+        data.collectionTableEntries.append(collectionEntry);
+    }
     return stream;
 }
 
@@ -51,6 +103,7 @@ QDataStream &operator>>(QDataStream &stream, Brsar::InfoSectionSoundDataEntry &d
         stream.setStatus(QDataStream::ReadCorruptData);
         return stream;
     }
+    stream.device()->seek(data.header->sectionStart + data.offsetSecondSubsection);
     // -- sound data subsection 2 --
     // note: we always assume RSTM, as such this brsar parser is incomplete and only for
     //       CSMM relevant
@@ -59,6 +112,7 @@ QDataStream &operator>>(QDataStream &stream, Brsar::InfoSectionSoundDataEntry &d
     stream >> data.rstmAllocTrack;
     stream >> data.unknown3;
     // -- sound data subsection 3 --
+    stream.device()->seek(data.header->sectionStart + data.offsetThirdSubsection);
     stream >> data.sound3dParamFlags;
     stream >> data.decayCurve;
     stream >> data.decayRatio;
@@ -82,7 +136,7 @@ QDataStream &operator>>(QDataStream &stream, Brsar::InfoSectionSoundDataTable &d
     for(quint32 i = 0; i < data.soundTableSize; i++) {
         stream.device()->seek(data.header->sectionStart + data.soundTableEntryOffsets[i]);
         qDebug() << data.header->sectionStart + data.soundTableEntryOffsets[i];
-        InfoSectionSoundDataEntry soundDataEntry;
+        InfoSectionSoundDataEntry soundDataEntry(data.header);
         stream >> soundDataEntry;
         data.soundTableEntries.append(soundDataEntry);
     }
