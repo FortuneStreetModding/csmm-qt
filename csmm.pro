@@ -134,6 +134,7 @@ HEADERS += \
     lib/fslocale.h \
     lib/maindol.h \
     lib/mapdescriptor.h \
+    lib/music.h \
     lib/orderedmap.h \
     lib/patchprocess.h \
     lib/powerpcasm.h \

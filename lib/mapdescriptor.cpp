@@ -69,13 +69,13 @@ QString MapDescriptor::toYaml() const {
     if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
         out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
     if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
-        out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
+        out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
 
     if(!music.empty()) {
         out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
         for (auto &musicType: music.keys()) {
             auto musicEntry = music[musicType];
-            out << YAML::Key << musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
+            out << YAML::Key << Music::musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
         }
         out << YAML::EndMap;
     }
@@ -231,7 +231,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         if(VanillaDatabase::hasDefaultBgmId(background))
             bgmId = VanillaDatabase::getDefaultBgmId(background);
         if(yaml["bgmId"])
-            bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
+            bgmId = Bgm::stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
 
         if(yaml["music"]) {
             for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
@@ -244,7 +244,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
                 if(!suffix.isEmpty()) {
                     entry.volume = suffix.toInt();
                 }
-                music[stringToMusicType(QString::fromStdString(it->first.as<std::string>()))] = entry;
+                music[Music::stringToMusicType(QString::fromStdString(it->first.as<std::string>()))] = entry;
             }
         }
         if(yaml["ventureCards"]) {
@@ -311,85 +311,6 @@ QString tourCharacterToString(Character character) {
 }
 Character stringToTourCharacter(const QString &str) {
     return stringToTourCharacters.value(str);
-}
-
-static const QMap<QString, BgmId> stringToBgmIds = {
-    {"BGM_MAP_CIRCUIT", BGM_MAP_CIRCUIT},
-    {"BGM_MAP_PEACH", BGM_MAP_PEACH},
-    {"BGM_MAP_KOOPA", BGM_MAP_KOOPA},
-    {"BGM_MAP_GHOSTSHIP", BGM_MAP_GHOSTSHIP},
-    {"BGM_MAP_MAJINZOU", BGM_MAP_MAJINZOU},
-    {"BGM_MAP_SINOKAZAN", BGM_MAP_SINOKAZAN},
-    {"BGM_MAP_SLABACCA", BGM_MAP_SLABACCA},
-    {"BGM_MAP_KANDATA", BGM_MAP_KANDATA},
-    {"BGM_MAP_KANDATA_old", BGM_MAP_KANDATA_old},
-    {"BGM_MAP_ALEFGARD", BGM_MAP_ALEFGARD},
-    {"BGM_MAP_ALEFGARD_old", BGM_MAP_ALEFGARD_old},
-    {"BGM_MAP_YOSHI", BGM_MAP_YOSHI},
-    {"BGM_MAP_STADIUM", BGM_MAP_STADIUM},
-    {"BGM_MAP_DOLPIC", BGM_MAP_DOLPIC},
-    {"BGM_MAP_SMB", BGM_MAP_SMB},
-    {"BGM_MAP_STARSHIP", BGM_MAP_STARSHIP},
-    {"BGM_MAP_EGG", BGM_MAP_EGG},
-    {"BGM_MAP_TRODAIN", BGM_MAP_TRODAIN},
-    {"BGM_MAP_TRODAIN_old", BGM_MAP_TRODAIN_old},
-    {"BGM_MAP_DHAMA", BGM_MAP_DHAMA},
-    {"BGM_MAP_DHAMA_old", BGM_MAP_DHAMA_old},
-    {"BGM_MAP_ANGEL", BGM_MAP_ANGEL},
-    {"BGM_MENU", BGM_MENU},
-    {"BGM_GOALPROP", BGM_GOALPROP},
-    {"BGM_WINNER", BGM_WINNER},
-    {"BGM_CHANCECARD", BGM_CHANCECARD},
-    {"BGM_STOCK", BGM_STOCK},
-    {"BGM_AUCTION", BGM_AUCTION},
-    {"BGM_CASINO_SLOT", BGM_CASINO_SLOT},
-    {"BGM_CASINO_BLOCK", BGM_CASINO_BLOCK},
-    {"BGM_CASINO_RACE", BGM_CASINO_RACE},
-    {"BGM_TITLE", BGM_TITLE},
-    {"BGM_SAVELOAD", BGM_SAVELOAD},
-    {"BGM_SAVELOAD_old", BGM_SAVELOAD_old},
-    {"BGM_WIFI", BGM_WIFI},
-    {"BGM_ENDING", BGM_ENDING}
-};
-
-QString bgmIdToString(BgmId bgmId) {
-    return stringToBgmIds.key(bgmId);
-}
-BgmId stringToBgmId(const QString &str) {
-    return stringToBgmIds.value(str);
-}
-
-static const QMap<QString, MusicType> stringToMusicTypes = {
-    {"map"               , map},
-    {"stock"             , stock},
-    {"ventureCards"      , ventureCards},
-    {"auction"           , auction},
-    {"targetMet"         , targetMet},
-    {"win"               , win},
-    {"guestAppear"       , guestAppear},
-    {"guestLeave"        , guestLeave},
-    {"badVentureCard"    , badVentureCard},
-    {"takeAbreak"        , takeAbreak},
-    {"promotion"         , promotion},
-    {"forcedBuyout"      , forcedBuyout},
-    {"domination"        , domination},
-    {"bankruptcy"        , bankruptcy},
-    // arcade
-    {"roundTheBlocks"    , roundTheBlocks},
-    {"roundTheBlocksWin" , roundTheBlocksWin},
-    {"roundTheBlocks777" , roundTheBlocks777},
-    {"memoryBlock"       , memoryBlock},
-    {"dartOfGold"        , dartOfGold},
-    {"slurpodromeSelect" , slurpodromeSelect},
-    {"slurpodromeStart"  , slurpodromeStart},
-    {"slurpodromeRace"   , slurpodromeRace}
-};
-
-QString musicTypeToString(MusicType musicType) {
-    return stringToMusicTypes.key(musicType);
-}
-MusicType stringToMusicType(const QString &str) {
-    return stringToMusicTypes.value(str);
 }
 
 void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
