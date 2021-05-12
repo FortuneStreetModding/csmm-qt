@@ -32,7 +32,7 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
-QString MapDescriptor::toMd() const {
+QString MapDescriptor::toYaml() const {
     YAML::Emitter out;
 
     out << YAML::BeginDoc;
@@ -70,6 +70,13 @@ QString MapDescriptor::toMd() const {
         out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
     if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
         out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
+
+    out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
+    for (auto &musicType: music.keys()) {
+        auto musicEntry = music[musicType];
+        out << YAML::Key << musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
+    }
+    out << YAML::EndMap;
 
     if(!switchRotationOrigins.empty()) {
         out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
@@ -157,7 +164,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && mapDescriptorFilePath == other.mapDescriptorFilePath;
 }
 
-bool MapDescriptor::fromMd(const YAML::Node &yaml) {
+bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     try {
         for (auto it=yaml["name"].begin(); it!=yaml["name"].end(); ++it) {
             names[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
@@ -215,18 +222,25 @@ bool MapDescriptor::fromMd(const YAML::Node &yaml) {
         background = QString::fromStdString(yaml["background"].as<std::string>());
         if(VanillaDatabase::hasDefaultMapIcon(background)) {
             mapIcon = VanillaDatabase::getDefaultMapIcon(background);
-            if(yaml["mapIcon"])
-                mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
-        } else {
-            mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
         }
+        if(yaml["mapIcon"])
+            mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
         if(VanillaDatabase::hasDefaultBgmId(background)) {
             bgmId = VanillaDatabase::getDefaultBgmId(background);
-            if(yaml["bgmId"])
-                bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
-        } else {
-            bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
         }
+        for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
+            QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
+            MusicEntry entry;
+            entry.brstmBaseFilename = brstmBaseFilename;
+            // get the volume out of the file name
+            QFileInfo fileInfo(brstmBaseFilename);
+            QString suffix = fileInfo.suffix();
+            if(!suffix.isEmpty()) {
+                entry.volume = suffix.toInt();
+            }
+            music[stringToMusicType(QString::fromStdString(it->first.as<std::string>()))] = entry;
+        }
+        bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
         if(yaml["ventureCards"]) {
             for (quint32 i=0; i<sizeof(ventureCards); ++i) {
                 ventureCards[i] = yaml["ventureCards"][i].as<int>();

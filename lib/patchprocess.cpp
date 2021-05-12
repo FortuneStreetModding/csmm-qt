@@ -342,54 +342,54 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
     }).future();
 }
 
-void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &descriptor) {
-    QFile saveMdToFile(mdFileDest);
+void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescriptor &descriptor) {
+    QFile saveMdToFile(yamlFileDest);
     if (saveMdToFile.open(QIODevice::WriteOnly)) {
         QTextStream stream(&saveMdToFile);
         stream.setCodec("UTF-8");
-        stream << descriptor.toMd();
+        stream << descriptor.toYaml();
 
         // export frb files
         for (auto &frbFile: descriptor.frbFiles) {
             if (frbFile.isEmpty()) continue;
             auto frbFileFrom = dir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
-            auto frbFileTo = QFileInfo(mdFileDest).dir().filePath(frbFile + ".frb");
+            auto frbFileTo = QFileInfo(yamlFileDest).dir().filePath(frbFile + ".frb");
             QFile(frbFileTo).remove();
             QFile::copy(frbFileFrom, frbFileTo);
         }
     }
 }
 
-void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
-    if (QFileInfo(mdFileSrc).suffix() == "zip") {
+void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
+    if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         QTemporaryDir intermediateDir;
         if (!intermediateDir.isValid()) {
             throw Exception("Could not create an intermediate directory");
         }
-        QString extractedMdFile;
-        int extractResult = zip_extract(mdFileSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
-            auto mdFilePtr = (QString *)arg;
+        QString extractedYamlFile;
+        int extractResult = zip_extract(yamlFileSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
+            auto yamlFilePtr = (QString *)arg;
             auto suffix = QFileInfo(candidate).suffix();
             if (suffix == "yaml") {
-                *mdFilePtr = candidate;
+                *yamlFilePtr = candidate;
             }
             return 0;
-        }, &extractedMdFile);
+        }, &extractedYamlFile);
         if (extractResult < 0) {
             throw Exception("Could not extract zip file to intermediate directory");
         }
-        if (extractedMdFile.isEmpty()) {
-            throw Exception("Zip file has no map descriptor");
+        if (extractedYamlFile.isEmpty()) {
+            throw new Exception("Zip file has no map descriptor");
         }
-        importMd(dir, extractedMdFile, descriptor, tmpDir);
+        importYaml(dir, extractedYamlFile, descriptor, tmpDir);
     } else {
-        auto node = YAML::LoadFile(mdFileSrc.toStdString());
-        if (descriptor.fromMd(node)) {
+        auto node = YAML::LoadFile(yamlFileSrc.toStdString());
+        if (descriptor.fromYaml(node)) {
             // import frb files
             for (auto &frbFile: descriptor.frbFiles) {
                 if (frbFile.isEmpty()) continue; // skip unused slots
 
-                auto frbFileFrom = QFileInfo(mdFileSrc).dir().filePath(frbFile + ".frb");
+                auto frbFileFrom = QFileInfo(yamlFileSrc).dir().filePath(frbFile + ".frb");
                 QFileInfo frbFileFromInfo(frbFileFrom);
                 if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(frbFileFrom));
@@ -404,7 +404,7 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
 
             // import map icons if needed
             if (!VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
-                auto mapIconFileFrom = QFileInfo(mdFileSrc).dir().filePath(descriptor.mapIcon + ".png");
+                auto mapIconFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.mapIcon + ".png");
                 auto mapIconFileTo = tmpDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
                 QFileInfo mapIconFileFromInfo(mapIconFileFrom);
                 if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
@@ -418,9 +418,9 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
             }
 
             // set internal name
-            descriptor.internalName = QFileInfo(mdFileSrc).baseName();
+            descriptor.internalName = QFileInfo(yamlFileSrc).baseName();
         } else {
-            throw Exception(QString("File %1 could not be parsed").arg(mdFileSrc));
+            throw new Exception(QString("File %1 could not be parsed").arg(yamlFileSrc));
         }
     }
 }

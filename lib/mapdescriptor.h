@@ -120,9 +120,14 @@ enum MusicType: quint32 {
 };
 QString musicTypeToString(MusicType musicType);
 MusicType stringToMusicType(const QString &str);
+
 struct MusicEntry {
     QString brstmBaseFilename;
     quint8 volume = 50;
+    bool operator==(const MusicEntry &other) const {
+        return brstmBaseFilename == other.brstmBaseFilename &&
+               volume            == other.volume;
+    }
 };
 
 struct MapDescriptor {
@@ -144,6 +149,7 @@ struct MapDescriptor {
     QString background;
     BgmId bgmId = BGM_MAP_CIRCUIT;
     QString mapIcon;
+    QMap<MusicType, MusicEntry> music;
     LoopingMode loopingMode = None;
     float loopingModeRadius = 0;
     float loopingModeHorizontalPadding = 0;
@@ -161,11 +167,11 @@ struct MapDescriptor {
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 
-    QString toMd() const;
+    QString toYaml() const;
     bool operator==(const MapDescriptor &other) const;
 
     // return value: whether this was successful
-    bool fromMd(const YAML::Node &yaml);
+    bool fromYaml(const YAML::Node &yaml);
 
     MapDescriptor &setFromImport(const MapDescriptor &other);
 

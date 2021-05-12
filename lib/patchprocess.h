@@ -25,22 +25,22 @@ namespace PatchProcess {
     QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir);
 
     /**
-     * @brief exportMd Exports the map descriptor file and .frb(s).
+     * @brief exportYaml Exports the map descriptor file and .frb(s).
      * @param dir the game directory
-     * @param mdFileDest the map descriptor file destination
+     * @param yamlFileDest the map descriptor file destination
      * @param descriptor the map descriptor
      */
-    void exportMd(const QDir &dir, const QString &mdFileDest, const MapDescriptor &descriptor);
+    void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescriptor &descriptor);
 
     /**
-     * @brief importMd Import the map descriptor file, .frb(s), and other assets if necessary.
+     * @brief importYaml Import the map descriptor file, .frb(s), and other assets if necessary.
      * @param dir the game directory
-     * @param mdFileSrc the map descriptor file destination
+     * @param yamlFileSrc the map descriptor file destination
      * @param descriptor the descriptor to modify
      * @param tmpDir the directory to place .frb files before saving, etc.
      * @return whether the import was successful
      */
-    void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
+    void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
 
     class Exception : public QException {
     public:
