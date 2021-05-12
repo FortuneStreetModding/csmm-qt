@@ -156,4 +156,4 @@ win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
 
 DISTFILES += \
-    itast.csmm.brsar
+    Itast.csmm.brsar
