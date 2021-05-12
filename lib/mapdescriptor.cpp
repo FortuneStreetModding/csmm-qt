@@ -139,6 +139,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && background == other.background
             && bgmId == other.bgmId
             && mapIcon == other.mapIcon
+            && music == other.music
             && loopingMode == other.loopingMode
             && loopingModeRadius == other.loopingModeRadius
             && loopingModeHorizontalPadding == other.loopingModeHorizontalPadding
@@ -336,6 +337,39 @@ QString bgmIdToString(BgmId bgmId) {
 }
 BgmId stringToBgmId(const QString &str) {
     return stringToBgmIds.value(str);
+}
+
+static const QMap<QString, MusicType> stringToMusicTypes = {
+    {"map"               , map},
+    {"stock"             , stock},
+    {"ventureCards"      , ventureCards},
+    {"auction"           , auction},
+    {"targetMet"         , targetMet},
+    {"win"               , win},
+    {"guestAppear"       , guestAppear},
+    {"guestLeave"        , guestLeave},
+    {"badVentureCard"    , badVentureCard},
+    {"takeAbreak"        , takeAbreak},
+    {"promotion"         , promotion},
+    {"forcedBuyout"      , forcedBuyout},
+    {"domination"        , domination},
+    {"bankruptcy"        , bankruptcy},
+    // arcade
+    {"roundTheBlocks"    , roundTheBlocks},
+    {"roundTheBlocksWin" , roundTheBlocksWin},
+    {"roundTheBlocks777" , roundTheBlocks777},
+    {"memoryBlock"       , memoryBlock},
+    {"dartOfGold"        , dartOfGold},
+    {"slurpodromeSelect" , slurpodromeSelect},
+    {"slurpodromeStart"  , slurpodromeStart},
+    {"slurpodromeRace"   , slurpodromeRace}
+};
+
+QString musicTypeToString(MusicType musicType) {
+    return stringToMusicTypes.key(musicType);
+}
+MusicType stringToMusicType(const QString &str) {
+    return stringToMusicTypes.value(str);
 }
 
 void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {

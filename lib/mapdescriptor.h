@@ -93,6 +93,38 @@ enum BgmId: quint32 {
 QString bgmIdToString(BgmId bgmId);
 BgmId stringToBgmId(const QString &str);
 
+enum MusicType: quint32 {
+    map               = 0,
+    stock             = 26,
+    ventureCards      = 25,
+    auction           = 27,
+    targetMet         = 23,
+    win               = 24,
+    guestAppear       = std::numeric_limits<quint32>::max(),
+    guestLeave        = std::numeric_limits<quint32>::max(),
+    badVentureCard    = std::numeric_limits<quint32>::max(),
+    takeAbreak        = std::numeric_limits<quint32>::max(),
+    promotion         = std::numeric_limits<quint32>::max(),
+    forcedBuyout      = std::numeric_limits<quint32>::max(),
+    domination        = std::numeric_limits<quint32>::max(),
+    bankruptcy        = std::numeric_limits<quint32>::max(),
+    // arcade
+    roundTheBlocks    = 28,
+    roundTheBlocksWin = std::numeric_limits<quint32>::max(),
+    roundTheBlocks777 = std::numeric_limits<quint32>::max(),
+    memoryBlock       = 29,
+    dartOfGold        = 30,
+    slurpodromeSelect = 31,
+    slurpodromeStart  = 32,
+    slurpodromeRace   = std::numeric_limits<quint32>::max()
+};
+QString musicTypeToString(MusicType musicType);
+MusicType stringToMusicType(const QString &str);
+struct MusicEntry {
+    QString brstmBaseFilename;
+    quint8 volume = 50;
+};
+
 struct MapDescriptor {
     qint8 mapSet = -1;
     qint8 zone = -1;
