@@ -1,5 +1,6 @@
 #include "mapicontable.h"
 #include "lib/powerpcasm.h"
+#include "lib/vanilladatabase.h"
 
 void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
     auto mapIcons = writeIconStrings(mapDescriptors);
@@ -167,6 +168,8 @@ QMap<QString, quint32> MapIconTable::writeIconStrings(const QVector<MapDescripto
             allUniqueMapIcons.insert(mapDescriptor.mapIcon);
         }
     }
+    // also add all vanilla map icons, since we do not remove them from the ui_menu file
+    allUniqueMapIcons += VanillaDatabase::getVanillaIcons();
 
     // sort the unique map icons (not really needed, but helps in debugging the console output)
     QList<QString> allUniqueMapIconsSorted = allUniqueMapIcons.values();

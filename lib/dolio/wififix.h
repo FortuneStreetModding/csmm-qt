@@ -10,10 +10,8 @@ public:
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) override;
 private:
-    QVector<quint32> writeGetDescriptionForCustomSquareRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress);
-    QVector<quint32> writeGetTextureForCustomSquareRoutine(quint8 register_textureType, quint8 register_squareType);
-    QVector<quint32> writeProcStopEventSquareRoutine(const AddressMapper &addressMapper, quint32 forceVentureCardVariable, quint32 routineStartAddress);
-    QVector<quint32> writeSubroutineForceFetchFakeVentureCard(quint32 fakeVentureCard);
+    QVector<quint32> writeSubroutineGetDefaultMapIdIntoR3(const AddressMapper &addressMapper, short defaultEasyMap, short defaultStandardMap, quint32 entryAddr, quint32 returnAddr);
+    QVector<quint32> writeSubroutineGetDefaultMapIdIntoR4(short defaultEasyMap, short defaultStandardMap, quint32 entryAddr, quint32 returnAddr);
 };
 
 #endif // WIFIFIX_H

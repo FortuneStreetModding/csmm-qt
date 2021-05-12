@@ -68,10 +68,10 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setVerticalHeaderItem(row, readOnlyItem(QString::number(row)));
 
-    auto importMdButton = new QPushButton("Import .md or .zip");
+    auto importMdButton = new QPushButton("Import .yaml or .zip");
     connect(importMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto openMd = QFileDialog::getOpenFileName(this, "Import .md or .zip", QString(), "Map Descriptor Files (*.md);;Zip Files (*.zip)");
+        auto openMd = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml);;Zip Files (*.zip)");
         if (openMd.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
@@ -79,15 +79,15 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
             descriptorPtr->setFromImport(newDescriptor);
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
         } catch (const PatchProcess::Exception &exception) {
-            QMessageBox::critical(this, "Import .md", QString("Error loading the .md file: %1").arg(exception.getMessage()));
+            QMessageBox::critical(this, "Import .yaml", QString("Error loading the .yaml file: %1").arg(exception.getMessage()));
         }
     });
     setCellWidget(row, colIdx++, importMdButton);
 
-    auto exportMdButton = new QPushButton("Export .md");
+    auto exportMdButton = new QPushButton("Export .yaml");
     connect(exportMdButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .md", descriptorPtr->internalName + ".md", "Map Descriptor Files (*.md)");
+        auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)");
         if (saveMdTo.isEmpty()) return;
         PatchProcess::exportMd(gameDirectory, saveMdTo, *descriptorPtr);
     });
