@@ -11,7 +11,7 @@
 #include "uimenu1900a.h"
 #include "vanilladatabase.h"
 #include "zip/zip.h"
-#include "brsar/brsar.h"
+#include "brsar.h"
 
 namespace PatchProcess {
 
