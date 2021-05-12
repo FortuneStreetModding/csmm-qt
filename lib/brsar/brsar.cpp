@@ -266,6 +266,18 @@ QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
     stream >> data.symb;
     stream.device()->seek(data.infoOffset);
     stream >> data.info;
+    // set the pointers to corresponding entries
+    const InfoSectionCollectionEntry *collectionEntry;
+    const InfoSectionSoundDataEntry *soundDataEntry;
+    const QString *fileName;
+    for(int i = 0; i < data.info.soundDataTable.soundTableEntries.length(); i++) {
+        soundDataEntry = &data.info.soundDataTable.soundTableEntries.at(i);
+        fileName = &data.symb.fileNameTable.fileNameTableEntries.at(soundDataEntry->fileNameIndex);
+        collectionEntry = &data.info.collectionTable.collectionTableEntries.at(soundDataEntry->fileCollectionIndex);
+
+        Entry entry(collectionEntry, soundDataEntry, fileName);
+        data.entries.append(entry);
+    }
     return stream;
 }
 

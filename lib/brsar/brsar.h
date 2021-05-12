@@ -140,6 +140,22 @@ struct SymbSection {
     friend QDataStream &operator>>(QDataStream &stream, SymbSection &data);
 };
 
+struct Entry {
+    Entry(const InfoSectionCollectionEntry * collectionEntry,
+          const InfoSectionSoundDataEntry * soundDataEntry,
+          const QString * fileName) :
+        collectionEntry(collectionEntry),
+        soundDataEntry(soundDataEntry),
+        fileName(fileName) {}
+    Entry(const Entry &other) :
+        collectionEntry(other.collectionEntry),
+        soundDataEntry(other.soundDataEntry),
+        fileName(other.fileName) {}
+    const InfoSectionCollectionEntry * collectionEntry;
+    const InfoSectionSoundDataEntry * soundDataEntry;
+    const QString * fileName;
+};
+
 struct File {
     const QByteArray magicNumber = "RSAR";
     static const quint16 byteOrderMark = 0xFEFF;
@@ -155,7 +171,7 @@ struct File {
     quint32 fileLength;
     SymbSection symb;
     InfoSection info;
-
+    QVector<Entry> entries;
     friend QDataStream &operator>>(QDataStream &stream, File &data);
 };
 
