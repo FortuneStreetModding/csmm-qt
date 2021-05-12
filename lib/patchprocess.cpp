@@ -408,7 +408,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
             throw Exception("Could not extract zip file to intermediate directory");
         }
         if (extractedYamlFile.isEmpty()) {
-            throw new Exception("Zip file has no map descriptor");
+            throw Exception("Zip file has no map descriptor");
         }
         importYaml(dir, extractedYamlFile, descriptor, tmpDir);
     } else {
@@ -464,7 +464,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
             // set internal name
             descriptor.internalName = QFileInfo(yamlFileSrc).baseName();
         } else {
-            throw new Exception(QString("File %1 could not be parsed").arg(yamlFileSrc));
+            throw Exception(QString("File %1 could not be parsed").arg(yamlFileSrc));
         }
     }
 }
