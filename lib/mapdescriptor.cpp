@@ -71,12 +71,14 @@ QString MapDescriptor::toYaml() const {
     if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
         out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
 
-    out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
-    for (auto &musicType: music.keys()) {
-        auto musicEntry = music[musicType];
-        out << YAML::Key << musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
+    if(!music.empty()) {
+        out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
+        for (auto &musicType: music.keys()) {
+            auto musicEntry = music[musicType];
+            out << YAML::Key << musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
+        }
+        out << YAML::EndMap;
     }
-    out << YAML::EndMap;
 
     if(!switchRotationOrigins.empty()) {
         out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
@@ -220,27 +222,31 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         }
         tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
         background = QString::fromStdString(yaml["background"].as<std::string>());
-        if(VanillaDatabase::hasDefaultMapIcon(background)) {
+
+        if(VanillaDatabase::hasDefaultMapIcon(background))
             mapIcon = VanillaDatabase::getDefaultMapIcon(background);
-        }
         if(yaml["mapIcon"])
             mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
-        if(VanillaDatabase::hasDefaultBgmId(background)) {
+
+        if(VanillaDatabase::hasDefaultBgmId(background))
             bgmId = VanillaDatabase::getDefaultBgmId(background);
-        }
-        for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
-            QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
-            MusicEntry entry;
-            entry.brstmBaseFilename = brstmBaseFilename;
-            // get the volume out of the file name
-            QFileInfo fileInfo(brstmBaseFilename);
-            QString suffix = fileInfo.suffix();
-            if(!suffix.isEmpty()) {
-                entry.volume = suffix.toInt();
+        if(yaml["bgmId"])
+            bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
+
+        if(yaml["music"]) {
+            for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
+                QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
+                MusicEntry entry;
+                entry.brstmBaseFilename = brstmBaseFilename;
+                // get the volume out of the file name
+                QFileInfo fileInfo(brstmBaseFilename);
+                QString suffix = fileInfo.suffix();
+                if(!suffix.isEmpty()) {
+                    entry.volume = suffix.toInt();
+                }
+                music[stringToMusicType(QString::fromStdString(it->first.as<std::string>()))] = entry;
             }
-            music[stringToMusicType(QString::fromStdString(it->first.as<std::string>()))] = entry;
         }
-        bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
         if(yaml["ventureCards"]) {
             for (quint32 i=0; i<sizeof(ventureCards); ++i) {
                 ventureCards[i] = yaml["ventureCards"][i].as<int>();

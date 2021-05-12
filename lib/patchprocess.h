@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFuture>
 #include <QVector>
+#include <QCryptographicHash>
 #include "mapdescriptor.h"
 
 namespace PatchProcess {
@@ -51,6 +52,18 @@ namespace PatchProcess {
     private:
         QString message;
     };
+
+    static const QString originalItsarBrsarSha1 = "0d79aa07533c23d1724bf130743e78a101191a16";
+    static QString fileSha1(const QString &fileName) {
+        QFile f(fileName);
+        if (f.open(QFile::ReadOnly)) {
+            QCryptographicHash hash(QCryptographicHash::Sha1);
+            if (hash.addData(&f)) {
+                return hash.result().toHex();
+            }
+        }
+        return QByteArray().toHex();
+    }
 }
 
 #endif // PATCHPROCESS_H
