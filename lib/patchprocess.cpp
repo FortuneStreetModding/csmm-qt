@@ -11,6 +11,7 @@
 #include "uimenu1900a.h"
 #include "vanilladatabase.h"
 #include "zip/zip.h"
+#include "brsar/brsar.h"
 
 namespace PatchProcess {
 
@@ -333,6 +334,34 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
                 QFile::copy(frbFileFrom, frbFileTo);
             }
         }
+        // copy brstm files from temp dir to output
+        for (auto &descriptor: descriptors) {
+            for (auto &musicEntry: descriptor.music) {
+                auto brstmFileFrom = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".frb");
+                auto brstmFileTo = output.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".frb");
+                QFileInfo brstmFileFromInfo(brstmFileFrom);
+                if (!brstmFileFromInfo.exists() || !brstmFileFromInfo.isFile()) {
+                    continue;
+                }
+                QFile(brstmFileTo).remove();
+                QFile::copy(brstmFileFrom, brstmFileTo);
+            }
+        }
+        // copy special csmm brsar file from program dir to sound folder and patch it
+        QDir csmmDir = QDir::currentPath();
+        auto brsarFileFrom = csmmDir.filePath("Itast.csmm.brsar");
+        auto brsarFileTo = output.filePath(SOUND_FOLDER+"/Itast.brsar");
+        QFileInfo brsarFileFromInfo(brsarFileFrom);
+        if (brsarFileFromInfo.exists() && brsarFileFromInfo.isFile()) {
+            QFile(brsarFileTo).remove();
+            QFile::copy(brsarFileFrom, brsarFileTo);
+            QFile brsarFile(brsarFileTo);
+            if (brsarFile.open(QIODevice::ReadWrite)) {
+                QDataStream stream(&brsarFile);
+                Brsar::patch(stream, descriptors);
+                brsarFile.close();
+            }
+        }
     }, [=]() {
         try {
             fut.future().waitForFinished();
@@ -415,6 +444,21 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                 }
                 QFile(mapIconFileTo).remove();
                 QFile::copy(mapIconFileFrom, mapIconFileTo);
+            }
+            // import music if needed
+            for (MusicEntry &musicEntry: descriptor.music) {
+
+                auto brstmFileFrom = QFileInfo(yamlFileSrc).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
+                QFileInfo brstmFileInfo(brstmFileFrom);
+                if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
+                    throw Exception(QString("File %1 does not exist").arg(brstmFileFrom));
+                }
+                if (!tmpDir.mkpath(SOUND_STREAM_FOLDER)) {
+                    throw Exception("Cannot create param folder in temporary directory");
+                }
+                auto frbFileTo = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
+                QFile(frbFileTo).remove();
+                QFile::copy(brstmFileFrom, frbFileTo);
             }
 
             // set internal name
