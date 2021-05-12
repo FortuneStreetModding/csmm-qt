@@ -337,8 +337,8 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
         // copy brstm files from temp dir to output
         for (auto &descriptor: descriptors) {
             for (auto &musicEntry: descriptor.music) {
-                auto brstmFileFrom = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".frb");
-                auto brstmFileTo = output.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".frb");
+                auto brstmFileFrom = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
+                auto brstmFileTo = output.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
                 QFileInfo brstmFileFromInfo(brstmFileFrom);
                 if (!brstmFileFromInfo.exists() || !brstmFileFromInfo.isFile()) {
                     continue;
