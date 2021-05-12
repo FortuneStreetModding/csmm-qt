@@ -370,7 +370,7 @@ void importMd(const QDir &dir, const QString &mdFileSrc, MapDescriptor &descript
         int extractResult = zip_extract(mdFileSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
             auto mdFilePtr = (QString *)arg;
             auto suffix = QFileInfo(candidate).suffix();
-            if (suffix == "md" || suffix == "yaml") {
+            if (suffix == "yaml") {
                 *mdFilePtr = candidate;
             }
             return 0;
