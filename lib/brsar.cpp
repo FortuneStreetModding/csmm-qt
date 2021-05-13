@@ -68,7 +68,6 @@ QDataStream &operator>>(QDataStream &stream, Brsar::InfoSectionCollectionTable &
     }
     for(quint32 i = 0; i < data.collectionTableSize; i++) {
         stream.device()->seek(data.header->sectionStart + data.collectionTableEntryOffsets[i]);
-        qDebug() << data.header->sectionStart + data.collectionTableEntryOffsets[i];
         InfoSectionCollectionEntry collectionEntry(data.header);
         stream >> collectionEntry;
         data.collectionTableEntries.append(collectionEntry);
@@ -136,7 +135,6 @@ QDataStream &operator>>(QDataStream &stream, Brsar::InfoSectionSoundDataTable &d
     }
     for(quint32 i = 0; i < data.soundTableSize; i++) {
         stream.device()->seek(data.header->sectionStart + data.soundTableEntryOffsets[i]);
-        qDebug() << data.header->sectionStart + data.soundTableEntryOffsets[i];
         InfoSectionSoundDataEntry soundDataEntry(data.header);
         stream >> soundDataEntry;
         data.soundTableEntries.append(soundDataEntry);
