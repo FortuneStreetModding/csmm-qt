@@ -60,6 +60,7 @@ SOURCES += \
     lib/dolio/maporigintable.cpp \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
+    lib/dolio/musictable.cpp \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
@@ -119,6 +120,7 @@ HEADERS += \
     lib/dolio/maporigintable.h \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
+    lib/dolio/musictable.h \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \

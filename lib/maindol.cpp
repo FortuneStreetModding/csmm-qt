@@ -24,6 +24,7 @@
 #include "dolio/touropponentstable.h"
 #include "dolio/venturecardtable.h"
 #include "dolio/wififix.h"
+#include "dolio/musictable.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections) {
@@ -114,6 +115,7 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     patches.append(QSharedPointer<DolIO>(new InternalNameTable()));
     patches.append(QSharedPointer<DolIO>(new ForceSimulatedButtonPress()));
     patches.append(QSharedPointer<DolIO>(new WifiFix()));
+    patches.append(QSharedPointer<DolIO>(new MusicTable()));
 
     return patches;
 }
