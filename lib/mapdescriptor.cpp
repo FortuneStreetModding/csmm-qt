@@ -68,8 +68,14 @@ QString MapDescriptor::toYaml() const {
     out << YAML::Key << "background" << YAML::Value << background.toStdString();
     if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
         out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
-    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
-        out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
+
+    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId) {
+        if(music.empty()) {
+            out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
+        } else if(!music.contains(MusicType::map)) {
+            out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
+        }
+    }
 
     if(!music.empty()) {
         out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
@@ -246,7 +252,11 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             if(!suffix.isEmpty()) {
                 entry.volume = suffix.toInt();
             }
-            music[Music::stringToMusicType(QString::fromStdString(it->first.as<std::string>()))] = entry;
+            auto musicType = Music::stringToMusicType(QString::fromStdString(it->first.as<std::string>()));
+            music[musicType] = entry;
+            if(musicType == MusicType::map) {
+                bgmId = BGM_MAP_CIRCUIT;
+            }
         }
     }
     if(yaml["ventureCards"]) {
