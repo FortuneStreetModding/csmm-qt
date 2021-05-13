@@ -25,13 +25,11 @@ struct SectionBase {
 
 struct InfoSectionCollectionEntry : SectionBase {
     InfoSectionCollectionEntry(const SectionHeader *header) : SectionBase(header) {}
-
+    qint64 entryStart; // the absolute file offset within the brsar file to the start of this entry
     quint32 externalFileLength; // important so that the tracks will not end abruptly prematurely
     quint32 audioDataLength; // 0 for RSEQ or external files
-    static const quint32 unknown1 = 0xFFFFFFFF;
-    static const quint32 useOffset1 = 0x01000000;
+    static const quint32 unknown = 0xFFFFFFFF;
     quint32 externalFileNameOffset;
-    static const quint32 useOffset2 = 0x01000000;
     quint32 offsetSecondSubsection;
     // -- first subsection --
     QString externalFileName;
@@ -51,6 +49,7 @@ struct InfoSectionCollectionTable : SectionBase {
 
 struct InfoSectionSoundDataEntry : SectionBase {
     InfoSectionSoundDataEntry(const SectionHeader *header) : SectionBase(header) {}
+    qint64 entryStart; // the absolute file offset within the brsar file to the start of this entry
     quint32 fileNameIndex;
     quint32 fileCollectionIndex;
     quint32 playerId;
@@ -176,6 +175,7 @@ struct File {
 };
 
 void patch(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors);
+bool isVanilla(QDataStream &stream);
 
 }
 

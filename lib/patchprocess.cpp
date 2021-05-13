@@ -313,19 +313,23 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }).future();
 }
 
-QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
-    writeLocalizationFiles(descriptors, output, patchWiimmfi);
+/*
+ * @brief inject the brstm files, copy the to the correct folder, patch the brsar and prepare variables for the dol patch.
+ */
+void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const QDir &tmpDir) {
     // copy brstm files from temp dir to output
-    for (auto &descriptor: descriptors) {
-        for (auto &musicType: descriptor.music.keys()) {
-            auto musicEntry = descriptor.music[musicType];
+    for (int i=0; i<descriptors.length(); i++) {
+        auto &descriptor = descriptors[i];
+        auto keys = descriptor.music.keys();
+        for (auto &musicType: keys) {
+            auto &musicEntry = descriptor.music[musicType];
             auto brstmFileFrom = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
             auto brstmFileTo = output.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
             QFileInfo brstmFileFromInfo(brstmFileFrom);
             if (!brstmFileFromInfo.exists() || !brstmFileFromInfo.isFile()) {
                 continue;
             }
-            // update the file size
+            // update the file size -> needed for patching the brsar
             musicEntry.brstmFileSize = brstmFileFromInfo.size();
             QFile(brstmFileTo).remove();
             QFile::copy(brstmFileFrom, brstmFileTo);
@@ -335,17 +339,39 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
     QDir csmmDir = QDir::currentPath();
     auto brsarFileFrom = csmmDir.filePath("Itast.csmm.brsar");
     auto brsarFileTo = output.filePath(SOUND_FOLDER+"/Itast.brsar");
+    QFileInfo brsarFileToInfo(brsarFileTo);
+    bool copyCsmmBrsar = false;
+    // check if the target file already is a csmm brsar
+    if (brsarFileToInfo.exists() && brsarFileToInfo.isFile()) {
+        QFile brsarFile(brsarFileTo);
+        if (brsarFile.open(QIODevice::ReadOnly)) {
+            QDataStream stream(&brsarFile);
+            if(Brsar::isVanilla(stream)) {
+                copyCsmmBrsar = true;
+            }
+            brsarFile.close();
+        }
+    }
     QFileInfo brsarFileFromInfo(brsarFileFrom);
     if (brsarFileFromInfo.exists() && brsarFileFromInfo.isFile()) {
-        QFile(brsarFileTo).remove();
-        QFile::copy(brsarFileFrom, brsarFileTo);
+        if(copyCsmmBrsar) {
+            QFile(brsarFileTo).remove();
+            QFile::copy(brsarFileFrom, brsarFileTo);
+        }
         QFile brsarFile(brsarFileTo);
         if (brsarFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&brsarFile);
+            // brsar patch will also update the brsar indices in the music property of the mapdescriptors which will
+            // be needed later on when we apply the asm patch
             Brsar::patch(stream, descriptors);
             brsarFile.close();
         }
     }
+}
+
+QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
+    writeLocalizationFiles(descriptors, output, patchWiimmfi);
+    brstmInject(output, descriptors, tmpDir);
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
