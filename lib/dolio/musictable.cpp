@@ -99,38 +99,22 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     return asm_;
 }
 
-void MusicTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
-    for (auto &mapDescriptor: mapDescriptors) {
-        if (isVanilla) {
-            // in vanilla there is a mapping of bgXXX to p_bg_XXX which we will assume here without actually reading what is inside the main.dol
-            if (mapDescriptor.unlockId < 18) {
-                QRegularExpression reg("\\d+");
-                auto number = reg.match(mapDescriptor.background).captured();
-                mapDescriptor.mapIcon = QString("p_bg_") + number;
-            }
-        } else {
-            quint32 addr;
-            stream >> addr;
-        }
-    }
+void MusicTable::readAsm(QDataStream &, QVector<MapDescriptor> &, const AddressMapper &, bool ) {
+    // TODO
 }
 
-quint32 MusicTable::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80211e5c));
-    quint32 lisOpcode, addiOpcode;
-    stream >> lisOpcode >> addiOpcode;
-    return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
+quint32 MusicTable::readTableAddr(QDataStream &, const AddressMapper &, bool) {
+    // TODO
+    return 0;
 }
 
-qint16 MusicTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80211dd4));
-    quint32 opcode; stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
+qint16 MusicTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
+    return -1;
 }
 
 bool MusicTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x8021e790));
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801cc8a0));
     quint32 opcode; stream >> opcode;
-    return opcode == PowerPcAsm::cmpw(28, 30);
+    return opcode == PowerPcAsm::mr(31, 3);
 }
 
