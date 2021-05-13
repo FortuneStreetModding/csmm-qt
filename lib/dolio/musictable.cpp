@@ -42,11 +42,11 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
 }
 
 QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &addressMapper, quint32 tableAddr, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnBgmReplacedAddr) {
+    quint32 Game_Manager = addressMapper.boomStreetToStandard(0x8081794c);
     quint32 Global_MapID = addressMapper.boomStreetToStandard(0x80552408);
+    PowerPcAsm::Pair16Bit g = PowerPcAsm::make16bitValuePair(Game_Manager);
     PowerPcAsm::Pair16Bit m = PowerPcAsm::make16bitValuePair(Global_MapID);
     PowerPcAsm::Pair16Bit t = PowerPcAsm::make16bitValuePair(tableAddr);
-
-    // TODO Check if a game is being played right now
 
     QVector<quint32> asm_;
     // precondition:   r3 is bgmId
@@ -54,6 +54,13 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     //        unused:  r0,r5,r6,r7,r31
     // postcondition:  r3 and r31 is bgmId
     asm_.append(PowerPcAsm::mr(31, 3));             // r31 <- r3
+    asm_.append(PowerPcAsm::lis(3, g.upper));       // \.
+    asm_.append(PowerPcAsm::addi(3, 3, g.lower));   // |.
+    asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Game_Manager
+    asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0?
+    asm_.append(PowerPcAsm::bne(3));                // continue
+    asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
     asm_.append(PowerPcAsm::lis(3, m.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, m.lower));   // |.
     asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Global_MapID
