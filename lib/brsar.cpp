@@ -1,5 +1,6 @@
 #include "brsar.h"
 #include <QtDebug>
+#include "music.h"
 
 // documentation:
 //   http://wiki.tockdom.com/wiki/BRSAR_(File_Format)
@@ -203,11 +204,6 @@ QDataStream &operator>>(QDataStream &stream, Brsar::SymbSectionFileNameTable &da
         stream.readRawData(buf, 128);
         data.fileNameTableEntries.append(buf);
     }
-    // How to write a string:
-    /*  QByteArray data(str.toUtf8());
-        data.append('\0');
-        stream.writeRawData(bytes, bytes.size());  */
-
     return stream;
 }
 
@@ -281,10 +277,58 @@ QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
     return stream;
 }
 
-void patch(QDataStream &stream, const QVector<MapDescriptor> &mapDescriptors) {
+void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
     Brsar::File brsar;
     stream >> brsar;
 
+    // find boundary indices
+    int i_min = 0, i_max = 0;
+    for(int i = 0; i < brsar.entries.length(); i++) {
+        auto &entry = brsar.entries[i];
+        if(entry.fileName == QString("CSMM_000")) {
+            i_min = i;
+        }
+        if(entry.fileName == QString("CSMM_999")) {
+            i_max = i;
+        }
+    }
+
+    int i = i_min;
+    for (auto &descriptor: descriptors) {
+        for (auto &musicType: descriptor.music.keys()) {
+            if(i<i_max) {
+                auto &musicEntry = descriptor.music[musicType];
+                bool isBgm = Music::musicTypeIsBgm(musicType);
+                quint32 playerId;
+                quint8 playerPriority;
+                if(isBgm) {
+                    playerId = 0;
+                    playerPriority = 110;
+                } else {
+                    playerId = 1;
+                    playerPriority = 127;
+                }
+                // patch sound data entry
+                stream.device()->seek(brsar.entries[i].soundDataEntry->header->sectionStart);
+                stream.device()->skip(8);
+                stream << playerId;
+                stream.device()->skip(8);
+                stream << musicEntry.volume;
+                stream << playerPriority;
+                // patch collection entry
+                stream.device()->seek(brsar.entries[i].collectionEntry->header->sectionStart);
+                stream << musicEntry.brstmFileSize;
+                auto seek = brsar.entries[i].collectionEntry->header->sectionStart + brsar.entries[i].collectionEntry->externalFileNameOffset;
+                stream.device()->seek(brsar.entries[i].collectionEntry->header->sectionStart + brsar.entries[i].collectionEntry->externalFileNameOffset);
+                QByteArray data(QString("stream/%1.brstm").arg(musicEntry.brstmBaseFilename).toUtf8());
+                data.append('\0');
+                stream.writeRawData(data, data.size());
+                // update the brsar index
+                musicEntry.brsarIndex = i;
+                i++;
+            }
+        }
+    }
 }
 
 }

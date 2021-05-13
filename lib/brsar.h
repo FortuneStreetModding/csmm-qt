@@ -175,7 +175,7 @@ struct File {
     friend QDataStream &operator>>(QDataStream &stream, File &data);
 };
 
-void patch(QDataStream &stream, const QVector<MapDescriptor> &mapDescriptors);
+void patch(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors);
 
 }
 

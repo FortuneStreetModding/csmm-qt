@@ -315,6 +315,37 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
 
 QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
+    // copy brstm files from temp dir to output
+    for (auto &descriptor: descriptors) {
+        for (auto &musicType: descriptor.music.keys()) {
+            auto musicEntry = descriptor.music[musicType];
+            auto brstmFileFrom = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
+            auto brstmFileTo = output.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
+            QFileInfo brstmFileFromInfo(brstmFileFrom);
+            if (!brstmFileFromInfo.exists() || !brstmFileFromInfo.isFile()) {
+                continue;
+            }
+            // update the file size
+            musicEntry.brstmFileSize = brstmFileFromInfo.size();
+            QFile(brstmFileTo).remove();
+            QFile::copy(brstmFileFrom, brstmFileTo);
+        }
+    }
+    // copy special csmm brsar file from program dir to sound folder and patch it
+    QDir csmmDir = QDir::currentPath();
+    auto brsarFileFrom = csmmDir.filePath("Itast.csmm.brsar");
+    auto brsarFileTo = output.filePath(SOUND_FOLDER+"/Itast.brsar");
+    QFileInfo brsarFileFromInfo(brsarFileFrom);
+    if (brsarFileFromInfo.exists() && brsarFileFromInfo.isFile()) {
+        QFile(brsarFileTo).remove();
+        QFile::copy(brsarFileFrom, brsarFileTo);
+        QFile brsarFile(brsarFileTo);
+        if (brsarFile.open(QIODevice::ReadWrite)) {
+            QDataStream stream(&brsarFile);
+            Brsar::patch(stream, descriptors);
+            brsarFile.close();
+        }
+    }
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
@@ -332,34 +363,6 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
                 }
                 QFile(frbFileTo).remove();
                 QFile::copy(frbFileFrom, frbFileTo);
-            }
-        }
-        // copy brstm files from temp dir to output
-        for (auto &descriptor: descriptors) {
-            for (auto &musicEntry: descriptor.music) {
-                auto brstmFileFrom = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
-                auto brstmFileTo = output.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
-                QFileInfo brstmFileFromInfo(brstmFileFrom);
-                if (!brstmFileFromInfo.exists() || !brstmFileFromInfo.isFile()) {
-                    continue;
-                }
-                QFile(brstmFileTo).remove();
-                QFile::copy(brstmFileFrom, brstmFileTo);
-            }
-        }
-        // copy special csmm brsar file from program dir to sound folder and patch it
-        QDir csmmDir = QDir::currentPath();
-        auto brsarFileFrom = csmmDir.filePath("Itast.csmm.brsar");
-        auto brsarFileTo = output.filePath(SOUND_FOLDER+"/Itast.brsar");
-        QFileInfo brsarFileFromInfo(brsarFileFrom);
-        if (brsarFileFromInfo.exists() && brsarFileFromInfo.isFile()) {
-            QFile(brsarFileTo).remove();
-            QFile::copy(brsarFileFrom, brsarFileTo);
-            QFile brsarFile(brsarFileTo);
-            if (brsarFile.open(QIODevice::ReadWrite)) {
-                QDataStream stream(&brsarFile);
-                Brsar::patch(stream, descriptors);
-                brsarFile.close();
             }
         }
     }, [=]() {

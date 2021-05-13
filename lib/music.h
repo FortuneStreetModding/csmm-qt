@@ -173,6 +173,8 @@ namespace Music {
 struct MusicEntry {
     QString brstmBaseFilename;
     quint8 volume = 50;
+    qint32 brsarIndex = -1;
+    quint32 brstmFileSize = -1;
 
     bool operator==(const MusicEntry &other) const {
         return brstmBaseFilename == other.brstmBaseFilename &&
