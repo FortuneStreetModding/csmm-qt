@@ -58,8 +58,9 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::addi(3, 3, g.lower));   // |.
     asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Game_Manager
     asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0?
-    asm_.append(PowerPcAsm::bne(3));                // continue
+    asm_.append(PowerPcAsm::bne(4));                // continue
     asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
+    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));     // make the comparision again from the original function
     asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
     asm_.append(PowerPcAsm::lis(3, m.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, m.lower));   // |.
@@ -70,8 +71,9 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::addi(3, 3, t.lower));   // |.
     asm_.append(PowerPcAsm::lwzx(5, 5, 3));         // /. r5 <- MapMusicReplacementTable
     asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0?
-    asm_.append(PowerPcAsm::bne(3));                // continue
+    asm_.append(PowerPcAsm::bne(4));                // continue
     asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
+    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));     // make the comparision again from the original function
     asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
     asm_.append(PowerPcAsm::lwz(6, 0x0, 5));        // r6 <- size of MapMusicReplacementTable
     asm_.append(PowerPcAsm::addi(5, 5, 0x4));       // r5+=4
@@ -79,10 +81,11 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     {
         asm_.append(PowerPcAsm::lwz(3, 0x0, 5));    // r3 <- firstBgmId
         asm_.append(PowerPcAsm::cmpw(3, 31));       // r3 == r31?
-        asm_.append(PowerPcAsm::bne(5));            // {
+        asm_.append(PowerPcAsm::bne(6));            // {
         asm_.append(PowerPcAsm::addi(5, 5, 0x4));   // r5+=4
         asm_.append(PowerPcAsm::lwz(31, 0x0, 5));   // r31 <- secondBgmId
         asm_.append(PowerPcAsm::mr(3, 31));         // r3 <- r31
+        asm_.append(PowerPcAsm::cmplwi(3, 0xffff)); // make the comparision again from the original function
         asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr));     // return returnBgmReplacedAddr
                                                     // }
         asm_.append(PowerPcAsm::addi(5, 5, 0x8));   // r5+=8
@@ -90,6 +93,7 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
         asm_.append(PowerPcAsm::cmpwi(6, 0x0));     // r6 != 0?
         asm_.append(PowerPcAsm::bne(asm_.size(), whileVentureCardIdSmaller128));   // loop
         asm_.append(PowerPcAsm::mr(3, 31));         // r3 <- r31
+        asm_.append(PowerPcAsm::cmplwi(3, 0xffff)); // make the comparision again from the original function
         asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
     }
     return asm_;
