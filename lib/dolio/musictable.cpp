@@ -3,42 +3,91 @@
 #include "lib/vanilladatabase.h"
 
 
-quint32 MusicTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 MusicTable::writeBgmTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
         QVector<quint32> mapMusicTable;
+        // get the BGM music types only
+        QVector<MusicType> bgmOnlyMusicTypes;
         auto keys = descriptor.music.keys();
-        mapMusicTable.append(keys.size());
         for (auto &musicType: keys) {
+            if(Music::musicTypeIsBgm(musicType))
+                bgmOnlyMusicTypes.append(musicType);
+        }
+        // get the BGM replacement table
+        mapMusicTable.append(bgmOnlyMusicTypes.size());
+        for (auto &musicType: bgmOnlyMusicTypes) {
             mapMusicTable.append(musicType);
             mapMusicTable.append(descriptor.music[musicType].brsarIndex);
         }
-        if(descriptor.music.empty()) {
+        if(bgmOnlyMusicTypes.empty()) {
             table.append(0);
         } else {
-            table.append(allocate(mapMusicTable, "MapMusicReplacementTable"));
+            table.append(allocate(mapMusicTable, "MapBgmReplacementTable"));
         }
     }
-    return allocate(table, "MapMusicPointerTable");
+    return allocate(table, "MapBgmPointerTable");
+}
+
+quint32 MusicTable::writeMeTable(const QVector<MapDescriptor> &descriptors) {
+    QVector<quint32> table;
+    for (auto &descriptor: descriptors) {
+        QVector<quint32> mapMusicTable;
+        // get the ME music types only
+        QVector<MusicType> meOnlyMusicTypes;
+        auto keys = descriptor.music.keys();
+        for (auto &musicType: keys) {
+            if(!Music::musicTypeIsBgm(musicType))
+                meOnlyMusicTypes.append(musicType);
+        }
+        // build the ME replacement table
+        mapMusicTable.append(meOnlyMusicTypes.size());
+        for (auto &musicType: meOnlyMusicTypes) {
+            mapMusicTable.append(musicType);
+            mapMusicTable.append(descriptor.music[musicType].brsarIndex);
+        }
+        if(meOnlyMusicTypes.empty()) {
+            table.append(0);
+        } else {
+            table.append(allocate(mapMusicTable, "MapMeReplacementTable"));
+        }
+    }
+    return allocate(table, "MapMePointerTable");
 }
 
 
 void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
-    quint32 tableAddr = writeTable(mapDescriptors);
+    quint32 bgmTableAddr = writeBgmTable(mapDescriptors);
+    quint32 meTableAddr = writeMeTable(mapDescriptors);
 
     // Hijack Game::ConvBGMID(int bgmId = r3, int theme = r4)
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x801cc8a0);
     quint32 returnContinueAddr = addressMapper.boomStreetToStandard(0x801cc8a4);
     quint32 returnBgmReplacedAddr = addressMapper.boomStreetToStandard(0x801cc93c);
 
-    quint32 subroutineReplaceBgmId = allocate(writeSubroutineReplaceBgmId(addressMapper, tableAddr, 0, returnContinueAddr, returnBgmReplacedAddr), "SubroutineReplaceBgmId");
+    quint32 subroutineReplaceBgmId = allocate(writeSubroutineReplaceBgmId(addressMapper, bgmTableAddr, 0, returnContinueAddr, returnBgmReplacedAddr), "SubroutineReplaceBgmId");
     stream.device()->seek(addressMapper.toFileAddress(subroutineReplaceBgmId));
-    auto insts = writeSubroutineReplaceBgmId(addressMapper, tableAddr, subroutineReplaceBgmId, returnContinueAddr, returnBgmReplacedAddr); // re-write the routine again since now we know where it is located in the main dol
+    auto insts = writeSubroutineReplaceBgmId(addressMapper, bgmTableAddr, subroutineReplaceBgmId, returnContinueAddr, returnBgmReplacedAddr); // re-write the routine again since now we know where it is located in the main dol
     for (quint32 inst: qAsConst(insts)) stream << inst;
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // mr r31, r3                                   -> b subroutineReplaceBgmId
-    stream.device()->seek(addressMapper.boomToFileAddress(0x801cc8a0));
-    stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(0x801cc8a0), subroutineReplaceBgmId);
+    stream.device()->seek(addressMapper.boomToFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(hijackAddr), subroutineReplaceBgmId);
+
+
+    // Hijack Game::ConvSEID(int bgmId = r3, int theme = r4)
+    hijackAddr = addressMapper.boomStreetToStandard(0x801cc964);
+    returnContinueAddr = addressMapper.boomStreetToStandard(0x801cc968);
+    returnBgmReplacedAddr = addressMapper.boomStreetToStandard(0x801cca00);
+
+    quint32 subroutineReplaceMeId = allocate(writeSubroutineReplaceBgmId(addressMapper, meTableAddr, 0, returnContinueAddr, returnBgmReplacedAddr), "SubroutineReplaceMeId");
+    stream.device()->seek(addressMapper.toFileAddress(subroutineReplaceMeId));
+    insts = writeSubroutineReplaceBgmId(addressMapper, meTableAddr, subroutineReplaceMeId, returnContinueAddr, returnBgmReplacedAddr); // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: qAsConst(insts)) stream << inst;
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    // mr r31, r3                                   -> b subroutineReplaceMeId
+    stream.device()->seek(addressMapper.boomToFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(hijackAddr), subroutineReplaceMeId);
 }
 
 QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &addressMapper, quint32 tableAddr, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnBgmReplacedAddr) {
