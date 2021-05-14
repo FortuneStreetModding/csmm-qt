@@ -2,8 +2,8 @@ TARGET = CSMM
 
 #Application version
 VERSION_MAJOR = 1
-VERSION_MINOR = 0
-VERSION_BUILD = 7
+VERSION_MINOR = 1
+VERSION_BUILD = 0
 
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
        "VERSION_MINOR=$$VERSION_MINOR"\
@@ -42,6 +42,7 @@ SOURCES += \
     lib/benzin/general.c \
     lib/benzin/memfile.c \
     lib/benzin/xml.c \
+    lib/brsar.cpp \
     lib/dolio/backgroundtable.cpp \
     lib/dolio/bgmidtable.cpp \
     lib/dolio/bgsequencetable.cpp \
@@ -59,6 +60,7 @@ SOURCES += \
     lib/dolio/maporigintable.cpp \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
+    lib/dolio/musictable.cpp \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
@@ -99,6 +101,7 @@ HEADERS += \
     lib/benzin/memfile.h \
     lib/benzin/types.h \
     lib/benzin/xml.h \
+    lib/brsar.h \
     lib/datafileset.h \
     lib/dolio/backgroundtable.h \
     lib/dolio/bgmidtable.h \
@@ -117,6 +120,7 @@ HEADERS += \
     lib/dolio/maporigintable.h \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
+    lib/dolio/musictable.h \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
@@ -132,6 +136,7 @@ HEADERS += \
     lib/fslocale.h \
     lib/maindol.h \
     lib/mapdescriptor.h \
+    lib/music.h \
     lib/orderedmap.h \
     lib/patchprocess.h \
     lib/powerpcasm.h \
@@ -161,4 +166,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
 
-DISTFILES +=
+DISTFILES += \
+    Itast.csmm.brsar

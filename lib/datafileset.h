@@ -5,6 +5,8 @@
 
 static const QString MAIN_DOL = "sys/main.dol";
 static const QString PARAM_FOLDER = "files/param";
+static const QString SOUND_FOLDER = "files/sound";
+static const QString SOUND_STREAM_FOLDER = "files/sound/stream";
 inline QString uiMessageCsv(const QString &locale) {
     return QString("files/localize/ui_message.%1.csv").arg(locale);
 }

@@ -131,6 +131,9 @@ quint32 lbz(quint8 register1, qint16 value, quint8 register2) {
 quint32 srw(quint8 register1, quint8 register2, quint8 register3) {
     return srw_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)register3 << 11);
 }
+quint32 slw(quint8 register1, quint8 register2, quint8 register3) {
+    return slw_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)register3 << 11);
+}
 quint32 rlwinm(quint8 register1, quint8 register2, quint8 value1, quint8 value2, quint8 value3) {
     return rlwinm_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)value1 << 11) + ((quint32)value2 << 6) + ((quint32)value3 << 1);
 }

@@ -68,30 +68,32 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setVerticalHeaderItem(row, readOnlyItem(QString::number(row)));
 
-    auto importMdButton = new QPushButton("Import .yaml or .zip");
-    connect(importMdButton, &QPushButton::clicked, this, [=](bool) {
+    auto importYamlButton = new QPushButton("Import .yaml or .zip");
+    connect(importYamlButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto openMd = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml);;Zip Files (*.zip)");
-        if (openMd.isEmpty()) return;
+        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml);;Zip Files (*.zip)");
+        if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            PatchProcess::importMd(gameDirectory, openMd, newDescriptor, tmpDir.path());
+            PatchProcess::importYaml(gameDirectory, openYaml, newDescriptor, tmpDir.path());
             descriptorPtr->setFromImport(newDescriptor);
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Import .yaml", QString("Error loading the .yaml file: %1").arg(exception.getMessage()));
+        } catch (const YAML::Exception &exception) {
+            QMessageBox::critical(this, "Import .yaml", QString("Error loading the .yaml file: %1").arg(exception.what()));
         }
     });
-    setCellWidget(row, colIdx++, importMdButton);
+    setCellWidget(row, colIdx++, importYamlButton);
 
-    auto exportMdButton = new QPushButton("Export .yaml");
-    connect(exportMdButton, &QPushButton::clicked, this, [=](bool) {
+    auto exportYamlButton = new QPushButton("Export .yaml");
+    connect(exportYamlButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto saveMdTo = QFileDialog::getSaveFileName(exportMdButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)");
-        if (saveMdTo.isEmpty()) return;
-        PatchProcess::exportMd(gameDirectory, saveMdTo, *descriptorPtr);
+        auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)");
+        if (saveYamlTo.isEmpty()) return;
+        PatchProcess::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
     });
-    setCellWidget(row, colIdx++, exportMdButton);
+    setCellWidget(row, colIdx++, exportYamlButton);
 
     setItem(row, colIdx++, readOnlyItem(descriptor.names["en"]));
 
@@ -135,7 +137,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setItem(row, colIdx++, readOnlyItem(descriptor.theme == Mario ? "Mario" : "DragonQuest"));
     setItem(row, colIdx++, readOnlyItem(descriptor.background));
-    setItem(row, colIdx++, readOnlyItem(bgmIdToString(descriptor.bgmId)));
+    setItem(row, colIdx++, readOnlyItem(Bgm::bgmIdToString(descriptor.bgmId)));
     setItem(row, colIdx++, readOnlyItem(descriptor.mapIcon));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingMode)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.loopingModeRadius)));

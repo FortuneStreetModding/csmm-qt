@@ -32,7 +32,7 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
-QString MapDescriptor::toMd() const {
+QString MapDescriptor::toYaml() const {
     YAML::Emitter out;
 
     out << YAML::BeginDoc;
@@ -68,8 +68,23 @@ QString MapDescriptor::toMd() const {
     out << YAML::Key << "background" << YAML::Value << background.toStdString();
     if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
         out << YAML::Key << "mapIcon" << YAML::Value << mapIcon.toStdString();
-    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId)
-        out << YAML::Key << "bgmId" << YAML::Value << bgmIdToString(bgmId).toStdString();
+
+    if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId) {
+        if(music.empty()) {
+            out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
+        } else if(!music.contains(MusicType::map)) {
+            out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
+        }
+    }
+
+    if(!music.empty()) {
+        out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
+        for (auto &musicType: music.keys()) {
+            auto musicEntry = music[musicType];
+            out << YAML::Key << Music::musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
+        }
+        out << YAML::EndMap;
+    }
 
     if(!switchRotationOrigins.empty()) {
         out << YAML::Key << "switchRotationOriginPoints" << YAML::Value << YAML::BeginSeq;
@@ -139,6 +154,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && background == other.background
             && bgmId == other.bgmId
             && mapIcon == other.mapIcon
+            && music == other.music
             && loopingMode == other.loopingMode
             && loopingModeRadius == other.loopingModeRadius
             && loopingModeHorizontalPadding == other.loopingModeHorizontalPadding
@@ -156,87 +172,101 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && mapDescriptorFilePath == other.mapDescriptorFilePath;
 }
 
-bool MapDescriptor::fromMd(const YAML::Node &yaml) {
-    try {
-        for (auto it=yaml["name"].begin(); it!=yaml["name"].end(); ++it) {
-            names[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
-        }
-        for (auto it=yaml["desc"].begin(); it!=yaml["desc"].end(); ++it) {
-            descs[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
-        }
-        names.remove("uk");
-        descs.remove("uk");
+bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
+    for (auto it=yaml["name"].begin(); it!=yaml["name"].end(); ++it) {
+        names[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
+    }
+    for (auto it=yaml["desc"].begin(); it!=yaml["desc"].end(); ++it) {
+        descs[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
+    }
+    names.remove("uk");
+    descs.remove("uk");
 
-        ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
-        theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
-        initialCash = yaml["initialCash"].as<quint32>();
-        tourInitialCash = initialCash;
-        targetAmount = yaml["targetAmount"].as<quint32>();
-        baseSalary = yaml["baseSalary"].as<quint32>();
-        salaryIncrement = yaml["salaryIncrement"].as<quint32>();
-        maxDiceRoll = yaml["maxDiceRoll"].as<quint32>();
-        for (int i=0; i<4; ++i) {
-            auto key = QString("frbFile%1").arg(i+1).toStdString();
-            if(yaml[key] || i==0) {
-                frbFiles[i] = QString::fromStdString(yaml[key].as<std::string>());
-            } else {
-                frbFiles[i] = "";
-            }
+    ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
+    theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
+    initialCash = yaml["initialCash"].as<quint32>();
+    tourInitialCash = initialCash;
+    targetAmount = yaml["targetAmount"].as<quint32>();
+    baseSalary = yaml["baseSalary"].as<quint32>();
+    salaryIncrement = yaml["salaryIncrement"].as<quint32>();
+    maxDiceRoll = yaml["maxDiceRoll"].as<quint32>();
+    for (int i=0; i<4; ++i) {
+        auto key = QString("frbFile%1").arg(i+1).toStdString();
+        if(yaml[key] || i==0) {
+            frbFiles[i] = QString::fromStdString(yaml[key].as<std::string>());
+        } else {
+            frbFiles[i] = "";
         }
-        switchRotationOrigins.clear();
-        for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
-            switchRotationOrigins.append({originPoint["x"].as<float>(), originPoint["y"].as<float>(),});
-        }
-        if(yaml["looping"]) {
-            auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
-            if (loopingModeStr == "Vertical") {
-                loopingMode = Vertical;
-            } else if (loopingModeStr == "Both") {
-                loopingMode = Both;
-            } else {
-                loopingMode = None;
-            }
-            loopingModeRadius = yaml["looping"]["radius"].as<float>();
-            loopingModeHorizontalPadding = yaml["looping"]["horizontalPadding"].as<float>();
-            loopingModeVerticalSquareCount = yaml["looping"]["verticalSquareCount"].as<float>();
+    }
+    switchRotationOrigins.clear();
+    for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
+        switchRotationOrigins.append({originPoint["x"].as<float>(), originPoint["y"].as<float>(),});
+    }
+    if(yaml["looping"]) {
+        auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
+        if (loopingModeStr == "Vertical") {
+            loopingMode = Vertical;
+        } else if (loopingModeStr == "Both") {
+            loopingMode = Both;
         } else {
             loopingMode = None;
         }
-        tourBankruptcyLimit = yaml["tourMode"]["bankruptcyLimit"].as<quint32>();
-        if(yaml["tourMode"]["initialCash"])
-            tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
-        for (int i=0; i<3; ++i) {
-            tourCharacters[i] = stringToTourCharacter(
-                        QString::fromStdString(yaml["tourMode"][QString("opponent%1").arg(i+1).toStdString()].as<std::string>())
-                    );
-        }
-        tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
-        background = QString::fromStdString(yaml["background"].as<std::string>());
-        if(VanillaDatabase::hasDefaultMapIcon(background)) {
-            mapIcon = VanillaDatabase::getDefaultMapIcon(background);
-            if(yaml["mapIcon"])
-                mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
-        } else {
-            mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
-        }
-        if(VanillaDatabase::hasDefaultBgmId(background)) {
-            bgmId = VanillaDatabase::getDefaultBgmId(background);
-            if(yaml["bgmId"])
-                bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
-        } else {
-            bgmId = stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
-        }
-        if(yaml["ventureCards"]) {
-            for (quint32 i=0; i<sizeof(ventureCards); ++i) {
-                ventureCards[i] = yaml["ventureCards"][i].as<int>();
-            }
-        } else {
-            VanillaDatabase::setDefaultVentureCards(ruleSet, ventureCards);
-        }
-        return true;
-    } catch (const YAML::Exception &exception) {
-        return false;
+        loopingModeRadius = yaml["looping"]["radius"].as<float>();
+        loopingModeHorizontalPadding = yaml["looping"]["horizontalPadding"].as<float>();
+        loopingModeVerticalSquareCount = yaml["looping"]["verticalSquareCount"].as<float>();
+    } else {
+        loopingMode = None;
     }
+    tourBankruptcyLimit = yaml["tourMode"]["bankruptcyLimit"].as<quint32>();
+    if(yaml["tourMode"]["initialCash"])
+        tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
+    for (int i=0; i<3; ++i) {
+        tourCharacters[i] = stringToTourCharacter(
+                    QString::fromStdString(yaml["tourMode"][QString("opponent%1").arg(i+1).toStdString()].as<std::string>())
+                );
+    }
+    tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
+    background = QString::fromStdString(yaml["background"].as<std::string>());
+
+    if(VanillaDatabase::hasDefaultMapIcon(background))
+        mapIcon = VanillaDatabase::getDefaultMapIcon(background);
+    if(yaml["mapIcon"])
+        mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+
+    if(VanillaDatabase::hasDefaultBgmId(background))
+        bgmId = VanillaDatabase::getDefaultBgmId(background);
+    if(yaml["bgmId"])
+        bgmId = Bgm::stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
+
+    if(yaml["music"]) {
+        for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
+            QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
+            if(brstmBaseFilename.length() > 24) {
+                throw YAML::Exception(it->Mark(), QString("The filename of the brstm file %1 is too long. It must be max 24 characters.").arg(brstmBaseFilename).toStdString());
+            }
+            MusicEntry entry;
+            entry.brstmBaseFilename = brstmBaseFilename;
+            // get the volume out of the file name
+            QFileInfo fileInfo(brstmBaseFilename);
+            QString suffix = fileInfo.suffix();
+            if(!suffix.isEmpty()) {
+                entry.volume = suffix.toInt();
+            }
+            auto musicType = Music::stringToMusicType(QString::fromStdString(it->first.as<std::string>()));
+            music[musicType] = entry;
+            if(musicType == MusicType::map) {
+                bgmId = BGM_MAP_CIRCUIT;
+            }
+        }
+    }
+    if(yaml["ventureCards"]) {
+        for (quint32 i=0; i<sizeof(ventureCards); ++i) {
+            ventureCards[i] = yaml["ventureCards"][i].as<int>();
+        }
+    } else {
+        VanillaDatabase::setDefaultVentureCards(ruleSet, ventureCards);
+    }
+    return true;
 }
 
 MapDescriptor &MapDescriptor::setFromImport(const MapDescriptor &other) {
@@ -290,52 +320,6 @@ QString tourCharacterToString(Character character) {
 }
 Character stringToTourCharacter(const QString &str) {
     return stringToTourCharacters.value(str);
-}
-
-static const QMap<QString, BgmId> stringToBgmIds = {
-    {"BGM_MAP_CIRCUIT", BGM_MAP_CIRCUIT},
-    {"BGM_MAP_PEACH", BGM_MAP_PEACH},
-    {"BGM_MAP_KOOPA", BGM_MAP_KOOPA},
-    {"BGM_MAP_GHOSTSHIP", BGM_MAP_GHOSTSHIP},
-    {"BGM_MAP_MAJINZOU", BGM_MAP_MAJINZOU},
-    {"BGM_MAP_SINOKAZAN", BGM_MAP_SINOKAZAN},
-    {"BGM_MAP_SLABACCA", BGM_MAP_SLABACCA},
-    {"BGM_MAP_KANDATA", BGM_MAP_KANDATA},
-    {"BGM_MAP_KANDATA_old", BGM_MAP_KANDATA_old},
-    {"BGM_MAP_ALEFGARD", BGM_MAP_ALEFGARD},
-    {"BGM_MAP_ALEFGARD_old", BGM_MAP_ALEFGARD_old},
-    {"BGM_MAP_YOSHI", BGM_MAP_YOSHI},
-    {"BGM_MAP_STADIUM", BGM_MAP_STADIUM},
-    {"BGM_MAP_DOLPIC", BGM_MAP_DOLPIC},
-    {"BGM_MAP_SMB", BGM_MAP_SMB},
-    {"BGM_MAP_STARSHIP", BGM_MAP_STARSHIP},
-    {"BGM_MAP_EGG", BGM_MAP_EGG},
-    {"BGM_MAP_TRODAIN", BGM_MAP_TRODAIN},
-    {"BGM_MAP_TRODAIN_old", BGM_MAP_TRODAIN_old},
-    {"BGM_MAP_DHAMA", BGM_MAP_DHAMA},
-    {"BGM_MAP_DHAMA_old", BGM_MAP_DHAMA_old},
-    {"BGM_MAP_ANGEL", BGM_MAP_ANGEL},
-    {"BGM_MENU", BGM_MENU},
-    {"BGM_GOALPROP", BGM_GOALPROP},
-    {"BGM_WINNER", BGM_WINNER},
-    {"BGM_CHANCECARD", BGM_CHANCECARD},
-    {"BGM_STOCK", BGM_STOCK},
-    {"BGM_AUCTION", BGM_AUCTION},
-    {"BGM_CASINO_SLOT", BGM_CASINO_SLOT},
-    {"BGM_CASINO_BLOCK", BGM_CASINO_BLOCK},
-    {"BGM_CASINO_RACE", BGM_CASINO_RACE},
-    {"BGM_TITLE", BGM_TITLE},
-    {"BGM_SAVELOAD", BGM_SAVELOAD},
-    {"BGM_SAVELOAD_old", BGM_SAVELOAD_old},
-    {"BGM_WIFI", BGM_WIFI},
-    {"BGM_ENDING", BGM_ENDING}
-};
-
-QString bgmIdToString(BgmId bgmId) {
-    return stringToBgmIds.key(bgmId);
-}
-BgmId stringToBgmId(const QString &str) {
-    return stringToBgmIds.value(str);
 }
 
 void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
