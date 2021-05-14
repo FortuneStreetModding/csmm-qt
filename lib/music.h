@@ -92,29 +92,32 @@ namespace Bgm {
 }
 
 enum MusicType: quint32 {
-    map               = 0,
-    stock             = 26,
-    ventureCards      = 25,
-    auction           = 27,
-    targetMet         = 23,
-    win               = 24,
-    guestAppear       = std::numeric_limits<quint32>::max(),
-    guestLeave        = std::numeric_limits<quint32>::max(),
-    badVentureCard    = std::numeric_limits<quint32>::max(),
-    takeAbreak        = std::numeric_limits<quint32>::max(),
-    promotion         = std::numeric_limits<quint32>::max(),
-    forcedBuyout      = std::numeric_limits<quint32>::max(),
-    domination        = std::numeric_limits<quint32>::max(),
-    bankruptcy        = std::numeric_limits<quint32>::max(),
+    map                = 0,   // BGM
+    stock              = 26,  // BGM
+    ventureCards       = 25,  // BGM
+    auction            = 27,  // BGM
+    targetMet          = 23,  // BGM
+    win                = 24,  // BGM
+    guestAppear        = 105, // ME
+    guestLeave         = 106, // ME
+    badVentureCard     = 104, // ME
+    takeAbreak         = 100, // ME
+    promotionMii       = 95,  // ME (played by Mii characters)
+    promotionMario     = 96,  // ME (played by Mario characters)
+    promotionDQ        = 97,  // ME (played by DragonQuest characters)
+    forcedBuyout       = 99,  // ME
+    domination         = 98,  // ME
+    bankruptcy         = 101, // ME
     // arcade
-    roundTheBlocks    = 28,
-    roundTheBlocksWin = std::numeric_limits<quint32>::max(),
-    roundTheBlocks777 = std::numeric_limits<quint32>::max(),
-    memoryBlock       = 29,
-    dartOfGold        = 30,
-    slurpodromeSelect = 31,
-    slurpodromeStart  = 32,
-    slurpodromeRace   = std::numeric_limits<quint32>::max()
+    roundTheBlocks     = 28,  // BGM
+    roundTheBlocksWin  = 108, // ME (110 or 0x6E is also prize win theme but always the Mario theme variant??)
+    roundTheBlocks777  = 109, // ME
+    memoryBlock        = 29,  // BGM
+    dartOfGold         = 30,  // BGM
+    slurpodromeSelect  = 31,  // BGM
+    slurpodromeStart   = 102, // ME
+    slurpodromeRace    = 32,  // BGM
+    slurpodromeWin     = 112  // ME
 };
 
 static const QMap<QString, MusicType> stringToMusicTypes = {
@@ -128,7 +131,9 @@ static const QMap<QString, MusicType> stringToMusicTypes = {
     {"guestLeave"        , guestLeave},
     {"badVentureCard"    , badVentureCard},
     {"takeAbreak"        , takeAbreak},
-    {"promotion"         , promotion},
+    {"promotionMii"      , promotionMii},
+    {"promotionMario"    , promotionMario},
+    {"promotionDQ"       , promotionDQ},
     {"forcedBuyout"      , forcedBuyout},
     {"domination"        , domination},
     {"bankruptcy"        , bankruptcy},
@@ -140,7 +145,8 @@ static const QMap<QString, MusicType> stringToMusicTypes = {
     {"dartOfGold"        , dartOfGold},
     {"slurpodromeSelect" , slurpodromeSelect},
     {"slurpodromeStart"  , slurpodromeStart},
-    {"slurpodromeRace"   , slurpodromeRace}
+    {"slurpodromeRace"   , slurpodromeRace},
+    {"slurpodromeWin"    , slurpodromeWin}
 };
 
 namespace Music {
