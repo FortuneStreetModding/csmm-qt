@@ -80,7 +80,8 @@ QString MapDescriptor::toYaml() const {
 
     if(!music.empty()) {
         out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
-        for (auto &musicType: music.keys()) {
+        auto keys = music.keys();
+        for (auto &musicType: keys) {
             auto musicEntry = music[musicType];
             out << YAML::Key << Music::musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
         }
