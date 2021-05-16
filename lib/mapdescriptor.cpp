@@ -242,6 +242,9 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
 
     if(yaml["music"]) {
         for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
+            if(it->second.IsNull()) {
+                continue;
+            }
             QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
             if(brstmBaseFilename.length() > 48) {
                 throw PatchProcess::Exception(QString("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.").arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
