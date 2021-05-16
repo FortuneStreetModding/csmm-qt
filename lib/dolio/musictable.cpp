@@ -14,10 +14,13 @@ quint32 MusicTable::writeBgmTable(const QVector<MapDescriptor> &descriptors) {
             if(Music::musicTypeIsBgm(musicType))
                 bgmOnlyMusicTypes.append(musicType);
         }
-        // get the BGM replacement table
+        // write the BGM replacement table
+        // write the size of the table first
         mapMusicTable.append(bgmOnlyMusicTypes.size());
         for (auto &musicType: bgmOnlyMusicTypes) {
+            // write the original bgmid (the value to look for)
             mapMusicTable.append(musicType);
+            // write the new brsar index (the value which shall be replaced)
             mapMusicTable.append(descriptor.music[musicType].brsarIndex);
         }
         if(bgmOnlyMusicTypes.empty()) {
@@ -41,9 +44,12 @@ quint32 MusicTable::writeMeTable(const QVector<MapDescriptor> &descriptors) {
                 meOnlyMusicTypes.append(musicType);
         }
         // build the ME replacement table
+        // write the size of the table first
         mapMusicTable.append(meOnlyMusicTypes.size());
         for (auto &musicType: meOnlyMusicTypes) {
+            // write the original meId (the value to look for)
             mapMusicTable.append(musicType);
+            // write the new brsar index (the value which shall be replaced)
             mapMusicTable.append(descriptor.music[musicType].brsarIndex);
         }
         if(meOnlyMusicTypes.empty()) {
@@ -106,7 +112,7 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::lis(3, g.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, g.lower));   // |.
     asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Game_Manager
-    asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0?
+    asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0? (is a game Manager defined? if it is, that means a game is running, otherwise we are still in menu)
     asm_.append(PowerPcAsm::bne(4));                // continue
     asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
     asm_.append(PowerPcAsm::cmplwi(3, 0xffff));     // make the comparision again from the original function
@@ -115,10 +121,10 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::addi(3, 3, m.lower));   // |.
     asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Global_MapID
     asm_.append(PowerPcAsm::li(3, 3));              // \.
-    asm_.append(PowerPcAsm::slw(5, 5, 3));          // /. r5 <- r5 * 8
+    asm_.append(PowerPcAsm::slw(5, 5, 2));          // /. r5 <- r5 * 4
     asm_.append(PowerPcAsm::lis(3, t.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, t.lower));   // |.
-    asm_.append(PowerPcAsm::lwzx(5, 5, 3));         // /. r5 <- MapMusicReplacementTable
+    asm_.append(PowerPcAsm::lwzx(5, 5, 3));         // /. r5 <- MapMusicReplacementTable = MapBgmMePointerTable[r5]
     asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0?
     asm_.append(PowerPcAsm::bne(4));                // continue
     asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
