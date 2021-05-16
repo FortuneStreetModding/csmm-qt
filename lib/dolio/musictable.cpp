@@ -120,8 +120,8 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::lis(3, m.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, m.lower));   // |.
     asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Global_MapID
-    asm_.append(PowerPcAsm::li(3, 3));              // \.
-    asm_.append(PowerPcAsm::slw(5, 5, 2));          // /. r5 <- r5 * 4
+    asm_.append(PowerPcAsm::li(3, 2));              // \.
+    asm_.append(PowerPcAsm::slw(5, 5, 3));          // /. r5 <- r5 * 4
     asm_.append(PowerPcAsm::lis(3, t.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, t.lower));   // |.
     asm_.append(PowerPcAsm::lwzx(5, 5, 3));         // /. r5 <- MapMusicReplacementTable = MapBgmMePointerTable[r5]
