@@ -92,61 +92,62 @@ namespace Bgm {
 }
 
 enum MusicType: quint32 {
-    map                = 0,   // BGM
-    stock              = 26,  // BGM
-    ventureCards       = 25,  // BGM
-    auction            = 27,  // BGM
-    targetMet          = 23,  // BGM
-    win                = 24,  // BGM
-    guestAppear        = 105, // ME
-    guestLeave         = 106, // ME
-    badVentureCard     = 104, // ME
-    takeAbreak         = 100, // ME
-    promotionMii       = 95,  // ME (played by Mii characters)
-    promotionMario     = 96,  // ME (played by Mario characters)
-    promotionDQ        = 97,  // ME (played by DragonQuest characters)
-    forcedBuyout       = 99,  // ME
-    domination         = 98,  // ME
-    bankruptcy         = 101, // ME
+    map                    = 0,   // BGM
+    stock                  = 26,  // BGM
+    ventureCards           = 25,  // BGM
+    auction                = 27,  // BGM
+    targetMet              = 23,  // BGM
+    win                    = 24,  // BGM
+    guestAppear            = 105, // ME
+    guestLeave             = 106, // ME
+    badVentureCard         = 104, // ME
+    takeAbreak             = 100, // ME
+    promotionMii           = 95,  // ME (played by Mii characters)
+    promotionMario         = 96,  // ME (played by Mario characters)
+    promotionDragonQuest   = 97,  // ME (played by DragonQuest characters)
+    forcedBuyout           = 99,  // ME
+    domination             = 98,  // ME
+    bankruptcy             = 101, // ME
     // arcade
-    roundTheBlocks     = 28,  // BGM
-    roundTheBlocksWin  = 108, // ME (110 or 0x6E is also prize win theme but always the Mario theme variant??)
-    roundTheBlocks777  = 109, // ME
-    memoryBlock        = 29,  // BGM
-    dartOfGold         = 30,  // BGM
-    slurpodromeSelect  = 31,  // BGM
-    slurpodromeStart   = 102, // ME
-    slurpodromeRace    = 32,  // BGM
-    slurpodromeWin     = 112  // ME
+    roundTheBlocks         = 28,  // BGM
+    roundTheBlocksWin      = 108, // ME
+    roundTheBlocks777      = 109, // ME
+    roundTheBlocksWinMario = 110, // ME (prize win theme but always the Mario theme variant? -> still a mystery where this is used by the game)
+    memoryBlock            = 29,  // BGM
+    dartOfGold             = 30,  // BGM
+    slurpodromeSelect      = 31,  // BGM
+    slurpodromeStart       = 102, // ME
+    slurpodromeRace        = 32,  // BGM
+    slurpodromeWin         = 112  // ME
 };
 
 static const QMap<QString, MusicType> stringToMusicTypes = {
-    {"map"               , map},
-    {"stock"             , stock},
-    {"ventureCards"      , ventureCards},
-    {"auction"           , auction},
-    {"targetMet"         , targetMet},
-    {"win"               , win},
-    {"guestAppear"       , guestAppear},
-    {"guestLeave"        , guestLeave},
-    {"badVentureCard"    , badVentureCard},
-    {"takeAbreak"        , takeAbreak},
-    {"promotionMii"      , promotionMii},
-    {"promotionMario"    , promotionMario},
-    {"promotionDQ"       , promotionDQ},
-    {"forcedBuyout"      , forcedBuyout},
-    {"domination"        , domination},
-    {"bankruptcy"        , bankruptcy},
+    {"map"                 , map},
+    {"stock"               , stock},
+    {"ventureCards"        , ventureCards},
+    {"auction"             , auction},
+    {"targetMet"           , targetMet},
+    {"win"                 , win},
+    {"guestAppear"         , guestAppear},
+    {"guestLeave"          , guestLeave},
+    {"badVentureCard"      , badVentureCard},
+    {"takeAbreak"          , takeAbreak},
+    {"promotionMii"        , promotionMii},
+    {"promotionMario"      , promotionMario},
+    {"promotionDragonQuest", promotionDragonQuest},
+    {"forcedBuyout"        , forcedBuyout},
+    {"domination"          , domination},
+    {"bankruptcy"          , bankruptcy},
     // arcade
-    {"roundTheBlocks"    , roundTheBlocks},
-    {"roundTheBlocksWin" , roundTheBlocksWin},
-    {"roundTheBlocks777" , roundTheBlocks777},
-    {"memoryBlock"       , memoryBlock},
-    {"dartOfGold"        , dartOfGold},
-    {"slurpodromeSelect" , slurpodromeSelect},
-    {"slurpodromeStart"  , slurpodromeStart},
-    {"slurpodromeRace"   , slurpodromeRace},
-    {"slurpodromeWin"    , slurpodromeWin}
+    {"roundTheBlocks"      , roundTheBlocks},
+    {"roundTheBlocksWin"   , roundTheBlocksWin},
+    {"roundTheBlocks777"   , roundTheBlocks777},
+    {"memoryBlock"         , memoryBlock},
+    {"dartOfGold"          , dartOfGold},
+    {"slurpodromeSelect"   , slurpodromeSelect},
+    {"slurpodromeStart"    , slurpodromeStart},
+    {"slurpodromeRace"     , slurpodromeRace},
+    {"slurpodromeWin"      , slurpodromeWin}
 };
 
 namespace Music {
