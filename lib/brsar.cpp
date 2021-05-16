@@ -339,7 +339,7 @@ void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
                 stream << musicEntry.brstmFileSize;
                 stream.device()->seek(brsar.entries[brsarIndex].collectionEntry->header->sectionStart + brsar.entries[brsarIndex].collectionEntry->externalFileNameOffset);
                 QByteArray data(QString("stream/%1.brstm").arg(musicEntry.brstmBaseFilename).toUtf8());
-                data = data.leftJustified(38, '\0', true);
+                data = data.leftJustified(7 + 48 + 6, '\0', true);
                 stream.writeRawData(data, data.size());
                 // update the brsar index
                 musicEntry.brsarIndex = brsarIndex;
