@@ -77,8 +77,8 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
     for (quint32 inst: qAsConst(insts)) stream << inst;
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // mr r31, r3                                   -> b subroutineReplaceBgmId
-    stream.device()->seek(addressMapper.boomToFileAddress(hijackAddr));
-    stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(hijackAddr), subroutineReplaceBgmId);
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(hijackAddr, subroutineReplaceBgmId);
 
 
     // Hijack Game::ConvSEID(int bgmId = r3, int theme = r4)
@@ -92,8 +92,8 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
     for (quint32 inst: qAsConst(insts)) stream << inst;
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // mr r31, r3                                   -> b subroutineReplaceMeId
-    stream.device()->seek(addressMapper.boomToFileAddress(hijackAddr));
-    stream << PowerPcAsm::b(addressMapper.boomStreetToStandard(hijackAddr), subroutineReplaceMeId);
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(hijackAddr, subroutineReplaceMeId);
 }
 
 QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &addressMapper, quint32 tableAddr, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnBgmReplacedAddr) {

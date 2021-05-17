@@ -366,6 +366,8 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
             Brsar::patch(stream, descriptors);
             brsarFile.close();
         }
+    } else {
+        throw Exception(QString("Could not find %1").arg(brsarFileFrom));
     }
 }
 
