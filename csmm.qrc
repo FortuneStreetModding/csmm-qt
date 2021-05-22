@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Itast.csmm.brsar</file>
+    </qresource>
+</RCC>

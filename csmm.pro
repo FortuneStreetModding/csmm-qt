@@ -166,5 +166,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
 
-DISTFILES += \
-    Itast.csmm.brsar
+DISTFILES +=
+
+RESOURCES += \
+    csmm.qrc

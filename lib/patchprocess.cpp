@@ -336,8 +336,7 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
         }
     }
     // copy special csmm brsar file from program dir to sound folder and patch it
-    QDir csmmDir = QDir::currentPath();
-    auto brsarFileFrom = csmmDir.filePath("Itast.csmm.brsar");
+    auto brsarFileFrom = ":/Itast.csmm.brsar";
     auto brsarFileTo = output.filePath(SOUND_FOLDER+"/Itast.brsar");
     QFileInfo brsarFileToInfo(brsarFileTo);
     bool copyCsmmBrsar = false;
