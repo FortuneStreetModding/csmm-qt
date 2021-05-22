@@ -263,6 +263,8 @@ QFuture<void> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) 
     }
 }
 
+
+
 void MainWindow::exportToFolder() {
     auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory");
     if (saveDir.isEmpty()) return;
@@ -291,7 +293,12 @@ void MainWindow::exportToFolder() {
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
-        return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpResourcesDir().path());
+        try {
+            return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpResourcesDir().path());
+        } catch (const PatchProcess::Exception &exception) {
+            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
+            throw exception;
+        }
     }).subscribe([=]() {
         progress->setValue(2);
         QMessageBox::information(this, "Save", "Saved successfuly.");
@@ -300,13 +307,6 @@ void MainWindow::exportToFolder() {
         int idx = 0;
         for (auto &descriptor: *descriptors) {
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
-        }
-    });
-    fut.onCanceled([=]() {
-        try {
-            fut.future().waitForFinished();
-        } catch (const PatchProcess::Exception &exception) {
-            QMessageBox::critical(this, "Save", QString("Save failed: %1").arg(exception.getMessage()));
         }
     });
 }
@@ -340,13 +340,18 @@ void MainWindow::exportIsoWbfs() {
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
-        return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
+        try {
+            return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
+        } catch (const PatchProcess::Exception &exception) {
+            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
+            throw exception;
+        }
     }).subscribe([=]() {
         progress->setValue(2);
         return ExeWrapper::createWbfsIso(intermediatePath, saveFile);
     }).subscribe([=]() {
         progress->setValue(3);
-        if(patchWiimmfi)
+        if (patchWiimmfi)
             return ExeWrapper::patchWiimmfi(saveFile);
         auto def = AsyncFuture::deferred<void>();
         def.complete();
@@ -361,13 +366,6 @@ void MainWindow::exportIsoWbfs() {
         int idx = 0;
         for (auto &descriptor: *descriptors) {
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
-        }
-    });
-    fut.onCanceled([=]() {
-        try {
-            fut.future().waitForFinished();
-        } catch (const PatchProcess::Exception &exception) {
-            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
         }
     });
 }

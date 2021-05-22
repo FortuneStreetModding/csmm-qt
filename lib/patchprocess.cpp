@@ -12,6 +12,7 @@
 #include "vanilladatabase.h"
 #include "zip/zip.h"
 #include "brsar.h"
+#include <QMessageBox>
 
 namespace PatchProcess {
 
@@ -318,8 +319,7 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
  */
 void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const QDir &tmpDir) {
     // copy brstm files from temp dir to output
-    for (int i=0; i<descriptors.length(); i++) {
-        auto &descriptor = descriptors[i];
+    for (auto &descriptor: descriptors) {
         auto keys = descriptor.music.keys();
         for (auto &musicType: keys) {
             auto &musicEntry = descriptor.music[musicType];
