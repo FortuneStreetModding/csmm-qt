@@ -440,7 +440,76 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
         if (extractedYamlFile.isEmpty()) {
             throw Exception("Zip file has no map descriptor");
         }
-        importYaml(dir, extractedYamlFile, descriptor, tmpDir);
+        auto node = YAML::LoadFile(extractedYamlFile.toStdString());
+        if (descriptor.fromYaml(node)) {
+            QFileInfo yamlFileZipInfo(yamlFileSrc);
+            // check if <MAPNAME>-Background.zip also needs to be extracted
+            if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
+                QString extractedCmpresFile = QFileInfo(extractedYamlFile).dir().filePath(descriptor.background + ".cmpres");
+                // the background.cmpres file is missing -> extract the background zip as well
+                if (!QFileInfo::exists(extractedCmpresFile)) {
+                    QString zipBackgroundStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".background.zip");
+                    QFileInfo zipBackground(zipBackgroundStr);
+                    if(zipBackground.exists()) {
+                        QString extractedCmpresFile;
+                        int extractResult = zip_extract(zipBackgroundStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
+                            auto cmpresFilePtr = (QString *)arg;
+                            auto suffix = QFileInfo(candidate).suffix();
+                            if (suffix == "cmpres") {
+                                *cmpresFilePtr = candidate;
+                            }
+                            return 0;
+                        }, &extractedCmpresFile);
+                        if (extractResult < 0) {
+                            throw Exception(QString("Could not extract %1 to intermediate directory").arg(zipBackgroundStr));
+                        }
+                        if (extractedCmpresFile.isEmpty()) {
+                            throw Exception(QString("%1 has no cmpres files").arg(zipBackgroundStr));
+                        }
+                    } else {
+                        throw Exception(QString("%1 was not found.").arg(zipBackgroundStr));
+                    }
+                }
+            }
+            // check if <MAPNAME>-Music.zip also needs to be extracted
+            if(!descriptor.music.empty()) {
+                bool allBrstmsAvailable = true;
+                for (MusicEntry &musicEntry: descriptor.music) {
+                    QString extractedBrstmFile = QFileInfo(extractedYamlFile).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
+                    if(!QFileInfo::exists(extractedBrstmFile)) {
+                        allBrstmsAvailable = false;
+                        break;
+                    }
+                }
+                // not all required brtsm files reside yet in the intermediate directory -> extract the music zip as well
+                if (!allBrstmsAvailable) {
+                    QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
+                    QFileInfo zipMusic(zipMusicStr);
+                    if(zipMusic.exists()) {
+                        QString extractedBrstmFile;
+                        int extractResult = zip_extract(zipMusicStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
+                            auto brstmFilePtr = (QString *)arg;
+                            auto suffix = QFileInfo(candidate).suffix();
+                            if (suffix == "brstm") {
+                                *brstmFilePtr = candidate;
+                            }
+                            return 0;
+                        }, &extractedBrstmFile);
+                        if (extractResult < 0) {
+                            throw Exception(QString("Could not extract %1 to intermediate directory").arg(zipMusicStr));
+                        }
+                        if (extractedBrstmFile.isEmpty()) {
+                            throw Exception(QString("%1 has no brstm files").arg(zipMusicStr));
+                        }
+                    } else {
+                        throw Exception(QString("%1 was not found.").arg(zipMusicStr));
+                    }
+                }
+            }
+            importYaml(dir, extractedYamlFile, descriptor, tmpDir);
+        } else {
+            throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
+        }
     } else {
         auto node = YAML::LoadFile(yamlFileSrc.toStdString());
         if (descriptor.fromYaml(node)) {
@@ -460,7 +529,6 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                 QFile(frbFileTo).remove();
                 QFile::copy(frbFileFrom, frbFileTo);
             }
-
             // import map icons if needed
             if (!VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
                 auto mapIconFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.mapIcon + ".png");
@@ -477,7 +545,6 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
             }
             // import music if needed
             for (MusicEntry &musicEntry: descriptor.music) {
-
                 auto brstmFileFrom = QFileInfo(yamlFileSrc).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
                 QFileInfo brstmFileInfo(brstmFileFrom);
                 if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
@@ -490,7 +557,6 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                 QFile(frbFileTo).remove();
                 QFile::copy(brstmFileFrom, frbFileTo);
             }
-
             // set internal name
             descriptor.internalName = QFileInfo(yamlFileSrc).baseName();
         } else {

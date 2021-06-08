@@ -282,6 +282,13 @@ bool hasVanillaTpl(const QString &mapIcon) {
     return false;
 }
 
+bool isVanillaBackground(const QString &background) {
+    for (auto &entry: BACKGROUND_TABLE) {
+        if (entry.background == background) return true;
+    }
+    return false;
+}
+
 QSet<QString> getVanillaIcons() {
     QSet<QString> vanillaIcons = QSet<QString>();
     for (auto &entry: BACKGROUND_TABLE) {

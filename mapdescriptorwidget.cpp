@@ -79,9 +79,9 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
             descriptorPtr->setFromImport(newDescriptor);
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
         } catch (const PatchProcess::Exception &exception) {
-            QMessageBox::critical(this, "Import .yaml", QString("Error loading the .yaml file: %1").arg(exception.getMessage()));
+            QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
         } catch (const YAML::Exception &exception) {
-            QMessageBox::critical(this, "Import .yaml", QString("Error loading the .yaml file: %1").arg(exception.what()));
+            QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
         }
     });
     setCellWidget(row, colIdx++, importYamlButton);
