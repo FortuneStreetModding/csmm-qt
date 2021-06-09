@@ -505,7 +505,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                 QString extractedCmpresFile = QFileInfo(extractedYamlFile).dir().filePath(descriptor.background + ".cmpres");
                 // the background.cmpres file is missing -> extract the background zip as well
                 if (!QFileInfo::exists(extractedCmpresFile)) {
-                    QString zipBackgroundStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".background.zip");
+                    QString zipBackgroundStr = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".background.zip");
                     QFileInfo zipBackground(zipBackgroundStr);
                     if(zipBackground.exists()) {
                         QString extractedCmpresFile;
