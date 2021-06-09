@@ -120,6 +120,13 @@ QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
     return observeProcess(proc);
 }
+QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    // wszst CREATE --overwrite --u8 --no-compress --pt-dir=REMOVE --transform TPL.CMPR --n-mipmaps 0 game_turnlot_BG.d
+    proc->start(getWszstPath(), {"CREATE", "--overwrite", "--u8", "--no-compress", "--pt-dir=REMOVE", "--transform", "TPL.CMPR", "--n-mipmaps", "0", dFolder, "--dest", arcFile});
+    return observeProcess(proc);
+}
 void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile) {
     auto brlytFileArr = brlytFile.toUtf8();
     auto xmlytFileArr = xmlytFile.toUtf8();

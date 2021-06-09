@@ -18,6 +18,7 @@ namespace ExeWrapper {
     QFuture<QVector<AddressSection>> readSections(const QString &inputFile);
     QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder);
     QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile);
+    QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile);
     void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile);
     void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile);
     QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile);

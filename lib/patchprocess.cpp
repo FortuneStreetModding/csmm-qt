@@ -314,6 +314,61 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }).future();
 }
 
+
+static QFuture<void> packTurnlots(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, const QDir &tmpDir) {
+    // Find out which backgrounds exist
+    QSet<QString> uniqueNonVanillaBackgrounds;
+    for (auto &mapDescriptor: mapDescriptors){
+        if (!VanillaDatabase::isVanillaBackground(mapDescriptor.background)) {
+            uniqueNonVanillaBackgrounds.insert(mapDescriptor.background);
+        }
+    }
+    // no backgrounds to do? -> finish instantly
+    if (uniqueNonVanillaBackgrounds.isEmpty()) {
+        auto def = AsyncFuture::deferred<bool>();
+        def.complete(true);
+        return def.future();
+    }
+    // sort the backgrounds (not really needed, but helps in debugging the console output)
+    QList<QString> backgrounds = uniqueNonVanillaBackgrounds.values();
+    std::sort(backgrounds.begin(), backgrounds.end());
+
+    QDir tmpDirObj(tmpDir.path());
+    auto convertTurnlotsTask = AsyncFuture::combine();
+    for (auto &background : backgrounds) {
+        // convert turnlot images
+        for(char extChr='a'; extChr <= 'c'; ++extChr)
+        {
+            QString turnlotPngPath = tmpDirObj.filePath(turnlotPng(extChr, background));
+            QFileInfo turnlotPngInfo(turnlotPngPath);
+            QString turnlotTplPath = tmpDirObj.filePath(turnlotTpl(extChr, background));
+            QFileInfo turnlotTplInfo(turnlotTplPath);
+            if (!turnlotTplInfo.dir().mkpath(".")) {
+                throw Exception(QString("Cannot create path %1 in temporary directory").arg(turnlotTplInfo.dir().path()));
+            }
+            if (turnlotPngInfo.exists() && turnlotPngInfo.isFile()) {
+                QFile(turnlotTplPath).remove();
+                convertTurnlotsTask << AsyncFuture::observe(ExeWrapper::convertPngToTpl(turnlotPngPath, turnlotTplPath)).future();
+            }
+        }
+    }
+    // add dummy deferred here for edge case where there
+    // are no images to convert
+    auto def = AsyncFuture::deferred<void>();
+    def.complete();
+    convertTurnlotsTask << def;
+
+    return convertTurnlotsTask.subscribe([=]() {
+        auto packArcFileTasks = AsyncFuture::combine();
+        for (auto &background : backgrounds) {
+            packArcFileTasks << ExeWrapper::packTurnlotFolderToArc(tmpDirObj.filePath(turnlotArcDir(background)), dir.filePath(turnlotArc(background)));
+        }
+        return packArcFileTasks.future();
+    }).subscribe([]() {
+        return true;
+    }).future();
+}
+
 /*
  * @brief inject the brstm files, copy the to the correct folder, patch the brsar and prepare variables for the dol patch.
  */
@@ -376,6 +431,8 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
+    }).subscribe([=]() {
+        return packTurnlots(descriptors, output, tmpDir);
     });
     return fut.subscribe([=]() {
         // copy frb files from temp dir to output
@@ -556,6 +613,52 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                 auto frbFileTo = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
                 QFile(frbFileTo).remove();
                 QFile::copy(brstmFileFrom, frbFileTo);
+            }
+            // import background if needed
+            if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
+                // copy .cmpres file
+                auto cmpresFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".cmpres");
+                QFileInfo cmpresFileInfo(cmpresFileFrom);
+                if (!cmpresFileInfo.exists() || !cmpresFileInfo.isFile()) {
+                    throw Exception(QString("File %1 does not exist").arg(cmpresFileFrom));
+                }
+                for (auto &locale: FS_LOCALES) {
+                    auto cmpresFileTo = tmpDir.filePath(bgPath(locale, descriptor.background));
+                    QFileInfo cmpresFileToInfo(cmpresFileTo);
+                    if (!cmpresFileToInfo.dir().mkpath(".")) {
+                        throw Exception(QString("Cannot create path %1 in temporary directory").arg(cmpresFileToInfo.dir().path()));
+                    }
+                    QFile(cmpresFileTo).remove();
+                    QFile::copy(cmpresFileFrom, cmpresFileTo);
+                }
+                // copy .scene file
+                auto sceneFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".scene");
+                QFileInfo sceneFileInfo(sceneFileFrom);
+                if (!sceneFileInfo.exists() || !sceneFileInfo.isFile()) {
+                    throw Exception(QString("File %1 does not exist").arg(sceneFileFrom));
+                }
+                auto sceneFileTo = tmpDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+                QFileInfo sceneFileToInfo(sceneFileTo);
+                if (!sceneFileToInfo.dir().mkpath(".")) {
+                    throw Exception(QString("Cannot create path %1 in temporary directory").arg(sceneFileToInfo.dir().path()));
+                }
+                QFile(sceneFileTo).remove();
+                QFile::copy(cmpresFileFrom, sceneFileTo);
+                // copy turnlot images
+                for(char extChr='a'; extChr <= 'c'; ++extChr)
+                {
+                    QString turnlotPngFrom = QFileInfo(yamlFileSrc).dir().filePath(turnlotPngFilename(extChr, descriptor.background));
+                    QFileInfo turnlotPngInfo(turnlotPngFrom);
+                    if (!turnlotPngInfo.exists() || !turnlotPngInfo.isFile()) {
+                        throw Exception(QString("File %1 does not exist").arg(turnlotPngFrom));
+                    }
+                    if (!tmpDir.mkpath(GAME_FOLDER)) {
+                        throw Exception(QString("Cannot create path %1 in temporary directory").arg(GAME_FOLDER));
+                    }
+                    QString turnlotPngTo = tmpDir.filePath(turnlotPng(extChr, descriptor.background));
+                    QFile(turnlotPngTo).remove();
+                    QFile::copy(turnlotPngFrom, turnlotPngTo);
+                }
             }
             // set internal name
             descriptor.internalName = QFileInfo(yamlFileSrc).baseName();
