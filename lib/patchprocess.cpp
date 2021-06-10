@@ -382,7 +382,7 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
             auto brstmFileTo = output.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
             QFileInfo brstmFileFromInfo(brstmFileFrom);
             if (!brstmFileFromInfo.exists() || !brstmFileFromInfo.isFile()) {
-                continue;
+                throw Exception(QString("Cannot find %1 in temporary directory").arg(brstmFileFrom));
             }
             // update the file size -> needed for patching the brsar
             musicEntry.brstmFileSize = brstmFileFromInfo.size();
@@ -405,20 +405,30 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
             }
             brsarFile.close();
         }
+    } else {
+        copyCsmmBrsar = true;
     }
     QFileInfo brsarFileFromInfo(brsarFileFrom);
     if (brsarFileFromInfo.exists() && brsarFileFromInfo.isFile()) {
         if(copyCsmmBrsar) {
             QFile(brsarFileTo).remove();
-            QFile::copy(brsarFileFrom, brsarFileTo);
+            if(!QFile::copy(brsarFileFrom, brsarFileTo)) {
+                throw Exception(QString("Could not copy file %1 to %2").arg(brsarFileFrom, brsarFileTo));
+            }
         }
         QFile brsarFile(brsarFileTo);
+        // if the brsar file is not writable, make it writable
+        if(!brsarFile.isWritable()) {
+            brsarFile.setPermissions(QFile::WriteUser);
+        }
         if (brsarFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&brsarFile);
             // brsar patch will also update the brsar indices in the music property of the mapdescriptors which will
             // be needed later on when we apply the asm patch
             Brsar::patch(stream, descriptors);
             brsarFile.close();
+        } else {
+            throw Exception(QString("Could not open file %1 for read/write. %2").arg(brsarFileTo, brsarFile.errorString()));
         }
     } else {
         throw Exception(QString("Could not find %1").arg(brsarFileFrom));
