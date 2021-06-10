@@ -157,6 +157,9 @@ namespace Music {
     static MusicType stringToMusicType(const QString &str) {
         return stringToMusicTypes.value(str);
     }
+    static bool isMusicType(const QString &str) {
+        return stringToMusicTypes.contains(str);
+    }
     static bool musicTypeIsBgm(MusicType musicType) {
         switch(musicType) {
         case map:

@@ -245,6 +245,10 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             if(it->second.IsNull()) {
                 continue;
             }
+            auto musicTypeStr = QString::fromStdString(it->first.as<std::string>());
+            if(!Music::isMusicType(musicTypeStr)) {
+                continue;
+            }
             QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
             if(brstmBaseFilename.length() > 48) {
                 throw PatchProcess::Exception(QString("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.").arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
@@ -257,7 +261,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             if(!suffix.isEmpty()) {
                 entry.volume = suffix.toInt();
             }
-            auto musicType = Music::stringToMusicType(QString::fromStdString(it->first.as<std::string>()));
+            auto musicType = Music::stringToMusicType(musicTypeStr);
             music[musicType] = entry;
             if(musicType == MusicType::map) {
                 bgmId = BGM_MAP_CIRCUIT;
