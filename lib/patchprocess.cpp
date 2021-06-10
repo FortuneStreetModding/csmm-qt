@@ -417,9 +417,9 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
             }
         }
         QFile brsarFile(brsarFileTo);
-        // if the brsar file is not writable, make it writable
-        if(!brsarFile.isWritable()) {
-            brsarFile.setPermissions(QFile::WriteUser);
+        // if the brsar file is not writable or readable, set the permissions
+        if(!brsarFile.isWritable() || !brsarFile.isReadable()) {
+            brsarFile.setPermissions(QFile::WriteUser | QFile::ReadUser);
         }
         if (brsarFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&brsarFile);
