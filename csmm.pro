@@ -166,7 +166,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
 
-DISTFILES +=
+DISTFILES += \
+    .travis.yml
 
 RESOURCES += \
     csmm.qrc
