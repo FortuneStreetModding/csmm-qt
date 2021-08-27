@@ -31,12 +31,46 @@ class AddressMapper {
 public:
     AddressMapper(const AddressSectionMapper &fileMapperVal = AddressSectionMapper());
     void setVersionMapper(const AddressSectionMapper &versionMapperVal);
+
+    /**
+     * @param versionAddress the virtual address
+     * @return whether the standard virtual address maps to a valid file address
+     */
     bool canConvertToFileAddress(quint32 versionAddress) const;
+    /**
+     * Converts the given standard virtual address to a file address.
+     * @param versionAddress the virtual address
+     * @return the file address
+     */
     qint32 toFileAddress(quint32 versionAddress) const;
+    /**
+     * Converts the given Boom Street virtual address to a file address.
+     * @param versionAddress the virtual address
+     * @return the file address
+     */
     qint32 boomToFileAddress(quint32 versionAddress) const;
+    /**
+     * Converts the given file address to a standard virtual address.
+     * @param fileAddress the file address
+     * @return the virtual address
+     */
     quint32 fileAddressToStandardVirtualAddress(qint64 fileAddress) const;
+    /**
+     * Converts the given Boom Street virtual address to a standard virtual address.
+     * @param boomAddresss the Boom Street address
+     * @return the Fortune Street address
+     */
     quint32 boomStreetToStandard(quint32 boomAddress) const;
+    /**
+     * Converts the given standard virtual address to a Boom Street virtual address.
+     * @param standardAddress the standard address
+     * @return the Boom Street address
+     */
     quint32 standardToBoomStreet(quint32 standardAddress) const;
+    /**
+     * @param boomAddresss the Boom Street address
+     * @return whether the Boom Street address maps to a valid standard address
+     */
     bool canConvertBoomStreetToStandard(quint32 boomAddress) const;
 private:
     AddressSectionMapper fileMapper;

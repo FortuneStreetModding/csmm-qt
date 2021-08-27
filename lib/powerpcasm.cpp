@@ -149,5 +149,8 @@ quint32 andi(quint8 register1, quint8 register2, qint16 value) {
 quint32 stbx(quint8 register1, quint8 register2, quint8 register3) {
     return stbx_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
 }
+quint32 stwu(quint8 register1, qint16 value, quint8 register2) {
+    return stwu_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
+}
 
 }

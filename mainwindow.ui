@@ -166,6 +166,17 @@
     <string>Validate</string>
    </property>
   </action>
+  <action name="actionDisplay_Board_Name_On_Results_Screen">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Display Board Name On Results Screen</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

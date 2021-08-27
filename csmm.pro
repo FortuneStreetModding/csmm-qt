@@ -48,6 +48,7 @@ SOURCES += \
     lib/dolio/bgsequencetable.cpp \
     lib/dolio/defaulttargetamounttable.cpp \
     lib/dolio/designtypetable.cpp \
+    lib/dolio/displaymapinresults.cpp \
     lib/dolio/dolio.cpp \
     lib/dolio/doliotable.cpp \
     lib/dolio/eventsquare.cpp \
@@ -108,6 +109,7 @@ HEADERS += \
     lib/dolio/bgsequencetable.h \
     lib/dolio/defaulttargetamounttable.h \
     lib/dolio/designtypetable.h \
+    lib/dolio/displaymapinresults.h \
     lib/dolio/dolio.h \
     lib/dolio/doliotable.h \
     lib/dolio/eventsquare.h \
