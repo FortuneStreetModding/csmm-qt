@@ -40,7 +40,7 @@ static QVector<quint32> writeDesiredTextSubroutine(quint32 location, const Addre
         PowerPcAsm::bl(location, 6 /* asm.count */, addressMapper.boomStreetToStandard(0x8020cd78)), // r3 <- GetPlayMap()
         PowerPcAsm::bl(location, 7 /* asm.count */, addressMapper.boomStreetToStandard(0x801cca6c)), // r3 <- GetStageNameId(r3)
         PowerPcAsm::or_(4, 3, 3), // r4 <- r3
-        PowerPcAsm::lwz(5, N-12, 1), // pop r0, etc. to stack
+        PowerPcAsm::lwz(5, N-12, 1), // pop r0, etc. from stack to restore values
         PowerPcAsm::lwz(3, N-8, 1),
         PowerPcAsm::lwz(0, N-4, 1),
         PowerPcAsm::lwz(11, N+4, 1), // restore link register value from stack
