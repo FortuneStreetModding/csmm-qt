@@ -458,6 +458,28 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
                 QFile(frbFileTo).remove();
                 QFile::copy(frbFileFrom, frbFileTo);
             }
+            if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
+                // copy .cmpres file
+                for (auto &locale: FS_LOCALES) {
+                    auto cmpresFileFrom = tmpDir.filePath(bgPath(locale, descriptor.background));
+                    auto cmpresFileTo = output.filePath(bgPath(locale, descriptor.background));
+                    QFileInfo cmpresFileFromInfo(cmpresFileFrom);
+                    if (!cmpresFileFromInfo.exists() || !cmpresFileFromInfo.isFile()) {
+                        continue;
+                    }
+                    QFile(cmpresFileTo).remove();
+                    QFile::copy(cmpresFileFrom, cmpresFileTo);
+                }
+                // copy .scene file
+                auto sceneFileFrom = tmpDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+                auto sceneFileTo = output.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+                QFileInfo sceneFileFromInfo(sceneFileFrom);
+                if (!sceneFileFromInfo.exists() || !sceneFileFromInfo.isFile()) {
+                    continue;
+                }
+                QFile(sceneFileTo).remove();
+                QFile::copy(sceneFileFrom, sceneFileTo);
+            }
         }
     }, [=]() {
         try {
@@ -653,7 +675,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                     throw Exception(QString("Cannot create path %1 in temporary directory").arg(sceneFileToInfo.dir().path()));
                 }
                 QFile(sceneFileTo).remove();
-                QFile::copy(cmpresFileFrom, sceneFileTo);
+                QFile::copy(sceneFileFrom, sceneFileTo);
                 // copy turnlot images
                 for(char extChr='a'; extChr <= 'c'; ++extChr)
                 {

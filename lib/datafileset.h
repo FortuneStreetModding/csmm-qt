@@ -28,7 +28,7 @@ inline QString bgPath(const QString &locale, const QString &background) {
     if (locale == "jp") {
         return QString("files/bg/%1.cmpres").arg(background);
     }
-    return QString("files/bg/lang%1/%2_%1.arc").arg(localeToUpper(locale)).arg(background);
+    return QString("files/bg/lang%1/%2_%1.cmpres").arg(localeToUpper(locale)).arg(background);
 }
 inline QString turnlotArc(const QString &background) {
     return GAME_FOLDER + "/game_turnlot_" + background + ".arc";
