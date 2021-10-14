@@ -84,6 +84,7 @@ SOURCES += \
     lib/vanilladatabase.cpp \
     lib/zip/zip.c \
     main.cpp \
+    maincli.cpp \
     mainwindow.cpp \
     mapdescriptorwidget.cpp \
     validationerrordialog.cpp \
@@ -148,6 +149,7 @@ HEADERS += \
     lib/vanilladatabase.h \
     lib/zip/miniz.h \
     lib/zip/zip.h \
+    maincli.h \
     mainwindow.h \
     mapdescriptorwidget.h \
     validationerrordialog.h \
