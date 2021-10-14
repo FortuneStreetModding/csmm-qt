@@ -3,7 +3,16 @@
 #include "darkdetect.h"
 #include <QApplication>
 
+#if defined( Q_OS_WIN )
 #include <windows.h>
+#endif
+
+void setupSubcommand(QCommandLineParser& parser, QString name, QString description) {
+    parser.clearPositionalArguments();
+    parser.setApplicationDescription("\n" + description);
+    QCommandLineOption openCategory(" " + name + " command --\n");
+    parser.addOption(openCategory);
+}
 
 int main(int argc, char *argv[])
 {
@@ -80,10 +89,7 @@ int main(int argc, char *argv[])
             cout << parser.helpText();
             cout << commandsDescription;
         } else if (command == "open") {
-            parser.clearPositionalArguments();
-            parser.setApplicationDescription("\nOpen a Fortune Street game disc image or extracted directory.");
-            QCommandLineOption openCategory(" open command --\n");
-            parser.addOption(openCategory);
+            setupSubcommand(parser, "open", "Open a Fortune Street game disc image or extracted directory.");
 
             parser.addPositionalArgument("source", "Source Fortune Street game disc image or extracted directory", "open source");
             forceOption.setDescription("Force reopen the game disc image or extracted directory, even if it is already opened. This will result in the loss of pending changes.");
