@@ -7,30 +7,31 @@
 namespace Configuration {
 
 // to string methods
-QString to_string(QString mapId, QString mapSet, QString mapZone, QString mapOrder, QString practiceBoard, QString mapDescriptorRelativePath) {
-    QString table("%1, %2, %3, %4, %5, %6");
+QString to_string(QString mapId, QString mapSet, QString mapZone, QString mapOrder, QString practiceBoard, QString name, QString mapDescriptorRelativePath) {
+    QString table("%1, %2, %3, %4, %5, %6, %7");
     return table
             .arg(mapId, 3, QChar(' '))
-            .arg(mapSet, 6, QChar(' '))
-            .arg(mapZone, 4, QChar(' '))
+            .arg(mapSet, 5, QChar(' '))
+            .arg(mapZone, 5, QChar(' '))
             .arg(mapOrder, 5, QChar(' '))
-            .arg(practiceBoard, 8, QChar(' '))
+            .arg(practiceBoard, 5, QChar(' '))
+            .arg(name.leftJustified(24, ' ', true))
             .arg(mapDescriptorRelativePath);
 }
 
-QString to_string(int mapId, int mapSet, int mapZone, int mapOrder, int practiceBoard, QString mapDescriptorRelativePath) {
-    return to_string(QString::number(mapId),QString::number(mapSet),QString::number(mapZone),QString::number(mapOrder),QString::number(practiceBoard),mapDescriptorRelativePath);
+QString to_string(int mapId, int mapSet, int mapZone, int mapOrder, int practiceBoard, QString name, QString mapDescriptorRelativePath) {
+    return to_string(QString::number(mapId),QString::number(mapSet),QString::number(mapZone),QString::number(mapOrder),QString::number(practiceBoard),name,mapDescriptorRelativePath);
 }
 
 QString ConfigEntry::to_string() {
-    return Configuration::to_string(mapId, mapSet, mapZone, mapOrder, practiceBoard, mapDescriptorRelativePath);
+    return Configuration::to_string(mapId, mapSet, mapZone, mapOrder, practiceBoard, name, mapDescriptorRelativePath);
 }
 
 QString ConfigFile::to_string() {
     QString result("");
-    result += Configuration::to_string("id", "mapSet", "zone", "order", "practice", "path") + "\n";
+    result += Configuration::to_string("id", "mapS.", "zone", "order", "prac.", "name", "yaml") + "\n";
     for(auto& entry : entries) {
-        result += Configuration::to_string(entry.mapId, entry.mapSet, entry.mapZone, entry.mapOrder, entry.practiceBoard, entry.mapDescriptorRelativePath) + "\n";
+        result += Configuration::to_string(entry.mapId, entry.mapSet, entry.mapZone, entry.mapOrder, entry.practiceBoard, entry.name, entry.mapDescriptorRelativePath) + "\n";
     }
     return result;
 }
@@ -51,7 +52,7 @@ ConfigFile parse(QString fileName) {
             continue;
         }
         QStringList lineSplit = line.split(",");
-        if(lineSplit.count() != 6) {
+        if(lineSplit.count() != 7) {
             configFile.error = true;
             return configFile;
         }
@@ -61,7 +62,8 @@ ConfigFile parse(QString fileName) {
         entry.mapZone = lineSplit.at(2).trimmed().toInt();
         entry.mapOrder = lineSplit.at(3).trimmed().toInt();
         entry.practiceBoard = lineSplit.at(4).trimmed().toInt();
-        entry.mapDescriptorRelativePath = lineSplit.at(5).trimmed();
+        entry.name = lineSplit.at(5).trimmed();
+        entry.mapDescriptorRelativePath = lineSplit.at(6).trimmed();
         configEntries.append(entry);
     }
     configFile.entries = configEntries;
@@ -79,6 +81,7 @@ ConfigFile parse(const QVector<MapDescriptor> &descriptors) {
         entry.mapZone = md.zone;
         entry.mapOrder = md.order;
         entry.practiceBoard = md.isPracticeBoard;
+        entry.name = md.internalName;
         entry.mapDescriptorRelativePath = md.mapDescriptorFilePath;
         configEntries.append(entry);
     }
@@ -154,8 +157,10 @@ QString import(QString fileName, std::optional<QFileInfo>& mapDescriptorFile, st
             config.entries[mapId.value()].mapOrder = order.value();
         if(practiceBoard.has_value())
             config.entries[mapId.value()].practiceBoard = practiceBoard.value();
-        if(mapDescriptorFile.has_value())
+        if(mapDescriptorFile.has_value()) {
             config.entries[mapId.value()].mapDescriptorRelativePath = dir.relativeFilePath(mapDescriptorFile.value().absoluteFilePath());
+            config.entries[mapId.value()].name = mapDescriptorFile->baseName();
+        }
         returnValue = config.entries[mapId.value()].to_string();
     } else {
         // insert new board
@@ -175,6 +180,7 @@ QString import(QString fileName, std::optional<QFileInfo>& mapDescriptorFile, st
             entry.mapOrder = config.maxOrder(entry.mapSet, entry.mapZone) + 1;
         entry.practiceBoard = practiceBoard.value_or(0);
         entry.mapDescriptorRelativePath = dir.relativeFilePath(mapDescriptorFile.value().absoluteFilePath());
+        entry.name = mapDescriptorFile->baseName();
         config.entries.append(entry);
         returnValue = entry.to_string();
     }
@@ -216,6 +222,11 @@ void load(QString fileName, QVector<MapDescriptor> &descriptors, const QDir& tmp
 QString status(QString fileName)
 {
     return parse(fileName).to_string();
+}
+
+QString status(const QVector<MapDescriptor> &descriptors)
+{
+    return parse(descriptors).to_string();
 }
 
 }

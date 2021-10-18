@@ -12,15 +12,12 @@
 int main(int argc, char *argv[])
 {
     bool consoleMode = argc > 1;
-    // consoleMode = true;
     if(consoleMode) {
         QCoreApplication app(argc, argv);
         QCoreApplication::setApplicationName("csmm");
         QCoreApplication::setApplicationVersion(QString("%1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
 
         QStringList arguments = QCoreApplication::arguments();
-        // arguments.clear();
-        // arguments << "csmm" << "extract" << "ST7E01.wbfs" << "--force";
         maincli::run(arguments);
 
         QTimer::singleShot( 0, &app, &QCoreApplication::quit );

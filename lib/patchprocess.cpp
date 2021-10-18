@@ -68,6 +68,15 @@ static void textReplace(QString& text, QString regexStr, QString replaceStr) {
     text.replace(regex, replaceStr);
 }
 
+bool hasWiimmfiText(const QDir &dir) {
+    QFile file(dir.filePath(uiMessageCsv("en")));
+    if (file.open(QIODevice::ReadOnly)) {
+        UiMessage uimsg = fileToMessage(&file);
+        return uimsg[4909].contains("Wiimmfi");
+    }
+    return false;
+}
+
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
     // Key = locale, Value = file contents
     QMap<QString, UiMessage> uiMessages;

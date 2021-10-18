@@ -43,6 +43,8 @@ namespace PatchProcess {
      */
     void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
 
+    bool hasWiimmfiText(const QDir &dir);
+
     class Exception : public QException {
     public:
         Exception(const QString &msgVal);

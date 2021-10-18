@@ -88,8 +88,8 @@ void run(QStringList arguments)
   export          Export one or several map descriptor files (*.yaml) from a Fortune Street game directory.
   import          Add importing a map descriptor file (*.yaml) into a Fortune Street game directory as a pending change.
   status          Check the pending changes in a Fortune Street game directory.
-  save            Save the pending changes in a Fortune Street game directory.
   discard         Discard the pending changes in a Fortune Street game directory.
+  save            Save the pending changes in a Fortune Street game directory.
   pack            Pack a Fortune Street game directory to a disc image (pending changes must be saved prior).
 )").remove(0,1);
 
@@ -103,16 +103,17 @@ void run(QStringList arguments)
     QCommandLineOption mapIdOption(QStringList() << "i" << "id", "The <id> of the map (0,1,2...).", "id");
     QCommandLineOption mapPracticeBoardOption(QStringList() << "p" << "practice-board", "Whether the map is regarded as a practice board (0=no|1=yes).", "practiceBoard");
     QCommandLineOption quietOption(QStringList() << "q" << "quiet", "Do not print anything to console (overrides verbose).");
-    QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
-    QCommandLineOption directoryOption(QStringList() << "x" << "extract", "Extract the Fortune Street disc to directory.");
+    // QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
+    QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
+    QCommandLineOption wiimmfiOption(QStringList() << "w" << "wiimmfi", "Whether to patch for wiimmfi or not <0=no | 1=yes (default)>.", "wiimmfi");
     QCommandLineOption helpOption(QStringList() << "h" << "?" << "help", "Show the help");
 
     // add some generic options
     parser.addOption(helpOption);
     parser.addOption(quietOption);
-    verboseOption.setDescription(verboseOption.description() + "\n"); // add a linebreak at the last generic option
-    parser.addOption(verboseOption);
+    quietOption.setDescription(quietOption.description()); // add a linebreak at the last generic option
+    //parser.addOption(verboseOption);
 
     // Call parse()
     parser.parse(arguments);
@@ -162,7 +163,7 @@ void run(QStringList arguments)
                     QCoreApplication::exit(1); return;
                 }
             } else {
-                targetDir.mkpath("");
+                targetDir.mkpath(".");
             }
             cout.flush();
             await(ExeWrapper::extractWbfsIso(source, target));
@@ -192,7 +193,7 @@ void run(QStringList arguments)
             const QString target = args.size() >= 3? args.at(2) : QDir::current().path();
             QDir targetDir(target);
             if(!targetDir.exists()) {
-                targetDir.mkpath("");
+                targetDir.mkpath(".");
             }
             auto descriptors = await(PatchProcess::openDir(sourceDir));
             if (descriptors.isEmpty()) {
@@ -283,7 +284,7 @@ void run(QStringList arguments)
 
     } else if (command == "status") {
         // --- status ---
-        setupSubcommand(parser, "status", "Print out the pending changes");
+        setupSubcommand(parser, "status", "Print out the pending changes.");
         parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "status <gameDir>");
 
         parser.process(arguments);
@@ -302,6 +303,12 @@ void run(QStringList arguments)
             if(file.exists()) {
                 cout << Configuration::status(sourceDir.filePath("csmm_pending_changes.csv"));
             } else {
+                auto descriptors = await(PatchProcess::openDir(sourceDir));
+                if (descriptors.isEmpty()) {
+                    cout << source << " is not a proper Fortune Street directory.";
+                    QCoreApplication::exit(1); return;
+                }
+                cout << Configuration::status(descriptors);
                 cout << "There are no pending changes";
             }
         }
@@ -309,6 +316,8 @@ void run(QStringList arguments)
         // --- save ---
         setupSubcommand(parser, "save", "Write the pending changes into the Fortune Street game directory.");
         parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "save <gameDir>");
+
+        parser.addOption(wiimmfiOption);
 
         parser.process(arguments);
         const QStringList args = parser.positionalArguments();
@@ -326,6 +335,7 @@ void run(QStringList arguments)
                 QTemporaryDir intermediateDir;
                 if (!intermediateDir.isValid()) {
                     cout << "Could not create an intermediate directory.";
+                    QCoreApplication::exit(1); return;
                 }
                 auto descriptors = await(PatchProcess::openDir(sourceDir));
                 if (descriptors.isEmpty()) {
@@ -334,17 +344,25 @@ void run(QStringList arguments)
                 }
                 Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, intermediateDir.path());
 
-                await(PatchProcess::saveDir(sourceDir, descriptors, false, intermediateDir.path()));
+                if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0) {
+                    await(PatchProcess::saveDir(sourceDir, descriptors, false, intermediateDir.path()));
+                } else {
+                    cout << "**> The game will be saved with Wiimmfi enabled. However, it will only work after packing it to a wbfs/iso using csmm pack command.\n";
+                    cout << "\n";
+                    cout.flush();
+                    await(PatchProcess::saveDir(sourceDir, descriptors, true, intermediateDir.path()));
+                }
 
                 file.remove();
-                cout << "Pending changes have been saved";
+                cout << "\n";
+                cout << "Pending changes have been saved\n";
             } else {
                 cout << "There are no pending changes to save. Run csmm import first.";
             }
         }
     } else if (command == "discard") {
         // --- discard ---
-        setupSubcommand(parser, "discard", "Discard the pending changes");
+        setupSubcommand(parser, "discard", "Discard the pending changes.");
         parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "discard <gameDir>");
 
         parser.process(arguments);
@@ -368,7 +386,63 @@ void run(QStringList arguments)
             }
         }
     } else if (command == "pack") {
+        // --- pack ---
+        setupSubcommand(parser, "pack", "Pack the game into an iso/wbfs file.");
+        parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "pack <gameDir>");
+        parser.addPositionalArgument("target", "Target filename.\n[default = <gameId6>.wbfs]", "[target]");
 
+        parser.addOption(saveIdOption);
+        parser.addOption(forceOption);
+
+        parser.process(arguments);
+
+        const QStringList args = parser.positionalArguments();
+        if(parser.isSet(helpOption) || args.size() < 2) {
+            cout << '\n' << parser.helpText();
+        } else {
+            const QString source = args.at(1);
+            const QDir sourceDir(source);
+            if(!sourceDir.exists()) {
+                cout << source << " does not exist.";
+                QCoreApplication::exit(1); return;
+            }
+
+            QString saveId = parser.isSet(saveIdOption)? parser.value(saveIdOption) : "02";
+
+            QString target;
+            if(args.size() >= 3) {
+                target = args.at(2);
+            } else {
+                QString id6 = await(ExeWrapper::getId6(source));
+                QString id4 = id6.remove(4,2);
+                target = QDir::current().filePath(id4 + saveId + ".wbfs");
+            }
+            QFile targetFile(target);
+            if(targetFile.exists()) {
+                if(parser.isSet(forceOption)) {
+                    cout << "Overwriting " << target << "...\n";
+                } else {
+                    cout << "Cannot extract as " << target << " already exists. Use force option to overwrite.\n";
+                    QCoreApplication::exit(1); return;
+                }
+            }
+            QFileInfo targetInfo(target);
+
+            QDir targetDir(targetInfo.dir());
+            if(!targetDir.exists()) {
+                targetDir.mkpath(".");
+            }
+
+            cout << "Creating " << targetInfo.suffix() << " file at " << target << " out from " << source << "...";
+            cout.flush();
+
+            bool patchWiimmfi = PatchProcess::hasWiimmfiText(sourceDir);
+            await(ExeWrapper::createWbfsIso(source, target, saveId));
+            if(patchWiimmfi) {
+                await(ExeWrapper::patchWiimmfi(target));
+            }
+
+        }
     } else {
         cout << description;
         cout << parser.helpText();
