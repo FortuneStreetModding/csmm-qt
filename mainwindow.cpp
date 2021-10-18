@@ -52,13 +52,13 @@ MainWindow::MainWindow(QWidget *parent)
                                              getSaveId(), &ok);
         if (ok && !text.isEmpty()) {
             if(text.length() != 2) {
-                QMessageBox::critical(this, "Save ID", "The input must be two characters");
+                QMessageBox::critical(this, "Save ID", "The input must be two characters");                
             } else {
                 ui->actionPatch_SaveId->setText(QString("Patch SaveId (SaveId=%1)").arg(text.toUpper()));
                 ui->actionPatch_SaveId->setData(text.toUpper());
-                ui->actionPatch_SaveId->setChecked(text != "01");
             }
         }
+        ui->actionPatch_SaveId->setChecked(getSaveId() != "01");
     });
 }
 
