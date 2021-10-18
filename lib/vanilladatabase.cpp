@@ -277,7 +277,8 @@ QString getVanillaTpl(const QString &mapIcon) {
 
 bool hasVanillaTpl(const QString &mapIcon) {
     for (auto &entry: BACKGROUND_TABLE) {
-        if (entry.mapIcon == mapIcon) return true;
+        if (entry.mapIcon == mapIcon)
+            return !entry.mapTpl.isEmpty();
     }
     return false;
 }
