@@ -62,7 +62,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>24</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -80,6 +80,7 @@
      <string>Optional Patches</string>
     </property>
     <addaction name="actionPatch_Wiimmfi"/>
+    <addaction name="actionPatch_SaveId"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -164,6 +165,17 @@
   <action name="actionValidate">
    <property name="text">
     <string>Validate</string>
+   </property>
+  </action>
+  <action name="actionPatch_SaveId">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Patch SaveId (SaveId=02)</string>
    </property>
   </action>
  </widget>

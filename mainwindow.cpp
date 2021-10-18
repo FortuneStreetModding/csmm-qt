@@ -14,6 +14,7 @@
 #include <QProgressDialog>
 #include <QStandardPaths>
 #include <QtConcurrent>
+#include <QInputDialog>
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
@@ -44,6 +45,27 @@ MainWindow::MainWindow(QWidget *parent)
             ui->tableWidget->removeSelectedMapDescriptors();
         }
     });
+    connect(ui->actionPatch_SaveId, &QAction::triggered, this, [&]() {
+        bool ok;
+        QString text = QInputDialog::getText(this, tr("Enter SaveId."),
+                                             tr("- 2 characters.\n- Digits and uppercase letters only.\n- 01 is vanilla game. The save file is then shared with vanilla game.\n- 02 is csmm default."), QLineEdit::Normal,
+                                             getSaveId(), &ok);
+        if (ok && !text.isEmpty()) {
+            if(text.length() != 2) {
+                QMessageBox::critical(this, "Save ID", "The input must be two characters");
+            } else {
+                ui->actionPatch_SaveId->setText(QString("Patch SaveId (SaveId=%1)").arg(text.toUpper()));
+                ui->actionPatch_SaveId->setData(text.toUpper());
+                ui->actionPatch_SaveId->setChecked(text != "01");
+            }
+        }
+    });
+}
+
+QString MainWindow::getSaveId() {
+    if(ui->actionPatch_SaveId->data().isNull())
+        return "02";
+    return ui->actionPatch_SaveId->data().toString().toUpper();
 }
 
 MainWindow::~MainWindow()
@@ -348,7 +370,7 @@ void MainWindow::exportIsoWbfs() {
         }
     }).subscribe([=]() {
         progress->setValue(2);
-        return ExeWrapper::createWbfsIso(intermediatePath, saveFile);
+        return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
     }).subscribe([=]() {
         progress->setValue(3);
         if (patchWiimmfi)

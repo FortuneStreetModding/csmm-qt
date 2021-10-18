@@ -157,10 +157,10 @@ QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir)
     proc->start(getWitPath(), {"COPY", "--psel", "data", "--preserve", "--overwrite", "--fst", wbfsFile, extractDir});
     return observeProcess(proc);
 }
-QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile) {
+QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &saveId) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    QStringList args{"COPY", "--id", ".....2", "--overwrite", sourceDir, wbfsFile};
+    QStringList args{"COPY", "--id", QString("....%1").arg(saveId), "--overwrite", sourceDir, wbfsFile};
     proc->start(getWitPath(), args);
     return observeProcess(proc);
 }
@@ -170,6 +170,19 @@ QFuture<void> patchWiimmfi(const QString &wbfsFile) {
     QStringList args{"EDIT", "--wiimmfi", wbfsFile};
     proc->start(getWitPath(), args);
     return observeProcess(proc);
+}
+QFuture<QString> getId6(const QString &inputFile) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->start(getWitPath(), {"ID6", inputFile});
+    return AsyncFuture::observe(observeProcess(proc, false))
+            .subscribe([=]() -> QString {
+        QString line;
+        QTextStream stream(proc);
+        line = stream.readAll();
+        delete proc;
+        return line.trimmed();
+    }).future();
 }
 
 Exception::Exception(const QString &msgVal) : message(msgVal) {}

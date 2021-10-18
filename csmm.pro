@@ -24,7 +24,8 @@ QT       += core gui network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++14
+CONFIG += c++17
+CONFIG += console
 
 include(lib/qtshell/qtshell.pri)
 
@@ -43,6 +44,7 @@ SOURCES += \
     lib/benzin/memfile.c \
     lib/benzin/xml.c \
     lib/brsar.cpp \
+    lib/configuration.cpp \
     lib/dolio/backgroundtable.cpp \
     lib/dolio/bgmidtable.cpp \
     lib/dolio/bgsequencetable.cpp \
@@ -83,6 +85,7 @@ SOURCES += \
     lib/vanilladatabase.cpp \
     lib/zip/zip.c \
     main.cpp \
+    maincli.cpp \
     mainwindow.cpp \
     mapdescriptorwidget.cpp \
     validationerrordialog.cpp \
@@ -102,6 +105,7 @@ HEADERS += \
     lib/benzin/types.h \
     lib/benzin/xml.h \
     lib/brsar.h \
+    lib/configuration.h \
     lib/datafileset.h \
     lib/dolio/backgroundtable.h \
     lib/dolio/bgmidtable.h \
@@ -147,6 +151,7 @@ HEADERS += \
     lib/vanilladatabase.h \
     lib/zip/miniz.h \
     lib/zip/zip.h \
+    maincli.h \
     mainwindow.h \
     mapdescriptorwidget.h \
     validationerrordialog.h \

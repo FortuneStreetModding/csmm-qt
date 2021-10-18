@@ -75,12 +75,11 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     auto importYamlButton = new QPushButton("Import .yaml or .zip");
     connect(importYamlButton, &QPushButton::clicked, this, [=](bool) {
-        auto gameDirectory = getGameDirectory();
         auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), FILE_FILTER);
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            PatchProcess::importYaml(gameDirectory, openYaml, newDescriptor, tmpDir.path());
+            PatchProcess::importYaml(openYaml, newDescriptor, tmpDir.path());
             descriptorPtr->setFromImport(newDescriptor);
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
         } catch (const PatchProcess::Exception &exception) {

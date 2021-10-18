@@ -68,6 +68,15 @@ static void textReplace(QString& text, QString regexStr, QString replaceStr) {
     text.replace(regex, replaceStr);
 }
 
+bool hasWiimmfiText(const QDir &dir) {
+    QFile file(dir.filePath(uiMessageCsv("en")));
+    if (file.open(QIODevice::ReadOnly)) {
+        UiMessage uimsg = fileToMessage(&file);
+        return uimsg[4909].contains("Wiimmfi");
+    }
+    return false;
+}
+
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
     // Key = locale, Value = file contents
     QMap<QString, UiMessage> uiMessages;
@@ -508,7 +517,7 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
     }
 }
 
-void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
+void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         QTemporaryDir intermediateDir;
         if (!intermediateDir.isValid()) {
@@ -595,7 +604,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                     }
                 }
             }
-            importYaml(dir, extractedYamlFile, descriptor, tmpDir);
+            importYaml(extractedYamlFile, descriptor, tmpDir);
         } else {
             throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
         }
