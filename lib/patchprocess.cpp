@@ -274,7 +274,9 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
             auto xmlytFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
 
             ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
-            Ui_menu_19_00a::injectMapIconsLayout(xmlytFile, mapIconToTplName);
+            bool success = Ui_menu_19_00a::injectMapIconsLayout(xmlytFile, mapIconToTplName);
+            if(!success)
+                qCritical() << QString("Was unable to inject map icons into ") + brlytFile;
             ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
 
             // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
@@ -293,7 +295,10 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
                 auto xmlanFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
 
                 ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
-                Ui_menu_19_00a::injectMapIconsAnimation(xmlanFile, mapIconToTplName);
+                bool success = Ui_menu_19_00a::injectMapIconsAnimation(xmlanFile, mapIconToTplName);
+                if(!success) {
+                    qCritical() << QString("Was unable to inject map icons into ") + brlanFile;
+                }
                 ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
 
                 // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
