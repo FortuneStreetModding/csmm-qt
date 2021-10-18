@@ -44,6 +44,7 @@ SOURCES += \
     lib/benzin/memfile.c \
     lib/benzin/xml.c \
     lib/brsar.cpp \
+    lib/configuration.cpp \
     lib/dolio/backgroundtable.cpp \
     lib/dolio/bgmidtable.cpp \
     lib/dolio/bgsequencetable.cpp \
@@ -104,6 +105,7 @@ HEADERS += \
     lib/benzin/types.h \
     lib/benzin/xml.h \
     lib/brsar.h \
+    lib/configuration.h \
     lib/datafileset.h \
     lib/dolio/backgroundtable.h \
     lib/dolio/bgmidtable.h \
