@@ -508,7 +508,7 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
     }
 }
 
-void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
+void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         QTemporaryDir intermediateDir;
         if (!intermediateDir.isValid()) {
@@ -595,7 +595,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                     }
                 }
             }
-            importYaml(dir, extractedYamlFile, descriptor, tmpDir);
+            importYaml(extractedYamlFile, descriptor, tmpDir);
         } else {
             throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
         }
