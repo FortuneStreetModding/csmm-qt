@@ -548,6 +548,9 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 if (!QFileInfo::exists(extractedCmpresFile)) {
                     QString zipBackgroundStr = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".background.zip");
                     QFileInfo zipBackground(zipBackgroundStr);
+                    if(!zipBackground.exists())
+                        zipBackgroundStr = QDir::current().filePath(descriptor.background + ".background.zip");
+                    zipBackground = QFileInfo(zipBackgroundStr);
                     if(zipBackground.exists()) {
                         QString extractedCmpresFile;
                         int extractResult = zip_extract(zipBackgroundStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
@@ -583,6 +586,9 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 if (!allBrstmsAvailable) {
                     QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
                     QFileInfo zipMusic(zipMusicStr);
+                    if(!zipMusic.exists())
+                        zipMusicStr = QDir::current().filePath(yamlFileZipInfo.baseName() + ".music.zip");
+                    zipMusic = QFileInfo(zipMusicStr);
                     if(zipMusic.exists()) {
                         QString extractedBrstmFile;
                         int extractResult = zip_extract(zipMusicStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
