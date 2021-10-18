@@ -370,7 +370,7 @@ void MainWindow::exportIsoWbfs() {
         }
     }).subscribe([=]() {
         progress->setValue(2);
-        return ExeWrapper::createWbfsIso(intermediatePath, saveFile);
+        return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
     }).subscribe([=]() {
         progress->setValue(3);
         if (patchWiimmfi)
