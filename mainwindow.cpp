@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
     });
     connect(ui->actionValidate, &QAction::triggered, this, &MainWindow::validateMaps);
+    connect(ui->actionItast_csmm_brsar, &QAction::triggered, this, &MainWindow::saveCleanItastCsmmBrsar);
     connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
         if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
@@ -52,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
                                              getSaveId(), &ok);
         if (ok && !text.isEmpty()) {
             if(text.length() != 2) {
-                QMessageBox::critical(this, "Save ID", "The input must be two characters");                
+                QMessageBox::critical(this, "Save ID", "The input must be two characters");
             } else {
                 ui->actionPatch_SaveId->setText(QString("Patch SaveId (SaveId=%1)").arg(text.toUpper()));
                 ui->actionPatch_SaveId->setData(text.toUpper());
@@ -71,6 +72,25 @@ QString MainWindow::getSaveId() {
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::saveCleanItastCsmmBrsar() {
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)");
+    if (saveFile.isEmpty()) return;
+    auto brsarFileFrom = ":/Itast.csmm.brsar";
+    auto brsarFileTo = saveFile;
+    QFileInfo brsarFileToInfo(brsarFileTo);
+    if(brsarFileToInfo.exists()) {
+        QFile::remove(brsarFileTo);
+    }
+    if(!QFile::copy(brsarFileFrom, brsarFileTo)) {
+        QMessageBox::critical(this, "Open", QString("Could not save to %1").arg(brsarFileTo));
+    } else {
+        if(!brsarFileToInfo.isWritable() || !brsarFileToInfo.isReadable()) {
+            QFile(brsarFileTo).setPermissions(QFile::WriteUser | QFile::ReadUser);
+        }
+        QMessageBox::information(this, "Save", QString("Saved to %1").arg(brsarFileTo));
+    }
 }
 
 void MainWindow::openFile() {
@@ -127,7 +147,7 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
     }
     ui->tableWidget->dirty = false;
     ui->mapToolbar->setEnabled(true);
-    ui->menuTools->setEnabled(true);
+    ui->actionValidate->setEnabled(true);
     ui->actionExport_to_Folder->setEnabled(true);
     ui->actionExport_to_WBFS_ISO->setEnabled(true);
 }

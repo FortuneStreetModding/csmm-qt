@@ -90,11 +90,13 @@
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionItast_csmm_brsar"/>
+    <addaction name="separator"/>
     <addaction name="actionValidate"/>
    </widget>
    <addaction name="menuFile"/>
@@ -163,6 +165,9 @@
    </property>
   </action>
   <action name="actionValidate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Validate</string>
    </property>
@@ -176,6 +181,11 @@
    </property>
    <property name="text">
     <string>Patch SaveId (SaveId=02)</string>
+   </property>
+  </action>
+  <action name="actionItast_csmm_brsar">
+   <property name="text">
+    <string>Save clean Itast.csmm.brsar</string>
    </property>
   </action>
  </widget>
