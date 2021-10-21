@@ -317,7 +317,7 @@ void MainWindow::exportToFolder() {
     }
 
     if (!ui->tableWidget->dirty) {
-        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes?") == QMessageBox::Yes) {
+        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
             auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
@@ -385,7 +385,7 @@ void MainWindow::exportIsoWbfs() {
     }
 
     if (!ui->tableWidget->dirty) {
-        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes?") == QMessageBox::Yes) {
+        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?") == QMessageBox::Yes) {
             auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
