@@ -125,6 +125,7 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
     for (auto &descriptor: descriptors) {
         ui->tableWidget->appendMapDescriptor(descriptor);
     }
+    ui->tableWidget->dirty = false;
     ui->mapToolbar->setEnabled(true);
     ui->menuTools->setEnabled(true);
     ui->actionExport_to_Folder->setEnabled(true);
@@ -294,6 +295,26 @@ void MainWindow::exportToFolder() {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
         return;
     }
+
+    if (!ui->tableWidget->dirty) {
+        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes?") == QMessageBox::Yes) {
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            progress->setWindowModality(Qt::WindowModal);
+            progress->setValue(0);
+
+            auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
+            auto fut = AsyncFuture::observe(copyTask).subscribe([=](bool result) {
+                if (!result) {
+                    QMessageBox::critical(this, "Save", "Could not copy game data.");
+                } else {
+                    progress->setValue(2);
+                    QMessageBox::information(this, "Save", "Saved successfuly.");
+                }
+            });
+            return;
+        }
+    }
+
     if (ui->actionPatch_Wiimmfi->isChecked()) {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
@@ -341,6 +362,19 @@ void MainWindow::exportIsoWbfs() {
     if (!intermediateResults->isValid()) {
         QMessageBox::critical(this, "Export WBFS/ISO", "Could not create a temporary directory for patching");
         return;
+    }
+
+    if (!ui->tableWidget->dirty) {
+        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes?") == QMessageBox::Yes) {
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            progress->setWindowModality(Qt::WindowModal);
+            progress->setValue(0);
+            auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01")).subscribe([=]() {
+                QMessageBox::information(this, "Export", "Exported successfuly.");
+                progress->setValue(2);
+            });
+            return;
+        }
     }
 
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();

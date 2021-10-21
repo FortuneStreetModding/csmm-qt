@@ -18,6 +18,7 @@ public:
     const QVector<QSharedPointer<MapDescriptor>> &getDescriptors();
     void setGameDirectoryFunction(const std::function<QString()> &fn);
     const QTemporaryDir &getTmpResourcesDir();
+    bool dirty = false;
 private:
     QVector<QSharedPointer<MapDescriptor>> descriptors;
     std::function<QString()> getGameDirectory;
