@@ -342,20 +342,25 @@ void run(QStringList arguments)
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
                 }
-                Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, intermediateDir.path());
+                try {
+                    Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, intermediateDir.path());
 
-                if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0) {
-                    await(PatchProcess::saveDir(sourceDir, descriptors, false, intermediateDir.path()));
-                } else {
-                    cout << "**> The game will be saved with Wiimmfi enabled. However, it will only work after packing it to a wbfs/iso using csmm pack command.\n";
+                    if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0) {
+                        await(PatchProcess::saveDir(sourceDir, descriptors, false, intermediateDir.path()));
+                    } else {
+                        cout << "**> The game will be saved with Wiimmfi enabled. However, it will only work after packing it to a wbfs/iso using csmm pack command.\n";
+                        cout << "\n";
+                        cout.flush();
+                        await(PatchProcess::saveDir(sourceDir, descriptors, true, intermediateDir.path()));
+                    }
                     cout << "\n";
-                    cout.flush();
-                    await(PatchProcess::saveDir(sourceDir, descriptors, true, intermediateDir.path()));
+                    cout << "Pending changes have been saved\n";
+                } catch (const PatchProcess::Exception &exception) {
+                    cout << QString("Error loading the map: %1").arg(exception.getMessage());
+                } catch (const YAML::Exception &exception) {
+                    cout << QString("Error loading the map: %1").arg(exception.what());
                 }
-
                 file.remove();
-                cout << "\n";
-                cout << "Pending changes have been saved\n";
             } else {
                 cout << "There are no pending changes to save. Run csmm import first.";
             }
