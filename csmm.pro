@@ -66,6 +66,7 @@ SOURCES += \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
+    lib/dolio/tinydistricts.cpp \
     lib/dolio/tourbankruptcylimittable.cpp \
     lib/dolio/tourclearranktable.cpp \
     lib/dolio/tourinitialcashtable.cpp \
@@ -128,6 +129,7 @@ HEADERS += \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
+    lib/dolio/tinydistricts.h \
     lib/dolio/tourbankruptcylimittable.h \
     lib/dolio/tourclearranktable.h \
     lib/dolio/tourinitialcashtable.h \
