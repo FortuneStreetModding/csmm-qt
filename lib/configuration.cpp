@@ -70,9 +70,11 @@ ConfigFile parse(QString fileName) {
     return configFile;
 }
 
-ConfigFile parse(const QVector<MapDescriptor> &descriptors) {
+ConfigFile parse(const QVector<MapDescriptor> &descriptors, QString fileName) {
     ConfigFile configFile;
     QVector<ConfigEntry> configEntries;
+    QFileInfo fileInfo(fileName);
+    QDir dir(fileInfo.dir());
     for(int i=0;i<descriptors.count();i++) {
         auto md = descriptors.at(i);
         ConfigEntry entry;
@@ -82,7 +84,7 @@ ConfigFile parse(const QVector<MapDescriptor> &descriptors) {
         entry.mapOrder = md.order;
         entry.practiceBoard = md.isPracticeBoard;
         entry.name = md.internalName;
-        entry.mapDescriptorRelativePath = md.mapDescriptorFilePath;
+        entry.mapDescriptorRelativePath = dir.relativeFilePath(md.mapDescriptorFilePath);
         configEntries.append(entry);
     }
     configFile.entries = configEntries;
@@ -134,7 +136,7 @@ void save(QString fileName, const QVector<MapDescriptor> &descriptors)
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         return;
-    ConfigFile config = parse(descriptors);
+    ConfigFile config = parse(descriptors, fileName);
     QTextStream out(&file);
     out << config.to_string();
 }
@@ -224,9 +226,9 @@ QString status(QString fileName)
     return parse(fileName).to_string();
 }
 
-QString status(const QVector<MapDescriptor> &descriptors)
+QString status(const QVector<MapDescriptor> &descriptors, QString filePath)
 {
-    return parse(descriptors).to_string();
+    return parse(descriptors, filePath).to_string();
 }
 
 }

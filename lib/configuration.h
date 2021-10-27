@@ -35,7 +35,7 @@ void save(QString fileName, const QVector<MapDescriptor> &descriptors);
 QString import(QString fileName, std::optional<QFileInfo>& mapDescriptorFile, std::optional<int>& mapId, std::optional<int>& mapSet, std::optional<int>& zone, std::optional<int>& order, std::optional<int>& practiceBoard);
 void load(QString fileName, QVector<MapDescriptor> &descriptors, const QDir& tmpDir);
 QString status(QString fileName);
-QString status(const QVector<MapDescriptor> &descriptors);
+QString status(const QVector<MapDescriptor> &descriptors, QString filePath);
 
 }
 

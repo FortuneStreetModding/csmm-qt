@@ -21,6 +21,7 @@
 #include "lib/qtshell/qtshell.h"
 #include "downloadclidialog.h"
 #include "validationerrordialog.h"
+#include "lib/configuration.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -39,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
     });
     connect(ui->actionValidate, &QAction::triggered, this, &MainWindow::validateMaps);
+    connect(ui->actionSave_map_list_csv, &QAction::triggered, this, &MainWindow::saveMapList);
+    connect(ui->actionLoad_map_list_csv, &QAction::triggered, this, &MainWindow::loadMapList);
     connect(ui->actionItast_csmm_brsar, &QAction::triggered, this, &MainWindow::saveCleanItastCsmmBrsar);
     connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
@@ -72,6 +75,44 @@ QString MainWindow::getSaveId() {
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::saveMapList() {
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.csv", "CSMM Map List (*.csv)");
+    if (saveFile.isEmpty()) return;
+    QFileInfo saveFileInfo(saveFile);
+    if(saveFileInfo.exists()) {
+        QFile::remove(saveFile);
+    }
+    QVector<MapDescriptor> descriptors;
+    auto descriptorPtrs = ui->tableWidget->getDescriptors();
+    std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
+    Configuration::save(saveFile, descriptors);
+}
+
+void MainWindow::loadMapList() {
+    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.csv)");
+    if (openFile.isEmpty()) return;
+    QFileInfo openFileInfo(openFile);
+    if(!openFileInfo.exists()) {
+        QMessageBox::critical(this, "Open Map List", QString("Error loading the map list: %1").arg(openFile));
+    }
+    QVector<MapDescriptor> descriptors;
+    auto descriptorPtrs = ui->tableWidget->getDescriptors();
+    std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
+    ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
+    ui->statusbar->repaint();
+    try {
+        Configuration::load(openFile, descriptors, ui->tableWidget->getTmpResourcesDir().path());
+        loadDescriptors(descriptors);
+        ui->tableWidget->dirty = true;
+        ui->statusbar->showMessage("Map list load completed");
+        ui->statusbar->repaint();
+    } catch (const PatchProcess::Exception &exception) {
+        QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
+    } catch (const YAML::Exception &exception) {
+        QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
+    }
 }
 
 void MainWindow::saveCleanItastCsmmBrsar() {
@@ -148,6 +189,8 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
     ui->tableWidget->dirty = false;
     ui->mapToolbar->setEnabled(true);
     ui->actionValidate->setEnabled(true);
+    ui->actionLoad_map_list_csv->setEnabled(true);
+    ui->actionSave_map_list_csv->setEnabled(true);
     ui->actionExport_to_Folder->setEnabled(true);
     ui->actionExport_to_WBFS_ISO->setEnabled(true);
 }

@@ -84,6 +84,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         try {
             PatchProcess::importYaml(openYaml, newDescriptor, tmpDir.path());
             descriptorPtr->setFromImport(newDescriptor);
+            descriptorPtr->mapDescriptorFilePath = openYaml;
             dirty = true;
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
         } catch (const PatchProcess::Exception &exception) {

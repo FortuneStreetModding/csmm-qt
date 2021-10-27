@@ -308,7 +308,7 @@ void run(QStringList arguments)
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
                 }
-                cout << Configuration::status(descriptors);
+                cout << Configuration::status(descriptors, sourceDir.filePath("csmm_pending_changes.csv"));
                 cout << "There are no pending changes";
             }
         }
