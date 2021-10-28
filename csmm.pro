@@ -64,6 +64,7 @@ SOURCES += \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
     lib/dolio/practiceboard.cpp \
+    lib/dolio/rollagaintable.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
     lib/dolio/tinydistricts.cpp \
@@ -131,6 +132,7 @@ HEADERS += \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
     lib/dolio/practiceboard.h \
+    lib/dolio/rollagaintable.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
     lib/dolio/tinydistricts.h \

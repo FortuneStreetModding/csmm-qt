@@ -58,6 +58,9 @@ quint32 cmpw(quint8 register1, quint8 register2) {
 quint32 mulli(quint8 register1, quint8 register2, qint16 value) {
     return mulli_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
+quint32 mullw(quint8 register1, quint8 register2, quint8 register3) {
+    return mullw_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
+}
 quint32 cmplw(quint8 register1, quint8 register2) {
     return cmplw_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 11);
 }
@@ -129,12 +132,15 @@ quint32 mtlr(quint8 reg) {
     return mtlr_opcode + ((quint32)reg << 21);
 }
 quint32 lwzx(quint8 register1, quint8 register2, quint8 register3) {
+    if (register2 == 0) throw register2;
     return lwzx_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
 }
 quint32 lwz(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw register2;
     return lwz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 lbz(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw register2;
     return lbz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 srw(quint8 register1, quint8 register2, quint8 register3) {
@@ -147,15 +153,18 @@ quint32 rlwinm(quint8 register1, quint8 register2, quint8 value1, quint8 value2,
     return rlwinm_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)value1 << 11) + ((quint32)value2 << 6) + ((quint32)value3 << 1);
 }
 quint32 stw(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw register2;
     return stw_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 stb(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw register2;
     return stb_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 andi(quint8 register1, quint8 register2, qint16 value) {
     return andi_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)value & 0x0000FFFF);
 }
 quint32 stbx(quint8 register1, quint8 register2, quint8 register3) {
+    if (register2 == 0) throw register2;
     return stbx_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
 }
 

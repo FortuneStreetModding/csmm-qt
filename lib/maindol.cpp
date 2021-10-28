@@ -26,6 +26,7 @@
 #include "dolio/wififix.h"
 #include "dolio/musictable.h"
 #include "dolio/tinydistricts.h"
+#include "dolio/rollagaintable.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections) {
@@ -118,6 +119,9 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     patches.append(QSharedPointer<DolIO>(new WifiFix()));
     patches.append(QSharedPointer<DolIO>(new MusicTable()));
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));
+
+    // mutators
+    patches.append(QSharedPointer<DolIO>(new RollAgainTable()));
 
     return patches;
 }
