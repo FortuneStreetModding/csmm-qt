@@ -9,6 +9,7 @@
 #include "yaml-cpp/yaml.h"
 #include "fortunestreetdata.h"
 #include "music.h"
+#include "mutator/mutator.h"
 
 enum RuleSet : quint32 {
     Standard = 0,
@@ -87,6 +88,7 @@ struct MapDescriptor {
     QMap<QString, QString> descs;
     QString internalName;
     QString mapDescriptorFilePath;
+    QMap<QString, QSharedPointer<Mutator>> mutators;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 

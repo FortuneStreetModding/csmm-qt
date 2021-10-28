@@ -123,6 +123,15 @@ QString MapDescriptor::toYaml() const {
     out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
     out << YAML::EndMap;
 
+    if(!mutators.empty()) {
+        out << YAML::Key << "mutators" << YAML::Value << YAML::BeginMap;
+        for (auto &mutator: mutators) {
+            out << YAML::Key << mutator->name.toStdString() << YAML::Value;
+            mutator->toYaml(out);
+        }
+        out << YAML::EndMap;
+    }
+
     if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
         out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
         for (int i=0; i<128; ++i) {
@@ -139,6 +148,19 @@ QString MapDescriptor::toYaml() const {
 }
 
 bool MapDescriptor::operator==(const MapDescriptor &other) const {
+    if(mutators.size()!=other.mutators.size())
+        return false;
+    auto keys = mutators.keys();
+    for (auto &mutatorName: keys) {
+        if(!other.mutators.contains(mutatorName)) {
+            return false;
+        }
+        auto mutator = mutators[mutatorName];
+        auto otherMutator = other.mutators[mutatorName];
+        if(*mutator != *otherMutator)
+            return false;
+    }
+
     return mapSet == other.mapSet
             && zone == other.zone
             && order == other.order
@@ -270,6 +292,12 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             if(musicType == MusicType::map) {
                 bgmId = BGM_MAP_CIRCUIT;
             }
+        }
+    }
+    if(yaml["mutators"]) {
+        for (auto it=yaml["mutators"].begin(); it!=yaml["mutators"].end(); ++it) {
+            auto mutatorStr = QString::fromStdString(it->first.as<std::string>());
+            mutators.insert(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
         }
     }
     if(yaml["ventureCards"]) {
