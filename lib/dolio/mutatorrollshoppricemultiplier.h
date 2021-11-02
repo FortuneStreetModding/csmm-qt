@@ -1,9 +1,9 @@
-#ifndef ROLLSHOPPRICEMULTIPLIERPATCH_H
-#define ROLLSHOPPRICEMULTIPLIERPATCH_H
+#ifndef MUTATORROLLSHOPPRICEMULTIPLIER_H
+#define MUTATORROLLSHOPPRICEMULTIPLIER_H
 
 #include "doliotable.h"
 
-class RollShopPriceMultiplierPatch : public DolIO
+class MutatorRollShopPriceMultiplier : public DolIO
 {
 public:
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors) override;
@@ -13,4 +13,4 @@ protected:
     QVector<quint32> writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress);
 };
 
-#endif // ROLLSHOPPRICEMULTIPLIERPATCH_H
+#endif // MUTATORROLLSHOPPRICEMULTIPLIER_H

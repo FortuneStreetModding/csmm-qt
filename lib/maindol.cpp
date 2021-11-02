@@ -26,7 +26,7 @@
 #include "dolio/wififix.h"
 #include "dolio/musictable.h"
 #include "dolio/tinydistricts.h"
-#include "dolio/rollshoppricemultiplierpatch.h"
+#include "dolio/mutatorrollshoppricemultiplier.h"
 #include "dolio/mutatortable.h"
 #include "powerpcasm.h"
 
@@ -130,7 +130,7 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
 
     // mutators
     patches.append(QSharedPointer<DolIO>(new MutatorTable()));
-    patches.append(QSharedPointer<DolIO>(new RollShopPriceMultiplierPatch()));
+    patches.append(QSharedPointer<DolIO>(new MutatorRollShopPriceMultiplier()));
 
     return patches;
 }

@@ -1,8 +1,8 @@
-#include "rollshoppricemultiplierpatch.h"
+#include "mutatorrollshoppricemultiplier.h"
 #include "lib/powerpcasm.h"
 #include "lib/mutator/mutator.h"
 
-void RollShopPriceMultiplierPatch::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
     // QVector<quint16> table;
     // quint32 priceMultTableAddr = allocate(table, "PRICE_MULTIPLIER_TABLE");
 
@@ -31,7 +31,7 @@ void RollShopPriceMultiplierPatch::writeAsm(QDataStream &stream, const AddressMa
     // 8008ff9c
 }
 
-QVector<quint32> RollShopPriceMultiplierPatch::writeRollDiceBeforePayingRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
 
     auto getMutatorDataSubroutine = addressMapper.boomStreetToStandard(0x80412c8c);
 
@@ -69,7 +69,7 @@ QVector<quint32> RollShopPriceMultiplierPatch::writeRollDiceBeforePayingRoutine(
     };
 }
 
-QVector<quint32> RollShopPriceMultiplierPatch::writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
     // precondition: r0 - total shops in district
     //               r3 - shops owned by player
     auto diceRollValue = addressMapper.boomStreetToStandard(0x8055274c);
@@ -86,5 +86,5 @@ QVector<quint32> RollShopPriceMultiplierPatch::writeCalculateGainRoutine(const A
     };
 }
 
-void RollShopPriceMultiplierPatch::readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors) { /* crab nothing to do crab */ }
+void MutatorRollShopPriceMultiplier::readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors) { /* crab nothing to do crab */ }
 
