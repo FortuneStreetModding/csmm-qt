@@ -26,7 +26,8 @@
 #include "dolio/wififix.h"
 #include "dolio/musictable.h"
 #include "dolio/tinydistricts.h"
-#include "dolio/rollagaintable.h"
+#include "dolio/rollshoppricemultiplierpatch.h"
+#include "dolio/mutatortable.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections) {
@@ -66,6 +67,13 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x80410648), addressMapper.boomStreetToStandard(0x80411b9b));
     // Map Data String Table and Map Data Table
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x80428978), addressMapper.boomStreetToStandard(0x804298cf));
+    //
+    // used additional address:
+    // 0x804363b4 (4 bytes):  force simulated button press
+    // 0x804363b8 (12 bytes): pointer to internal name table
+    // 0x804363c4 (4 bytes):  ForceVentureCardVariable
+    // 0x80412c88 - 0x80412d5f (214 bytes): GetMutatorDataSubroutine (originally: GetGainCoeffTable and GetMaxCapitalCoeff, but since it is replaced by tinydistricts.cpp we can repurpose that as a code cave)
+    //
     // Map Default Settings Table
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x804363c8), addressMapper.boomStreetToStandard(0x80436a87));
     // Unused costume string table 1
@@ -121,7 +129,8 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));
 
     // mutators
-    patches.append(QSharedPointer<DolIO>(new RollAgainTable()));
+    patches.append(QSharedPointer<DolIO>(new MutatorTable()));
+    patches.append(QSharedPointer<DolIO>(new RollShopPriceMultiplierPatch()));
 
     return patches;
 }

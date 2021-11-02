@@ -78,6 +78,10 @@ quint32 b(quint32 startPos, quint32 targetPos) {
 quint32 b(quint32 startPos, qint32 offset, quint32 targetPos) {
     return b(startPos + offset * 4, targetPos);
 }
+quint32 b(qint32 currentPos, qint32 targetPos) {
+    quint32 offset = (4 * (targetPos - currentPos) >> 2) & 0x00FFFFFF;
+    return b_opcode + (offset << 2);
+}
 quint32 b(qint32 offset) {
     return b_opcode + ((4 * offset) & 0x0000FFFF);
 }

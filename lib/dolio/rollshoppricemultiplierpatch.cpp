@@ -1,7 +1,8 @@
-#include "rollagaintable.h"
+#include "rollshoppricemultiplierpatch.h"
 #include "lib/powerpcasm.h"
+#include "lib/mutator/mutator.h"
 
-void RollAgainTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void RollShopPriceMultiplierPatch::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
     // QVector<quint16> table;
     // quint32 priceMultTableAddr = allocate(table, "PRICE_MULTIPLIER_TABLE");
 
@@ -30,7 +31,10 @@ void RollAgainTable::writeAsm(QDataStream &stream, const AddressMapper &addressM
     // 8008ff9c
 }
 
-QVector<quint32> RollAgainTable::writeRollDiceBeforePayingRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+QVector<quint32> RollShopPriceMultiplierPatch::writeRollDiceBeforePayingRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+
+    auto getMutatorDataSubroutine = addressMapper.boomStreetToStandard(0x80412c8c);
+
     // postcondition: r4 - progress mode
     //                r5 - progress mode afterwards
     //                r6 - progress mode if cancelled
@@ -40,15 +44,32 @@ QVector<quint32> RollAgainTable::writeRollDiceBeforePayingRoutine(const AddressM
     // mode 0x19 = transfer money
     // ChangeMode(r4 <- 0x05, r5 <- 0x19, r6 <- -1)
     return {
+        PowerPcAsm::li(3, RollShopPriceMultiplierType),
+        PowerPcAsm::bl(routineStartAddress, 1 /*asm.count*/, getMutatorDataSubroutine),
+        PowerPcAsm::cmpw(3, 0),
+        PowerPcAsm::bne(7),
+                // vanilla parameters
+        PowerPcAsm::lwz(3, 0x18, 20),
+        PowerPcAsm::li(4, 0x19),
+        PowerPcAsm::li(5, -1),
+        PowerPcAsm::li(6, -1),
+        PowerPcAsm::li(7, 0),
+        PowerPcAsm::b(routineStartAddress, 9 /*asm.Count*/, returnAddr),
+                // mutator parameters
+        PowerPcAsm::lwz(3, 0x0, 3),    // r3 <- maxDiceRoll
+        PowerPcAsm::lwz(4, 0x18, 20),  // r4 <- GameProgress*
+        PowerPcAsm::addis(4, 4, 0x2),  // \ GameProgress->MaxDiceRoll <- r4
+        PowerPcAsm::stw(3, 0x2814, 4), // /
+        PowerPcAsm::lwz(3, 0x18, 20),
         PowerPcAsm::li(4, 0x5),
         PowerPcAsm::li(5, 0x19),
         PowerPcAsm::li(6, -1),
         PowerPcAsm::li(7, 0),
-        PowerPcAsm::b(routineStartAddress, 4 /*asm.Count*/, returnAddr)
+        PowerPcAsm::b(routineStartAddress, 19 /*asm.Count*/, returnAddr)
     };
 }
 
-QVector<quint32> RollAgainTable::writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+QVector<quint32> RollShopPriceMultiplierPatch::writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
     // precondition: r0 - total shops in district
     //               r3 - shops owned by player
     auto diceRollValue = addressMapper.boomStreetToStandard(0x8055274c);
@@ -65,8 +86,5 @@ QVector<quint32> RollAgainTable::writeCalculateGainRoutine(const AddressMapper &
     };
 }
 
-void RollAgainTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) { /* crab nothing to do crab */ }
-bool RollAgainTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) { /* crab nothing to do crab */ return true; }
-qint16 RollAgainTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) { /* crab nothing to do crab */ return 0; }
-quint32 RollAgainTable::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) { /* crab nothing to do crab */ return 0; }
+void RollShopPriceMultiplierPatch::readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors) { /* crab nothing to do crab */ }
 

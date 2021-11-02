@@ -348,7 +348,7 @@ void run(QStringList arguments)
                     if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0) {
                         await(PatchProcess::saveDir(sourceDir, descriptors, false, intermediateDir.path()));
                     } else {
-                        cout << "**> The game will be saved with Wiimmfi enabled. However, it will only work after packing it to a wbfs/iso using csmm pack command.\n";
+                        cout << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.\n";
                         cout << "\n";
                         cout.flush();
                         await(PatchProcess::saveDir(sourceDir, descriptors, true, intermediateDir.path()));
@@ -360,7 +360,7 @@ void run(QStringList arguments)
                 } catch (const YAML::Exception &exception) {
                     cout << QString("Error loading the map: %1").arg(exception.what());
                 }
-                file.remove();
+                // file.remove();
             } else {
                 cout << "There are no pending changes to save. Run csmm import first.";
             }

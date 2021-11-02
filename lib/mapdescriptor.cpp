@@ -126,7 +126,7 @@ QString MapDescriptor::toYaml() const {
     if(!mutators.empty()) {
         out << YAML::Key << "mutators" << YAML::Value << YAML::BeginMap;
         for (auto &mutator: mutators) {
-            out << YAML::Key << mutator->name.toStdString() << YAML::Value;
+            out << YAML::Key << mutatorTypeToString(mutator->type).toStdString() << YAML::Value;
             mutator->toYaml(out);
         }
         out << YAML::EndMap;

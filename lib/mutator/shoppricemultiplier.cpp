@@ -1,11 +1,21 @@
 #include "shoppricemultiplier.h"
 
+#include <QDataStream>
+
 void ShopPriceMultiplier::toYaml(YAML::Emitter& out) const {
     out << multiplier;
 }
 
-ShopPriceMultiplier::ShopPriceMultiplier(const YAML::Node &yaml) : Mutator("ShopPriceMultiplier") {
+void ShopPriceMultiplier::toBytes(QVector<quint32>& data) const {
+    data.append(multiplier);
+}
+
+ShopPriceMultiplier::ShopPriceMultiplier(const YAML::Node &yaml) : Mutator(ShopPriceMultiplierType) {
     multiplier = yaml.as<float>();
+}
+
+ShopPriceMultiplier::ShopPriceMultiplier(QDataStream &stream) : Mutator(ShopPriceMultiplierType) {
+    stream >> multiplier;
 }
 
 bool ShopPriceMultiplier::operator==(const Mutator &other) const {

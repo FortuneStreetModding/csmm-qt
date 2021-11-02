@@ -63,8 +63,9 @@ SOURCES += \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
+    lib/dolio/mutatortable.cpp \
     lib/dolio/practiceboard.cpp \
-    lib/dolio/rollagaintable.cpp \
+    lib/dolio/rollshoppricemultiplierpatch.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
     lib/dolio/tinydistricts.cpp \
@@ -131,8 +132,9 @@ HEADERS += \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
+    lib/dolio/mutatortable.h \
     lib/dolio/practiceboard.h \
-    lib/dolio/rollagaintable.h \
+    lib/dolio/rollshoppricemultiplierpatch.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
     lib/dolio/tinydistricts.h \
