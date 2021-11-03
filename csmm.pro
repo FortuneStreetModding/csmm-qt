@@ -64,6 +64,7 @@ SOURCES += \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
     lib/dolio/mutatorrollshoppricemultiplier.cpp \
+    lib/dolio/mutatorshoppricemultiplier.cpp \
     lib/dolio/mutatortable.cpp \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
@@ -133,6 +134,7 @@ HEADERS += \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
     lib/dolio/mutatorrollshoppricemultiplier.h \
+    lib/dolio/mutatorshoppricemultiplier.h \
     lib/dolio/mutatortable.h \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \

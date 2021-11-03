@@ -28,6 +28,7 @@
 #include "dolio/tinydistricts.h"
 #include "dolio/mutatorrollshoppricemultiplier.h"
 #include "dolio/mutatortable.h"
+#include "dolio/mutatorshoppricemultiplier.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections) {
@@ -131,6 +132,7 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     // mutators
     patches.append(QSharedPointer<DolIO>(new MutatorTable()));
     patches.append(QSharedPointer<DolIO>(new MutatorRollShopPriceMultiplier()));
+    patches.append(QSharedPointer<DolIO>(new MutatorShopPriceMultiplier()));
 
     return patches;
 }
