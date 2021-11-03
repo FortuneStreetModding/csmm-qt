@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
         checkForRequiredFiles(true);
     });
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
+        QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/fortunestreetmodding.github.io/wiki/CSMM-User-Manual"));
     });
     connect(ui->actionValidate, &QAction::triggered, this, &MainWindow::validateMaps);
     connect(ui->actionSave_map_list_csv, &QAction::triggered, this, &MainWindow::saveMapList);
