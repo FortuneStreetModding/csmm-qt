@@ -149,6 +149,9 @@ quint32 lwz(quint8 register1, qint16 value, quint8 register2) {
     if (register2 == 0) throw register2;
     return lwz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
+quint32 lwzu(quint8 register1, qint16 value, quint8 register2) {
+    return lwzu_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
+}
 quint32 lbz(quint8 register1, qint16 value, quint8 register2) {
     if (register2 == 0) throw register2;
     return lbz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
