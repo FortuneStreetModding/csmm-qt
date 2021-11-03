@@ -8,9 +8,9 @@
 #include <QDataStream>
 
 static const QMap<QString, MutatorType> stringToMutatorTypes = {
-    {"RollAgain", RollAgainType},
-    {"RollShopPriceMultiplier",  RollShopPriceMultiplierType},
-    {"ShopPriceMultiplier",  ShopPriceMultiplierType}
+    {"rollAgain", RollAgainType},
+    {"rollShopPriceMultiplier",  RollShopPriceMultiplierType},
+    {"shopPriceMultiplier",  ShopPriceMultiplierType}
 };
 
 QString mutatorTypeToString(MutatorType mutatorType) {
