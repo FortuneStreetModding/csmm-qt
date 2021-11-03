@@ -34,6 +34,9 @@ quint32 subi(quint8 register1, quint8 register2, qint16 value) {
 quint32 lha(quint8 register1, qint16 value, quint8 register2) {
     return lha_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
+quint32 lhz(quint8 register1, qint16 value, quint8 register2) {
+    return lhz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
+}
 quint32 addi(quint8 register1, quint8 register2, qint16 value) {
     return addi_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
@@ -60,6 +63,9 @@ quint32 mulli(quint8 register1, quint8 register2, qint16 value) {
 }
 quint32 mullw(quint8 register1, quint8 register2, quint8 register3) {
     return mullw_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
+}
+quint32 divwu(quint8 register1, quint8 register2, quint8 register3) {
+    return divwu_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
 }
 quint32 cmplw(quint8 register1, quint8 register2) {
     return cmplw_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 11);
