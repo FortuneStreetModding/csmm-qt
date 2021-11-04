@@ -64,13 +64,13 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     stream << PowerPcAsm::b(hijackAddr, procCalculateGainRoutine);
 
     // --- Clear Mutator Dice Rolled Flag ---
-    hijackAddr = addressMapper.boomStreetToStandard(0x8018f5bc);
+    hijackAddr = addressMapper.boomStreetToStandard(0x800c57dc);
     quint32 procClearDiceRolledFlag = allocate(writeClearDiceRolledFlag(addressMapper, 0, hasRolledDice), "procClearDiceRolledFlag");
     stream.device()->seek(addressMapper.toFileAddress(procClearDiceRolledFlag));
     routineCode = writeClearDiceRolledFlag(addressMapper, procClearDiceRolledFlag, hasRolledDice);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
-    // r31,0x88(r3)      ->  b procClearDiceRolledFlag
+    // mr r3,r24      ->  b procClearDiceRolledFlag
     stream << PowerPcAsm::b(hijackAddr, procClearDiceRolledFlag);
 
     // --- Do not show "Do you want to stop here" message twice ---
@@ -199,14 +199,15 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const
 }
 
 QVector<quint32> MutatorRollShopPriceMultiplier::writeClearDiceRolledFlag(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 hasRolledDice) {
-    auto returnAddr = addressMapper.boomStreetToStandard(0x8018f5c0);
+    auto returnAddr = addressMapper.boomStreetToStandard(0x800c57e0);
     PowerPcAsm::Pair16Bit d = PowerPcAsm::make16bitValuePair(hasRolledDice);
 
     QVector<quint32> asm_;
-    asm_.append(PowerPcAsm::stw(31, 0x88, 3));
-    asm_.append(PowerPcAsm::lis(3, d.upper));                                     // \.
+    asm_.append(PowerPcAsm::li(0, 0));                                            // \.
+    asm_.append(PowerPcAsm::lis(3, d.upper));                                     // |
     asm_.append(PowerPcAsm::addi(3, 3, d.lower));                                 // |. hasRolledDice = false
-    asm_.append(PowerPcAsm::stw(31, 0, 3));                                       // /.
+    asm_.append(PowerPcAsm::stw(0, 0, 3));                                        // /.
+    asm_.append(PowerPcAsm::mr(3, 24));                                           // |. replaced opcode
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
     return asm_;
 }
