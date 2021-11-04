@@ -124,7 +124,7 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     QVector<quint32> asm_;
     asm_.append(PowerPcAsm::li(3, RollShopPriceMultiplierType));
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));
-    asm_.append(PowerPcAsm::cmpw(3, 0));
+    asm_.append(PowerPcAsm::cmpwi(3, 0));
     asm_.append(PowerPcAsm::bne(7)); // goto mutator
     int vanilla = asm_.size();
                 // vanilla
