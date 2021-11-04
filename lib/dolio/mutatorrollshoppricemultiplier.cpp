@@ -53,6 +53,16 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     // li r7,0        ->  b procRollDiceBeforePayingRoutine
     stream << PowerPcAsm::b(hijackAddr, procRollDiceBeforePayingRoutine);
 
+    // --- Remember Square in r10 ---
+    hijackAddr = addressMapper.boomStreetToStandard(0x8008ff30);
+    quint32 procRememberSquareType = allocate(writeRememberSquareType(addressMapper, 0, hasRolledDice), "procRememberSquareType");
+    stream.device()->seek(addressMapper.toFileAddress(procRememberSquareType));
+    routineCode = writeRememberSquareType(addressMapper, procRememberSquareType, hasRolledDice);
+    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    // lbz r0,0x51(r3)   ->  b procRememberSquareType
+    stream << PowerPcAsm::b(hijackAddr, procRememberSquareType);
+
     // --- Calc shop price depending on previously rolled dice value ---
     hijackAddr = addressMapper.boomStreetToStandard(0x8008ff9c);
     quint32 procCalculateGainRoutine = allocate(writeCalculateGainRoutine(addressMapper, 0, hasRolledDice), "procCalculateGainRoutine");
@@ -60,7 +70,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     routineCode = writeCalculateGainRoutine(addressMapper, procCalculateGainRoutine, hasRolledDice);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
-    // cmpw r0,r3       ->  b procCalculateGainRoutine
+    // add r3,r0,r3   ->  b procCalculateGainRoutine
     stream << PowerPcAsm::b(hijackAddr, procCalculateGainRoutine);
 
     // --- Clear Mutator Dice Rolled Flag ---
@@ -153,9 +163,19 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     return asm_;
 }
 
+QVector<quint32> MutatorRollShopPriceMultiplier::writeRememberSquareType(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 hasRolledDice) {
+    auto returnAddr = addressMapper.boomStreetToStandard(0x8008ff34);
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::lbz(0, 0x51, 3));                                       // |. replaced opcdode
+    asm_.append(PowerPcAsm::lbz(10, 0x4d, 3));                                      // |. r10 <- squareType
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));      // |.
+    return asm_;
+}
+
 QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 hasRolledDice) {
-    // precondition: r0 - total shops in district
-    //               r3 - shops owned by player
+    // precondition:  r3 - calculated shop price
+    //               r10 - square type
+    // postcondition: r3 - calculated shop price
     auto gameProgressObject = addressMapper.boomStreetToStandard(0x80817908);
     auto returnAddr = addressMapper.boomStreetToStandard(0x8008ffa0);
     auto getMutatorData = addressMapper.boomStreetToStandard(0x80412c8c);
@@ -164,6 +184,13 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const
 
     QVector<quint32> asm_;
     asm_.append(PowerPcAsm::add(3, 0, 3));
+    asm_.append(PowerPcAsm::cmpwi(10, 0x0));                                        // \.
+    asm_.append(PowerPcAsm::beq(4));                                                // |. if (squareType != PROPERTY_0x0 &&
+    asm_.append(PowerPcAsm::cmpwi(10, 0x37));                                       // |.     squareType != VACANT_PLOT_3_STAR_SHOP_0x37) {
+    asm_.append(PowerPcAsm::beq(2));                                                // /.
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));      // |.   return vanilla shop price
+                                                                                    // |. }
+        // property or 3 star shop
     asm_.append(PowerPcAsm::lis(7, d.upper));                                       // \.
     asm_.append(PowerPcAsm::addi(7, 7, d.lower));                                   // /. r7 <- &hasRolledDice
 
