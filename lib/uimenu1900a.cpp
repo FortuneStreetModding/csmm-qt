@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QSet>
 #include <QTemporaryFile>
+#include <QDebug>
 #include "pugixml/pugixml.hpp"
 
 namespace Ui_menu_19_00a {
@@ -24,7 +25,8 @@ static bool checkMapIconsForValidity(const QMap<QString, QString> &mapIconToTplN
 QString constructMapIconTplName(const QString &mapIcon) {
     auto basename = QFileInfo(mapIcon).baseName();
     if (basename == "bghatena") {
-        return ""; // TODO alert that bghatena is a bad basename
+        qCritical() << "bghatena is not allowed to be used as mapIcon name!";
+        return "";
     }
     return QString("ui_menu007_%1.tpl").arg(basename);
 }

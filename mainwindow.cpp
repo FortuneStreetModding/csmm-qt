@@ -14,12 +14,14 @@
 #include <QProgressDialog>
 #include <QStandardPaths>
 #include <QtConcurrent>
+#include <QInputDialog>
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
 #include "lib/qtshell/qtshell.h"
 #include "downloadclidialog.h"
 #include "validationerrordialog.h"
+#include "lib/configuration.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,20 +37,101 @@ MainWindow::MainWindow(QWidget *parent)
         checkForRequiredFiles(true);
     });
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/csmm-qt/wiki"));
+        QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/fortunestreetmodding.github.io/wiki/CSMM-User-Manual"));
     });
     connect(ui->actionValidate, &QAction::triggered, this, &MainWindow::validateMaps);
+    connect(ui->actionSave_map_list_csv, &QAction::triggered, this, &MainWindow::saveMapList);
+    connect(ui->actionLoad_map_list_csv, &QAction::triggered, this, &MainWindow::loadMapList);
+    connect(ui->actionItast_csmm_brsar, &QAction::triggered, this, &MainWindow::saveCleanItastCsmmBrsar);
     connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
         if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
             ui->tableWidget->removeSelectedMapDescriptors();
         }
     });
+    connect(ui->actionPatch_SaveId, &QAction::triggered, this, [&]() {
+        bool ok;
+        QString text = QInputDialog::getText(this, tr("Enter SaveId."),
+                                             tr("- 2 characters.\n- Digits and uppercase letters only.\n- 01 is vanilla game. The save file is then shared with vanilla game.\n- 02 is csmm default."), QLineEdit::Normal,
+                                             getSaveId(), &ok);
+        if (ok && !text.isEmpty()) {
+            if(text.length() != 2) {
+                QMessageBox::critical(this, "Save ID", "The input must be two characters");
+            } else {
+                ui->actionPatch_SaveId->setText(QString("Patch SaveId (SaveId=%1)").arg(text.toUpper()));
+                ui->actionPatch_SaveId->setData(text.toUpper());
+            }
+        }
+        ui->actionPatch_SaveId->setChecked(getSaveId() != "01");
+    });
+}
+
+QString MainWindow::getSaveId() {
+    if(ui->actionPatch_SaveId->data().isNull())
+        return "02";
+    return ui->actionPatch_SaveId->data().toString().toUpper();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::saveMapList() {
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.csv", "CSMM Map List (*.csv)");
+    if (saveFile.isEmpty()) return;
+    QFileInfo saveFileInfo(saveFile);
+    if(saveFileInfo.exists()) {
+        QFile::remove(saveFile);
+    }
+    QVector<MapDescriptor> descriptors;
+    auto descriptorPtrs = ui->tableWidget->getDescriptors();
+    std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
+    Configuration::save(saveFile, descriptors);
+}
+
+void MainWindow::loadMapList() {
+    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.csv)");
+    if (openFile.isEmpty()) return;
+    QFileInfo openFileInfo(openFile);
+    if(!openFileInfo.exists()) {
+        QMessageBox::critical(this, "Open Map List", QString("Error loading the map list: %1").arg(openFile));
+    }
+    QVector<MapDescriptor> descriptors;
+    auto descriptorPtrs = ui->tableWidget->getDescriptors();
+    std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
+    ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
+    ui->statusbar->repaint();
+    try {
+        Configuration::load(openFile, descriptors, ui->tableWidget->getTmpResourcesDir().path());
+        loadDescriptors(descriptors);
+        ui->tableWidget->dirty = true;
+        ui->statusbar->showMessage("Map list load completed");
+        ui->statusbar->repaint();
+    } catch (const PatchProcess::Exception &exception) {
+        QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
+    } catch (const YAML::Exception &exception) {
+        QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
+    }
+}
+
+void MainWindow::saveCleanItastCsmmBrsar() {
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)");
+    if (saveFile.isEmpty()) return;
+    auto brsarFileFrom = ":/Itast.csmm.brsar";
+    auto brsarFileTo = saveFile;
+    QFileInfo brsarFileToInfo(brsarFileTo);
+    if(brsarFileToInfo.exists()) {
+        QFile::remove(brsarFileTo);
+    }
+    if(!QFile::copy(brsarFileFrom, brsarFileTo)) {
+        QMessageBox::critical(this, "Open", QString("Could not save to %1").arg(brsarFileTo));
+    } else {
+        if(!brsarFileToInfo.isWritable() || !brsarFileToInfo.isReadable()) {
+            QFile(brsarFileTo).setPermissions(QFile::WriteUser | QFile::ReadUser);
+        }
+        QMessageBox::information(this, "Save", QString("Saved to %1").arg(brsarFileTo));
+    }
 }
 
 void MainWindow::openFile() {
@@ -103,8 +186,11 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
     for (auto &descriptor: descriptors) {
         ui->tableWidget->appendMapDescriptor(descriptor);
     }
+    ui->tableWidget->dirty = false;
     ui->mapToolbar->setEnabled(true);
-    ui->menuTools->setEnabled(true);
+    ui->actionValidate->setEnabled(true);
+    ui->actionLoad_map_list_csv->setEnabled(true);
+    ui->actionSave_map_list_csv->setEnabled(true);
     ui->actionExport_to_Folder->setEnabled(true);
     ui->actionExport_to_WBFS_ISO->setEnabled(true);
 }
@@ -272,6 +358,26 @@ void MainWindow::exportToFolder() {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
         return;
     }
+
+    if (!ui->tableWidget->dirty) {
+        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            progress->setWindowModality(Qt::WindowModal);
+            progress->setValue(0);
+
+            auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
+            auto fut = AsyncFuture::observe(copyTask).subscribe([=](bool result) {
+                if (!result) {
+                    QMessageBox::critical(this, "Save", "Could not copy game data.");
+                } else {
+                    progress->setValue(2);
+                    QMessageBox::information(this, "Save", "Saved successfuly.");
+                }
+            });
+            return;
+        }
+    }
+
     if (ui->actionPatch_Wiimmfi->isChecked()) {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
@@ -321,6 +427,19 @@ void MainWindow::exportIsoWbfs() {
         return;
     }
 
+    if (!ui->tableWidget->dirty) {
+        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?") == QMessageBox::Yes) {
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            progress->setWindowModality(Qt::WindowModal);
+            progress->setValue(0);
+            auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01")).subscribe([=]() {
+                QMessageBox::information(this, "Export", "Exported successfuly.");
+                progress->setValue(2);
+            });
+            return;
+        }
+    }
+
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
 
     auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 4, this);
@@ -348,7 +467,7 @@ void MainWindow::exportIsoWbfs() {
         }
     }).subscribe([=]() {
         progress->setValue(2);
-        return ExeWrapper::createWbfsIso(intermediatePath, saveFile);
+        return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
     }).subscribe([=]() {
         progress->setValue(3);
         if (patchWiimmfi)

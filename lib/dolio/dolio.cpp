@@ -13,6 +13,15 @@ quint32 DolIO::allocate(const QVector<quint32> &words, const QString &purpose) {
     return allocate(data, purpose);
 }
 
+quint32 DolIO::allocate(const QVector<quint16> &words, const QString &purpose) {
+    QByteArray data;
+    QDataStream dataStream(&data, QIODevice::WriteOnly);
+    for (auto word: words) {
+        dataStream << word;
+    }
+    return allocate(data, purpose);
+}
+
 quint32 DolIO::allocate(const QString &str) {
     if (str.isEmpty()) {
         return 0;

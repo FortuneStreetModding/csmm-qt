@@ -14,6 +14,7 @@ protected:
     virtual void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) = 0;
     quint32 allocate(const QByteArray &data, const QString &purpose);
     quint32 allocate(const QVector<quint32> &words, const QString &purpose);
+    quint32 allocate(const QVector<quint16> &words, const QString &purpose);
     quint32 allocate(const QString &str);
     QString resolveAddressToString(quint32 virtualAddress, QDataStream &stream, const AddressMapper &addressMapper);
 private:

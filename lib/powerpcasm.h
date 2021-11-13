@@ -35,6 +35,7 @@ namespace PowerPcAsm {
     static constexpr quint32 blt_opcode = 0x41800000;
     static constexpr quint32 blr_opcode = 0x4e800020;
     static constexpr quint32 beq_opcode = 0x41820000;
+    static constexpr quint32 ble_opcode = 0x40810000;
     static constexpr quint32 bne_opcode = 0x40820000;
     static constexpr quint32 bge_opcode = 0x40800000;
     static constexpr quint32 b_opcode = 0x48000000;
@@ -69,6 +70,9 @@ namespace PowerPcAsm {
     quint32 b(qint32 offset);
     quint32 blt(quint32 currentPos, quint32 targetPos);
     quint32 blt(qint32 currentPos, qint32 targetPos);
+    quint32 ble(quint32 currentPos, quint32 targetPos);
+    quint32 ble(qint32 currentPos, qint32 targetPos);
+    quint32 ble(qint32 offset);
     quint32 beq(quint32 currentPos, quint32 targetPos);
     quint32 beq(qint32 currentPos, qint32 targetPos);
     quint32 beq(qint32 offset);

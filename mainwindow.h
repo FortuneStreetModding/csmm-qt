@@ -35,5 +35,10 @@ private:
     template<class InToOutFiles>
     QFuture<void> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
     void validateMaps();
+    void saveCleanItastCsmmBrsar();
+    void saveMapList();
+    void loadMapList();
+
+    QString getSaveId();
 };
 #endif // MAINWINDOW_H

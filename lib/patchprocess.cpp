@@ -68,6 +68,15 @@ static void textReplace(QString& text, QString regexStr, QString replaceStr) {
     text.replace(regex, replaceStr);
 }
 
+bool hasWiimmfiText(const QDir &dir) {
+    QFile file(dir.filePath(uiMessageCsv("en")));
+    if (file.open(QIODevice::ReadOnly)) {
+        UiMessage uimsg = fileToMessage(&file);
+        return uimsg[4909].contains("Wiimmfi");
+    }
+    return false;
+}
+
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
     // Key = locale, Value = file contents
     QMap<QString, UiMessage> uiMessages;
@@ -265,7 +274,9 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
             auto xmlytFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
 
             ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
-            Ui_menu_19_00a::injectMapIconsLayout(xmlytFile, mapIconToTplName);
+            bool success = Ui_menu_19_00a::injectMapIconsLayout(xmlytFile, mapIconToTplName);
+            if(!success)
+                qCritical() << QString("Was unable to inject map icons into ") + brlytFile;
             ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
 
             // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
@@ -284,7 +295,10 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
                 auto xmlanFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
 
                 ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
-                Ui_menu_19_00a::injectMapIconsAnimation(xmlanFile, mapIconToTplName);
+                bool success = Ui_menu_19_00a::injectMapIconsAnimation(xmlanFile, mapIconToTplName);
+                if(!success) {
+                    qCritical() << QString("Was unable to inject map icons into ") + brlanFile;
+                }
                 ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
 
                 // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
@@ -458,6 +472,28 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
                 QFile(frbFileTo).remove();
                 QFile::copy(frbFileFrom, frbFileTo);
             }
+            if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
+                // copy .cmpres file
+                for (auto &locale: FS_LOCALES) {
+                    auto cmpresFileFrom = tmpDir.filePath(bgPath(locale, descriptor.background));
+                    auto cmpresFileTo = output.filePath(bgPath(locale, descriptor.background));
+                    QFileInfo cmpresFileFromInfo(cmpresFileFrom);
+                    if (!cmpresFileFromInfo.exists() || !cmpresFileFromInfo.isFile()) {
+                        continue;
+                    }
+                    QFile(cmpresFileTo).remove();
+                    QFile::copy(cmpresFileFrom, cmpresFileTo);
+                }
+                // copy .scene file
+                auto sceneFileFrom = tmpDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+                auto sceneFileTo = output.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+                QFileInfo sceneFileFromInfo(sceneFileFrom);
+                if (!sceneFileFromInfo.exists() || !sceneFileFromInfo.isFile()) {
+                    continue;
+                }
+                QFile(sceneFileTo).remove();
+                QFile::copy(sceneFileFrom, sceneFileTo);
+            }
         }
     }, [=]() {
         try {
@@ -486,7 +522,7 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
     }
 }
 
-void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
+void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir) {
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         QTemporaryDir intermediateDir;
         if (!intermediateDir.isValid()) {
@@ -517,6 +553,9 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                 if (!QFileInfo::exists(extractedCmpresFile)) {
                     QString zipBackgroundStr = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".background.zip");
                     QFileInfo zipBackground(zipBackgroundStr);
+                    if(!zipBackground.exists())
+                        zipBackgroundStr = QDir::current().filePath(descriptor.background + ".background.zip");
+                    zipBackground = QFileInfo(zipBackgroundStr);
                     if(zipBackground.exists()) {
                         QString extractedCmpresFile;
                         int extractResult = zip_extract(zipBackgroundStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
@@ -552,6 +591,9 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                 if (!allBrstmsAvailable) {
                     QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
                     QFileInfo zipMusic(zipMusicStr);
+                    if(!zipMusic.exists())
+                        zipMusicStr = QDir::current().filePath(yamlFileZipInfo.baseName() + ".music.zip");
+                    zipMusic = QFileInfo(zipMusicStr);
                     if(zipMusic.exists()) {
                         QString extractedBrstmFile;
                         int extractResult = zip_extract(zipMusicStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
@@ -573,7 +615,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                     }
                 }
             }
-            importYaml(dir, extractedYamlFile, descriptor, tmpDir);
+            importYaml(extractedYamlFile, descriptor, tmpDir);
         } else {
             throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
         }
@@ -653,7 +695,7 @@ void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &desc
                     throw Exception(QString("Cannot create path %1 in temporary directory").arg(sceneFileToInfo.dir().path()));
                 }
                 QFile(sceneFileTo).remove();
-                QFile::copy(cmpresFileFrom, sceneFileTo);
+                QFile::copy(sceneFileFrom, sceneFileTo);
                 // copy turnlot images
                 for(char extChr='a'; extChr <= 'c'; ++extChr)
                 {

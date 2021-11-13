@@ -41,7 +41,9 @@ namespace PatchProcess {
      * @param tmpDir the directory to place .frb files before saving, etc.
      * @return whether the import was successful
      */
-    void importYaml(const QDir &dir, const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
+    void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
+
+    bool hasWiimmfiText(const QDir &dir);
 
     class Exception : public QException {
     public:

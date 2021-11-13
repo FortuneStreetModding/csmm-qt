@@ -95,7 +95,13 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetNumMapsInZone(const QVector<
         asm_.append(PowerPcAsm::cmpwi(3, i));
         asm_.append(PowerPcAsm::bne(3));
         short count = std::count_if(mapDescriptors.begin(), mapDescriptors.end(), [&](const MapDescriptor &descriptor) {
-            return descriptor.zone == i && descriptor.mapSet == 0;
+            int zone = descriptor.zone;
+            if (zone == 0) {
+                zone = 1;
+            } else if (zone == 1) {
+                zone = 0;
+            }
+            return zone == i && descriptor.mapSet == 0;
         });
         asm_.append(PowerPcAsm::li(3, count));
         asm_.append(PowerPcAsm::blr());

@@ -47,7 +47,10 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
             descriptors[row]->order = value;
         } else if (theItem->type() == UNLOCK_ID_TYPE) {
             descriptors[row]->unlockId = value;
+        } else {
+            return;
         }
+        dirty = true;
     });
 
     setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -59,6 +62,11 @@ static QTableWidgetItem *readOnlyItem(const QString &str) {
     return item;
 }
 
+#ifdef Q_OS_WIN
+#define FILE_FILTER "Map Descriptor Files (*.yaml;*.zip);;Map Descriptor Yaml (*.yaml);;Map Descriptor Zip (*.zip)"
+#else
+#define FILE_FILTER "Map Descriptor Files (*.yaml);;Zip Files (*.zip)"
+#endif
 void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor &descriptor) {
     descriptors[row] = QSharedPointer<MapDescriptor>::create(descriptor);
     // Descriptor pointer is so that the button event handlers work properly when descriptors
@@ -70,13 +78,14 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     auto importYamlButton = new QPushButton("Import .yaml or .zip");
     connect(importYamlButton, &QPushButton::clicked, this, [=](bool) {
-        auto gameDirectory = getGameDirectory();
-        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml);;Zip Files (*.zip)");
+        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), FILE_FILTER);
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            PatchProcess::importYaml(gameDirectory, openYaml, newDescriptor, tmpDir.path());
+            PatchProcess::importYaml(openYaml, newDescriptor, tmpDir.path());
             descriptorPtr->setFromImport(newDescriptor);
+            descriptorPtr->mapDescriptorFilePath = openYaml;
+            dirty = true;
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
@@ -105,6 +114,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     isPracticeBoardCheck->setChecked(descriptor.isPracticeBoard);
     connect(isPracticeBoardCheck, &QCheckBox::clicked, this, [=](bool isChecked) {
         descriptorPtr->isPracticeBoard = isChecked;
+        dirty = true;
     });
     setCellWidget(row, colIdx++, isPracticeBoardCheck);
 
@@ -162,6 +172,7 @@ void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
     descriptors.append(QSharedPointer<MapDescriptor>::create(descriptor));
     insertRow(descriptors.size()-1);
     loadRowWithMapDescriptor(descriptors.size()-1, descriptor);
+    dirty = true;
 }
 
 void MapDescriptorWidget::removeSelectedMapDescriptors() {
@@ -170,6 +181,7 @@ void MapDescriptorWidget::removeSelectedMapDescriptors() {
     for (auto &selectedRow: selectedRows) {
         descriptors.remove(selectedRow.row());
         removeRow(selectedRow.row());
+        dirty = true;
     }
 }
 
@@ -177,6 +189,7 @@ void MapDescriptorWidget::clearDescriptors() {
     clearContents();
     setRowCount(0);
     descriptors.clear();
+    dirty = false;
 }
 
 const QVector<QSharedPointer<MapDescriptor>> &MapDescriptorWidget::getDescriptors() {

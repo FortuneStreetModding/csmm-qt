@@ -62,7 +62,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>24</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -80,6 +80,7 @@
      <string>Optional Patches</string>
     </property>
     <addaction name="actionPatch_Wiimmfi"/>
+    <addaction name="actionPatch_SaveId"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -89,11 +90,16 @@
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionItast_csmm_brsar"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_map_list_csv"/>
+    <addaction name="actionSave_map_list_csv"/>
+    <addaction name="separator"/>
     <addaction name="actionValidate"/>
    </widget>
    <addaction name="menuFile"/>
@@ -162,11 +168,14 @@
    </property>
   </action>
   <action name="actionValidate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Validate</string>
    </property>
   </action>
-  <action name="actionDisplay_Board_Name_On_Results_Screen">
+  <action name="actionPatch_SaveId">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -174,7 +183,28 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Display Board Name On Results Screen</string>
+    <string>Patch SaveId (SaveId=02)</string>
+   </property>
+  </action>
+  <action name="actionItast_csmm_brsar">
+   <property name="text">
+    <string>Save clean Itast.csmm.brsar</string>
+   </property>
+  </action>
+  <action name="actionLoad_map_list_csv">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Load map list (*.csv)</string>
+   </property>
+  </action>
+  <action name="actionSave_map_list_csv">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save map list (*.csv)</string>
    </property>
   </action>
  </widget>

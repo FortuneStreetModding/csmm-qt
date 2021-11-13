@@ -232,8 +232,12 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
 
     if(VanillaDatabase::hasDefaultMapIcon(background))
         mapIcon = VanillaDatabase::getDefaultMapIcon(background);
-    if(yaml["mapIcon"])
+    if(yaml["mapIcon"]) {
         mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
+        // Check for too long map icon file name, because http://wiki.tockdom.com/wiki/BRLYT_(File_Format) says that the pane name can only have 0x10 bytes.
+        if(mapIcon.length() > 13)
+            throw PatchProcess::Exception(QString("The filename of the map icon %1 is too long. It must be max 13 characters, but is %2 characters.").arg(mapIcon).arg(mapIcon.length()));
+    }
 
     if(VanillaDatabase::hasDefaultBgmId(background))
         bgmId = VanillaDatabase::getDefaultBgmId(background);
