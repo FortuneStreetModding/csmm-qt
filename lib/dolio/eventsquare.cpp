@@ -22,20 +22,20 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     //   80088060 = Switch
     //   80088058 = Cannon
     stream.device()->seek(addressMapper.boomToFileAddress(0x80453330));
-    stream << (quint32)addressMapper.boomStreetToStandard(0x80088060);
+    stream << (quint32)addressMapper.boomStreetToStandard(0x80088100);
 
     // --- Texture ---
-    quint32 customTextureHandler = allocate(writeGetTextureForCustomSquareRoutine(15, 14), "GetTextureForCustomSquareRoutine");
-    quint32 virtualPos = addressMapper.boomStreetToStandard(0x80086d98);
-    stream.device()->seek(addressMapper.toFileAddress(virtualPos));
-    // li r15,0x1        -> bl customTextureHandler
-    stream << PowerPcAsm::bl(virtualPos, customTextureHandler);
+    quint32 eventSquareFormatAddr = allocate("eventsquare_%03d");
+    quint32 eventSquareTextureAddr = allocate("eventsquare_XYZ");
 
-    customTextureHandler = allocate(writeGetTextureForCustomSquareRoutine(31, 30), "GetTextureForCustomSquareRoutine2");
-    virtualPos = addressMapper.boomStreetToStandard(0x80087a24);
-    stream.device()->seek(addressMapper.toFileAddress(virtualPos));
-    // li r31,0x1        -> bl customTextureHandler
-    stream << PowerPcAsm::bl(virtualPos, customTextureHandler);
+    quint32 hijackAddr = addressMapper.boomStreetToStandard(0x80086ed8);
+    quint32 procGetTextureForCustomSquare = allocate(writeGetTextureForCustomSquareRoutine(addressMapper, 0, eventSquareFormatAddr, eventSquareTextureAddr), "GetTextureForCustomSquareRoutine");
+    stream.device()->seek(addressMapper.toFileAddress(procGetTextureForCustomSquare));
+    auto routineCode = writeGetTextureForCustomSquareRoutine(addressMapper, procGetTextureForCustomSquare, eventSquareFormatAddr, eventSquareTextureAddr);
+    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    // stw r0,0x40(r26)        -> b customTextureHandler
+    stream << PowerPcAsm::b(hijackAddr, procGetTextureForCustomSquare);
 
     // --- Icon ---
     stream.device()->seek(addressMapper.boomToFileAddress(0x804160c8));
@@ -49,10 +49,10 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // --- Description ---
     quint32 customDescriptionRoutine = allocate(writeGetDescriptionForCustomSquareRoutine(addressMapper, 0), "GetDescriptionForCustomSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(customDescriptionRoutine));
-    auto routineCode = writeGetDescriptionForCustomSquareRoutine(addressMapper, customDescriptionRoutine);
+    routineCode = writeGetDescriptionForCustomSquareRoutine(addressMapper, customDescriptionRoutine);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
 
-    virtualPos = addressMapper.boomStreetToStandard(0x800f8ce4);
+    auto virtualPos = addressMapper.boomStreetToStandard(0x800f8ce4);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
     // bl Game::uitext::get_string   -> bl customDescriptionRoutine
     stream << PowerPcAsm::bl(virtualPos, customDescriptionRoutine);
@@ -105,6 +105,7 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     stream.device()->seek(addressMapper.boomToFileAddress(0x801b7f74));
     stream << PowerPcAsm::nop();
 }
+
 QVector<quint32> EventSquare::writeGetDescriptionForCustomSquareRoutine(const AddressMapper & addressMapper, quint32 routineStartAddress) {
     quint32 gameUiTextGetString = addressMapper.boomStreetToStandard(0x800f78dc);
     quint32 gameUiTextGetCardMsg = addressMapper.boomStreetToStandard(0x800f837c);
@@ -127,17 +128,50 @@ QVector<quint32> EventSquare::writeGetDescriptionForCustomSquareRoutine(const Ad
     };
 }
 
-QVector<quint32> EventSquare::writeGetTextureForCustomSquareRoutine(quint8 register_textureType, quint8 register_squareType) {
-    return {
-        PowerPcAsm::li(register_textureType, 0x1),    // textureType = 1
-        PowerPcAsm::cmpwi(register_squareType, 0x2e), // if(squareType == 0x2e)
-        PowerPcAsm::beq(2),                           // {
-        PowerPcAsm::blr(),                            //   return textureType;
-                                                      // } else {
-        PowerPcAsm::li(register_textureType, 0x5),    //   textureType = 5
-        PowerPcAsm::blr()                             //   return textureType;
-                                                      // }
-    };
+QVector<quint32> EventSquare::writeGetTextureForCustomSquareRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 eventSquareFormatAddr, quint32 eventSquareTextureAddr) {
+    // precondition:  r4 - 80411db0 mario theme, 80411e80 dragon quest theme
+    //               r14 - square type
+    //               r15 - texture index
+    //               r29 - square*
+    // postcondition: r0 - dont care
+    //                r3 - 0x5c
+    //                r4 - textureName*
+    //                r5 - dont care
+    //                r6 - dont care
+    //                r7 - dont care
+    //                r8 - dont care
+    auto returnAddr = addressMapper.boomStreetToStandard(0x80086edc);
+    auto sprintf = addressMapper.boomStreetToStandard(0x802fee98);
+    PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(eventSquareFormatAddr);
+    PowerPcAsm::Pair16Bit w = PowerPcAsm::make16bitValuePair(eventSquareTextureAddr);
+
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::cmpwi(14, 0x2e));
+    asm_.append(PowerPcAsm::beq(3));
+    asm_.append(PowerPcAsm::stw(0, 0x40, 26));
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    asm_.append(PowerPcAsm::lis(3, w.upper));                                        // \.
+    asm_.append(PowerPcAsm::addi(3, 3, w.lower));                                    // /. r3 <- eventSquareTextureAddr
+    asm_.append(PowerPcAsm::lis(4, v.upper));                                        // \.
+    asm_.append(PowerPcAsm::addi(4, 4, v.lower));                                    // /. r4 <- eventSquareFormatAddr
+    asm_.append(PowerPcAsm::lbz(5, 0x18, 29));                                       // |. r5 <- square->districtId
+    asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), sprintf));
+    asm_.append(PowerPcAsm::lis(3, w.upper));                                        // \.
+    asm_.append(PowerPcAsm::addi(3, 3, w.lower));                                    // |. r0,r3 <- eventSquareTextureAddr
+    asm_.append(PowerPcAsm::mr(0, 3));                                               // /.
+    asm_.append(PowerPcAsm::stw(0, 0x40, 26));
+    asm_.append(PowerPcAsm::li(3, 0x5c));
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+
+    // 801a3290:
+    // li         r5,0xf
+    // addi       r4=>s_ui_chancecard_%03d_80426fbb,r4,offset s_
+    // crxor      4*cr1+eq,4*cr1+eq,4*cr1+eq
+    // bl         sprintf
+
+
+
+    return asm_;
 }
 
 QVector<quint32> EventSquare::writeProcStopEventSquareRoutine(const AddressMapper & addressMapper, quint32 forceVentureCardVariable, quint32 routineStartAddress) {
