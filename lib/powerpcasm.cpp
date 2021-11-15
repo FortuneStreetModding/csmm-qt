@@ -35,6 +35,7 @@ quint32 lha(quint8 register1, qint16 value, quint8 register2) {
     return lha_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 addi(quint8 register1, quint8 register2, qint16 value) {
+    if(register2==0) throw register2;
     return addi_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 addis(quint8 register1, quint8 register2, qint16 value) {

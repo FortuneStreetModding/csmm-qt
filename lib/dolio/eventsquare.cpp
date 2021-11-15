@@ -11,30 +11,42 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // write zeroes to it
     stream << quint32(0); // 4 bytes
 
-    // --- Model ---
-    // some examples:
-    //   80087f88 = Property
-    //   80088040 = Bank
-    //   80088100 = Default
-    //   80088050 = Take a break
-    //   80088068 = Stockbroker
-    //   80088048 = Arcade
-    //   80088060 = Switch
-    //   80088058 = Cannon
+    //. --- Model ---
+    //. some examples:
+    //.   80087f88 = Property
+    //.   80088040 = Bank
+    //.   80088100 = Default
+    //.   80088050 = Take a break
+    //.   80088068 = Stockbroker
+    //.   80088048 = Arcade
+    //.   80088060 = Switch
+    //.   80088058 = Cannon
     stream.device()->seek(addressMapper.boomToFileAddress(0x80453330));
     stream << (quint32)addressMapper.boomStreetToStandard(0x80088100);
+
+    quint32 customTextureHandler = allocate(writeGetModelForCustomSquareRoutine(15, 14), "GetModelForCustomSquareRoutine");
+    quint32 virtualPos = addressMapper.boomStreetToStandard(0x80086d98);
+    stream.device()->seek(addressMapper.toFileAddress(virtualPos));
+    // li r15,0x1        -> bl customTextureHandler
+    stream << PowerPcAsm::bl(virtualPos, customTextureHandler);
+
+    customTextureHandler = allocate(writeGetModelForCustomSquareRoutine(31, 30), "GetModelForCustomSquareRoutine2");
+    virtualPos = addressMapper.boomStreetToStandard(0x80087a24);
+    stream.device()->seek(addressMapper.toFileAddress(virtualPos));
+    // li r31,0x1        -> bl customTextureHandler
+    stream << PowerPcAsm::bl(virtualPos, customTextureHandler);
 
     // --- Texture ---
     quint32 eventSquareFormatAddr = allocate("eventsquare_%03d");
     quint32 eventSquareTextureAddr = allocate("eventsquare_XYZ");
 
-    quint32 hijackAddr = addressMapper.boomStreetToStandard(0x80086ed8);
+    quint32 hijackAddr = addressMapper.boomStreetToStandard(0x80088630);
     quint32 procGetTextureForCustomSquare = allocate(writeGetTextureForCustomSquareRoutine(addressMapper, 0, eventSquareFormatAddr, eventSquareTextureAddr), "GetTextureForCustomSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procGetTextureForCustomSquare));
     auto routineCode = writeGetTextureForCustomSquareRoutine(addressMapper, procGetTextureForCustomSquare, eventSquareFormatAddr, eventSquareTextureAddr);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
-    // stw r0,0x40(r26)        -> b customTextureHandler
+    // lwzx r6,r6,r0        -> b customTextureHandler
     stream << PowerPcAsm::b(hijackAddr, procGetTextureForCustomSquare);
 
     // --- Icon ---
@@ -52,7 +64,7 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     routineCode = writeGetDescriptionForCustomSquareRoutine(addressMapper, customDescriptionRoutine);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
 
-    auto virtualPos = addressMapper.boomStreetToStandard(0x800f8ce4);
+    virtualPos = addressMapper.boomStreetToStandard(0x800f8ce4);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
     // bl Game::uitext::get_string   -> bl customDescriptionRoutine
     stream << PowerPcAsm::bl(virtualPos, customDescriptionRoutine);
@@ -128,39 +140,72 @@ QVector<quint32> EventSquare::writeGetDescriptionForCustomSquareRoutine(const Ad
     };
 }
 
+QVector<quint32> EventSquare::writeGetModelForCustomSquareRoutine(quint8 register_textureType, quint8 register_squareType) {
+    return {
+        PowerPcAsm::li(register_textureType, 0x1),    // textureType = 1
+        PowerPcAsm::cmpwi(register_squareType, 0x2e), // if(squareType == 0x2e)
+        PowerPcAsm::beq(2),                           // {
+        PowerPcAsm::blr(),                            //   return textureType;
+                                                      // } else {
+        PowerPcAsm::li(register_textureType, 0xa),    //   textureType = 10 (boon square model "obj_mass_lucky01")
+        PowerPcAsm::blr()                             //   return textureType;
+                                                      // }
+    };
+}
+
 QVector<quint32> EventSquare::writeGetTextureForCustomSquareRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 eventSquareFormatAddr, quint32 eventSquareTextureAddr) {
-    // precondition:  r4 - 80411db0 mario theme, 80411e80 dragon quest theme
-    //               r14 - square type
-    //               r15 - texture index
-    //               r29 - square*
-    // postcondition: r0 - dont care
-    //                r3 - 0x5c
-    //                r4 - textureName*
-    //                r5 - dont care
-    //                r6 - dont care
+    // precondition:
+    //                r0 - districtId*4
+    //                r3 - ModelObj*
+    //                r4 - 0x80452170
+    //                r5 - sharedPointer<textureHandler>*
+    //                r6 - 0x80452170
+    //               r22 - GameTile*
+    //               r28 - currentPlayerIndex
+    // postcondition:
+    //                r0 - dont care
+    //                r3 - ModelObj*
+    //                r4 - originalTextureName*
+    //                r5 - sharedPointer<textureHandler>*
+    //                r6 - newTextureName*
     //                r7 - dont care
     //                r8 - dont care
-    auto returnAddr = addressMapper.boomStreetToStandard(0x80086edc);
+    //                r9 - dont care
+    //               r10 - dont care
+    //               r11 - dont care
+    //               r12 - dont care
+    //               r22 - GameTile*
+    //               r24 - unchanged
+    //               r27 - unchanged
+    //               r31 - unchanged
+    auto returnAddr = addressMapper.boomStreetToStandard(0x80088634);
     auto sprintf = addressMapper.boomStreetToStandard(0x802fee98);
+    auto obj_mass_lucky01 = addressMapper.boomStreetToStandard(0x80411cc8);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(eventSquareFormatAddr);
     PowerPcAsm::Pair16Bit w = PowerPcAsm::make16bitValuePair(eventSquareTextureAddr);
+    PowerPcAsm::Pair16Bit x = PowerPcAsm::make16bitValuePair(obj_mass_lucky01);
 
     QVector<quint32> asm_;
-    asm_.append(PowerPcAsm::cmpwi(14, 0x2e));
-    asm_.append(PowerPcAsm::beq(3));
-    asm_.append(PowerPcAsm::stw(0, 0x40, 26));
-    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    asm_.append(PowerPcAsm::lwz(6, 6, 0));                                           // |. replaced opcode: r6 <- newTextureName*
+    asm_.append(PowerPcAsm::lwz(7, 0x74, 22));                                       // |. r7 <- square*
+    asm_.append(PowerPcAsm::lbz(0, 0x4d, 7));                                        // |. r0 <- squareType
+    asm_.append(PowerPcAsm::cmpwi(0, 0x2e));                                         // \. if (squareType != 0x2e) {
+    asm_.append(PowerPcAsm::beq(2));                                                 // |.
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));       // /.   return }
+    asm_.append(PowerPcAsm::mr(11, 3));                                              // \. save r3 in r11
+    asm_.append(PowerPcAsm::mr(12, 5));                                              // /. save r5 in r12
     asm_.append(PowerPcAsm::lis(3, w.upper));                                        // \.
     asm_.append(PowerPcAsm::addi(3, 3, w.lower));                                    // /. r3 <- eventSquareTextureAddr
     asm_.append(PowerPcAsm::lis(4, v.upper));                                        // \.
     asm_.append(PowerPcAsm::addi(4, 4, v.lower));                                    // /. r4 <- eventSquareFormatAddr
-    asm_.append(PowerPcAsm::lbz(5, 0x18, 29));                                       // |. r5 <- square->districtId
-    asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), sprintf));
-    asm_.append(PowerPcAsm::lis(3, w.upper));                                        // \.
-    asm_.append(PowerPcAsm::addi(3, 3, w.lower));                                    // |. r0,r3 <- eventSquareTextureAddr
-    asm_.append(PowerPcAsm::mr(0, 3));                                               // /.
-    asm_.append(PowerPcAsm::stw(0, 0x40, 26));
-    asm_.append(PowerPcAsm::li(3, 0x5c));
+    asm_.append(PowerPcAsm::lbz(5, 0x18, 7));                                        // |. r5 <- square->districtId
+    asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), sprintf));         // >. sprintf(eventSquareTexture*, eventSquareFormat*, districtId)
+    asm_.append(PowerPcAsm::lis(6, w.upper));                                        // \.
+    asm_.append(PowerPcAsm::addi(6, 6, w.lower));                                    // /. r6 <- eventSquareTextureAddr
+    asm_.append(PowerPcAsm::lis(4, x.upper));                                        // \.
+    asm_.append(PowerPcAsm::addi(4, 4, x.lower));                                    // /. r4 <- "obj_mass_lucky01"*
+    asm_.append(PowerPcAsm::mr(3, 11));                                              // \. restore r3 from r11
+    asm_.append(PowerPcAsm::mr(5, 12));                                              // /. restore r5 from r12
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
 
     // 801a3290:
