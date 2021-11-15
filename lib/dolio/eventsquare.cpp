@@ -56,7 +56,7 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
 
     // --- Name ---
     stream.device()->seek(addressMapper.boomToFileAddress(0x80475580));
-    stream << (quint32)3336; // id of the message in ui_message.csv (3336 = "Switch square")
+    stream << (quint32)25000; // id of the message in ui_message.csv (25000 = "Event square")
 
     // --- Description ---
     quint32 customDescriptionRoutine = allocate(writeGetDescriptionForCustomSquareRoutine(addressMapper, 0), "GetDescriptionForCustomSquareRoutine");

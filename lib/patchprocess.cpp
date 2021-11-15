@@ -99,6 +99,17 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     }
     // make new msg ids
     quint32 msgId = 25000;
+    // add msg id for event square
+    uiMessages["en"][msgId] = "Event square";
+    uiMessages["uk"][msgId] = uiMessages["en"][msgId];
+    uiMessages["de"][msgId] = "Ereignisfeld";
+    uiMessages["fr"][msgId] = "Case Action";
+    uiMessages["it"][msgId] = "Casella Avvenimento";
+    uiMessages["su"][msgId] = "Casilla del Acontecimiento";
+    uiMessages["jp"][msgId] = "イベントマス";
+    msgId++;
+
+    // write map descriptor names and descriptions
     for (auto &mapDescriptor: mapDescriptors) {
         mapDescriptor.nameMsgId = msgId++;
         for (auto it=uiMessages.begin(); it!=uiMessages.end(); ++it) {
