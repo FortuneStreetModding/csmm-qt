@@ -138,7 +138,18 @@ QVector<MapDescriptor> MainDol::writeMainDol(QDataStream &stream, const QVector<
     for (auto &patch: patches) {
         patch->write(stream, addressMapper, mapDescriptors, freeSpaceManager);
     }
+
+    auto totalFreeSpace = freeSpaceManager.calculateTotalFreeSpace();
+    auto largestFreeSpaceBlockSize = freeSpaceManager.calculateLargestFreeSpaceBlockSize();
+    auto remainingFreeSpace = freeSpaceManager.calculateTotalRemainingFreeSpace();
+    auto largestRemainingFreeSpaceBlockSize = freeSpaceManager.calculateLargestRemainingFreeSpaceBlockSize();
+    qfloat16 freeSpaceUsage = (qfloat16) remainingFreeSpace / (qfloat16) totalFreeSpace;
+    qfloat16 largestBlockUsage = (qfloat16) largestRemainingFreeSpaceBlockSize / (qfloat16) largestFreeSpaceBlockSize;
+    qDebug().noquote() << QString("Free Space Left: %1/%2 (%3)").arg(remainingFreeSpace).arg(totalFreeSpace).arg(freeSpaceUsage);
+    qDebug().noquote() << QString("  Largest Block: %1/%2 (%3)").arg(largestRemainingFreeSpaceBlockSize).arg(largestFreeSpaceBlockSize).arg(largestBlockUsage);
+
     freeSpaceManager.nullTheFreeSpace(stream, addressMapper);
+
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca30));
     stream << PowerPcAsm::li(3, mapDescriptors.size());
     return mapDescriptors;
