@@ -173,14 +173,20 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
 
 static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir) {
     QString mainDol = dir.filePath(MAIN_DOL);
-    return AsyncFuture::observe(ExeWrapper::readSections(mainDol))
-            .subscribe([=](const QVector<AddressSection> &addressSections) {
+    auto fut = AsyncFuture::observe(ExeWrapper::readSections(mainDol)).subscribe([=](const QVector<AddressSection> &addressSections) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&mainDolFile);
             MainDol mainDolObj(stream, addressSections);
             //mainDolFile.resize(0);
             mainDolObj.writeMainDol(stream, mapDescriptors);
+        }
+    });
+    return fut.subscribe([=](){}, [=]() {
+        try {
+            fut.future().waitForFinished();
+        } catch (const ExeWrapper::Exception &exception) {
+            throw Exception(exception.getMessage());
         }
     }).future();
 }

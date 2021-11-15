@@ -1,4 +1,5 @@
 #include "powerpcasm.h"
+#include "exewrapper.h"
 
 namespace PowerPcAsm {
 
@@ -35,7 +36,7 @@ quint32 lha(quint8 register1, qint16 value, quint8 register2) {
     return lha_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 addi(quint8 register1, quint8 register2, qint16 value) {
-    if(register2==0) throw register2;
+    if(register2==0) throw ExeWrapper::Exception(QString("addi: register2 must not be 0"));
     return addi_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 addis(quint8 register1, quint8 register2, qint16 value) {
@@ -130,12 +131,15 @@ quint32 mtlr(quint8 reg) {
     return mtlr_opcode + ((quint32)reg << 21);
 }
 quint32 lwzx(quint8 register1, quint8 register2, quint8 register3) {
+    if (register2 == 0) throw ExeWrapper::Exception(QString("lwzx: register2 must not be 0"));
     return lwzx_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
 }
 quint32 lwz(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw ExeWrapper::Exception(QString("lwz: register2 must not be 0"));
     return lwz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 lbz(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw ExeWrapper::Exception(QString("lbz: register2 must not be 0"));
     return lbz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 srw(quint8 register1, quint8 register2, quint8 register3) {
@@ -148,15 +152,18 @@ quint32 rlwinm(quint8 register1, quint8 register2, quint8 value1, quint8 value2,
     return rlwinm_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)value1 << 11) + ((quint32)value2 << 6) + ((quint32)value3 << 1);
 }
 quint32 stw(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw ExeWrapper::Exception(QString("stw: register2 must not be 0"));
     return stw_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 stb(quint8 register1, qint16 value, quint8 register2) {
+    if (register2 == 0) throw ExeWrapper::Exception(QString("stb: register2 must not be 0"));
     return stb_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 andi(quint8 register1, quint8 register2, qint16 value) {
     return andi_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)value & 0x0000FFFF);
 }
 quint32 stbx(quint8 register1, quint8 register2, quint8 register3) {
+    if (register2 == 0) throw ExeWrapper::Exception(QString("stbx: register2 must not be 0"));
     return stbx_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
 }
 
