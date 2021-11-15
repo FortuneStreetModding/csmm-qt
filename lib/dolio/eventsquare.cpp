@@ -186,14 +186,14 @@ QVector<quint32> EventSquare::writeGetTextureForCustomSquareRoutine(const Addres
     PowerPcAsm::Pair16Bit x = PowerPcAsm::make16bitValuePair(obj_mass_lucky01);
 
     QVector<quint32> asm_;
-    asm_.append(PowerPcAsm::lwz(6, 6, 0));                                           // |. replaced opcode: r6 <- newTextureName*
+    asm_.append(PowerPcAsm::lwzx(6, 6, 0));                                          // |. replaced opcode: r6 <- newTextureName*
     asm_.append(PowerPcAsm::lwz(7, 0x74, 22));                                       // |. r7 <- square*
     asm_.append(PowerPcAsm::lbz(0, 0x4d, 7));                                        // |. r0 <- squareType
     asm_.append(PowerPcAsm::cmpwi(0, 0x2e));                                         // \. if (squareType != 0x2e) {
     asm_.append(PowerPcAsm::beq(2));                                                 // |.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));       // /.   return }
-    asm_.append(PowerPcAsm::mr(11, 3));                                              // \. save r3 in r11
-    asm_.append(PowerPcAsm::mr(12, 5));                                              // /. save r5 in r12
+    asm_.append(PowerPcAsm::mr(29, 3));                                              // \. save r3 in r29
+    asm_.append(PowerPcAsm::mr(30, 5));                                              // /. save r5 in r30
     asm_.append(PowerPcAsm::lis(3, w.upper));                                        // \.
     asm_.append(PowerPcAsm::addi(3, 3, w.lower));                                    // /. r3 <- eventSquareTextureAddr
     asm_.append(PowerPcAsm::lis(4, v.upper));                                        // \.
@@ -204,8 +204,8 @@ QVector<quint32> EventSquare::writeGetTextureForCustomSquareRoutine(const Addres
     asm_.append(PowerPcAsm::addi(6, 6, w.lower));                                    // /. r6 <- eventSquareTextureAddr
     asm_.append(PowerPcAsm::lis(4, x.upper));                                        // \.
     asm_.append(PowerPcAsm::addi(4, 4, x.lower));                                    // /. r4 <- "obj_mass_lucky01"*
-    asm_.append(PowerPcAsm::mr(3, 11));                                              // \. restore r3 from r11
-    asm_.append(PowerPcAsm::mr(5, 12));                                              // /. restore r5 from r12
+    asm_.append(PowerPcAsm::mr(3, 29));                                              // \. restore r3 from r29
+    asm_.append(PowerPcAsm::mr(5, 30));                                              // /. restore r5 from r30
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
 
     // 801a3290:
