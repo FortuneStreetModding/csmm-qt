@@ -62,7 +62,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>20</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -81,6 +81,7 @@
     </property>
     <addaction name="actionPatch_Wiimmfi"/>
     <addaction name="actionPatch_SaveId"/>
+    <addaction name="actionDisplay_Map_Name_On_Results_Screen"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -205,6 +206,14 @@
    </property>
    <property name="text">
     <string>Save map list (*.csv)</string>
+   </property>
+  </action>
+  <action name="actionDisplay_Map_Name_On_Results_Screen">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Display Map Name On Results Screen</string>
    </property>
   </action>
  </widget>

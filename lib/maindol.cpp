@@ -25,11 +25,8 @@
 #include "dolio/venturecardtable.h"
 #include "dolio/wififix.h"
 #include "dolio/musictable.h"
-<<<<<<< HEAD
 #include "dolio/displaymapinresults.h"
-=======
 #include "dolio/tinydistricts.h"
->>>>>>> 9f4a8f7e5e0b7d158fd5adf9be90bc81d3a88e5a
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections) {
@@ -121,11 +118,8 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     patches.append(QSharedPointer<DolIO>(new ForceSimulatedButtonPress()));
     patches.append(QSharedPointer<DolIO>(new WifiFix()));
     patches.append(QSharedPointer<DolIO>(new MusicTable()));
-<<<<<<< HEAD
     patches.append(QSharedPointer<DolIO>(new DisplayMapInResults()));
-=======
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));
->>>>>>> 9f4a8f7e5e0b7d158fd5adf9be90bc81d3a88e5a
 
     return patches;
 }
