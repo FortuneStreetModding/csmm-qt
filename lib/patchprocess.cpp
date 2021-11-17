@@ -43,7 +43,7 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadOnly)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections);
+            MainDol mainDolObj(stream, addressSections, false);
             auto mapDescriptors = mainDolObj.readMainDol(stream);
             loadUiMessages(mapDescriptors, dir);
             return mapDescriptors;
@@ -171,14 +171,14 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     }
 }
 
-static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir) {
+static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchResultBoardName) {
     QString mainDol = dir.filePath(MAIN_DOL);
     return AsyncFuture::observe(ExeWrapper::readSections(mainDol))
             .subscribe([=](const QVector<AddressSection> &addressSections) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections);
+            MainDol mainDolObj(stream, addressSections, patchResultBoardName);
             //mainDolFile.resize(0);
             mainDolObj.writeMainDol(stream, mapDescriptors);
         }
@@ -449,10 +449,10 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
     }
 }
 
-QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
+QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     brstmInject(output, descriptors, tmpDir);
-    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
+    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output, patchResultBoardName))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
     }).subscribe([=]() {
