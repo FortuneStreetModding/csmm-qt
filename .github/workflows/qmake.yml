@@ -99,7 +99,7 @@ jobs:
         mv "release/CSMM.exe" "csmm-$VERSION_NAME/CSMM.exe"
 
     - name: Deploy
-      working-directory: ${{github.workspace}}/release
+      working-directory: ${{github.workspace}}
       shell: bash
       run: windeployqt "csmm-$VERSION_NAME/CSMM.exe"
 
