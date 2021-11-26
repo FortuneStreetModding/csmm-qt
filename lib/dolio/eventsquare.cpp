@@ -49,6 +49,32 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // lwzx r6,r6,r0        -> b customTextureHandler
     stream << PowerPcAsm::b(hijackAddr, procGetTextureForCustomSquare);
 
+    // --- Minimap Icon ---
+    // this hack retrieves the minimapTileId based on the formula:
+    //   minimapTileId = districtId + 0x37 > 0x80? districtId + 0x37 + 0x06 : districtId + 0x37
+    hijackAddr = addressMapper.boomStreetToStandard(0x800b0e80);
+    quint32 procGetMinimapTileIdForCustomSquareRoutine = allocate(writeGetMinimapTileIdForCustomSquareRoutine(addressMapper, 0), "GetMinimapTileIdForCustomSquareRoutine");
+    stream.device()->seek(addressMapper.toFileAddress(procGetMinimapTileIdForCustomSquareRoutine));
+    routineCode = writeGetMinimapTileIdForCustomSquareRoutine(addressMapper, procGetMinimapTileIdForCustomSquareRoutine);
+    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    // li r31,0x9        -> b GetMinimapTileIdForCustomSquareRoutine
+    stream << PowerPcAsm::b(hijackAddr, procGetMinimapTileIdForCustomSquareRoutine);
+
+    // this hack checks if the minimapTileId is >= 0x86 and then subtracts 0x6 to get the correct tile id
+    hijackAddr = addressMapper.boomStreetToStandard(0x800b2714);
+    quint32 procMinimapTileIdHandler = allocate(writeMinimapTileIdHandler(addressMapper, 0), "MinimapTileIdHandler");
+    stream.device()->seek(addressMapper.toFileAddress(procMinimapTileIdHandler));
+    routineCode = writeMinimapTileIdHandler(addressMapper, procMinimapTileIdHandler);
+    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    // bge LAB_800b2898        -> b MinimapTileIdHandler
+    stream << PowerPcAsm::b(hijackAddr, procMinimapTileIdHandler);
+    // stb r31,0x108(r27)      -> stw r31,0x108(r27)
+    //stream.device()->seek(addressMapper.boomToFileAddress(0x800b0e8c)); stream << PowerPcAsm::stw(31, 0x108, 27);
+    // lbz r5,0x108(r18)      -> lwz r5,0x108(r18)
+    //stream.device()->seek(addressMapper.boomToFileAddress(0x800b270c)); stream << PowerPcAsm::lwz(5, 0x108, 18);
+
     // --- Icon ---
     stream.device()->seek(addressMapper.boomToFileAddress(0x804160c8));
     stream << (quint32)addressMapper.boomStreetToStandard(0x80415ee0); // pointer to the texture name (0x80415ee0 points to the string "p_mark_21" which is the switch icon texture
@@ -153,6 +179,58 @@ QVector<quint32> EventSquare::writeGetModelForCustomSquareRoutine(quint8 registe
     };
 }
 
+QVector<quint32> EventSquare::writeGetMinimapTileIdForCustomSquareRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+    // precondition:
+    //               r30 - currentSquareId
+    // postcondition:
+    //                r0 - dont care
+    //                r3 - dont care
+    //                r4 - dont care
+    //               r31 - minimapTileId
+    auto returnAddr = addressMapper.boomStreetToStandard(0x800b0e84);
+    auto gameBoard = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x8054d018));
+
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::lis(3, gameBoard.upper)),                                         //
+    asm_.append(PowerPcAsm::addi(3, 3, gameBoard.lower)),                                     // r3 <- start of gameboard table containing all squares
+    asm_.append(PowerPcAsm::mulli(4, 30, 0x54)),                                              // r4 <- squareId * 0x54 (the size of each square)
+    asm_.append(PowerPcAsm::add(3, 3, 4)),                                                    // r3 <- current square*
+    asm_.append(PowerPcAsm::lbz(31, 0x18, 3)),                                                // r31 <- square->district_color
+    asm_.append(PowerPcAsm::addi(31, 31, 0x36)),                                              // r31 <- r31 + 0x36
+
+    asm_.append(PowerPcAsm::cmpwi(31, 0x80)),                                                 //\.
+    asm_.append(PowerPcAsm::bge(2)),                                                          //|. we actually need to add just +0x37. However, the game uses a
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                //|. different method when the minimapTileId is between 0x80 and 0x85.
+    asm_.append(PowerPcAsm::cmpwi(31, 0x85)),                                                 //|. If that happens, we add another 6 so that we can skip over the
+    asm_.append(PowerPcAsm::ble(2)),                                                          //|. tiles which the game handels differently.
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                ///
+    asm_.append(PowerPcAsm::addi(31, 31, 0x6)),                                               // r31 <- r31 + 0x6  (we actually need to add just +0x37. However,
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+
+    return asm_;
+}
+
+QVector<quint32> EventSquare::writeMinimapTileIdHandler(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+    // precondition:
+    //               r5 - minimapTileId
+    // postcondition:
+    //               r5 - minimapTileId
+    auto returnAddr = addressMapper.boomStreetToStandard(0x800b2718);
+
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::cmplwi(5, 0xff)),
+    asm_.append(PowerPcAsm::beq(3));
+    asm_.append(PowerPcAsm::cmplwi(5, 0x86)),
+    asm_.append(PowerPcAsm::bge(3)),
+    asm_.append(PowerPcAsm::cmplwi(5, 0x80)),
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    asm_.append(PowerPcAsm::subi(5, 5, 0x6)),
+    asm_.append(PowerPcAsm::cmplwi(5, 0x1000)),
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    return asm_;
+}
+
+
 QVector<quint32> EventSquare::writeGetTextureForCustomSquareRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 eventSquareFormatAddr, quint32 eventSquareTextureAddr) {
     // precondition:
     //                r0 - districtId*4
@@ -213,8 +291,6 @@ QVector<quint32> EventSquare::writeGetTextureForCustomSquareRoutine(const Addres
     // addi       r4=>s_ui_chancecard_%03d_80426fbb,r4,offset s_
     // crxor      4*cr1+eq,4*cr1+eq,4*cr1+eq
     // bl         sprintf
-
-
 
     return asm_;
 }
