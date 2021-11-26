@@ -59,7 +59,7 @@ jobs:
       with:
         submodules: true
 
-    - name: Install mxml
+    - name: Build mxml
       working-directory: ${{github.workspace}}
       shell: bash
       run: |
@@ -67,7 +67,7 @@ jobs:
         ./configure
         mingw32-make
 
-    - name: Install yaml-cpp
+    - name: Build yaml-cpp
       working-directory: ${{github.workspace}}
       run: |
         cd lib/yaml-cpp
