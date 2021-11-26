@@ -68,10 +68,6 @@ enum SquareType : quint16 {
     VacantPlot = 0x30,
 };
 
-QString squareTypeToText(SquareType type);
-SquareType textToSquareType(QString string);
-QList<QString> squareTexts();
-
 struct SquareData {
     static constexpr size_t SIZE = 0x20;
 
@@ -89,9 +85,6 @@ struct SquareData {
     quint16 price = 0;
     quint8 unknown2 = 0;
     quint8 shopModel = 0;
-
-    void updateValueFromShopModel();
-    void updatePriceFromValue();
 
     friend QDataStream &operator>>(QDataStream &stream, SquareData &data);
     friend QDataStream &operator<<(QDataStream &stream, const SquareData &data);
@@ -173,9 +166,5 @@ struct BoardFile {
 private:
     Header header;
 };
-
-QString shopTypeToText(quint8 shopType);
-quint8 textToShopType(QString string);
-QList<QString> shopTexts();
 
 #endif // FORTUNESTREETDATA_H
