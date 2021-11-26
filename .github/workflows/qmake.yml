@@ -91,13 +91,15 @@ jobs:
       working-directory: ${{github.workspace}}
       run: mingw32-make
 
-    - name: Deploy
-      working-directory: ${{github.workspace}}/release
-      run: windeployqt 'CSMM.exe'
-
     - name: Rename
       working-directory: ${{github.workspace}}
-      run: mv release csmm-$env:VERSION_NAME
+      run: |
+        mkdir csmm-$env:VERSION_NAME
+        mv release/CSMM.exe csmm-$env:VERSION_NAME/CSMM.exe
+
+    - name: Deploy
+      working-directory: ${{github.workspace}}/release
+      run: windeployqt csmm-$env:VERSION_NAME/CSMM.exe
 
     - name: Copy dlls
       run: |
