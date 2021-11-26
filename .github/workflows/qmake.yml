@@ -93,13 +93,15 @@ jobs:
 
     - name: Rename
       working-directory: ${{github.workspace}}
+      shell: bash
       run: |
-        mkdir csmm-$env:VERSION_NAME
-        mv release/CSMM.exe csmm-$env:VERSION_NAME/CSMM.exe
+        mkdir "csmm-$VERSION_NAME"
+        mv "release/CSMM.exe" "csmm-$VERSION_NAME/CSMM.exe"
 
     - name: Deploy
       working-directory: ${{github.workspace}}/release
-      run: windeployqt csmm-$env:VERSION_NAME/CSMM.exe
+      shell: bash
+      run: windeployqt "csmm-$VERSION_NAME/CSMM.exe"
 
     - name: Copy dlls
       run: |
