@@ -44,6 +44,15 @@ SOURCES += \
     lib/benzin/memfile.c \
     lib/benzin/xml.c \
     lib/brsar.cpp \
+    lib/bsdiff/bsdifflib.c \
+    lib/bsdiff/bspatchlib.c \
+    lib/bsdiff/bzip2/blocksort.c \
+    lib/bsdiff/bzip2/bzlib.c \
+    lib/bsdiff/bzip2/compress.c \
+    lib/bsdiff/bzip2/crctable.c \
+    lib/bsdiff/bzip2/decompress.c \
+    lib/bsdiff/bzip2/huffman.c \
+    lib/bsdiff/bzip2/randtable.c \
     lib/configuration.cpp \
     lib/dolio/backgroundtable.cpp \
     lib/dolio/bgmidtable.cpp \
@@ -106,6 +115,12 @@ HEADERS += \
     lib/benzin/types.h \
     lib/benzin/xml.h \
     lib/brsar.h \
+    lib/bsdiff/bsdiff.h \
+    lib/bsdiff/bsdifflib.h \
+    lib/bsdiff/bspatch.h \
+    lib/bsdiff/bspatchlib.h \
+    lib/bsdiff/bzip2/bzlib.h \
+    lib/bsdiff/bzip2/bzlib_private.h \
     lib/configuration.h \
     lib/datafileset.h \
     lib/dolio/backgroundtable.h \
