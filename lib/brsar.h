@@ -175,7 +175,7 @@ struct File {
 };
 
 void patch(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors);
-bool isVanilla(QDataStream &stream);
+bool containsCsmmEntries(QDataStream &stream);
 
 }
 

@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>Itast.csmm.brsar</file>
+        <file>Itast.brsar.bsdiff</file>
     </qresource>
 </RCC>

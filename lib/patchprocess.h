@@ -4,7 +4,6 @@
 #include <QDir>
 #include <QFuture>
 #include <QVector>
-#include <QCryptographicHash>
 #include "mapdescriptor.h"
 
 namespace PatchProcess {
@@ -45,6 +44,10 @@ namespace PatchProcess {
 
     bool hasWiimmfiText(const QDir &dir);
 
+    QString getFileCopy(const QString &file, const QDir &dir);
+
+    QString applyBspatch(const QString &oldfile, const QString &newfile, const QString &patchfile);
+
     class Exception : public QException {
     public:
         Exception(const QString &msgVal);
@@ -56,16 +59,7 @@ namespace PatchProcess {
     };
 
     static const QString originalItsarBrsarSha1 = "0d79aa07533c23d1724bf130743e78a101191a16";
-    static QString fileSha1(const QString &fileName) {
-        QFile f(fileName);
-        if (f.open(QFile::ReadOnly)) {
-            QCryptographicHash hash(QCryptographicHash::Sha1);
-            if (hash.addData(&f)) {
-                return hash.result().toHex();
-            }
-        }
-        return QByteArray().toHex();
-    }
+    QString fileSha1(const QString &fileName);
 }
 
 #endif // PATCHPROCESS_H

@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTemporaryDir>
+#include <QCryptographicHash>
 #include "asyncfuture.h"
 #include "datafileset.h"
 #include "exewrapper.h"
@@ -12,7 +13,7 @@
 #include "vanilladatabase.h"
 #include "zip/zip.h"
 #include "brsar.h"
-#include <QMessageBox>
+#include "bsdiff/bspatchlib.h"
 
 namespace PatchProcess {
 
@@ -421,49 +422,87 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
             QFile::copy(brstmFileFrom, brstmFileTo);
         }
     }
-    // copy special csmm brsar file from program dir to sound folder and patch it
-    auto brsarFileFrom = ":/Itast.csmm.brsar";
-    auto brsarFileTo = output.filePath(SOUND_FOLDER+"/Itast.brsar");
-    QFileInfo brsarFileToInfo(brsarFileTo);
-    bool copyCsmmBrsar = false;
-    // check if the target file already is a csmm brsar
-    if (brsarFileToInfo.exists() && brsarFileToInfo.isFile()) {
-        QFile brsarFile(brsarFileTo);
-        if (brsarFile.open(QIODevice::ReadOnly)) {
-            QDataStream stream(&brsarFile);
-            if(Brsar::isVanilla(stream)) {
-                copyCsmmBrsar = true;
-            }
-            brsarFile.close();
-        }
-    } else {
-        copyCsmmBrsar = true;
-    }
-    QFileInfo brsarFileFromInfo(brsarFileFrom);
-    if (brsarFileFromInfo.exists() && brsarFileFromInfo.isFile()) {
-        if(copyCsmmBrsar) {
-            QFile(brsarFileTo).remove();
-            if(!QFile::copy(brsarFileFrom, brsarFileTo)) {
-                throw Exception(QString("Could not copy file %1 to %2").arg(brsarFileFrom, brsarFileTo));
+    // patch the vanilla Itast.brsar to have special CSMM entries using the included bsdiff file
+    auto brsarFilePath = output.filePath(SOUND_FOLDER+"/Itast.brsar");
+    QFileInfo brsarFileInfo(brsarFilePath);
+    if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
+        QFile brsarFile(brsarFilePath);
+        if (fileSha1(brsarFilePath) == originalItsarBrsarSha1) {
+            QString errors = applyBspatch(brsarFilePath, brsarFilePath, ":/Itast.brsar.bsdiff");
+            if(!errors.isEmpty()) {
+                throw Exception(QString("Errors occured when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(brsarFilePath, errors));
             }
         }
-        QFile brsarFile(brsarFileTo);
-        // if the brsar file is not writable or readable, set the permissions
-        if(!brsarFile.isWritable() || !brsarFile.isReadable()) {
-            brsarFile.setPermissions(QFile::WriteUser | QFile::ReadUser);
-        }
+        // patch the special csmm entries in the brsar file
         if (brsarFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&brsarFile);
-            // brsar patch will also update the brsar indices in the music property of the mapdescriptors which will
-            // be needed later on when we apply the asm patch
-            Brsar::patch(stream, descriptors);
+            if(Brsar::containsCsmmEntries(stream)) {
+                stream.device()->seek(0);
+                Brsar::patch(stream, descriptors);
+            } else {
+                throw Exception(QString("The brsar file %1 does not contain CSMM entries. You must either start with a vanilla fortune street or use Tools->Save Clean Itast.csmm.brsar").arg(brsarFilePath));
+            }
             brsarFile.close();
         } else {
-            throw Exception(QString("Could not open file %1 for read/write. %2").arg(brsarFileTo, brsarFile.errorString()));
+            throw Exception(QString("Could not open file %1 for read/write. %2").arg(brsarFilePath, brsarFile.errorString()));
         }
     } else {
-        throw Exception(QString("Could not find %1").arg(brsarFileFrom));
+        throw Exception(QString("The file %1 does not exist.").arg(brsarFilePath));
     }
+}
+
+QString applyBspatch(const QString &oldfile, const QString &newfile, const QString &patchfile) {
+    char* errs;
+    if(patchfile.startsWith(":/")) {
+        QTemporaryDir tmpDir;
+        auto newPatchfile = getFileCopy(patchfile, tmpDir.path());
+        QByteArray oldFileBytes = oldfile.toLocal8Bit();
+        char* oldFileChars = oldFileBytes.data();
+        QByteArray newfileBytes = newfile.toLocal8Bit();
+        char* newfileChars = newfileBytes.data();
+        QByteArray patchfileBytes = newPatchfile.toLocal8Bit();
+        char* patchfileChars = patchfileBytes.data();
+        errs = bspatch(oldFileChars, newfileChars, patchfileChars);
+    } else {
+        QByteArray oldFileBytes = oldfile.toLocal8Bit();
+        char* oldFileChars = oldFileBytes.data();
+        QByteArray newfileBytes = newfile.toLocal8Bit();
+        char* newfileChars = newfileBytes.data();
+        QByteArray patchfileBytes = patchfile.toLocal8Bit();
+        char* patchfileChars = patchfileBytes.data();
+        errs = bspatch(oldFileChars, newfileChars, patchfileChars);
+    }
+    if(errs == NULL)
+        return QString();
+    else
+        return QString(errs);
+}
+
+QString getFileCopy(const QString &fileName, const QDir &dir) {
+    // copy the file to dir
+    QFileInfo fileInfo(fileName);
+    auto fileFrom = fileName;
+    auto fileTo = dir.filePath(fileInfo.fileName());
+    if(!QFile::copy(fileFrom, fileTo)) {
+        throw Exception(QString("Could not copy file %1 to %2").arg(fileFrom, fileTo));
+    }
+    QFile file(fileTo);
+    // if the file is not writable or readable, set the permissions
+    if(!file.isWritable() || !file.isReadable()) {
+        file.setPermissions(QFile::WriteUser | QFile::ReadUser);
+    }
+    return fileTo;
+}
+
+QString fileSha1(const QString &fileName) {
+   QFile f(fileName);
+   if (f.open(QFile::ReadOnly)) {
+       QCryptographicHash hash(QCryptographicHash::Sha1);
+       if (hash.addData(&f)) {
+           return hash.result().toHex();
+       }
+   }
+   return QByteArray().toHex();
 }
 
 QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {

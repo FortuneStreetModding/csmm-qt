@@ -116,22 +116,24 @@ void MainWindow::loadMapList() {
 }
 
 void MainWindow::saveCleanItastCsmmBrsar() {
+    auto openFile = QFileDialog::getOpenFileName(this, "Open vanilla Itast.brsar", "Itast.brsar", "Vanilla Fortune Street Binary Sound Archive (*.brsar)");
+    if (openFile.isEmpty()) return;
+    QFileInfo openFileInfo(openFile);
+
+    if (PatchProcess::fileSha1(openFile) != PatchProcess::originalItsarBrsarSha1) {
+        QMessageBox::information(this, "Wrong Itast.brsar", QString("The provided file %1 is not a vanilla Itast.brsar").arg(openFile));
+        return;
+    }
+
     auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)");
     if (saveFile.isEmpty()) return;
-    auto brsarFileFrom = ":/Itast.csmm.brsar";
-    auto brsarFileTo = saveFile;
-    QFileInfo brsarFileToInfo(brsarFileTo);
-    if(brsarFileToInfo.exists()) {
-        QFile::remove(brsarFileTo);
+
+    QString errors = PatchProcess::applyBspatch(openFile, saveFile, ":/Itast.brsar.bsdiff");
+    if(!errors.isEmpty()) {
+        QMessageBox::critical(this, "Open", QString("Errors occurred when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(openFile).arg(errors));
     }
-    if(!QFile::copy(brsarFileFrom, brsarFileTo)) {
-        QMessageBox::critical(this, "Open", QString("Could not save to %1").arg(brsarFileTo));
-    } else {
-        if(!brsarFileToInfo.isWritable() || !brsarFileToInfo.isReadable()) {
-            QFile(brsarFileTo).setPermissions(QFile::WriteUser | QFile::ReadUser);
-        }
-        QMessageBox::information(this, "Save", QString("Saved to %1").arg(brsarFileTo));
-    }
+
+    QMessageBox::information(this, "Save", QString("Saved to %1").arg(saveFile));
 }
 
 void MainWindow::openFile() {
