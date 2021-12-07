@@ -451,6 +451,21 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
     }
 }
 
+/*
+ * @brief patches the font_ma_alps_gaiji.brfna file in the font directory to contain additional font icon images (the different dice symbols in e.g. venture card 34)
+ */
+void patchFont(const QDir &output) {
+    auto brfnaFile = output.filePath(FONT_FOLDER+"/font_ma_alps_gaiji.brfna");
+    if (PatchProcess::fileSha1(brfnaFile) != PatchProcess::originalFontBrfnaSha1) {
+        qDebug() << "Not patched: " << brfnaFile;
+        return;
+    }
+    QString errors = applyBspatch(brfnaFile, brfnaFile, ":/font_ma_alps_gaiji.brfna.bsdiff");
+    if(!errors.isEmpty()) {
+        throw Exception(QString("Errors occured when applying font_ma_alps_gaiji.brfna.bsdiff patch to file %1:\n%2").arg(brfnaFile, errors));
+    }
+}
+
 QString applyBspatch(const QString &oldfile, const QString &newfile, const QString &patchfile) {
     char* errs;
     if(patchfile.startsWith(":/")) {
@@ -508,6 +523,7 @@ QString fileSha1(const QString &fileName) {
 QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     brstmInject(output, descriptors, tmpDir);
+    patchFont(output);
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);

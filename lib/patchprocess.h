@@ -59,6 +59,7 @@ namespace PatchProcess {
     };
 
     static const QString originalItsarBrsarSha1 = "0d79aa07533c23d1724bf130743e78a101191a16";
+    static const QString originalFontBrfnaSha1 = "4BA928422CD805B8387D3AD931461CA5CDA616F0";
     QString fileSha1(const QString &fileName);
 }
 
