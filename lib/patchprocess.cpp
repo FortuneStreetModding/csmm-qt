@@ -428,7 +428,7 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
     if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
         QFile brsarFile(brsarFilePath);
         if (fileSha1(brsarFilePath) == originalItsarBrsarSha1) {
-            QString errors = applyBspatch(brsarFilePath, brsarFilePath, ":/Itast.brsar.bsdiff");
+            QString errors = applyBspatch(brsarFilePath, brsarFilePath, ":/" + SOUND_FOLDER + "/Itast.brsar.bsdiff");
             if(!errors.isEmpty()) {
                 throw Exception(QString("Errors occured when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(brsarFilePath, errors));
             }
@@ -460,7 +460,7 @@ void patchFont(const QDir &output) {
         qDebug() << "Not patched: " << brfnaFile;
         return;
     }
-    QString errors = applyBspatch(brfnaFile, brfnaFile, ":/font_ma_alps_gaiji.brfna.bsdiff");
+    QString errors = applyBspatch(brfnaFile, brfnaFile, ":/" + FONT_FOLDER + "/font_ma_alps_gaiji.brfna.bsdiff");
     if(!errors.isEmpty()) {
         throw Exception(QString("Errors occured when applying font_ma_alps_gaiji.brfna.bsdiff patch to file %1:\n%2").arg(brfnaFile, errors));
     }

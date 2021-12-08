@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>font_ma_alps_gaiji.brfna.bsdiff</file>
-        <file>Itast.brsar.bsdiff</file>
+        <file>files/font/font_ma_alps_gaiji.brfna.bsdiff</file>
+        <file>files/sound/Itast.brsar.bsdiff</file>
     </qresource>
 </RCC>

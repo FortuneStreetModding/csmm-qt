@@ -22,6 +22,7 @@
 #include "downloadclidialog.h"
 #include "validationerrordialog.h"
 #include "lib/configuration.h"
+#include "lib/datafileset.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -128,7 +129,7 @@ void MainWindow::saveCleanItastCsmmBrsar() {
     auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)");
     if (saveFile.isEmpty()) return;
 
-    QString errors = PatchProcess::applyBspatch(openFile, saveFile, ":/Itast.brsar.bsdiff");
+    QString errors = PatchProcess::applyBspatch(openFile, saveFile, ":/" + SOUND_FOLDER + "/Itast.brsar.bsdiff");
     if(!errors.isEmpty()) {
         QMessageBox::critical(this, "Open", QString("Errors occurred when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(openFile).arg(errors));
     }
