@@ -72,6 +72,9 @@ SOURCES += \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
+    lib/dolio/mutatorrollshoppricemultiplier.cpp \
+    lib/dolio/mutatorshoppricemultiplier.cpp \
+    lib/dolio/mutatortable.cpp \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
@@ -87,6 +90,10 @@ SOURCES += \
     lib/freespacemanager.cpp \
     lib/maindol.cpp \
     lib/mapdescriptor.cpp \
+    lib/mutator/mutator.cpp \
+    lib/mutator/rollagain.cpp \
+    lib/mutator/rollshoppricemultiplier.cpp \
+    lib/mutator/shoppricemultiplier.cpp \
     lib/patchprocess.cpp \
     lib/powerpcasm.cpp \
     lib/pugixml/pugixml.cpp \
@@ -141,6 +148,9 @@ HEADERS += \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
+    lib/dolio/mutatorrollshoppricemultiplier.h \
+    lib/dolio/mutatorshoppricemultiplier.h \
+    lib/dolio/mutatortable.h \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
@@ -158,6 +168,10 @@ HEADERS += \
     lib/maindol.h \
     lib/mapdescriptor.h \
     lib/music.h \
+    lib/mutator/mutator.h \
+    lib/mutator/rollagain.h \
+    lib/mutator/rollshoppricemultiplier.h \
+    lib/mutator/shoppricemultiplier.h \
     lib/orderedmap.h \
     lib/patchprocess.h \
     lib/powerpcasm.h \

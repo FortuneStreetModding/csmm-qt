@@ -13,6 +13,7 @@ namespace PowerPcAsm {
 
     static constexpr quint32 lwzx_opcode = 0x7c00002e;
     static constexpr quint32 lwz_opcode = 0x80000000;
+    static constexpr quint32 lwzu_opcode = 0x84000000;
     static constexpr quint32 lbz_opcode = 0x88000000;
     static constexpr quint32 stbx_opcode = 0x7c0001ae;
     static constexpr quint32 stb_opcode = 0x98000000;
@@ -23,8 +24,11 @@ namespace PowerPcAsm {
     static constexpr quint32 addi_opcode = li_opcode;
     static constexpr quint32 addis_opcode = lis_opcode;
     static constexpr quint32 mulli_opcode = 0x1c000000;
+    static constexpr quint32 mullw_opcode = 0x7c0001d6;
+    static constexpr quint32 divwu_opcode = 0x7c000396;
     static constexpr quint32 add_opcode = 0x7c000214;
     static constexpr quint32 lha_opcode = 0xa8000000;
+    static constexpr quint32 lhz_opcode = 0xa0000000;
 
     static constexpr quint32 cmpw_opcode = 0x7c000000;
     static constexpr quint32 cmplw_opcode = 0x7c000040;
@@ -53,6 +57,7 @@ namespace PowerPcAsm {
     quint32 lis(quint8 reg, qint16 value);
     quint32 subi(quint8 register1, quint8 register2, qint16 value);
     quint32 lha(quint8 register1, qint16 value, quint8 register2);
+    quint32 lhz(quint8 register1, qint16 value, quint8 register2);
     quint32 addi(quint8 register1, quint8 register2, qint16 value);
     quint32 addis(quint8 register1, quint8 register2, qint16 value);
     quint32 add(quint8 register1, quint8 register2, quint8 register3);
@@ -61,11 +66,14 @@ namespace PowerPcAsm {
     quint32 mr(quint8 register1, quint8 register2);
     quint32 cmpw(quint8 register1, quint8 register2);
     quint32 mulli(quint8 register1, quint8 register2, qint16 value);
+    quint32 mullw(quint8 register1, quint8 register2, quint8 register3);
+    quint32 divwu(quint8 register1, quint8 register2, quint8 register3);
     quint32 cmplw(quint8 register1, quint8 register2);
     quint32 bl(quint32 startPos, quint32 targetPos);
     quint32 bl(quint32 startPos, qint32 offset, quint32 targetPos);
     quint32 b(quint32 startPos, quint32 targetPos);
     quint32 b(quint32 startPos, qint32 offset, quint32 targetPos);
+    quint32 b(qint32 currentPos, qint32 targetPos);
     quint32 b(qint32 offset);
     quint32 blt(quint32 currentPos, quint32 targetPos);
     quint32 blt(qint32 currentPos, qint32 targetPos);
@@ -87,6 +95,7 @@ namespace PowerPcAsm {
     quint32 mtlr(quint8 reg);
     quint32 lwzx(quint8 register1, quint8 register2, quint8 register3);
     quint32 lwz(quint8 register1, qint16 value, quint8 register2);
+    quint32 lwzu(quint8 register1, qint16 value, quint8 register2);
     quint32 lbz(quint8 register1, qint16 value, quint8 register2);
     quint32 srw(quint8 register1, quint8 register2, quint8 register3);
     quint32 slw(quint8 register1, quint8 register2, quint8 register3);

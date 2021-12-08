@@ -9,6 +9,7 @@
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
 #include "lib/configuration.h"
+#include "lib/datafileset.h"
 
 namespace maincli {
 
@@ -345,10 +346,21 @@ void run(QStringList arguments)
                 try {
                     Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, intermediateDir.path());
 
+                    QString dolOriginalPath(sourceDir.filePath(MAIN_DOL));
+                    QString dolBackupPath(sourceDir.filePath(MAIN_DOL) + ".bak");
+                    QFile dolOriginal(dolOriginalPath);
+                    QFile dolBackup(dolBackupPath);
+                    if(dolBackup.exists()) {
+                        dolOriginal.remove();
+                        dolBackup.copy(dolOriginalPath);
+                    } else {
+                        dolOriginal.copy(dolBackupPath);
+                    }
+
                     if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0) {
                         await(PatchProcess::saveDir(sourceDir, descriptors, false, intermediateDir.path()));
                     } else {
-                        cout << "**> The game will be saved with Wiimmfi enabled. However, it will only work after packing it to a wbfs/iso using csmm pack command.\n";
+                        cout << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.\n";
                         cout << "\n";
                         cout.flush();
                         await(PatchProcess::saveDir(sourceDir, descriptors, true, intermediateDir.path()));
@@ -360,7 +372,7 @@ void run(QStringList arguments)
                 } catch (const YAML::Exception &exception) {
                     cout << QString("Error loading the map: %1").arg(exception.what());
                 }
-                file.remove();
+                // file.remove();
             } else {
                 cout << "There are no pending changes to save. Run csmm import first.";
             }

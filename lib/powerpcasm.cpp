@@ -35,6 +35,9 @@ quint32 subi(quint8 register1, quint8 register2, qint16 value) {
 quint32 lha(quint8 register1, qint16 value, quint8 register2) {
     return lha_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
+quint32 lhz(quint8 register1, qint16 value, quint8 register2) {
+    return lhz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
+}
 quint32 addi(quint8 register1, quint8 register2, qint16 value) {
     if(register2==0) throw ExeWrapper::Exception(QString("addi: register2 must not be 0"));
     return addi_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
@@ -60,6 +63,12 @@ quint32 cmpw(quint8 register1, quint8 register2) {
 quint32 mulli(quint8 register1, quint8 register2, qint16 value) {
     return mulli_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
+quint32 mullw(quint8 register1, quint8 register2, quint8 register3) {
+    return mullw_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
+}
+quint32 divwu(quint8 register1, quint8 register2, quint8 register3) {
+    return divwu_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
+}
 quint32 cmplw(quint8 register1, quint8 register2) {
     return cmplw_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 11);
 }
@@ -76,6 +85,10 @@ quint32 b(quint32 startPos, quint32 targetPos) {
 }
 quint32 b(quint32 startPos, qint32 offset, quint32 targetPos) {
     return b(startPos + offset * 4, targetPos);
+}
+quint32 b(qint32 currentPos, qint32 targetPos) {
+    quint32 offset = (4 * (targetPos - currentPos) >> 2) & 0x00FFFFFF;
+    return b_opcode + (offset << 2);
 }
 quint32 b(qint32 offset) {
     return b_opcode + ((4 * offset) & 0x0000FFFF);
@@ -137,6 +150,9 @@ quint32 lwzx(quint8 register1, quint8 register2, quint8 register3) {
 quint32 lwz(quint8 register1, qint16 value, quint8 register2) {
     if (register2 == 0) throw ExeWrapper::Exception(QString("lwz: register2 must not be 0"));
     return lwz_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
+}
+quint32 lwzu(quint8 register1, qint16 value, quint8 register2) {
+    return lwzu_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 lbz(quint8 register1, qint16 value, quint8 register2) {
     if (register2 == 0) throw ExeWrapper::Exception(QString("lbz: register2 must not be 0"));
