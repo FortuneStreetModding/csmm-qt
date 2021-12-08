@@ -427,7 +427,7 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
     QFileInfo brsarFileInfo(brsarFilePath);
     if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
         QFile brsarFile(brsarFilePath);
-        if (fileSha1(brsarFilePath) == originalItsarBrsarSha1) {
+        if (fileSha1(brsarFilePath) == PatchProcess::getSha1OfVanillaFileName("sound/Itast.brsar")) {
             QString errors = applyBspatch(brsarFilePath, brsarFilePath, ":/" + SOUND_FOLDER + "/Itast.brsar.bsdiff");
             if(!errors.isEmpty()) {
                 throw Exception(QString("Errors occured when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(brsarFilePath, errors));
@@ -456,7 +456,7 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
  */
 void patchFont(const QDir &output) {
     auto brfnaFile = output.filePath(FONT_FOLDER+"/font_ma_alps_gaiji.brfna");
-    if (PatchProcess::fileSha1(brfnaFile) != PatchProcess::originalFontBrfnaSha1) {
+    if (PatchProcess::fileSha1(brfnaFile) != PatchProcess::getSha1OfVanillaFileName(FONT_FOLDER+"/font_ma_alps_gaiji.brfna")) {
         qDebug() << "Not patched: " << brfnaFile;
         return;
     }
@@ -507,6 +507,16 @@ QString getFileCopy(const QString &fileName, const QDir &dir) {
         file.setPermissions(QFile::WriteUser | QFile::ReadUser);
     }
     return fileTo;
+}
+
+QString getSha1OfVanillaFileName(const QString &vanillaFileName) {
+    QFile f(":/files/sha1.yaml");
+    if (f.open(QFile::ReadOnly)) {
+        QString contents = f.readAll();
+        auto yaml = YAML::Load(contents.toStdString());
+        return QString::fromStdString(yaml[vanillaFileName.toStdString()].as<std::string>());
+    }
+    return "";
 }
 
 QString fileSha1(const QString &fileName) {
