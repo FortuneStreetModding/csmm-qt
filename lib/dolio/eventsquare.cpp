@@ -120,6 +120,14 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // bl Game::uitext::get_string   -> bl customDescriptionRoutine
     stream << PowerPcAsm::bl(virtualPos, customDescriptionRoutine);
 
+    // --- Seperate icons for dice in the description of event square ---
+    // This is needed because otherwise the game will use dice icons which are transparent. This does not look good on the transparent background of the description box.
+    // -> Instead we want to use opaque dice icons.
+
+    // TODO: This should only apply in description of event square, not in description of venture card
+    // addi r0,r4,0x85   -> r0,r4,0xAD
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8010f628)); stream << PowerPcAsm::addi(0,4,0xAD);
+
     // --- Behavior ---
     // the idea is that whenever someone stops at the event square, it sets our custom variable "ForceVentureCardVariable" to the id of the venture card and runs the Venture Card Mode (0x1c).
     // The custom variable is used to remember which venture card should be played the next time a venture card is executed.
