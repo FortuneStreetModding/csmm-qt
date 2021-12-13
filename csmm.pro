@@ -78,6 +78,7 @@ SOURCES += \
     lib/exewrapper.cpp \
     lib/fortunestreetdata.cpp \
     lib/freespacemanager.cpp \
+    lib/lz77.cpp \
     lib/maindol.cpp \
     lib/mapdescriptor.cpp \
     lib/patchprocess.cpp \
@@ -147,6 +148,7 @@ HEADERS += \
     lib/fortunestreetdata.h \
     lib/freespacemanager.h \
     lib/fslocale.h \
+    lib/lz77.h \
     lib/maindol.h \
     lib/mapdescriptor.h \
     lib/music.h \
