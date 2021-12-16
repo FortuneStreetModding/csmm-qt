@@ -526,6 +526,11 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
     }).subscribe([=]() {
         return packTurnlots(descriptors, output, tmpDir);
     }).subscribe([=]() {
+        if (!patchResultBoardName) {
+            auto def = AsyncFuture::deferred<void>();
+            def.complete();
+            return def.future();
+        }
         return widenResultsMapBox(output, tmpDir);
     });
     return fut.subscribe([=]() {
