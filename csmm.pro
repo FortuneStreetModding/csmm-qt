@@ -82,6 +82,7 @@ SOURCES += \
     lib/patchprocess.cpp \
     lib/powerpcasm.cpp \
     lib/pugixml/pugixml.cpp \
+    lib/resultscenes.cpp \
     lib/uimenu1900a.cpp \
     lib/uimessage.cpp \
     lib/vanilladatabase.cpp \
@@ -150,6 +151,7 @@ HEADERS += \
     lib/powerpcasm.h \
     lib/pugixml/pugiconfig.hpp \
     lib/pugixml/pugixml.hpp \
+    lib/resultscenes.h \
     lib/uimenu1900a.h \
     lib/uimessage.h \
     lib/vanilladatabase.h \
