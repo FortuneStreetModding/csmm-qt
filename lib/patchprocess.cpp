@@ -31,6 +31,10 @@ static void loadUiMessages(QVector<MapDescriptor> &descriptors, const QDir &dir)
             }
             descriptor.names[locale] = uiMessages[locale].value(descriptor.nameMsgId);
             descriptor.descs[locale] = uiMessages[locale].value(descriptor.descMsgId);
+            descriptor.districtNames[locale].clear();
+            for (int i=0; i<descriptor.districtNameIds.size(); ++i) {
+                descriptor.districtNames[locale].append(uiMessages[locale].value(descriptor.districtNameIds[i]));
+            }
         }
         descriptor.readFrbFileInfo(dir.filePath(PARAM_FOLDER));
     }
@@ -95,6 +99,9 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
             if (mapDescriptor.descMsgId > 0) {
                 uiMessages[locale].remove(mapDescriptor.descMsgId);
             }
+            for (quint32 districtNameId: qAsConst(mapDescriptor.districtNameIds)) {
+                if (districtNameId > 0) uiMessages[locale].remove(districtNameId);
+            }
         }
     }
     // make new msg ids
@@ -124,6 +131,26 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
                 uiMessage[mapDescriptor.descMsgId] = mapDescriptor.descs["en"];
             } else {
                 uiMessage[mapDescriptor.descMsgId] = mapDescriptor.descs[locale];
+            }
+        }
+        int dnsz = mapDescriptor.districtNames["en"].size();
+        mapDescriptor.districtNameIds = QVector<quint32>(dnsz);
+        for (int i=0; i<dnsz; ++i) {
+            // NOTE: We need to make sure that the district name ids for each map are contiguous
+            // due to the way that Fortune Street searches the district name.
+            mapDescriptor.districtNameIds[i] = msgId++;
+            for (auto it=uiMessages.begin(); it!=uiMessages.end(); ++it) {
+                auto locale = it.key();
+                auto &uiMessage = it.value();
+                // write EN messages to the UK file as well (we are not differentiating here)
+                if (locale == "uk") locale = "en";
+                // if there is no localization for this locale, use the english variant as default
+                if (!mapDescriptor.districtNames.contains(locale)
+                        || i >= mapDescriptor.districtNames[locale].size()) {
+                    uiMessage[mapDescriptor.districtNameIds[i]] = mapDescriptor.districtNames["en"][i];
+                } else {
+                    uiMessage[mapDescriptor.districtNameIds[i]] = mapDescriptor.districtNames[locale][i];
+                }
             }
         }
     }

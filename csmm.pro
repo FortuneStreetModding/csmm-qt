@@ -24,7 +24,7 @@ QT       += core gui network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++17
+CONFIG += c++2a
 CONFIG += console
 
 include(lib/qtshell/qtshell.pri)
@@ -63,6 +63,7 @@ SOURCES += \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
+    lib/dolio/nameddistricts.cpp \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
@@ -126,6 +127,7 @@ HEADERS += \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
+    lib/dolio/nameddistricts.h \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
@@ -172,9 +174,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
-
-DISTFILES += \
-    .travis.yml
 
 RESOURCES += \
     csmm.qrc

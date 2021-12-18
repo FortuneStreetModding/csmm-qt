@@ -16,8 +16,8 @@ BgmId getDefaultBgmId(const QString &background);
 bool hasDefaultBgmId(const QString &background);
 QString getDefaultMapIcon(const QString &background);
 bool hasDefaultMapIcon(const QString &background);
-bool isDefaultVentureCards(const bool ventureCards[], RuleSet ruleSet);
-void setDefaultVentureCards(RuleSet ruleSet, bool outVentureCards[]);
+bool isDefaultVentureCards(const std::array<bool, 128> &ventureCards, RuleSet ruleSet);
+void setDefaultVentureCards(RuleSet ruleSet, std::array<bool, 128> &outVentureCards);
 QSet<QString> getVanillaIcons();
 }
 

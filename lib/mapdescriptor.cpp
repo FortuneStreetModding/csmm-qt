@@ -126,9 +126,23 @@ QString MapDescriptor::toYaml() const {
     if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
         out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
         for (int i=0; i<128; ++i) {
-            out << YAML::Value << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
+            out << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
         }
         out << YAML::EndSeq;
+    }
+
+    if (!districtNames.empty()) {
+        out << YAML::Key << "districtNames" << YAML::Value << YAML::BeginMap;
+        for (auto &fslocale: FS_LOCALES) {
+            if (fslocale == "uk" || districtNames[fslocale].isEmpty())
+                continue;
+            out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginSeq;
+            for (auto &distName: districtNames[fslocale]) {
+                out << distName.toStdString();
+            }
+            out << YAML::EndSeq;
+        }
+        out << YAML::EndMap;
     }
 
     out << YAML::EndMap;
@@ -136,42 +150,6 @@ QString MapDescriptor::toYaml() const {
     out << YAML::EndDoc;
 
     return out.c_str();
-}
-
-bool MapDescriptor::operator==(const MapDescriptor &other) const {
-    return mapSet == other.mapSet
-            && zone == other.zone
-            && order == other.order
-            && isPracticeBoard == other.isPracticeBoard
-            && ruleSet == other.ruleSet
-            && initialCash == other.initialCash
-            && targetAmount == other.targetAmount
-            && baseSalary == other.baseSalary
-            && salaryIncrement == other.salaryIncrement
-            && maxDiceRoll == other.maxDiceRoll
-            && std::equal(std::begin(ventureCards), std::end(ventureCards), std::begin(other.ventureCards))
-            && std::equal(std::begin(frbFiles), std::end(frbFiles), std::begin(other.frbFiles))
-            && switchRotationOrigins == other.switchRotationOrigins
-            && theme == other.theme
-            && background == other.background
-            && bgmId == other.bgmId
-            && mapIcon == other.mapIcon
-            && music == other.music
-            && loopingMode == other.loopingMode
-            && loopingModeRadius == other.loopingModeRadius
-            && loopingModeHorizontalPadding == other.loopingModeHorizontalPadding
-            && loopingModeVerticalSquareCount == other.loopingModeVerticalSquareCount
-            && tourBankruptcyLimit == other.tourBankruptcyLimit
-            && tourInitialCash == other.tourInitialCash
-            && std::equal(std::begin(tourCharacters), std::end(tourCharacters), std::begin(other.tourCharacters))
-            && tourClearRank == other.tourClearRank
-            && unlockId == other.unlockId
-            && nameMsgId == other.nameMsgId
-            && descMsgId == other.descMsgId
-            && names == other.names
-            && descs == other.descs
-            && internalName == other.internalName
-            && mapDescriptorFilePath == other.mapDescriptorFilePath;
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
@@ -273,12 +251,24 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         }
     }
     if(yaml["ventureCards"]) {
-        for (quint32 i=0; i<sizeof(ventureCards); ++i) {
+        for (quint32 i=0; i<ventureCards.size(); ++i) {
             ventureCards[i] = yaml["ventureCards"][i].as<int>();
         }
     } else {
         VanillaDatabase::setDefaultVentureCards(ruleSet, ventureCards);
     }
+    if (yaml["districtNames"]) {
+        auto dnNode = yaml["districtNames"];
+        for (auto it=dnNode.begin(); it!=dnNode.end(); ++it) {
+            auto key = yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()));
+            districtNames[key].clear();
+            for (const auto &val: it->second) {
+                auto convVal = QString::fromStdString(val.as<std::string>());
+                districtNames[key].push_back(convVal);
+            }
+        }
+    }
+
     return true;
 }
 

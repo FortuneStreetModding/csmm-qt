@@ -19,7 +19,6 @@ struct SectionHeader {
 
 struct SectionBase {
     SectionBase(const SectionHeader *header) : header(header) {}
-    SectionBase(const SectionBase &other) : header(other.header) {}
     const SectionHeader *header;
 };
 
@@ -146,10 +145,6 @@ struct Entry {
         collectionEntry(collectionEntry),
         soundDataEntry(soundDataEntry),
         fileName(fileName) {}
-    Entry(const Entry &other) :
-        collectionEntry(other.collectionEntry),
-        soundDataEntry(other.soundDataEntry),
-        fileName(other.fileName) {}
     const InfoSectionCollectionEntry * collectionEntry;
     const InfoSectionSoundDataEntry * soundDataEntry;
     const QString * fileName;
