@@ -91,6 +91,7 @@ void run(QStringList arguments)
   discard         Discard the pending changes in a Fortune Street game directory.
   save            Save the pending changes in a Fortune Street game directory.
   pack            Pack a Fortune Street game directory to a disc image (pending changes must be saved prior).
+  download-tools  Downloads the external tools that CSMM requires.
 )").remove(0,1);
 
     parser.addPositionalArgument(QString(), QString(), "command");
@@ -447,6 +448,20 @@ void run(QStringList arguments)
                 await(ExeWrapper::patchWiimmfi(target));
             }
 
+        }
+    } else if (command == "download-tools") {
+        // --- discard ---
+        setupSubcommand(parser, "download-tools", "Download the external tools that CSMM requires.");
+
+        forceOption.setDescription("Force re-download of the tools even if they are already downloaded.");
+        parser.addOption(forceOption);
+
+        parser.process(arguments);
+
+        if(parser.isSet(helpOption)) {
+            cout << '\n' << parser.helpText();
+        } else {
+            auto force = parser.isSet(forceOption);
         }
     } else {
         cout << description;
