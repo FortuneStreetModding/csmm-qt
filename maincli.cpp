@@ -469,12 +469,20 @@ void run(QStringList arguments)
 
             if(force || !DownloadTools::requiredFilesAvailable()) {
                 QNetworkAccessManager manager(QCoreApplication::instance());
+
                 auto fut = DownloadTools::downloadAllRequiredFiles(&manager, [&](const QString &error) {
                     cout << error;
                     cout.flush();
                 }, parser.value(witUrlOption), parser.value(wszstUrlOption));
+                fut = AsyncFuture::observe(fut).subscribe([&]() {
+                    cout << "Successfuly downloaded and extracted the tools at:" << Qt::endl;
+                    cout << DownloadTools::getToolsLocation().path() << Qt::endl;
+                    cout.flush();
+                }).future();
                 await(fut);
-                cout << "Successfuly downloaded and extracted the programs.";
+            } else {
+                cout << "Required tools already available at:" << Qt::endl;
+                cout << DownloadTools::getToolsLocation().path() << Qt::endl;
                 cout.flush();
             }
         }
