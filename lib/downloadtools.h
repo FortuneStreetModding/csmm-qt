@@ -43,7 +43,7 @@ namespace DownloadTools
         QString message;
     };
 
-    bool requiredFilesAvailable() {
+    inline bool requiredFilesAvailable() {
         QDir appDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
         appDir.mkpath(".");
         QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
@@ -54,7 +54,7 @@ namespace DownloadTools
     }
 
     template<class ErrorCallback>
-    QFuture<void> downloadAllRequiredFiles(QNetworkAccessManager* manager, ErrorCallback func, QString witUrl, QString wszstUrl) {
+    inline QFuture<void> downloadAllRequiredFiles(QNetworkAccessManager* manager, ErrorCallback func, QString witUrl, QString wszstUrl) {
         QDir appDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
         auto downloadWit = downloadRequiredFiles(manager, witUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
@@ -84,7 +84,7 @@ namespace DownloadTools
     }
 
     template<class InToOutFiles>
-    QFuture<void> downloadRequiredFiles(QNetworkAccessManager* manager, QUrl url, InToOutFiles func) {
+    inline QFuture<void> downloadRequiredFiles(QNetworkAccessManager* manager, QUrl url, InToOutFiles func) {
         QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
         if (tempDir->isValid()) {
             auto witArchiveFile = new QFile(tempDir->filePath("temp_wit"), QApplication::instance());
