@@ -12,6 +12,7 @@
 #include "vanilladatabase.h"
 #include "zip/zip.h"
 #include "brsar.h"
+#include "resultscenes.h"
 #include <QMessageBox>
 
 namespace PatchProcess {
@@ -64,7 +65,7 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadOnly)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections);
+            MainDol mainDolObj(stream, addressSections, false);
             auto mapDescriptors = mainDolObj.readMainDol(stream);
             loadUiMessages(mapDescriptors, dir);
             return mapDescriptors;
@@ -231,14 +232,14 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     }
 }
 
-static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir) {
+static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchResultBoardName) {
     QString mainDol = dir.filePath(MAIN_DOL);
     return AsyncFuture::observe(ExeWrapper::readSections(mainDol))
             .subscribe([=](const QVector<AddressSection> &addressSections) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections);
+            MainDol mainDolObj(stream, addressSections, patchResultBoardName);
             //mainDolFile.resize(0);
             mainDolObj.writeMainDol(stream, mapDescriptors);
         }
@@ -509,14 +510,88 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
     }
 }
 
-QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
+static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
+    // t_m_00
+
+    QDir tmpDirObj(tmpDir.path());
+
+    /** maps the path of the various variants of the game_sequence_resultXXXXXXXX.arc files to their respective extraction path in the tmp directory */
+    auto gameResultExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the path of the various variants of the game_sequence_resultXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
+    auto gameResultToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    for (auto &locale: FS_LOCALES) {
+        auto gameResultPath = dir.filePath(gameSequenceResultArc(locale));
+
+        auto extractPath = tmpDirObj.filePath(QFileInfo(gameResultPath).baseName());
+        tmpDirObj.mkpath(extractPath);
+        (*gameResultExtractPaths)[gameResultPath] = extractPath;
+
+        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameResultPath).baseName() + "_");
+        tmpDirObj.mkpath(xmlytPath);
+        (*gameResultToXmlytBasePaths)[gameResultPath] = xmlytPath;
+    }
+    // extract the arc files
+    auto extractArcTasks = AsyncFuture::combine();
+    for (auto it=gameResultExtractPaths->begin(); it!=gameResultExtractPaths->end(); ++it) {
+        extractArcTasks << ExeWrapper::extractArcFile(it.key(), it.value());
+    }
+
+    return extractArcTasks.subscribe([=]() {
+        for (auto it = gameResultExtractPaths->begin(); it != gameResultExtractPaths->end(); ++it) {
+            auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_menu_011_scene.brlyt");
+            auto xmlytFile = QDir((*gameResultToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
+            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+            ResultScenes::widenResultTitle(xmlytFile);
+            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            {
+                QFile brlytFileObj(brlytFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+            }
+
+            brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_049_scene.brlyt");
+            xmlytFile = QDir((*gameResultToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
+            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+            ResultScenes::widenResultTitle(xmlytFile);
+            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            {
+                QFile brlytFileObj(brlytFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+            }
+        }
+
+        auto packArcFileTasks = AsyncFuture::combine();
+        for (auto it=gameResultExtractPaths->begin(); it!=gameResultExtractPaths->end(); ++it) {
+            packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
+        }
+        return packArcFileTasks.future();
+    }).future();
+}
+
+QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     brstmInject(output, descriptors, tmpDir);
-    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
+    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output, patchResultBoardName))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
     }).subscribe([=]() {
         return packTurnlots(descriptors, output, tmpDir);
+    }).subscribe([=]() {
+        if (!patchResultBoardName) {
+            auto def = AsyncFuture::deferred<void>();
+            def.complete();
+            return def.future();
+        }
+        return widenResultsMapBox(output, tmpDir);
     });
     return fut.subscribe([=]() {
         // copy frb files from temp dir to output

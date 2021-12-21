@@ -109,6 +109,7 @@ void run(QStringList arguments)
     QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption wiimmfiOption(QStringList() << "w" << "wiimmfi", "Whether to patch for wiimmfi or not <0=no | 1=yes (default)>.", "wiimmfi");
+    QCommandLineOption displayMapNameInResultsOption(QStringList() << "d" << "displayMapInResults", "Whether to display the map name in results screen <0=no | 1=yes (default)>", "displayMapInResults");
     QCommandLineOption witUrlOption("wit-url", "The URL where to download WIT", "url", WIT_URL);
     QCommandLineOption wszstUrlOption("wszst-url","The URL where to download WSZST", "url", WSZST_URL);
     QCommandLineOption helpOption(QStringList() << "h" << "?" << "help", "Show the help");
@@ -348,13 +349,15 @@ void run(QStringList arguments)
                 try {
                     Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, intermediateDir.path());
 
+                    bool displayMapNameInResultsScreenVal = !parser.isSet(displayMapNameInResultsOption) || parser.value(displayMapNameInResultsOption).toInt() != 0;
+
                     if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0) {
-                        await(PatchProcess::saveDir(sourceDir, descriptors, false, intermediateDir.path()));
+                        await(PatchProcess::saveDir(sourceDir, descriptors, false, displayMapNameInResultsScreenVal, intermediateDir.path()));
                     } else {
                         cout << "**> The game will be saved with Wiimmfi enabled. However, it will only work after packing it to a wbfs/iso using csmm pack command.\n";
                         cout << "\n";
                         cout.flush();
-                        await(PatchProcess::saveDir(sourceDir, descriptors, true, intermediateDir.path()));
+                        await(PatchProcess::saveDir(sourceDir, descriptors, true, displayMapNameInResultsScreenVal, intermediateDir.path()));
                     }
                     cout << "\n";
                     cout << "Pending changes have been saved\n";

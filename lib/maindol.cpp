@@ -25,14 +25,15 @@
 #include "dolio/venturecardtable.h"
 #include "dolio/wififix.h"
 #include "dolio/musictable.h"
+#include "dolio/displaymapinresults.h"
 #include "dolio/tinydistricts.h"
 #include "dolio/nameddistricts.h"
 #include "powerpcasm.h"
 
-MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections) {
+MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections, bool patchResultBoardName) {
     addressMapper = setupAddressMapper(stream, mappingSections);
     freeSpaceManager = setupFreeSpaceManager(addressMapper);
-    patches = setupPatches();
+    patches = setupPatches(patchResultBoardName);
 }
 
 AddressMapper MainDol::setupAddressMapper(QDataStream &stream, const QVector<AddressSection> &fileMappingSections) {
@@ -87,7 +88,7 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
     return result;
 }
 
-QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
+QVector<QSharedPointer<DolIO>> MainDol::setupPatches(bool patchResultBoardName) {
     QVector<QSharedPointer<DolIO>> patches;
     patches.append(QSharedPointer<DolIO>(new MapOriginTable()));
     // map description table must be after map origin table
@@ -120,6 +121,9 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches() {
     patches.append(QSharedPointer<DolIO>(new ForceSimulatedButtonPress()));
     patches.append(QSharedPointer<DolIO>(new WifiFix()));
     patches.append(QSharedPointer<DolIO>(new MusicTable()));
+    if (patchResultBoardName) {
+        patches.append(QSharedPointer<DolIO>(new DisplayMapInResults()));
+    }
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));
     patches.append(QSharedPointer<DolIO>(new NamedDistricts()));
 

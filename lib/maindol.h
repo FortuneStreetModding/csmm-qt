@@ -8,13 +8,13 @@ public:
     AddressMapper addressMapper;
     FreeSpaceManager freeSpaceManager;
     QVector<QSharedPointer<DolIO>> patches;
-    MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections);
+    MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections, bool patchResultBoardName);
     QVector<MapDescriptor> readMainDol(QDataStream &stream);
     QVector<MapDescriptor> writeMainDol(QDataStream &stream, const QVector<MapDescriptor> &mapDescriptors);
 private:
     AddressMapper setupAddressMapper(QDataStream &stream, const QVector<AddressSection> &fileMappingSections);
     FreeSpaceManager setupFreeSpaceManager(AddressMapper addressMapper);
-    QVector<QSharedPointer<DolIO>> setupPatches();
+    QVector<QSharedPointer<DolIO>> setupPatches(bool patchResultBoardName);
 };
 
 #endif // MAINDOL_H

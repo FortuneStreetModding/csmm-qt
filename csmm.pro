@@ -50,6 +50,7 @@ SOURCES += \
     lib/dolio/bgsequencetable.cpp \
     lib/dolio/defaulttargetamounttable.cpp \
     lib/dolio/designtypetable.cpp \
+    lib/dolio/displaymapinresults.cpp \
     lib/dolio/dolio.cpp \
     lib/dolio/doliotable.cpp \
     lib/dolio/eventsquare.cpp \
@@ -82,6 +83,7 @@ SOURCES += \
     lib/patchprocess.cpp \
     lib/powerpcasm.cpp \
     lib/pugixml/pugixml.cpp \
+    lib/resultscenes.cpp \
     lib/uimenu1900a.cpp \
     lib/uimessage.cpp \
     lib/vanilladatabase.cpp \
@@ -114,6 +116,7 @@ HEADERS += \
     lib/dolio/bgsequencetable.h \
     lib/dolio/defaulttargetamounttable.h \
     lib/dolio/designtypetable.h \
+    lib/dolio/displaymapinresults.h \
     lib/dolio/dolio.h \
     lib/dolio/doliotable.h \
     lib/dolio/eventsquare.h \
@@ -151,6 +154,7 @@ HEADERS += \
     lib/powerpcasm.h \
     lib/pugixml/pugiconfig.hpp \
     lib/pugixml/pugixml.hpp \
+    lib/resultscenes.h \
     lib/uimenu1900a.h \
     lib/uimessage.h \
     lib/vanilladatabase.h \

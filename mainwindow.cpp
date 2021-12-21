@@ -257,7 +257,7 @@ void MainWindow::exportToFolder() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpResourcesDir().path());
+            return PatchProcess::saveDir(saveDir, *descriptors, false, ui->actionDisplay_Map_Name_On_Results_Screen->isChecked(), ui->tableWidget->getTmpResourcesDir().path());
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
             throw exception;
@@ -304,6 +304,7 @@ void MainWindow::exportIsoWbfs() {
     progress->setValue(0);
 
     bool patchWiimmfi = ui->actionPatch_Wiimmfi->isChecked();
+    bool displayMapNameInResultsScreen = ui->actionDisplay_Map_Name_On_Results_Screen->isChecked();
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediatePath); });
     auto fut = AsyncFuture::observe(copyTask)
@@ -317,7 +318,7 @@ void MainWindow::exportIsoWbfs() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
+            return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, displayMapNameInResultsScreen, ui->tableWidget->getTmpResourcesDir().path());
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
             throw exception;
