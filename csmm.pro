@@ -1,4 +1,4 @@
-TARGET = CSMM
+TARGET = csmm
 
 #Application version
 VERSION_MAJOR = 1
