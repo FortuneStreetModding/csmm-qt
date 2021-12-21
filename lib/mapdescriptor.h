@@ -93,7 +93,7 @@ struct MapDescriptor {
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 
     QString toYaml() const;
-    bool operator==(const MapDescriptor &other) const = default;
+    bool operator==(const MapDescriptor &other) const;
 
     // return value: whether this was successful
     bool fromYaml(const YAML::Node &yaml);

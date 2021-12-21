@@ -432,3 +432,41 @@ QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int ma
     }
     return result;
 }
+
+bool MapDescriptor::operator==(const MapDescriptor &other) const {
+    return mapSet == other.mapSet
+            && zone == other.zone
+            && order == other.order
+            && isPracticeBoard == other.isPracticeBoard
+            && ruleSet == other.ruleSet
+            && initialCash == other.initialCash
+            && targetAmount == other.targetAmount
+            && baseSalary == other.baseSalary
+            && salaryIncrement == other.salaryIncrement
+            && maxDiceRoll == other.maxDiceRoll
+            && std::equal(std::begin(ventureCards), std::end(ventureCards), std::begin(other.ventureCards))
+            && std::equal(std::begin(frbFiles), std::end(frbFiles), std::begin(other.frbFiles))
+            && switchRotationOrigins == other.switchRotationOrigins
+            && theme == other.theme
+            && background == other.background
+            && bgmId == other.bgmId
+            && mapIcon == other.mapIcon
+            && music == other.music
+            && loopingMode == other.loopingMode
+            && loopingModeRadius == other.loopingModeRadius
+            && loopingModeHorizontalPadding == other.loopingModeHorizontalPadding
+            && loopingModeVerticalSquareCount == other.loopingModeVerticalSquareCount
+            && tourBankruptcyLimit == other.tourBankruptcyLimit
+            && tourInitialCash == other.tourInitialCash
+            && std::equal(std::begin(tourCharacters), std::end(tourCharacters), std::begin(other.tourCharacters))
+            && tourClearRank == other.tourClearRank
+            && unlockId == other.unlockId
+            && nameMsgId == other.nameMsgId
+            && descMsgId == other.descMsgId
+            && names == other.names
+            && descs == other.descs
+            && internalName == other.internalName
+            && mapDescriptorFilePath == other.mapDescriptorFilePath
+            && districtNames == other.districtNames
+            && districtNameIds == other.districtNameIds;
+}
