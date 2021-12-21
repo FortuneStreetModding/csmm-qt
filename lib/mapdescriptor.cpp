@@ -267,6 +267,8 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
                 districtNames[key].push_back(convVal);
             }
         }
+    } else {
+        districtNames = VanillaDatabase::getVanillaDistrictNames();
     }
 
     return true;

@@ -17,16 +17,6 @@
 
 namespace PatchProcess {
 
-static const QMap<QString, QString> localeToDistrictWord = {
-    {"en", "District\\s"},
-    {"uk", "District\\s"},
-    {"de", "Bezirk\\s"},
-    {"fr", "Quartier\\s"},
-    {"it", "Quartiere\\s"},
-    {"jp", "エリア"},
-    {"su", "Distrito\\s"}
-};
-
 static void loadUiMessages(QVector<MapDescriptor> &descriptors, const QDir &dir) {
     QMap<QString, UiMessage> uiMessages;
     for (auto &locale: FS_LOCALES) {
@@ -47,7 +37,7 @@ static void loadUiMessages(QVector<MapDescriptor> &descriptors, const QDir &dir)
                 quint32 distId = descriptor.districtNameIds[i];
                 auto distName = uiMessages[locale].value(distId);
                 if (5454 <= distId && distId <= 5760) {
-                    auto distWord = localeToDistrictWord[locale];
+                    auto distWord = VanillaDatabase::localeToDistrictWord()[locale];
                     distWord.replace("\\s", " ");
                     distName = distWord + distName;
                 }
@@ -181,7 +171,7 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
             auto &text = uiMessage[id];
 
             // text replace District <area> -> <area>
-            auto districtWord = localeToDistrictWord[locale];
+            auto districtWord = VanillaDatabase::localeToDistrictWord()[locale];
             textReplace(text, districtWord + "<area>", "<area>");
             if (locale == "it") {
                 textReplace(text, "Quartiere<outline_off><n><outline_0><area>", "<area>");
