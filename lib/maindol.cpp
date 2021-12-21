@@ -27,6 +27,7 @@
 #include "dolio/musictable.h"
 #include "dolio/displaymapinresults.h"
 #include "dolio/tinydistricts.h"
+#include "dolio/nameddistricts.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections, bool patchResultBoardName) {
@@ -82,6 +83,8 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x801edad4), addressMapper.boomStreetToStandard(0x801ee71f));
     // Unused menu class (SelectMapUI)
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x801fce28), addressMapper.boomStreetToStandard(0x801ff777));
+    // District name table
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x80417460), addressMapper.boomStreetToStandard(0x80417507));
     return result;
 }
 
@@ -122,6 +125,7 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches(bool patchResultBoardName) 
         patches.append(QSharedPointer<DolIO>(new DisplayMapInResults()));
     }
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));
+    patches.append(QSharedPointer<DolIO>(new NamedDistricts()));
 
     return patches;
 }

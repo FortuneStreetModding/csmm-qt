@@ -9,6 +9,7 @@
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
 #include "lib/configuration.h"
+#include "lib/downloadtools.h"
 
 namespace maincli {
 
@@ -91,6 +92,7 @@ void run(QStringList arguments)
   discard         Discard the pending changes in a Fortune Street game directory.
   save            Save the pending changes in a Fortune Street game directory.
   pack            Pack a Fortune Street game directory to a disc image (pending changes must be saved prior).
+  download-tools  Downloads the external tools that CSMM requires.
 )").remove(0,1);
 
     parser.addPositionalArgument(QString(), QString(), "command");
@@ -108,8 +110,9 @@ void run(QStringList arguments)
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption wiimmfiOption(QStringList() << "w" << "wiimmfi", "Whether to patch for wiimmfi or not <0=no | 1=yes (default)>.", "wiimmfi");
     QCommandLineOption displayMapNameInResultsOption(QStringList() << "d" << "displayMapInResults", "Whether to display the map name in results screen <0=no | 1=yes (default)>", "displayMapInResults");
+    QCommandLineOption witUrlOption("wit-url", "The URL where to download WIT", "url", WIT_URL);
+    QCommandLineOption wszstUrlOption("wszst-url","The URL where to download WSZST", "url", WSZST_URL);
     QCommandLineOption helpOption(QStringList() << "h" << "?" << "help", "Show the help");
-
     // add some generic options
     parser.addOption(helpOption);
     parser.addOption(quietOption);
@@ -450,6 +453,41 @@ void run(QStringList arguments)
                 await(ExeWrapper::patchWiimmfi(target));
             }
 
+        }
+    } else if (command == "download-tools") {
+        // --- discard ---
+        setupSubcommand(parser, "download-tools", "Download the external tools that CSMM requires.");
+
+        forceOption.setDescription("Force re-download of the tools even if they are already downloaded.");
+        parser.addOption(forceOption);
+        parser.addOption(witUrlOption);
+        parser.addOption(wszstUrlOption);
+
+        parser.process(arguments);
+
+        if(parser.isSet(helpOption)) {
+            cout << '\n' << parser.helpText();
+        } else {
+            auto force = parser.isSet(forceOption);
+
+            if(force || !DownloadTools::requiredFilesAvailable()) {
+                QNetworkAccessManager manager(QCoreApplication::instance());
+
+                auto fut = DownloadTools::downloadAllRequiredFiles(&manager, [&](const QString &error) {
+                    cout << error;
+                    cout.flush();
+                }, parser.value(witUrlOption), parser.value(wszstUrlOption));
+                fut = AsyncFuture::observe(fut).subscribe([&]() {
+                    cout << "Successfuly downloaded and extracted the tools at:" << Qt::endl;
+                    cout << DownloadTools::getToolsLocation().path() << Qt::endl;
+                    cout.flush();
+                }).future();
+                await(fut);
+            } else {
+                cout << "Required tools already available at:" << Qt::endl;
+                cout << DownloadTools::getToolsLocation().path() << Qt::endl;
+                cout.flush();
+            }
         }
     } else {
         cout << description;

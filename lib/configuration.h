@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QTextStream>
+#include <optional>
 #include "mapdescriptor.h"
 
 namespace Configuration {

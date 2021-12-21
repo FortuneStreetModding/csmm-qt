@@ -213,7 +213,7 @@ const QString &getVentureCardDesc(int ventureCard) {
     return VENTURE_CARD_TABLE[ventureCard].description;
 }
 
-bool isDefaultVentureCards(const bool ventureCards[], RuleSet ruleSet) {
+bool isDefaultVentureCards(const std::array<bool, 128> &ventureCards, RuleSet ruleSet) {
     bool match = true;
     for(int i=0; i<128; i++) {
         if(ruleSet == Standard) {
@@ -227,7 +227,7 @@ bool isDefaultVentureCards(const bool ventureCards[], RuleSet ruleSet) {
     return match;
 }
 
-void setDefaultVentureCards(RuleSet ruleSet, bool outVentureCards[]) {
+void setDefaultVentureCards(RuleSet ruleSet, std::array<bool, 128> &outVentureCards) {
     for(int i=0; i<128; i++) {
         if(ruleSet == Standard) {
             outVentureCards[i] = VENTURE_CARD_TABLE[i].defaultStandardMode;

@@ -65,8 +65,8 @@ struct MapDescriptor {
     quint32 baseSalary = 0;
     quint32 salaryIncrement = 0;
     quint32 maxDiceRoll = 0;
-    bool ventureCards[128] = {false};
-    QString frbFiles[4];
+    std::array<bool, 128> ventureCards = {false};
+    std::array<QString, 4> frbFiles;
     QVector<OriginPoint> switchRotationOrigins;
     BoardTheme theme = Mario;
     QString background;
@@ -79,7 +79,7 @@ struct MapDescriptor {
     float loopingModeVerticalSquareCount = 0;
     quint32 tourBankruptcyLimit = 1;
     quint32 tourInitialCash = 0;
-    Character tourCharacters[3] = {CharacterMario, Luigi, Peach};
+    std::array<Character, 3> tourCharacters = {CharacterMario, Luigi, Peach};
     quint32 tourClearRank = 2;
     quint32 nameMsgId = 0;
     quint32 descMsgId = 0;
@@ -87,6 +87,8 @@ struct MapDescriptor {
     QMap<QString, QString> descs;
     QString internalName;
     QString mapDescriptorFilePath;
+    QMap<QString, QStringList> districtNames;
+    QVector<quint32> districtNameIds;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 

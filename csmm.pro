@@ -64,6 +64,7 @@ SOURCES += \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
+    lib/dolio/nameddistricts.cpp \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
@@ -129,6 +130,7 @@ HEADERS += \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
+    lib/dolio/nameddistricts.h \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
@@ -139,6 +141,7 @@ HEADERS += \
     lib/dolio/touropponentstable.h \
     lib/dolio/venturecardtable.h \
     lib/dolio/wififix.h \
+    lib/downloadtools.h \
     lib/exewrapper.h \
     lib/fortunestreetdata.h \
     lib/freespacemanager.h \
@@ -176,9 +179,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
-
-DISTFILES += \
-    .travis.yml
 
 RESOURCES += \
     csmm.qrc
