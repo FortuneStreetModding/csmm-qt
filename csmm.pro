@@ -138,6 +138,7 @@ HEADERS += \
     lib/dolio/touropponentstable.h \
     lib/dolio/venturecardtable.h \
     lib/dolio/wififix.h \
+    lib/downloadtools.h \
     lib/exewrapper.h \
     lib/fortunestreetdata.h \
     lib/freespacemanager.h \
