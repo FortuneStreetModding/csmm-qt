@@ -14,10 +14,10 @@ bool widenResultTitle(const QString &xmlytFile) {
     node = doc.select_node("/xmlyt/tag[@name='t_m_00']/size/width");
     node.node().text().set(280);
     node = doc.select_node("/xmlyt/tag[@name='t_m_00']/translate/x");
-    node.node().text().set(node.node().text().as_double() + 50);
+    node.node().text().set(40);
 
     node = doc.select_node("/xmlyt/tag[@name='t_m_01' or @name='t_00']/translate/x");
-    node.node().text().set(node.node().text().as_double() + 50);
+    node.node().text().set(60);
 
     return doc.save_file(xmlytFile.toUtf8());
 }
