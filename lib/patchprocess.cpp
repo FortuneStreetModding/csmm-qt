@@ -595,10 +595,13 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
     return extractArcTasks.subscribe([=]() {
         for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
             auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_013.brlyt");
-            auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
-            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
-            Ui_game_013::widenDistrictName(xmlytFile);
-            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+            //auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
+            //ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+
+            // HACK: manipulate the brylt file directly since benzin is wack.
+            // TODO try to incorporate a proper brylt library here
+            Ui_game_013::widenDistrictName(brlytFile);
+            //ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
 
             // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
             {
