@@ -8,6 +8,7 @@
 #include "exewrapper.h"
 #include "maindol.h"
 #include "uimessage.h"
+#include "uigame013.h"
 #include "uimenu1900a.h"
 #include "vanilladatabase.h"
 #include "zip/zip.h"
@@ -567,6 +568,79 @@ static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
     }).future();
 }
 
+static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
+    QDir tmpDirObj(tmpDir.path());
+
+    /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective extraction path in the tmp directory */
+    auto gameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
+    auto gameBoardToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    for (auto &locale: FS_LOCALES) {
+        auto gameBoardPath = dir.filePath(gameBoardArc(locale));
+
+        auto extractPath = tmpDirObj.filePath(QFileInfo(gameBoardPath).baseName());
+        tmpDirObj.mkpath(extractPath);
+        (*gameBoardExtractPaths)[gameBoardPath] = extractPath;
+
+        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameBoardPath).baseName() + "_");
+        tmpDirObj.mkpath(xmlytPath);
+        (*gameBoardToXmlytBasePaths)[gameBoardPath] = xmlytPath;
+    }
+    // extract the arc files
+    auto extractArcTasks = AsyncFuture::combine();
+    for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
+        extractArcTasks << ExeWrapper::extractArcFile(it.key(), it.value());
+    }
+
+    return extractArcTasks.subscribe([=]() {
+        for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
+            auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_013.brlyt");
+            auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
+            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+            Ui_game_013::widenDistrictName(xmlytFile);
+            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            {
+                QFile brlytFileObj(brlytFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+            }
+        }
+
+#if 0
+        for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
+            QDir brlanFileDir(QDir(it.value()).filePath("arc/anim"));
+            auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_game_013_Tag_*.brlan"}, QDir::Files);
+            for (auto &brlanFileInfo: brlanFilesInfo) {
+                auto brlanFile = brlanFileInfo.absoluteFilePath();
+                QFile::remove(brlanFile);
+                #if 0
+                auto xmlanFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
+
+                ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
+                ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
+
+                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+                QFile brlytFileObj(brlanFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+                #endif
+            }
+        }
+#endif
+        auto packArcFileTasks = AsyncFuture::combine();
+        for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
+            packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
+        }
+        return packArcFileTasks.future();
+    }).future();
+}
+
 QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     brstmInject(output, descriptors, tmpDir);
@@ -582,6 +656,8 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
             return def.future();
         }
         return widenResultsMapBox(output, tmpDir);
+    }).subscribe([=]() {
+        return widenDistrictName(output, tmpDir);
     });
     return fut.subscribe([=]() {
         // copy frb files from temp dir to output
