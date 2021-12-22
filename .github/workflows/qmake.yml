@@ -42,11 +42,11 @@ jobs:
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: macdeployqt 'CSMM.app' -dmg
+      run: macdeployqt 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}
-      run: mv 'CSMM.dmg' "csmm-$VERSION_NAME-macos.dmg"
+      run: mv 'csmm.dmg' "csmm-$VERSION_NAME-macos.dmg"
 
     - name: Release
       uses: softprops/action-gh-release@v1
@@ -67,7 +67,6 @@ jobs:
         cd lib/mxml
         ./configure
         mingw32-make
-
     - name: Build yaml-cpp
       working-directory: ${{github.workspace}}
       run: |
@@ -97,12 +96,12 @@ jobs:
       shell: bash
       run: |
         mkdir "csmm-$VERSION_NAME"
-        mv "release/CSMM.exe" "csmm-$VERSION_NAME/CSMM.exe"
+        mv "release/csmm.exe" "csmm-$VERSION_NAME/csmm.exe"
 
     - name: Deploy
       working-directory: ${{github.workspace}}
       shell: bash
-      run: windeployqt "csmm-$VERSION_NAME/CSMM.exe"
+      run: windeployqt "csmm-$VERSION_NAME/csmm.exe"
 
     - name: Copy dlls
       run: |

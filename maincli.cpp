@@ -321,6 +321,7 @@ void run(QStringList arguments)
         setupSubcommand(parser, "save", "Write the pending changes into the Fortune Street game directory.");
         parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "save <gameDir>");
 
+        parser.addOption(displayMapNameInResultsOption);
         parser.addOption(wiimmfiOption);
 
         parser.process(arguments);
