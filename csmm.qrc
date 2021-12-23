@@ -192,5 +192,12 @@
         <file>files/chance_card/ui_chancecard_125.cmpres.bsdiff</file>
         <file>files/chance_card/ui_chancecard_127.cmpres.bsdiff</file>
         <file>files/bspatches.yaml</file>
+        <file>files/game/langDE/game_board_DE.cmpres.bsdiff</file>
+        <file>files/game/langEN/game_board_EN.cmpres.bsdiff</file>
+        <file>files/game/langES/game_board_ES.cmpres.bsdiff</file>
+        <file>files/game/langFR/game_board_FR.cmpres.bsdiff</file>
+        <file>files/game/langIT/game_board_IT.cmpres.bsdiff</file>
+        <file>files/game/langUK/game_board_UK.cmpres.bsdiff</file>
+        <file>files/game/game_board.cmpres.bsdiff</file>
     </qresource>
 </RCC>
