@@ -124,9 +124,14 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // This is needed because otherwise the game will use dice icons which are transparent. This does not look good on the transparent background of the description box.
     // -> Instead we want to use opaque dice icons.
 
-    // TODO: This should only apply in description of event square, not in description of venture card
+    hijackAddr = addressMapper.boomStreetToStandard(0x8010f628);
+    quint32 fontCharacterIdModifierRoutine = allocate(writeFontCharacterIdModifierRoutine(addressMapper, 0), "fontCharacterIdModifierRoutine");
+    stream.device()->seek(addressMapper.toFileAddress(fontCharacterIdModifierRoutine));
+    routineCode = writeFontCharacterIdModifierRoutine(addressMapper, fontCharacterIdModifierRoutine);
+    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // addi r0,r4,0x85   -> r0,r4,0xAD
-    stream.device()->seek(addressMapper.boomToFileAddress(0x8010f628)); stream << PowerPcAsm::addi(0,4,0xAD);
+    stream << PowerPcAsm::b(hijackAddr, fontCharacterIdModifierRoutine);
 
     // --- Behavior ---
     // the idea is that whenever someone stops at the event square, it sets our custom variable "ForceVentureCardVariable" to the id of the venture card and runs the Venture Card Mode (0x1c).
@@ -150,6 +155,40 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // li r8,0x3    -> nop
     stream.device()->seek(addressMapper.boomToFileAddress(0x801b7f74));
     stream << PowerPcAsm::nop();
+}
+
+QVector<quint32> EventSquare::writeFontCharacterIdModifierRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+    // precondition:
+    //                r4 - diceValue
+    //               r31 - GameProgress*
+    // postcondition:
+    //                r0 - fontCharacterId
+    //                r3 - dont care
+    //                r4 - dont care
+    auto returnAddr = addressMapper.boomStreetToStandard(0x8010f62c);
+    auto gameProgressAddr = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x80817908));
+
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::lis(3, gameProgressAddr.upper)),                                  //\.
+    asm_.append(PowerPcAsm::addi(3, 3, gameProgressAddr.lower)),                              ///. r3 <- GameProgress**
+    asm_.append(PowerPcAsm::lwz(3, 0, 3)),                                                    // r3 <- GameProgress*
+    asm_.append(PowerPcAsm::lwz(3, 0x38, 3)),                                                 // r3 <- GameProgress->currentProgressMode
+    asm_.append(PowerPcAsm::cmpwi(3, 0x1b)),                                                  // 0x1b is the game progress mode when a venture card description is being shown after been picked
+    asm_.append(PowerPcAsm::beq(11)),                                                         //
+    asm_.append(PowerPcAsm::cmpwi(3, 0x05)),                                                  // 0x05 is the game progress mode when you need to throw the dice to determine your fate (e.g. venture card #34)
+    asm_.append(PowerPcAsm::beq(9)),                                                          //
+    asm_.append(PowerPcAsm::cmpwi(3, 0x06)),                                                  // 0x06 is the game progress mode when you have thrown the dice and the animation is going
+    asm_.append(PowerPcAsm::beq(7)),                                                          //
+    asm_.append(PowerPcAsm::cmpwi(3, 0x1f)),                                                  // 0x1f is the game progress mode which determines what to do after a dice has been thrown
+    asm_.append(PowerPcAsm::beq(5)),                                                          //
+    asm_.append(PowerPcAsm::cmpwi(3, 0x1c)),                                                  // 0x1c is the game progress mode which executes the next action and hides the current menu after a dice has been thrown
+    asm_.append(PowerPcAsm::beq(3)),                                                          //
+    asm_.append(PowerPcAsm::addi(0, 4, 0xAD)),                                                // r0 <- r4 + 0xAD  (add 0xAD so that we get the other dice character set)
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                //
+    asm_.append(PowerPcAsm::addi(0, 4, 0x85)),                                                // r0 <- r4 + 0x85  (vanilla behavior)
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+
+    return asm_;
 }
 
 QVector<quint32> EventSquare::writeGetDescriptionForCustomSquareRoutine(const AddressMapper & addressMapper, quint32 routineStartAddress) {
