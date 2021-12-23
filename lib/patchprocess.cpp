@@ -446,17 +446,11 @@ static void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors,
             QFile::copy(brstmFileFrom, brstmFileTo);
         }
     }
-    // patch the vanilla Itast.brsar to have special CSMM entries using the included bsdiff file
+    // the Itast.brsar is assumed to have already been patched with Itast.brsar.bsdiff in the applyAllBspatches() method and now contains special CSMM entries
     auto brsarFilePath = output.filePath(SOUND_FOLDER+"/Itast.brsar");
     QFileInfo brsarFileInfo(brsarFilePath);
     if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
         QFile brsarFile(brsarFilePath);
-        if (fileSha1(brsarFilePath) == PatchProcess::getSha1OfVanillaFileName(SOUND_FOLDER + "/Itast.brsar")) {
-            QString errors = applyBspatch(brsarFilePath, brsarFilePath, ":/" + SOUND_FOLDER + "/Itast.brsar.bsdiff");
-            if(!errors.isEmpty()) {
-                throw Exception(QString("Errors occured when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(brsarFilePath, errors));
-            }
-        }
         // patch the special csmm entries in the brsar file
         if (brsarFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&brsarFile);
