@@ -482,15 +482,18 @@ static QString applyAllBspatches(const QDir &output) {
             QString patched = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["patched"].as<std::string>()).toLower();
             QString bsdiffPath = ":/" + vanillaRelPath + ".bsdiff";
             QString cmpresPath = output.filePath(vanillaRelPath);
-            if (PatchProcess::fileSha1(cmpresPath) == vanilla) {
+            QString sha1 = PatchProcess::fileSha1(cmpresPath);
+            if (sha1 == vanilla) {
                 QString errors = applyBspatch(cmpresPath, cmpresPath, bsdiffPath);
                 if(!errors.isEmpty()) {
                     return QString("Errors occured when applying %1 patch to file %2:\n%3").arg(bsdiffPath, cmpresPath, errors);
                 } else {
                     qDebug() << "Patched: " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
                 }
+            } else if (sha1 == patched) {
+                qDebug() << "Already patched: " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
             } else {
-                qDebug() << "Not patched: " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
+                qDebug() << "Not patched (unknown file): " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
             }
         }
     }
