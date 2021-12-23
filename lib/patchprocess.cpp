@@ -602,8 +602,8 @@ static void copyMapFiles(const QVector<MapDescriptor> &descriptors, const QDir &
 
 QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
-    brstmInject(output, descriptors, tmpDir);
     applyAllBspatches(output);
+    brstmInject(output, descriptors, tmpDir);
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
