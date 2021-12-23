@@ -484,8 +484,8 @@ static QString applyAllBspatches(const QDir &output) {
         auto yaml = YAML::Load(contents.toStdString());
         for (auto it=yaml.begin(); it!=yaml.end(); ++it) {
             QString vanillaRelPath = QString::fromStdString(it->first.as<std::string>());
-            QString vanilla = QString::fromStdString(yaml[vanillaRelPath]["vanilla"].as<std::string>());
-            QString patched = QString::fromStdString(yaml[vanillaRelPath]["patched"].as<std::string>());
+            QString vanilla = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["vanilla"].as<std::string>());
+            QString patched = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["patched"].as<std::string>());
             QString bsdiffPath = ":/" + vanillaRelPath + ".bsdiff";
             QString cmpresPath = output.filePath(vanillaRelPath);
             if (PatchProcess::fileSha1(cmpresPath) == vanilla) {
@@ -493,10 +493,10 @@ static QString applyAllBspatches(const QDir &output) {
                 if(!errors.isEmpty()) {
                     return QString("Errors occured when applying %1 patch to file %2:\n%3").arg(bsdiffPath, cmpresPath, errors);
                 } else {
-                    qDebug() << "Patched: " << cmpresPath;
+                    qDebug() << "Patched: " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
                 }
             } else {
-                qDebug() << "Not patched: " << cmpresPath;
+                qDebug() << "Not patched: " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
             }
         }
     }
@@ -539,11 +539,11 @@ QString applyBspatch(const QString &oldfileStr, const QString &newfileStr, const
 }
 
 QString getSha1OfVanillaFileName(const QString &vanillaFileName) {
-    QFile f(":/files/sha1.yaml");
+    QFile f(":/files/bspatches.yaml");
     if (f.open(QFile::ReadOnly)) {
         QString contents = f.readAll();
         auto yaml = YAML::Load(contents.toStdString());
-        return QString::fromStdString(yaml[vanillaFileName.toStdString()].as<std::string>()).toLower();
+        return QString::fromStdString(yaml[vanillaFileName.toStdString()]["vanilla"].as<std::string>()).toLower();
     }
     throw Exception(QString("The file %1 is not a vanilla file").arg(vanillaFileName));
 }
