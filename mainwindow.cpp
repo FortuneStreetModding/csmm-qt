@@ -121,7 +121,7 @@ void MainWindow::saveCleanItastCsmmBrsar() {
     if (openFile.isEmpty()) return;
     QFileInfo openFileInfo(openFile);
 
-    if (PatchProcess::fileSha1(openFile) != PatchProcess::getSha1OfVanillaFileName("sound/Itast.brsar")) {
+    if (PatchProcess::fileSha1(openFile) != PatchProcess::getSha1OfVanillaFileName(SOUND_FOLDER + "/Itast.brsar")) {
         QMessageBox::information(this, "Wrong Itast.brsar", QString("The provided file %1 is not a vanilla Itast.brsar").arg(openFile));
         return;
     }

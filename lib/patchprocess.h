@@ -44,8 +44,6 @@ namespace PatchProcess {
 
     bool hasWiimmfiText(const QDir &dir);
 
-    QString getFileCopy(const QString &file, const QDir &dir);
-
     QString applyBspatch(const QString &oldfile, const QString &newfile, const QString &patchfile);
 
     class Exception : public QException {
