@@ -191,6 +191,6 @@
         <file>files/chance_card/ui_chancecard_123.cmpres.bsdiff</file>
         <file>files/chance_card/ui_chancecard_125.cmpres.bsdiff</file>
         <file>files/chance_card/ui_chancecard_127.cmpres.bsdiff</file>
-        <file>files/sha1.yaml</file>
+        <file>files/bspatches.yaml</file>
     </qresource>
 </RCC>

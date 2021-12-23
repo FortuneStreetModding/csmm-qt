@@ -475,40 +475,29 @@ static void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors,
     }
 }
 
-/*
- * @brief patches the font_ma_alps_gaiji.brfna file in the font directory to contain additional font icon images (the different dice symbols in e.g. venture card 34)
- */
-void patchFont(const QDir &output) {
-    qDebug() << "Running patchFont()";
-    auto brfnaFile = output.filePath(FONT_FOLDER+"/font_ma_alps_gaiji.brfna");
-    if (PatchProcess::fileSha1(brfnaFile) != PatchProcess::getSha1OfVanillaFileName(FONT_FOLDER+"/font_ma_alps_gaiji.brfna")) {
-        qDebug() << "Not patched: " << brfnaFile;
-        throw Exception(QString("Sha1 does not match when applying font_ma_alps_gaiji.brfna.bsdiff patch to file %1: %2").arg(brfnaFile, PatchProcess::fileSha1(brfnaFile)));
-        return;
-    }
-    QString errors = applyBspatch(brfnaFile, brfnaFile, ":/" + FONT_FOLDER + "/font_ma_alps_gaiji.brfna.bsdiff");
-    if(!errors.isEmpty()) {
-        throw Exception(QString("Errors occured when applying font_ma_alps_gaiji.brfna.bsdiff patch to file %1:\n%2").arg(brfnaFile, errors));
-    }
-}
-
 static QString applyAllBspatches(const QDir &output) {
     qDebug() << "Running applyAllBspatches()";
-    QDirIterator it(":/" + CHANCE_CARD_FOLDER, QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-        QString bsdiffFile = it.next();
-        QString vanillaFile = bsdiffFile;
-        vanillaFile.replace(":/", "").replace(".bsdiff", "");
-        QString cmpresFile = output.filePath(vanillaFile);
-        if (PatchProcess::fileSha1(cmpresFile) == PatchProcess::getSha1OfVanillaFileName(vanillaFile)) {
-            QString errors = applyBspatch(cmpresFile, cmpresFile, bsdiffFile);
-            if(!errors.isEmpty()) {
-                return QString("Errors occured when applying %1 patch to file %2:\n%3").arg(bsdiffFile, cmpresFile, errors);
+
+    QFile f(":/files/bspatches.yaml");
+    if (f.open(QFile::ReadOnly)) {
+        QString contents = f.readAll();
+        auto yaml = YAML::Load(contents.toStdString());
+        for (auto it=yaml.begin(); it!=yaml.end(); ++it) {
+            QString vanillaRelPath = QString::fromStdString(it->first.as<std::string>());
+            QString vanilla = QString::fromStdString(yaml[vanillaRelPath]["vanilla"].as<std::string>());
+            QString patched = QString::fromStdString(yaml[vanillaRelPath]["patched"].as<std::string>());
+            QString bsdiffPath = ":/" + vanillaRelPath + ".bsdiff";
+            QString cmpresPath = output.filePath(vanillaRelPath);
+            if (PatchProcess::fileSha1(cmpresPath) == vanilla) {
+                QString errors = applyBspatch(cmpresPath, cmpresPath, bsdiffPath);
+                if(!errors.isEmpty()) {
+                    return QString("Errors occured when applying %1 patch to file %2:\n%3").arg(bsdiffPath, cmpresPath, errors);
+                } else {
+                    qDebug() << "Patched: " << cmpresPath;
+                }
             } else {
-                qDebug() << "Patched: " << cmpresFile;
+                qDebug() << "Not patched: " << cmpresPath;
             }
-        } else {
-            qDebug() << "Not patched: " << cmpresFile;
         }
     }
     return QString();
@@ -554,7 +543,7 @@ QString getSha1OfVanillaFileName(const QString &vanillaFileName) {
     if (f.open(QFile::ReadOnly)) {
         QString contents = f.readAll();
         auto yaml = YAML::Load(contents.toStdString());
-        return QString::fromStdString(yaml[vanillaFileName.toStdString()].as<std::string>());
+        return QString::fromStdString(yaml[vanillaFileName.toStdString()].as<std::string>()).toLower();
     }
     throw Exception(QString("The file %1 is not a vanilla file").arg(vanillaFileName));
 }
@@ -614,7 +603,7 @@ static void copyMapFiles(const QVector<MapDescriptor> &descriptors, const QDir &
 QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     brstmInject(output, descriptors, tmpDir);
-    patchFont(output);
+    applyAllBspatches(output);
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);

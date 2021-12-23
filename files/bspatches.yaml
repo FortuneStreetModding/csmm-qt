@@ -1,0 +1,594 @@
+files/chance_card/langDE/ui_chancecard_016_DE.cmpres:
+  patched: 01402bd609262ae4b446183d84564b1bbbc98099
+  vanilla: 2ed178c1a8fbe824e7b46ed193cd983ef6b5a750
+files/chance_card/langDE/ui_chancecard_018_DE.cmpres:
+  patched: 636a7a1bc9870429d0e1620229fc491a68069e3a
+  vanilla: 1db3f2840175f3d67766bd528018d024820be757
+files/chance_card/langDE/ui_chancecard_024_DE.cmpres:
+  patched: aeb1d168a17ca3de6eca390f8c7a6ca89416ea50
+  vanilla: 9fe5a56fc51ed79c7af5a991e95021cad95ce7ab
+files/chance_card/langDE/ui_chancecard_026_DE.cmpres:
+  patched: 0788c73885511fd5835477de6ece25d532af4891
+  vanilla: ca92e5b2cc41c0204eb9204fa41f3f2a38cec2b7
+files/chance_card/langDE/ui_chancecard_031_DE.cmpres:
+  patched: 5ef60398e3f94626ebc150b1662df41ca5c1c892
+  vanilla: 0b0e65d0b799924be550a9a96e8b59cb8d5a93dc
+files/chance_card/langDE/ui_chancecard_032_DE.cmpres:
+  patched: f926ffa8cb18cbe63be41492b70f96c888292ea9
+  vanilla: 1e270cf451b363c03c4c7a6f8227a8542497851b
+files/chance_card/langDE/ui_chancecard_034_DE.cmpres:
+  patched: 736ff4e871a2095df9daf044f1595eb85d23cf2b
+  vanilla: f219ef9212e194447a78a88c48d6f177cdf2c00c
+files/chance_card/langDE/ui_chancecard_037_DE.cmpres:
+  patched: dc7b06f76ca9f7f485354014e3960a4a890fdd6b
+  vanilla: 49ec0351f660a6da22a1f094ef9ecc72ecae1c99
+files/chance_card/langDE/ui_chancecard_041_DE.cmpres:
+  patched: e504a7b670c159903e32b526db6a686c776bd0b7
+  vanilla: cc93beea681b40e001ecfd06a323438aa4694ba3
+files/chance_card/langDE/ui_chancecard_042_DE.cmpres:
+  patched: b98e74a981c5b1d244b1c29b0dc537b2b5b2d0f2
+  vanilla: 5f5c6d2346bc0e05ab6f8df1b51185c334b2bd62
+files/chance_card/langDE/ui_chancecard_045_DE.cmpres:
+  patched: f9c207ef2ad4931acd39a97202fd7b311fb91b47
+  vanilla: e0978067b94dd4bec28ad668cc55d9a40393a0fc
+files/chance_card/langDE/ui_chancecard_047_DE.cmpres:
+  patched: 3e1b2182f19d3c9b496008a8c751c17a95c02e8f
+  vanilla: 9160bf6819d982eb0ccbbc46512d5679c038b447
+files/chance_card/langDE/ui_chancecard_048_DE.cmpres:
+  patched: c883c881f252eee70d203d37d77a10e1fdd97bf1
+  vanilla: 3ab8efc7af89344f3d43c1dfe061af203ff07de3
+files/chance_card/langDE/ui_chancecard_049_DE.cmpres:
+  patched: 6a9c9e784063fcbac6c4afb67dc171c16533c5f7
+  vanilla: 9372b452ed7a102ea436160236cf8a61404f0173
+files/chance_card/langDE/ui_chancecard_060_DE.cmpres:
+  patched: 457cd443f5d8c6f000f8fc116a14f1ffbb7e16c2
+  vanilla: f2d857281a4ef8e80169a421946ad5e8ff0d2ccb
+files/chance_card/langDE/ui_chancecard_063_DE.cmpres:
+  patched: a512379ba9355501094c46735832963b24529e76
+  vanilla: c3b25e815972ebd5343d9178dfe6dd3aa3cd872f
+files/chance_card/langDE/ui_chancecard_064_DE.cmpres:
+  patched: 2eda534c6cdc6abb4c06a0207bdb0595e73ebc56
+  vanilla: 4f74fe85a1102d3dc4e62e2b5678271864a0f7ee
+files/chance_card/langDE/ui_chancecard_068_DE.cmpres:
+  patched: c48bf50a090bfd66b8f2c6001da4f8c469664010
+  vanilla: 4558a921bbde656ff0da28ae379b9f95117349cc
+files/chance_card/langDE/ui_chancecard_072_DE.cmpres:
+  patched: df885575eb6fe53747ecce2fb85044260c6bf9b2
+  vanilla: 383292e8335e66b69a1ef6903c1fcd61962111a6
+files/chance_card/langDE/ui_chancecard_076_DE.cmpres:
+  patched: 61d3d80c63553faea5fc6c90c7c9d0858137fbd5
+  vanilla: 286e912818fe6656e8394feb4f7b1130424fdd68
+files/chance_card/langDE/ui_chancecard_083_DE.cmpres:
+  patched: 0698b9bcddd43e85c7dea14c0ab680366eeb4b53
+  vanilla: ab7b9addff23b5fddee24389d3e898747b2a47e7
+files/chance_card/langDE/ui_chancecard_093_DE.cmpres:
+  patched: c2ec091a14734dc9e568a35614367151193ae666
+  vanilla: 6050544b579d850b48a7ed59b0dbc9f2792c3097
+files/chance_card/langDE/ui_chancecard_096_DE.cmpres:
+  patched: 1eba591a2b5139be9d59886e0d9b256281ff332c
+  vanilla: 185d4272be1207e3ae10d8131d770e364e800e6d
+files/chance_card/langDE/ui_chancecard_118_DE.cmpres:
+  patched: ac6ba2bb3cfd601aa40822a50d7df886c1285fec
+  vanilla: dc735283854ea068a50bd9eda787bd7946356897
+files/chance_card/langDE/ui_chancecard_123_DE.cmpres:
+  patched: f87ad368e038877cab16a962800ff59ca215adc1
+  vanilla: 7686ba21b044312dbfaf86743f42e0a384c1bc41
+files/chance_card/langDE/ui_chancecard_125_DE.cmpres:
+  patched: 2d04288d1d206c61013bd3054f6a679427317587
+  vanilla: 2c6218ff2595de6a542d06fbc507c043a61a6538
+files/chance_card/langDE/ui_chancecard_127_DE.cmpres:
+  patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
+  vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
+files/chance_card/langEN/ui_chancecard_016_EN.cmpres:
+  patched: 01402bd609262ae4b446183d84564b1bbbc98099
+  vanilla: 2ed178c1a8fbe824e7b46ed193cd983ef6b5a750
+files/chance_card/langEN/ui_chancecard_018_EN.cmpres:
+  patched: 636a7a1bc9870429d0e1620229fc491a68069e3a
+  vanilla: 1db3f2840175f3d67766bd528018d024820be757
+files/chance_card/langEN/ui_chancecard_024_EN.cmpres:
+  patched: aeb1d168a17ca3de6eca390f8c7a6ca89416ea50
+  vanilla: 9fe5a56fc51ed79c7af5a991e95021cad95ce7ab
+files/chance_card/langEN/ui_chancecard_026_EN.cmpres:
+  patched: 0788c73885511fd5835477de6ece25d532af4891
+  vanilla: ca92e5b2cc41c0204eb9204fa41f3f2a38cec2b7
+files/chance_card/langEN/ui_chancecard_031_EN.cmpres:
+  patched: 5ef60398e3f94626ebc150b1662df41ca5c1c892
+  vanilla: 0b0e65d0b799924be550a9a96e8b59cb8d5a93dc
+files/chance_card/langEN/ui_chancecard_032_EN.cmpres:
+  patched: f926ffa8cb18cbe63be41492b70f96c888292ea9
+  vanilla: 1e270cf451b363c03c4c7a6f8227a8542497851b
+files/chance_card/langEN/ui_chancecard_034_EN.cmpres:
+  patched: 736ff4e871a2095df9daf044f1595eb85d23cf2b
+  vanilla: f219ef9212e194447a78a88c48d6f177cdf2c00c
+files/chance_card/langEN/ui_chancecard_037_EN.cmpres:
+  patched: dc7b06f76ca9f7f485354014e3960a4a890fdd6b
+  vanilla: 49ec0351f660a6da22a1f094ef9ecc72ecae1c99
+files/chance_card/langEN/ui_chancecard_041_EN.cmpres:
+  patched: e504a7b670c159903e32b526db6a686c776bd0b7
+  vanilla: cc93beea681b40e001ecfd06a323438aa4694ba3
+files/chance_card/langEN/ui_chancecard_042_EN.cmpres:
+  patched: b98e74a981c5b1d244b1c29b0dc537b2b5b2d0f2
+  vanilla: 5f5c6d2346bc0e05ab6f8df1b51185c334b2bd62
+files/chance_card/langEN/ui_chancecard_045_EN.cmpres:
+  patched: f9c207ef2ad4931acd39a97202fd7b311fb91b47
+  vanilla: e0978067b94dd4bec28ad668cc55d9a40393a0fc
+files/chance_card/langEN/ui_chancecard_047_EN.cmpres:
+  patched: 3e1b2182f19d3c9b496008a8c751c17a95c02e8f
+  vanilla: 9160bf6819d982eb0ccbbc46512d5679c038b447
+files/chance_card/langEN/ui_chancecard_048_EN.cmpres:
+  patched: c883c881f252eee70d203d37d77a10e1fdd97bf1
+  vanilla: 3ab8efc7af89344f3d43c1dfe061af203ff07de3
+files/chance_card/langEN/ui_chancecard_049_EN.cmpres:
+  patched: 6a9c9e784063fcbac6c4afb67dc171c16533c5f7
+  vanilla: 9372b452ed7a102ea436160236cf8a61404f0173
+files/chance_card/langEN/ui_chancecard_060_EN.cmpres:
+  patched: 457cd443f5d8c6f000f8fc116a14f1ffbb7e16c2
+  vanilla: f2d857281a4ef8e80169a421946ad5e8ff0d2ccb
+files/chance_card/langEN/ui_chancecard_063_EN.cmpres:
+  patched: a512379ba9355501094c46735832963b24529e76
+  vanilla: c3b25e815972ebd5343d9178dfe6dd3aa3cd872f
+files/chance_card/langEN/ui_chancecard_064_EN.cmpres:
+  patched: 2eda534c6cdc6abb4c06a0207bdb0595e73ebc56
+  vanilla: 4f74fe85a1102d3dc4e62e2b5678271864a0f7ee
+files/chance_card/langEN/ui_chancecard_068_EN.cmpres:
+  patched: c48bf50a090bfd66b8f2c6001da4f8c469664010
+  vanilla: 4558a921bbde656ff0da28ae379b9f95117349cc
+files/chance_card/langEN/ui_chancecard_072_EN.cmpres:
+  patched: df885575eb6fe53747ecce2fb85044260c6bf9b2
+  vanilla: 383292e8335e66b69a1ef6903c1fcd61962111a6
+files/chance_card/langEN/ui_chancecard_076_EN.cmpres:
+  patched: 61d3d80c63553faea5fc6c90c7c9d0858137fbd5
+  vanilla: 286e912818fe6656e8394feb4f7b1130424fdd68
+files/chance_card/langEN/ui_chancecard_083_EN.cmpres:
+  patched: 0698b9bcddd43e85c7dea14c0ab680366eeb4b53
+  vanilla: ab7b9addff23b5fddee24389d3e898747b2a47e7
+files/chance_card/langEN/ui_chancecard_093_EN.cmpres:
+  patched: c2ec091a14734dc9e568a35614367151193ae666
+  vanilla: 6050544b579d850b48a7ed59b0dbc9f2792c3097
+files/chance_card/langEN/ui_chancecard_096_EN.cmpres:
+  patched: 1eba591a2b5139be9d59886e0d9b256281ff332c
+  vanilla: 185d4272be1207e3ae10d8131d770e364e800e6d
+files/chance_card/langEN/ui_chancecard_118_EN.cmpres:
+  patched: ac6ba2bb3cfd601aa40822a50d7df886c1285fec
+  vanilla: dc735283854ea068a50bd9eda787bd7946356897
+files/chance_card/langEN/ui_chancecard_123_EN.cmpres:
+  patched: f87ad368e038877cab16a962800ff59ca215adc1
+  vanilla: 7686ba21b044312dbfaf86743f42e0a384c1bc41
+files/chance_card/langEN/ui_chancecard_125_EN.cmpres:
+  patched: 2d04288d1d206c61013bd3054f6a679427317587
+  vanilla: 2c6218ff2595de6a542d06fbc507c043a61a6538
+files/chance_card/langEN/ui_chancecard_127_EN.cmpres:
+  patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
+  vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
+files/chance_card/langES/ui_chancecard_016_ES.cmpres:
+  patched: 01402bd609262ae4b446183d84564b1bbbc98099
+  vanilla: 2ed178c1a8fbe824e7b46ed193cd983ef6b5a750
+files/chance_card/langES/ui_chancecard_018_ES.cmpres:
+  patched: 636a7a1bc9870429d0e1620229fc491a68069e3a
+  vanilla: e97a465d29329eb5ec0865e1f169547df4038e66
+files/chance_card/langES/ui_chancecard_024_ES.cmpres:
+  patched: 55bce8c43ea63bfd7c30322f67a4bd347b7e68d2
+  vanilla: 111290fdbc4b024124aad9e09d312b0d831b4315
+files/chance_card/langES/ui_chancecard_026_ES.cmpres:
+  patched: 0788c73885511fd5835477de6ece25d532af4891
+  vanilla: ca92e5b2cc41c0204eb9204fa41f3f2a38cec2b7
+files/chance_card/langES/ui_chancecard_031_ES.cmpres:
+  patched: 5ef60398e3f94626ebc150b1662df41ca5c1c892
+  vanilla: 0b0e65d0b799924be550a9a96e8b59cb8d5a93dc
+files/chance_card/langES/ui_chancecard_032_ES.cmpres:
+  patched: f926ffa8cb18cbe63be41492b70f96c888292ea9
+  vanilla: 1e270cf451b363c03c4c7a6f8227a8542497851b
+files/chance_card/langES/ui_chancecard_034_ES.cmpres:
+  patched: 736ff4e871a2095df9daf044f1595eb85d23cf2b
+  vanilla: f219ef9212e194447a78a88c48d6f177cdf2c00c
+files/chance_card/langES/ui_chancecard_037_ES.cmpres:
+  patched: dc7b06f76ca9f7f485354014e3960a4a890fdd6b
+  vanilla: 49ec0351f660a6da22a1f094ef9ecc72ecae1c99
+files/chance_card/langES/ui_chancecard_041_ES.cmpres:
+  patched: e504a7b670c159903e32b526db6a686c776bd0b7
+  vanilla: cc93beea681b40e001ecfd06a323438aa4694ba3
+files/chance_card/langES/ui_chancecard_042_ES.cmpres:
+  patched: b98e74a981c5b1d244b1c29b0dc537b2b5b2d0f2
+  vanilla: 5f5c6d2346bc0e05ab6f8df1b51185c334b2bd62
+files/chance_card/langES/ui_chancecard_045_ES.cmpres:
+  patched: f9c207ef2ad4931acd39a97202fd7b311fb91b47
+  vanilla: e0978067b94dd4bec28ad668cc55d9a40393a0fc
+files/chance_card/langES/ui_chancecard_047_ES.cmpres:
+  patched: 3e1b2182f19d3c9b496008a8c751c17a95c02e8f
+  vanilla: 9160bf6819d982eb0ccbbc46512d5679c038b447
+files/chance_card/langES/ui_chancecard_048_ES.cmpres:
+  patched: c883c881f252eee70d203d37d77a10e1fdd97bf1
+  vanilla: 3ab8efc7af89344f3d43c1dfe061af203ff07de3
+files/chance_card/langES/ui_chancecard_049_ES.cmpres:
+  patched: 6a9c9e784063fcbac6c4afb67dc171c16533c5f7
+  vanilla: 9372b452ed7a102ea436160236cf8a61404f0173
+files/chance_card/langES/ui_chancecard_060_ES.cmpres:
+  patched: 457cd443f5d8c6f000f8fc116a14f1ffbb7e16c2
+  vanilla: f2d857281a4ef8e80169a421946ad5e8ff0d2ccb
+files/chance_card/langES/ui_chancecard_063_ES.cmpres:
+  patched: a512379ba9355501094c46735832963b24529e76
+  vanilla: c3b25e815972ebd5343d9178dfe6dd3aa3cd872f
+files/chance_card/langES/ui_chancecard_064_ES.cmpres:
+  patched: 2eda534c6cdc6abb4c06a0207bdb0595e73ebc56
+  vanilla: 4f74fe85a1102d3dc4e62e2b5678271864a0f7ee
+files/chance_card/langES/ui_chancecard_068_ES.cmpres:
+  patched: c48bf50a090bfd66b8f2c6001da4f8c469664010
+  vanilla: 4558a921bbde656ff0da28ae379b9f95117349cc
+files/chance_card/langES/ui_chancecard_072_ES.cmpres:
+  patched: 21efda613a83a3b1d9eb964042ca4ae616b99d77
+  vanilla: 383292e8335e66b69a1ef6903c1fcd61962111a6
+files/chance_card/langES/ui_chancecard_076_ES.cmpres:
+  patched: 61d3d80c63553faea5fc6c90c7c9d0858137fbd5
+  vanilla: 286e912818fe6656e8394feb4f7b1130424fdd68
+files/chance_card/langES/ui_chancecard_083_ES.cmpres:
+  patched: 0698b9bcddd43e85c7dea14c0ab680366eeb4b53
+  vanilla: ab7b9addff23b5fddee24389d3e898747b2a47e7
+files/chance_card/langES/ui_chancecard_093_ES.cmpres:
+  patched: c2ec091a14734dc9e568a35614367151193ae666
+  vanilla: 6050544b579d850b48a7ed59b0dbc9f2792c3097
+files/chance_card/langES/ui_chancecard_096_ES.cmpres:
+  patched: 1eba591a2b5139be9d59886e0d9b256281ff332c
+  vanilla: 185d4272be1207e3ae10d8131d770e364e800e6d
+files/chance_card/langES/ui_chancecard_118_ES.cmpres:
+  patched: ac6ba2bb3cfd601aa40822a50d7df886c1285fec
+  vanilla: dc735283854ea068a50bd9eda787bd7946356897
+files/chance_card/langES/ui_chancecard_123_ES.cmpres:
+  patched: f87ad368e038877cab16a962800ff59ca215adc1
+  vanilla: 7686ba21b044312dbfaf86743f42e0a384c1bc41
+files/chance_card/langES/ui_chancecard_125_ES.cmpres:
+  patched: 2d04288d1d206c61013bd3054f6a679427317587
+  vanilla: 2c6218ff2595de6a542d06fbc507c043a61a6538
+files/chance_card/langES/ui_chancecard_127_ES.cmpres:
+  patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
+  vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
+files/chance_card/langFR/ui_chancecard_016_FR.cmpres:
+  patched: 01402bd609262ae4b446183d84564b1bbbc98099
+  vanilla: 2ed178c1a8fbe824e7b46ed193cd983ef6b5a750
+files/chance_card/langFR/ui_chancecard_018_FR.cmpres:
+  patched: 636a7a1bc9870429d0e1620229fc491a68069e3a
+  vanilla: e97a465d29329eb5ec0865e1f169547df4038e66
+files/chance_card/langFR/ui_chancecard_024_FR.cmpres:
+  patched: 55bce8c43ea63bfd7c30322f67a4bd347b7e68d2
+  vanilla: 111290fdbc4b024124aad9e09d312b0d831b4315
+files/chance_card/langFR/ui_chancecard_026_FR.cmpres:
+  patched: 0788c73885511fd5835477de6ece25d532af4891
+  vanilla: ca92e5b2cc41c0204eb9204fa41f3f2a38cec2b7
+files/chance_card/langFR/ui_chancecard_031_FR.cmpres:
+  patched: 5ef60398e3f94626ebc150b1662df41ca5c1c892
+  vanilla: 0b0e65d0b799924be550a9a96e8b59cb8d5a93dc
+files/chance_card/langFR/ui_chancecard_032_FR.cmpres:
+  patched: f926ffa8cb18cbe63be41492b70f96c888292ea9
+  vanilla: 1e270cf451b363c03c4c7a6f8227a8542497851b
+files/chance_card/langFR/ui_chancecard_034_FR.cmpres:
+  patched: 736ff4e871a2095df9daf044f1595eb85d23cf2b
+  vanilla: f219ef9212e194447a78a88c48d6f177cdf2c00c
+files/chance_card/langFR/ui_chancecard_037_FR.cmpres:
+  patched: dc7b06f76ca9f7f485354014e3960a4a890fdd6b
+  vanilla: 49ec0351f660a6da22a1f094ef9ecc72ecae1c99
+files/chance_card/langFR/ui_chancecard_041_FR.cmpres:
+  patched: e504a7b670c159903e32b526db6a686c776bd0b7
+  vanilla: cc93beea681b40e001ecfd06a323438aa4694ba3
+files/chance_card/langFR/ui_chancecard_042_FR.cmpres:
+  patched: b98e74a981c5b1d244b1c29b0dc537b2b5b2d0f2
+  vanilla: 5f5c6d2346bc0e05ab6f8df1b51185c334b2bd62
+files/chance_card/langFR/ui_chancecard_045_FR.cmpres:
+  patched: f9c207ef2ad4931acd39a97202fd7b311fb91b47
+  vanilla: e0978067b94dd4bec28ad668cc55d9a40393a0fc
+files/chance_card/langFR/ui_chancecard_047_FR.cmpres:
+  patched: 3e1b2182f19d3c9b496008a8c751c17a95c02e8f
+  vanilla: 9160bf6819d982eb0ccbbc46512d5679c038b447
+files/chance_card/langFR/ui_chancecard_048_FR.cmpres:
+  patched: c883c881f252eee70d203d37d77a10e1fdd97bf1
+  vanilla: 3ab8efc7af89344f3d43c1dfe061af203ff07de3
+files/chance_card/langFR/ui_chancecard_049_FR.cmpres:
+  patched: 6a9c9e784063fcbac6c4afb67dc171c16533c5f7
+  vanilla: 9372b452ed7a102ea436160236cf8a61404f0173
+files/chance_card/langFR/ui_chancecard_060_FR.cmpres:
+  patched: 457cd443f5d8c6f000f8fc116a14f1ffbb7e16c2
+  vanilla: f2d857281a4ef8e80169a421946ad5e8ff0d2ccb
+files/chance_card/langFR/ui_chancecard_063_FR.cmpres:
+  patched: a512379ba9355501094c46735832963b24529e76
+  vanilla: c3b25e815972ebd5343d9178dfe6dd3aa3cd872f
+files/chance_card/langFR/ui_chancecard_064_FR.cmpres:
+  patched: 2eda534c6cdc6abb4c06a0207bdb0595e73ebc56
+  vanilla: 4f74fe85a1102d3dc4e62e2b5678271864a0f7ee
+files/chance_card/langFR/ui_chancecard_068_FR.cmpres:
+  patched: c48bf50a090bfd66b8f2c6001da4f8c469664010
+  vanilla: 4558a921bbde656ff0da28ae379b9f95117349cc
+files/chance_card/langFR/ui_chancecard_072_FR.cmpres:
+  patched: 21efda613a83a3b1d9eb964042ca4ae616b99d77
+  vanilla: 383292e8335e66b69a1ef6903c1fcd61962111a6
+files/chance_card/langFR/ui_chancecard_076_FR.cmpres:
+  patched: 61d3d80c63553faea5fc6c90c7c9d0858137fbd5
+  vanilla: 286e912818fe6656e8394feb4f7b1130424fdd68
+files/chance_card/langFR/ui_chancecard_083_FR.cmpres:
+  patched: 0698b9bcddd43e85c7dea14c0ab680366eeb4b53
+  vanilla: ab7b9addff23b5fddee24389d3e898747b2a47e7
+files/chance_card/langFR/ui_chancecard_093_FR.cmpres:
+  patched: c2ec091a14734dc9e568a35614367151193ae666
+  vanilla: 6050544b579d850b48a7ed59b0dbc9f2792c3097
+files/chance_card/langFR/ui_chancecard_096_FR.cmpres:
+  patched: 1eba591a2b5139be9d59886e0d9b256281ff332c
+  vanilla: 185d4272be1207e3ae10d8131d770e364e800e6d
+files/chance_card/langFR/ui_chancecard_118_FR.cmpres:
+  patched: ac6ba2bb3cfd601aa40822a50d7df886c1285fec
+  vanilla: dc735283854ea068a50bd9eda787bd7946356897
+files/chance_card/langFR/ui_chancecard_123_FR.cmpres:
+  patched: f87ad368e038877cab16a962800ff59ca215adc1
+  vanilla: 7686ba21b044312dbfaf86743f42e0a384c1bc41
+files/chance_card/langFR/ui_chancecard_125_FR.cmpres:
+  patched: 2d04288d1d206c61013bd3054f6a679427317587
+  vanilla: 2c6218ff2595de6a542d06fbc507c043a61a6538
+files/chance_card/langFR/ui_chancecard_127_FR.cmpres:
+  patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
+  vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
+files/chance_card/langIT/ui_chancecard_016_IT.cmpres:
+  patched: 01402bd609262ae4b446183d84564b1bbbc98099
+  vanilla: 2ed178c1a8fbe824e7b46ed193cd983ef6b5a750
+files/chance_card/langIT/ui_chancecard_018_IT.cmpres:
+  patched: 636a7a1bc9870429d0e1620229fc491a68069e3a
+  vanilla: e97a465d29329eb5ec0865e1f169547df4038e66
+files/chance_card/langIT/ui_chancecard_024_IT.cmpres:
+  patched: aeb1d168a17ca3de6eca390f8c7a6ca89416ea50
+  vanilla: 111290fdbc4b024124aad9e09d312b0d831b4315
+files/chance_card/langIT/ui_chancecard_026_IT.cmpres:
+  patched: 0788c73885511fd5835477de6ece25d532af4891
+  vanilla: ca92e5b2cc41c0204eb9204fa41f3f2a38cec2b7
+files/chance_card/langIT/ui_chancecard_031_IT.cmpres:
+  patched: 5ef60398e3f94626ebc150b1662df41ca5c1c892
+  vanilla: 0b0e65d0b799924be550a9a96e8b59cb8d5a93dc
+files/chance_card/langIT/ui_chancecard_032_IT.cmpres:
+  patched: f926ffa8cb18cbe63be41492b70f96c888292ea9
+  vanilla: 1e270cf451b363c03c4c7a6f8227a8542497851b
+files/chance_card/langIT/ui_chancecard_034_IT.cmpres:
+  patched: 736ff4e871a2095df9daf044f1595eb85d23cf2b
+  vanilla: f219ef9212e194447a78a88c48d6f177cdf2c00c
+files/chance_card/langIT/ui_chancecard_037_IT.cmpres:
+  patched: dc7b06f76ca9f7f485354014e3960a4a890fdd6b
+  vanilla: 49ec0351f660a6da22a1f094ef9ecc72ecae1c99
+files/chance_card/langIT/ui_chancecard_041_IT.cmpres:
+  patched: e504a7b670c159903e32b526db6a686c776bd0b7
+  vanilla: cc93beea681b40e001ecfd06a323438aa4694ba3
+files/chance_card/langIT/ui_chancecard_042_IT.cmpres:
+  patched: b98e74a981c5b1d244b1c29b0dc537b2b5b2d0f2
+  vanilla: 5f5c6d2346bc0e05ab6f8df1b51185c334b2bd62
+files/chance_card/langIT/ui_chancecard_045_IT.cmpres:
+  patched: f9c207ef2ad4931acd39a97202fd7b311fb91b47
+  vanilla: e0978067b94dd4bec28ad668cc55d9a40393a0fc
+files/chance_card/langIT/ui_chancecard_047_IT.cmpres:
+  patched: 3e1b2182f19d3c9b496008a8c751c17a95c02e8f
+  vanilla: 9160bf6819d982eb0ccbbc46512d5679c038b447
+files/chance_card/langIT/ui_chancecard_048_IT.cmpres:
+  patched: c883c881f252eee70d203d37d77a10e1fdd97bf1
+  vanilla: 3ab8efc7af89344f3d43c1dfe061af203ff07de3
+files/chance_card/langIT/ui_chancecard_049_IT.cmpres:
+  patched: 6a9c9e784063fcbac6c4afb67dc171c16533c5f7
+  vanilla: 9372b452ed7a102ea436160236cf8a61404f0173
+files/chance_card/langIT/ui_chancecard_060_IT.cmpres:
+  patched: 457cd443f5d8c6f000f8fc116a14f1ffbb7e16c2
+  vanilla: f2d857281a4ef8e80169a421946ad5e8ff0d2ccb
+files/chance_card/langIT/ui_chancecard_063_IT.cmpres:
+  patched: a512379ba9355501094c46735832963b24529e76
+  vanilla: c3b25e815972ebd5343d9178dfe6dd3aa3cd872f
+files/chance_card/langIT/ui_chancecard_064_IT.cmpres:
+  patched: 2eda534c6cdc6abb4c06a0207bdb0595e73ebc56
+  vanilla: 4f74fe85a1102d3dc4e62e2b5678271864a0f7ee
+files/chance_card/langIT/ui_chancecard_068_IT.cmpres:
+  patched: c48bf50a090bfd66b8f2c6001da4f8c469664010
+  vanilla: 4558a921bbde656ff0da28ae379b9f95117349cc
+files/chance_card/langIT/ui_chancecard_072_IT.cmpres:
+  patched: df885575eb6fe53747ecce2fb85044260c6bf9b2
+  vanilla: 383292e8335e66b69a1ef6903c1fcd61962111a6
+files/chance_card/langIT/ui_chancecard_076_IT.cmpres:
+  patched: 61d3d80c63553faea5fc6c90c7c9d0858137fbd5
+  vanilla: 286e912818fe6656e8394feb4f7b1130424fdd68
+files/chance_card/langIT/ui_chancecard_083_IT.cmpres:
+  patched: 0698b9bcddd43e85c7dea14c0ab680366eeb4b53
+  vanilla: ab7b9addff23b5fddee24389d3e898747b2a47e7
+files/chance_card/langIT/ui_chancecard_093_IT.cmpres:
+  patched: c2ec091a14734dc9e568a35614367151193ae666
+  vanilla: 6050544b579d850b48a7ed59b0dbc9f2792c3097
+files/chance_card/langIT/ui_chancecard_096_IT.cmpres:
+  patched: 1eba591a2b5139be9d59886e0d9b256281ff332c
+  vanilla: 185d4272be1207e3ae10d8131d770e364e800e6d
+files/chance_card/langIT/ui_chancecard_118_IT.cmpres:
+  patched: ac6ba2bb3cfd601aa40822a50d7df886c1285fec
+  vanilla: dc735283854ea068a50bd9eda787bd7946356897
+files/chance_card/langIT/ui_chancecard_123_IT.cmpres:
+  patched: f87ad368e038877cab16a962800ff59ca215adc1
+  vanilla: 7686ba21b044312dbfaf86743f42e0a384c1bc41
+files/chance_card/langIT/ui_chancecard_125_IT.cmpres:
+  patched: 2d04288d1d206c61013bd3054f6a679427317587
+  vanilla: 2c6218ff2595de6a542d06fbc507c043a61a6538
+files/chance_card/langIT/ui_chancecard_127_IT.cmpres:
+  patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
+  vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
+files/chance_card/langUK/ui_chancecard_016_UK.cmpres:
+  patched: 01402bd609262ae4b446183d84564b1bbbc98099
+  vanilla: 2ed178c1a8fbe824e7b46ed193cd983ef6b5a750
+files/chance_card/langUK/ui_chancecard_018_UK.cmpres:
+  patched: 636a7a1bc9870429d0e1620229fc491a68069e3a
+  vanilla: 1db3f2840175f3d67766bd528018d024820be757
+files/chance_card/langUK/ui_chancecard_024_UK.cmpres:
+  patched: aeb1d168a17ca3de6eca390f8c7a6ca89416ea50
+  vanilla: 9fe5a56fc51ed79c7af5a991e95021cad95ce7ab
+files/chance_card/langUK/ui_chancecard_026_UK.cmpres:
+  patched: 0788c73885511fd5835477de6ece25d532af4891
+  vanilla: ca92e5b2cc41c0204eb9204fa41f3f2a38cec2b7
+files/chance_card/langUK/ui_chancecard_031_UK.cmpres:
+  patched: 5ef60398e3f94626ebc150b1662df41ca5c1c892
+  vanilla: 0b0e65d0b799924be550a9a96e8b59cb8d5a93dc
+files/chance_card/langUK/ui_chancecard_032_UK.cmpres:
+  patched: f926ffa8cb18cbe63be41492b70f96c888292ea9
+  vanilla: 1e270cf451b363c03c4c7a6f8227a8542497851b
+files/chance_card/langUK/ui_chancecard_034_UK.cmpres:
+  patched: 736ff4e871a2095df9daf044f1595eb85d23cf2b
+  vanilla: f219ef9212e194447a78a88c48d6f177cdf2c00c
+files/chance_card/langUK/ui_chancecard_037_UK.cmpres:
+  patched: dc7b06f76ca9f7f485354014e3960a4a890fdd6b
+  vanilla: 49ec0351f660a6da22a1f094ef9ecc72ecae1c99
+files/chance_card/langUK/ui_chancecard_041_UK.cmpres:
+  patched: e504a7b670c159903e32b526db6a686c776bd0b7
+  vanilla: cc93beea681b40e001ecfd06a323438aa4694ba3
+files/chance_card/langUK/ui_chancecard_042_UK.cmpres:
+  patched: b98e74a981c5b1d244b1c29b0dc537b2b5b2d0f2
+  vanilla: 5f5c6d2346bc0e05ab6f8df1b51185c334b2bd62
+files/chance_card/langUK/ui_chancecard_045_UK.cmpres:
+  patched: f9c207ef2ad4931acd39a97202fd7b311fb91b47
+  vanilla: e0978067b94dd4bec28ad668cc55d9a40393a0fc
+files/chance_card/langUK/ui_chancecard_047_UK.cmpres:
+  patched: 3e1b2182f19d3c9b496008a8c751c17a95c02e8f
+  vanilla: 9160bf6819d982eb0ccbbc46512d5679c038b447
+files/chance_card/langUK/ui_chancecard_048_UK.cmpres:
+  patched: c883c881f252eee70d203d37d77a10e1fdd97bf1
+  vanilla: 3ab8efc7af89344f3d43c1dfe061af203ff07de3
+files/chance_card/langUK/ui_chancecard_049_UK.cmpres:
+  patched: 6a9c9e784063fcbac6c4afb67dc171c16533c5f7
+  vanilla: 9372b452ed7a102ea436160236cf8a61404f0173
+files/chance_card/langUK/ui_chancecard_060_UK.cmpres:
+  patched: 457cd443f5d8c6f000f8fc116a14f1ffbb7e16c2
+  vanilla: f2d857281a4ef8e80169a421946ad5e8ff0d2ccb
+files/chance_card/langUK/ui_chancecard_063_UK.cmpres:
+  patched: a512379ba9355501094c46735832963b24529e76
+  vanilla: c3b25e815972ebd5343d9178dfe6dd3aa3cd872f
+files/chance_card/langUK/ui_chancecard_064_UK.cmpres:
+  patched: 2eda534c6cdc6abb4c06a0207bdb0595e73ebc56
+  vanilla: 4f74fe85a1102d3dc4e62e2b5678271864a0f7ee
+files/chance_card/langUK/ui_chancecard_068_UK.cmpres:
+  patched: c48bf50a090bfd66b8f2c6001da4f8c469664010
+  vanilla: 4558a921bbde656ff0da28ae379b9f95117349cc
+files/chance_card/langUK/ui_chancecard_072_UK.cmpres:
+  patched: df885575eb6fe53747ecce2fb85044260c6bf9b2
+  vanilla: 383292e8335e66b69a1ef6903c1fcd61962111a6
+files/chance_card/langUK/ui_chancecard_076_UK.cmpres:
+  patched: 61d3d80c63553faea5fc6c90c7c9d0858137fbd5
+  vanilla: 286e912818fe6656e8394feb4f7b1130424fdd68
+files/chance_card/langUK/ui_chancecard_083_UK.cmpres:
+  patched: 0698b9bcddd43e85c7dea14c0ab680366eeb4b53
+  vanilla: ab7b9addff23b5fddee24389d3e898747b2a47e7
+files/chance_card/langUK/ui_chancecard_093_UK.cmpres:
+  patched: c2ec091a14734dc9e568a35614367151193ae666
+  vanilla: 6050544b579d850b48a7ed59b0dbc9f2792c3097
+files/chance_card/langUK/ui_chancecard_096_UK.cmpres:
+  patched: 1eba591a2b5139be9d59886e0d9b256281ff332c
+  vanilla: 185d4272be1207e3ae10d8131d770e364e800e6d
+files/chance_card/langUK/ui_chancecard_118_UK.cmpres:
+  patched: ac6ba2bb3cfd601aa40822a50d7df886c1285fec
+  vanilla: dc735283854ea068a50bd9eda787bd7946356897
+files/chance_card/langUK/ui_chancecard_123_UK.cmpres:
+  patched: f87ad368e038877cab16a962800ff59ca215adc1
+  vanilla: 7686ba21b044312dbfaf86743f42e0a384c1bc41
+files/chance_card/langUK/ui_chancecard_125_UK.cmpres:
+  patched: 2d04288d1d206c61013bd3054f6a679427317587
+  vanilla: 2c6218ff2595de6a542d06fbc507c043a61a6538
+files/chance_card/langUK/ui_chancecard_127_UK.cmpres:
+  patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
+  vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
+files/chance_card/ui_chancecard_016.cmpres:
+  patched: 01402bd609262ae4b446183d84564b1bbbc98099
+  vanilla: 2ed178c1a8fbe824e7b46ed193cd983ef6b5a750
+files/chance_card/ui_chancecard_018.cmpres:
+  patched: 636a7a1bc9870429d0e1620229fc491a68069e3a
+  vanilla: 6bf9a1d5ed74d994d6189e3d6c91c6d7d9a3716a
+files/chance_card/ui_chancecard_024.cmpres:
+  patched: aeb1d168a17ca3de6eca390f8c7a6ca89416ea50
+  vanilla: 62406a5d119b12b3cd733d0dad8f0b48d2b91b67
+files/chance_card/ui_chancecard_026.cmpres:
+  patched: 0788c73885511fd5835477de6ece25d532af4891
+  vanilla: ca92e5b2cc41c0204eb9204fa41f3f2a38cec2b7
+files/chance_card/ui_chancecard_031.cmpres:
+  patched: 5ef60398e3f94626ebc150b1662df41ca5c1c892
+  vanilla: 0b0e65d0b799924be550a9a96e8b59cb8d5a93dc
+files/chance_card/ui_chancecard_032.cmpres:
+  patched: f926ffa8cb18cbe63be41492b70f96c888292ea9
+  vanilla: 1e270cf451b363c03c4c7a6f8227a8542497851b
+files/chance_card/ui_chancecard_034.cmpres:
+  patched: 736ff4e871a2095df9daf044f1595eb85d23cf2b
+  vanilla: 010f70a033e8c8b30ebd6641c7668dd5f86594f6
+files/chance_card/ui_chancecard_037.cmpres:
+  patched: dc7b06f76ca9f7f485354014e3960a4a890fdd6b
+  vanilla: 49ec0351f660a6da22a1f094ef9ecc72ecae1c99
+files/chance_card/ui_chancecard_041.cmpres:
+  patched: e504a7b670c159903e32b526db6a686c776bd0b7
+  vanilla: cc93beea681b40e001ecfd06a323438aa4694ba3
+files/chance_card/ui_chancecard_042.cmpres:
+  patched: b98e74a981c5b1d244b1c29b0dc537b2b5b2d0f2
+  vanilla: 5f5c6d2346bc0e05ab6f8df1b51185c334b2bd62
+files/chance_card/ui_chancecard_045.cmpres:
+  patched: f9c207ef2ad4931acd39a97202fd7b311fb91b47
+  vanilla: e4b4eb789588526a56d49b94d7e9584e4c55d4a7
+files/chance_card/ui_chancecard_047.cmpres:
+  patched: 3e1b2182f19d3c9b496008a8c751c17a95c02e8f
+  vanilla: af7daf9a5a073fc9bcb400baf76d30531dee21e8
+files/chance_card/ui_chancecard_048.cmpres:
+  patched: c883c881f252eee70d203d37d77a10e1fdd97bf1
+  vanilla: 3ab8efc7af89344f3d43c1dfe061af203ff07de3
+files/chance_card/ui_chancecard_049.cmpres:
+  patched: 6a9c9e784063fcbac6c4afb67dc171c16533c5f7
+  vanilla: 9372b452ed7a102ea436160236cf8a61404f0173
+files/chance_card/ui_chancecard_060.cmpres:
+  patched: 457cd443f5d8c6f000f8fc116a14f1ffbb7e16c2
+  vanilla: f2d857281a4ef8e80169a421946ad5e8ff0d2ccb
+files/chance_card/ui_chancecard_063.cmpres:
+  patched: a512379ba9355501094c46735832963b24529e76
+  vanilla: c3b25e815972ebd5343d9178dfe6dd3aa3cd872f
+files/chance_card/ui_chancecard_064.cmpres:
+  patched: 2eda534c6cdc6abb4c06a0207bdb0595e73ebc56
+  vanilla: 4f74fe85a1102d3dc4e62e2b5678271864a0f7ee
+files/chance_card/ui_chancecard_068.cmpres:
+  patched: c48bf50a090bfd66b8f2c6001da4f8c469664010
+  vanilla: 4558a921bbde656ff0da28ae379b9f95117349cc
+files/chance_card/ui_chancecard_072.cmpres:
+  patched: df885575eb6fe53747ecce2fb85044260c6bf9b2
+  vanilla: 2a20c97934de091be7cca3e60bbeb43ebb926405
+files/chance_card/ui_chancecard_076.cmpres:
+  patched: 61d3d80c63553faea5fc6c90c7c9d0858137fbd5
+  vanilla: 286e912818fe6656e8394feb4f7b1130424fdd68
+files/chance_card/ui_chancecard_083.cmpres:
+  patched: 0698b9bcddd43e85c7dea14c0ab680366eeb4b53
+  vanilla: 2390efe9472e6aa4463536857b9bb75fac83727e
+files/chance_card/ui_chancecard_093.cmpres:
+  patched: c2ec091a14734dc9e568a35614367151193ae666
+  vanilla: 56b13d3f5378ed1a99d871314308dfa91d09f792
+files/chance_card/ui_chancecard_096.cmpres:
+  patched: 1eba591a2b5139be9d59886e0d9b256281ff332c
+  vanilla: 185d4272be1207e3ae10d8131d770e364e800e6d
+files/chance_card/ui_chancecard_118.cmpres:
+  patched: ac6ba2bb3cfd601aa40822a50d7df886c1285fec
+  vanilla: dc735283854ea068a50bd9eda787bd7946356897
+files/chance_card/ui_chancecard_123.cmpres:
+  patched: f87ad368e038877cab16a962800ff59ca215adc1
+  vanilla: 1658ec7c375cf7badfe66b78486951b927cb7a0e
+files/chance_card/ui_chancecard_125.cmpres:
+  patched: 2d04288d1d206c61013bd3054f6a679427317587
+  vanilla: 250f90d225d0e94b24e7cede1a7986626806fad3
+files/chance_card/ui_chancecard_127.cmpres:
+  patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
+  vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
+files/game/game_board.cmpres:
+  patched: 8706325696669abc36cb5395f28a016a366b0da2
+  vanilla: e40441e95554825ffb85cdeef851cf8cf136c74a
+files/game/langDE/game_board_DE.cmpres:
+  patched: c5f1b9ee498cf01f6a9639c58c7e14e4d7060256
+  vanilla: 3eb4795db2af1d11a5f8e584eddd0140241f8d7d
+files/game/langEN/game_board_EN.cmpres:
+  patched: f83ab0dd6d2284c721c3ebd7c8b4bd015ea438a1
+  vanilla: 4c2645a68179b374dc7f7bfcc6d35282340e59a7
+files/game/langES/game_board_ES.cmpres:
+  patched: 8e0eb22bc2e0e2885824518051c2e5f744ac3ee4
+  vanilla: 2f081bd5e4215d1705f337f861416cdca8158744
+files/game/langFR/game_board_FR.cmpres:
+  patched: 213ad2170d610359567d8801b61d66e00b435683
+  vanilla: 0720efd7d5931156acade3808edfea84557af6ad
+files/game/langIT/game_board_IT.cmpres:
+  patched: 80e099a85902b56260fb85b63678f64ab4213c4f
+  vanilla: 74b03366cf0e6c1bedb91ede6b5db347f1300c02
+files/game/langUK/game_board_UK.cmpres:
+  patched: a58da1da574fc23826ee3ad0ae8e4e9c9239c717
+  vanilla: 39490a564fa47f5ffe98d08c992aa47f6deb9f4d
+files/font/font_ma_alps_gaiji.brfna: 
+  patched: 00
+  vanilla: 4BA928422CD805B8387D3AD931461CA5CDA616F0
+files/sound/Itast.brsar: 
+  patched: 00
+  vanilla: 0d79aa07533c23d1724bf130743e78a101191a16
