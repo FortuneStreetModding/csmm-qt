@@ -83,10 +83,10 @@ static const QMap<QString, BgmId> stringToBgmIds = {
 };
 
 namespace Bgm {
-    static QString bgmIdToString(BgmId bgmId) {
+    inline QString bgmIdToString(BgmId bgmId) {
         return stringToBgmIds.key(bgmId);
     }
-    static BgmId stringToBgmId(const QString &str) {
+    inline BgmId stringToBgmId(const QString &str) {
         return stringToBgmIds.value(str);
     }
 }
@@ -151,16 +151,16 @@ static const QMap<QString, MusicType> stringToMusicTypes = {
 };
 
 namespace Music {
-    static QString musicTypeToString(MusicType musicType) {
+    inline QString musicTypeToString(MusicType musicType) {
         return stringToMusicTypes.key(musicType);
     }
-    static MusicType stringToMusicType(const QString &str) {
+    inline MusicType stringToMusicType(const QString &str) {
         return stringToMusicTypes.value(str);
     }
-    static bool isMusicType(const QString &str) {
+    inline bool isMusicType(const QString &str) {
         return stringToMusicTypes.contains(str);
     }
-    static bool musicTypeIsBgm(MusicType musicType) {
+    inline bool musicTypeIsBgm(MusicType musicType) {
         switch(musicType) {
         case map:
         case stock:
