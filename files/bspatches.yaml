@@ -587,8 +587,8 @@ files/game/langUK/game_board_UK.cmpres:
   patched: a58da1da574fc23826ee3ad0ae8e4e9c9239c717
   vanilla: 39490a564fa47f5ffe98d08c992aa47f6deb9f4d
 files/font/font_ma_alps_gaiji.brfna: 
-  patched: 00
-  vanilla: 4BA928422CD805B8387D3AD931461CA5CDA616F0
+  patched: f72bfc6c78af3ad1878d789738b30a59e04228de
+  vanilla: 4ba928422cd805b8387d3ad931461ca5cda616f0
 files/sound/Itast.brsar: 
-  patched: 00
+  patched: 8076238e94f1446c955a7fc89118b4f19d122d76
   vanilla: 0d79aa07533c23d1724bf130743e78a101191a16

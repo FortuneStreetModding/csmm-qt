@@ -484,8 +484,8 @@ static QString applyAllBspatches(const QDir &output) {
         auto yaml = YAML::Load(contents.toStdString());
         for (auto it=yaml.begin(); it!=yaml.end(); ++it) {
             QString vanillaRelPath = QString::fromStdString(it->first.as<std::string>());
-            QString vanilla = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["vanilla"].as<std::string>());
-            QString patched = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["patched"].as<std::string>());
+            QString vanilla = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["vanilla"].as<std::string>()).toLower();
+            QString patched = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["patched"].as<std::string>()).toLower();
             QString bsdiffPath = ":/" + vanillaRelPath + ".bsdiff";
             QString cmpresPath = output.filePath(vanillaRelPath);
             if (PatchProcess::fileSha1(cmpresPath) == vanilla) {
@@ -553,7 +553,7 @@ QString fileSha1(const QString &fileName) {
    if (f.open(QFile::ReadOnly)) {
        QCryptographicHash hash(QCryptographicHash::Sha1);
        if (hash.addData(&f)) {
-           return hash.result().toHex();
+           return hash.result().toHex().toLower();
        }
    }
    return QByteArray().toHex();
