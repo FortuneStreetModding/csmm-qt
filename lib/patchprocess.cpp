@@ -69,7 +69,12 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
     }).future();
 }
 
-static void textReplace(QString& text, QString regexStr, QString replaceStr) {
+static inline QRegularExpression re(const QString &regexStr) {
+    return QRegularExpression(regexStr,
+                              QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
+}
+
+static void textReplace(QString& text, const QString &regexStr, const QString &replaceStr) {
     // need to use Regex, because there are different types of whitespaces in the messages (some are U+0020 while others are U+00A0)
     // QT needs UseUnicodePropertiesOption to reliably match all whitespace characters with \\s
 
@@ -88,6 +93,11 @@ bool hasWiimmfiText(const QDir &dir) {
     }
     return false;
 }
+
+static const auto REG_WIFI_DE = re("(?:die|der|zur)\\sNintendo\\sWi-Fi\\sConnection");
+static const auto REG_WIFI_FR = re("(?:Wi-Fi|CWF|Connexion)\\sNintendo");
+static const auto REG_WIFI_SU = re("(?:Conexión(?:\\s|<n>)Wi-Fi|CWF)\\sde(?:\\s|<n>)Nintendo");
+static const auto REG_WIFI = re("Nintendo\\s(?:Wi-Fi\\sConnection|WFC)");
 
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
     // Key = locale, Value = file contents
@@ -188,27 +198,19 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
             // text replace Nintendo WFC -> Wiimmfi
             if (patchWiimmfi) {
                 if (locale == "de") {
-                    textReplace(text, "die\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
-                    textReplace(text, "der\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
-                    textReplace(text, "zur\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
+                    text.replace(REG_WIFI_DE, "Wiimmfi");
                 }
                 if (locale == "fr") {
-                    textReplace(text, "Wi-Fi\\sNintendo", "Wiimmfi");
-                    textReplace(text, "CWF\\sNintendo", "Wiimmfi");
-                    textReplace(text, "Connexion\\sWi-Fi\\sNintendo", "Wiimmfi");
+                    text.replace(REG_WIFI_FR, "Wiimmfi");
                 }
                 if (locale == "su") {
-                    textReplace(text, "Conexión\\sWi-Fi\\sde\\sNintendo", "Wiimmfi");
-                    textReplace(text, "CWF\\sde\\sNintendo", "Wiimmfi");
-                    textReplace(text, "Conexión\\sWi-Fi\\sde<n>Nintendo", "Wiimmfi<n>");
-                    textReplace(text, "Conexión<n>Wi-Fi\\sde\\sNintendo", "Wiimmfi<n>");
+                    text.replace(REG_WIFI_SU, "Wiimmfi");
                 }
                 if (locale == "jp") {
-                    textReplace(text, "Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ");
+                    text.replace("Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ", Qt::CaseInsensitive);
                 }
-                textReplace(text, "Nintendo\\sWi-Fi\\sConnection", "Wiimmfi");
-                textReplace(text, "Nintendo\\sWFC", "Wiimmfi");
-                textReplace(text, "support.nintendo.com", "https://wiimmfi.de/error");
+                text.replace(REG_WIFI, "Wiimmfi");
+                text.replace("support.nintendo.com", "https://wiimmfi.de/error");
             }
         }
     }
@@ -613,29 +615,6 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
             }
         }
 
-#if 0
-        for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
-            QDir brlanFileDir(QDir(it.value()).filePath("arc/anim"));
-            auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_game_013_Tag_*.brlan"}, QDir::Files);
-            for (auto &brlanFileInfo: brlanFilesInfo) {
-                auto brlanFile = brlanFileInfo.absoluteFilePath();
-                QFile::remove(brlanFile);
-                #if 0
-                auto xmlanFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
-
-                ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
-                ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
-
-                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-                QFile brlytFileObj(brlanFile);
-                if (brlytFileObj.open(QIODevice::ReadWrite)) {
-                    brlytFileObj.seek(0);
-                    brlytFileObj.putChar('R');
-                }
-                #endif
-            }
-        }
-#endif
         auto packArcFileTasks = AsyncFuture::combine();
         for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
             packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
