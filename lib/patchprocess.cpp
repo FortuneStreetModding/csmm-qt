@@ -74,17 +74,6 @@ static inline QRegularExpression re(const QString &regexStr) {
                               QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
 }
 
-static void textReplace(QString& text, const QString &regexStr, const QString &replaceStr) {
-    // need to use Regex, because there are different types of whitespaces in the messages (some are U+0020 while others are U+00A0)
-    // QT needs UseUnicodePropertiesOption to reliably match all whitespace characters with \\s
-
-    //QString space = QString::fromUtf8("[\u0020\u00a0\uc2a0\uc220\u202f]");
-    //QString regexStrWithSpaces = regexStr.replace(" ", space, Qt::CaseInsensitive);
-    QRegularExpression regex = QRegularExpression(regexStr,
-        QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
-    text.replace(regex, replaceStr);
-}
-
 bool hasWiimmfiText(const QDir &dir) {
     QFile file(dir.filePath(uiMessageCsv("en")));
     if (file.open(QIODevice::ReadOnly)) {
@@ -178,14 +167,17 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
         auto locale = it.key();
         auto &uiMessage = it.value();
         auto keys = uiMessage.keys();
+
+        auto districtWord = VanillaDatabase::localeToDistrictWord()[locale];
+        auto districtReplaceRegex = re(districtWord + "<area>");
+
         for (quint32 id: qAsConst(keys)) {
             auto &text = uiMessage[id];
 
             // text replace District <area> -> <area>
-            auto districtWord = VanillaDatabase::localeToDistrictWord()[locale];
-            textReplace(text, districtWord + "<area>", "<area>");
+            text.replace(districtReplaceRegex, "<area>");
             if (locale == "it") {
-                textReplace(text, "Quartiere<outline_off><n><outline_0><area>", "<area>");
+                text.replace("Quartiere<outline_off><n><outline_0><area>", "<area>", Qt::CaseInsensitive);
             }
 
             // strip "District" from shop squares in view board
