@@ -85,7 +85,7 @@ bool hasWiimmfiText(const QDir &dir) {
 
 static const auto REG_WIFI_DE = re("(?:die|der|zur)\\sNintendo\\sWi-Fi\\sConnection");
 static const auto REG_WIFI_FR = re("(?:Wi-Fi|CWF|Connexion)\\sNintendo");
-static const auto REG_WIFI_SU = re("(?:Conexión(?:\\s|(<n>))Wi-Fi|CWF)\\sde(?:\\s|(<n>))Nintendo()");
+static const auto REG_WIFI_SU = re("(?:Conexión(?:\\s|(<n>))Wi-Fi|CWF)\\sde(?:\\s|(<n>))Nintendo(\\.?)");
 static const auto REG_WIFI = re("Nintendo\\s(?:Wi-Fi\\sConnection|WFC)");
 
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
@@ -196,7 +196,7 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
                     text.replace(REG_WIFI_FR, "Wiimmfi");
                 }
                 if (locale == "su") {
-                    text.replace(REG_WIFI_SU, "Wiimmfi\\1");
+                    text.replace(REG_WIFI_SU, "Wiimmfi\\3\\1\\2");
                 }
                 if (locale == "jp") {
                     text.replace("Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ", Qt::CaseInsensitive);
