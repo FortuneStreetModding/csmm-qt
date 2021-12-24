@@ -395,13 +395,13 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
             getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_ja.png").arg(langDir), minimapTmpPath);
             getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_w_ja.png").arg(langDir), minimapTmpPath);
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon2_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon2_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
         }
 
         // convert the brlyt files to xmlyt, inject the map icons and convert it back
@@ -806,13 +806,13 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
             getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_ja.png").arg(langDir), minimapTmpPath);
             getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_w_ja.png").arg(langDir), minimapTmpPath);
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon2_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon2_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
             QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
-            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(QDir(minimapTmpPath).filePath("ui_minimap_icon_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
         }
 
         for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
