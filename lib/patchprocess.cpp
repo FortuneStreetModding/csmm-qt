@@ -93,6 +93,23 @@ bool hasWiimmfiText(const QDir &dir) {
     return false;
 }
 
+static QString getFileCopy(const QString &fileName, const QDir &dir) {
+    // copy the file to dir
+    QFileInfo fileInfo(fileName);
+    auto fileFrom = fileName;
+    auto fileTo = dir.filePath(fileInfo.fileName());
+    if(QFile::exists(fileTo))
+        return fileTo;
+    if(!QFile::copy(fileFrom, fileTo))
+        throw Exception(QString("Could not copy file %1 to %2").arg(fileFrom, fileTo));
+    QFile file(fileTo);
+    // if the file is not writable or readable, set the permissions
+    if(!file.isWritable() || !file.isReadable()) {
+        file.setPermissions(QFile::WriteUser | QFile::ReadUser);
+    }
+    return fileTo;
+}
+
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
     qDebug() << "Running writeLocalizationFiles()";
     // Key = locale, Value = file contents
@@ -302,8 +319,11 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     auto gameSequenceExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     /** maps the path of the various variants of the game_sequenceXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
     auto gameSequenceToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the locale to the path */
+    auto localeGameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     for (auto &locale: FS_LOCALES) {
         auto gameSequencePath = dir.filePath(gameSequenceArc(locale));
+        (*localeGameBoardExtractPaths)[gameSequencePath] = locale;
 
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
         tmpDirObj.mkpath(extractPath);
@@ -315,6 +335,7 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }
     for (auto &locale: FS_LOCALES) {
         auto gameSequencePath = dir.filePath(gameSequenceWifiArc(locale));
+        (*localeGameBoardExtractPaths)[gameSequencePath] = locale;
 
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
         tmpDirObj.mkpath(extractPath);
@@ -360,6 +381,27 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
                     }).future();
                 }
             }
+        }
+
+        for (auto it = gameSequenceExtractPaths->begin(); it != gameSequenceExtractPaths->end(); ++it) {
+            auto locale = localeToUpper((*localeGameBoardExtractPaths)[it.key()]);
+            auto langDir = QString("lang%1/").arg(localeToUpper(locale));
+            if(locale.isEmpty())
+                langDir = QString();
+            auto minimapTmpPath = tmpDirObj.filePath(QString("minimap/%1").arg(langDir));
+            tmpDirObj.mkpath(minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_ja.png").arg(langDir), minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_w_ja.png").arg(langDir), minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_ja.png").arg(langDir), minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_w_ja.png").arg(langDir), minimapTmpPath);
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
         }
 
         // convert the brlyt files to xmlyt, inject the map icons and convert it back
@@ -651,6 +693,7 @@ static void copyMapFiles(const QVector<MapDescriptor> &descriptors, const QDir &
 }
 
 static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running widenResultsMapBox()";
     // t_m_00
 
     QDir tmpDirObj(tmpDir.path());
@@ -718,14 +761,19 @@ static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
 }
 
 static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running widenDistrictName()";
+
     QDir tmpDirObj(tmpDir.path());
 
     /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective extraction path in the tmp directory */
     auto gameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
     auto gameBoardToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the locale to the path */
+    auto localeGameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     for (auto &locale: FS_LOCALES) {
         auto gameBoardPath = dir.filePath(gameBoardArc(locale));
+        (*localeGameBoardExtractPaths)[gameBoardPath] = locale;
 
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameBoardPath).baseName());
         tmpDirObj.mkpath(extractPath);
@@ -735,6 +783,7 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
         tmpDirObj.mkpath(xmlytPath);
         (*gameBoardToXmlytBasePaths)[gameBoardPath] = xmlytPath;
     }
+
     // extract the arc files
     auto extractArcTasks = AsyncFuture::combine();
     for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
@@ -742,6 +791,30 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
     }
 
     return extractArcTasks.subscribe([=]() {
+        // convert the png files to tpl and copy them to the correct location
+        auto convertTasks = AsyncFuture::combine();
+
+        for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
+            auto locale = localeToUpper((*localeGameBoardExtractPaths)[it.key()]);
+            auto langDir = QString("lang%1/").arg(localeToUpper(locale));
+            if(locale.isEmpty())
+                langDir = QString();
+            auto minimapTmpPath = tmpDirObj.filePath(QString("minimap/%1").arg(langDir));
+            tmpDirObj.mkpath(minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_ja.png").arg(langDir), minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_w_ja.png").arg(langDir), minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_ja.png").arg(langDir), minimapTmpPath);
+            getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_w_ja.png").arg(langDir), minimapTmpPath);
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon2_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(tmpDirObj.filePath("ui_minimap_icon_w_ja.png"), QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+        }
+
         for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
             auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_013.brlyt");
             //auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
@@ -785,11 +858,22 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
             }
         }
 #endif
+
+        // add dummy deferred here for edge case where there
+        // are no images to convert
+        auto def = AsyncFuture::deferred<void>();
+        def.complete();
+        convertTasks << def;
+
+        return convertTasks.future();
+    }).subscribe([=]() {
         auto packArcFileTasks = AsyncFuture::combine();
         for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
             packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
         }
         return packArcFileTasks.future();
+    }).subscribe([]() {
+        return true;
     }).future();
 }
 

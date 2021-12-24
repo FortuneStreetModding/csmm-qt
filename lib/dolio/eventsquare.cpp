@@ -77,8 +77,9 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
 
     // --- Icon ---
     stream.device()->seek(addressMapper.boomToFileAddress(0x804160c8));
-    stream << (quint32)addressMapper.boomStreetToStandard(0x80415ee0); // pointer to the texture name (0x80415ee0 points to the string "p_mark_21" which is the switch icon texture
-    stream << (quint32)addressMapper.boomStreetToStandard(0x80415ee0); // we need to write it twice: once for each design type (Mario and DragonQuest)
+    quint32 ui_mark_eventsquare = allocate("ui_mark_eventsquare");
+    stream << ui_mark_eventsquare; // pointer to the texture name
+    stream << ui_mark_eventsquare; // we need to write it twice: once for each design type (Mario and DragonQuest)
 
     // --- Name ---
     stream.device()->seek(addressMapper.boomToFileAddress(0x80475580));
@@ -123,7 +124,6 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     // --- Seperate icons for dice in the description of event square ---
     // This is needed because otherwise the game will use dice icons which are transparent. This does not look good on the transparent background of the description box.
     // -> Instead we want to use opaque dice icons.
-
     hijackAddr = addressMapper.boomStreetToStandard(0x8010f628);
     quint32 fontCharacterIdModifierRoutine = allocate(writeFontCharacterIdModifierRoutine(addressMapper, 0), "fontCharacterIdModifierRoutine");
     stream.device()->seek(addressMapper.toFileAddress(fontCharacterIdModifierRoutine));
