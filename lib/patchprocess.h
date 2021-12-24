@@ -19,10 +19,11 @@ namespace PatchProcess {
      * @param output the output directory
      * @param descriptors the descriptors
      * @param patchWiimmfi whether to patch the game with Wiimmfi
+     * @param patchResultBoardName whether to display board name instead of "target amount" in results screen
      * @param tmpDir holds temporary files to copy to output if needed
      * @return a future resolving to whether the save was successful
      */
-    QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir);
+    QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir);
 
     /**
      * @brief exportYaml Exports the map descriptor file and .frb(s).

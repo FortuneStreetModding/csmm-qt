@@ -26,6 +26,18 @@ inline QString gameSequenceWifiArc(const QString &locale) {
     }
     return QString("files/game/lang%1/game_sequence_wifi_%1.arc").arg(localeToUpper(locale));
 }
+inline QString gameSequenceResultArc(const QString &locale) {
+    if (locale == "jp") {
+        return "files/game/game_sequence_result.arc";
+    }
+    return QString("files/game/lang%1/game_sequence_result_%1.arc").arg(localeToUpper(locale));
+}
+inline QString gameBoardArc(const QString &locale) {
+    if (locale == "jp") {
+        return "files/game/game_board.arc";
+    }
+    return QString("files/game/lang%1/game_board_%1.arc").arg(localeToUpper(locale));
+}
 inline QString bgPath(const QString &locale, const QString &background) {
     if (locale == "jp") {
         return QString("files/bg/%1.cmpres").arg(background);

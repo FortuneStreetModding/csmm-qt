@@ -7,10 +7,10 @@ quint32 VentureCardTable::writeTable(const QVector<MapDescriptor> &descriptors) 
         // here we bitpack the venture card table so that each byte stores 8 venture cards. This results
         // in an array of just 16 bytes for each map.
         quint32 i = 0;
-        while (i < sizeof(descriptor.ventureCards)) {
+        while (i < descriptor.ventureCards.size()) {
             quint8 bitPackedVentureCardValue = 0;
             for (int j = 7; j >= 0; j--, i++) {
-                if (i < sizeof(descriptor.ventureCards)) {
+                if (i < descriptor.ventureCards.size()) {
                     bitPackedVentureCardValue |= (quint8)(descriptor.ventureCards[i] << j);
                 }
             }
@@ -141,11 +141,11 @@ void VentureCardTable::readVanillaVentureCardTable(QDataStream &stream, QVector<
 void VentureCardTable::readCompressedVentureCardTable(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors) {
     for (auto &mapDescriptor: mapDescriptors) {
         quint32 i = 0;
-        while (i < sizeof(mapDescriptor.ventureCards)) {
+        while (i < mapDescriptor.ventureCards.size()) {
             quint8 bitPackedVentureCardValue;
             stream >> bitPackedVentureCardValue;
             for (int j = 7; j >= 0; j--, i++) {
-                if (i < sizeof(mapDescriptor.ventureCards)) {
+                if (i < mapDescriptor.ventureCards.size()) {
                     mapDescriptor.ventureCards[i] = (bool)((bitPackedVentureCardValue >> j) & 1);
                 }
             }

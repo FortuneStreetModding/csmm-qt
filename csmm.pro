@@ -1,9 +1,9 @@
-TARGET = CSMM
+TARGET = csmm
 
 #Application version
 VERSION_MAJOR = 1
-VERSION_MINOR = 3
-VERSION_BUILD = 3
+VERSION_MINOR = 4
+VERSION_BUILD = 1
 
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
        "VERSION_MINOR=$$VERSION_MINOR"\
@@ -59,6 +59,7 @@ SOURCES += \
     lib/dolio/bgsequencetable.cpp \
     lib/dolio/defaulttargetamounttable.cpp \
     lib/dolio/designtypetable.cpp \
+    lib/dolio/displaymapinresults.cpp \
     lib/dolio/dolio.cpp \
     lib/dolio/doliotable.cpp \
     lib/dolio/eventsquare.cpp \
@@ -72,6 +73,7 @@ SOURCES += \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
+    lib/dolio/nameddistricts.cpp \
     lib/dolio/mutatorrollshoppricemultiplier.cpp \
     lib/dolio/mutatorshoppricemultiplier.cpp \
     lib/dolio/mutatortable.cpp \
@@ -97,6 +99,8 @@ SOURCES += \
     lib/patchprocess.cpp \
     lib/powerpcasm.cpp \
     lib/pugixml/pugixml.cpp \
+    lib/resultscenes.cpp \
+    lib/uigame013.cpp \
     lib/uimenu1900a.cpp \
     lib/uimessage.cpp \
     lib/vanilladatabase.cpp \
@@ -135,6 +139,7 @@ HEADERS += \
     lib/dolio/bgsequencetable.h \
     lib/dolio/defaulttargetamounttable.h \
     lib/dolio/designtypetable.h \
+    lib/dolio/displaymapinresults.h \
     lib/dolio/dolio.h \
     lib/dolio/doliotable.h \
     lib/dolio/eventsquare.h \
@@ -148,6 +153,7 @@ HEADERS += \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
+    lib/dolio/nameddistricts.h \
     lib/dolio/mutatorrollshoppricemultiplier.h \
     lib/dolio/mutatorshoppricemultiplier.h \
     lib/dolio/mutatortable.h \
@@ -161,6 +167,7 @@ HEADERS += \
     lib/dolio/touropponentstable.h \
     lib/dolio/venturecardtable.h \
     lib/dolio/wififix.h \
+    lib/downloadtools.h \
     lib/exewrapper.h \
     lib/fortunestreetdata.h \
     lib/freespacemanager.h \
@@ -177,6 +184,8 @@ HEADERS += \
     lib/powerpcasm.h \
     lib/pugixml/pugiconfig.hpp \
     lib/pugixml/pugixml.hpp \
+    lib/resultscenes.h \
+    lib/uigame013.h \
     lib/uimenu1900a.h \
     lib/uimessage.h \
     lib/vanilladatabase.h \
@@ -201,9 +210,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 win32:RC_ICONS = AppIcon.ico
 macos:ICON=AppIcon.icns
-
-DISTFILES += \
-    .travis.yml
 
 RESOURCES += \
     csmm.qrc

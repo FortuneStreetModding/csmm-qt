@@ -32,8 +32,6 @@ private:
     void exportIsoWbfs();
     void loadDescriptors(const QVector<MapDescriptor> &descriptors);
     QFuture<void> checkForRequiredFiles(bool alwaysAsk = false);
-    template<class InToOutFiles>
-    QFuture<void> downloadRequiredFiles(QUrl witURL, InToOutFiles func);
     void validateMaps();
     void saveCleanItastCsmmBrsar();
     void saveMapList();

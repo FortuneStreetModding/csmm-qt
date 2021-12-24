@@ -135,9 +135,23 @@ QString MapDescriptor::toYaml() const {
     if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
         out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
         for (int i=0; i<128; ++i) {
-            out << YAML::Value << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
+            out << (int) ventureCards[i] << YAML::Comment(QString("%1 %2").arg(i+1, 3).arg(VanillaDatabase::getVentureCardDesc(i)).toStdString());
         }
         out << YAML::EndSeq;
+    }
+
+    if (!districtNames.empty()) {
+        out << YAML::Key << "districtNames" << YAML::Value << YAML::BeginMap;
+        for (auto &fslocale: FS_LOCALES) {
+            if (fslocale == "uk" || districtNames[fslocale].isEmpty())
+                continue;
+            out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginSeq;
+            for (auto &distName: districtNames[fslocale]) {
+                out << distName.toStdString();
+            }
+            out << YAML::EndSeq;
+        }
+        out << YAML::EndMap;
     }
 
     out << YAML::EndMap;
@@ -193,7 +207,9 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && names == other.names
             && descs == other.descs
             && internalName == other.internalName
-            && mapDescriptorFilePath == other.mapDescriptorFilePath;
+            && mapDescriptorFilePath == other.mapDescriptorFilePath
+            && districtNames == other.districtNames
+            && districtNameIds == other.districtNameIds;
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
@@ -301,12 +317,26 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         }
     }
     if(yaml["ventureCards"]) {
-        for (quint32 i=0; i<sizeof(ventureCards); ++i) {
+        for (quint32 i=0; i<ventureCards.size(); ++i) {
             ventureCards[i] = yaml["ventureCards"][i].as<int>();
         }
     } else {
         VanillaDatabase::setDefaultVentureCards(ruleSet, ventureCards);
     }
+    if (yaml["districtNames"]) {
+        auto dnNode = yaml["districtNames"];
+        for (auto it=dnNode.begin(); it!=dnNode.end(); ++it) {
+            auto key = yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()));
+            districtNames[key].clear();
+            for (const auto &val: it->second) {
+                auto convVal = QString::fromStdString(val.as<std::string>());
+                districtNames[key].push_back(convVal);
+            }
+        }
+    } else {
+        districtNames = VanillaDatabase::getVanillaDistrictNames();
+    }
+
     return true;
 }
 

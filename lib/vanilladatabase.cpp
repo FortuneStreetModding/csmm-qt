@@ -1,4 +1,5 @@
 #include "vanilladatabase.h"
+#include "fslocale.h"
 
 namespace VanillaDatabase {
 
@@ -213,7 +214,7 @@ const QString &getVentureCardDesc(int ventureCard) {
     return VENTURE_CARD_TABLE[ventureCard].description;
 }
 
-bool isDefaultVentureCards(const bool ventureCards[], RuleSet ruleSet) {
+bool isDefaultVentureCards(const std::array<bool, 128> &ventureCards, RuleSet ruleSet) {
     bool match = true;
     for(int i=0; i<128; i++) {
         if(ruleSet == Standard) {
@@ -227,7 +228,7 @@ bool isDefaultVentureCards(const bool ventureCards[], RuleSet ruleSet) {
     return match;
 }
 
-void setDefaultVentureCards(RuleSet ruleSet, bool outVentureCards[]) {
+void setDefaultVentureCards(RuleSet ruleSet, std::array<bool, 128> &outVentureCards) {
     for(int i=0; i<128; i++) {
         if(ruleSet == Standard) {
             outVentureCards[i] = VENTURE_CARD_TABLE[i].defaultStandardMode;
@@ -324,6 +325,35 @@ bool hasDefaultMapIcon(const QString &background) {
         if (entry.background == background) return true;
     }
     return false;
+}
+
+
+static const QMap<QString, QString> LOCALE_TO_DISTRICT_WORD = {
+    {"en", "District\\s"},
+    {"uk", "District\\s"},
+    {"de", "Bezirk\\s"},
+    {"fr", "Quartier\\s"},
+    {"it", "Quartiere\\s"},
+    {"jp", "エリア"},
+    {"su", "Distrito\\s"}
+};
+const QMap<QString, QString> &localeToDistrictWord() {
+    return LOCALE_TO_DISTRICT_WORD;
+}
+
+const QMap<QString, QStringList> &getVanillaDistrictNames() {
+    static QMap<QString, QStringList> cachedResult;
+    if (cachedResult.empty()) {
+        for (auto locale: FS_LOCALES) {
+            int startingChar = locale == "jp" ? 65313 : 'A';
+            auto districtWord = LOCALE_TO_DISTRICT_WORD[locale];
+            districtWord.replace("\\s", " ");
+            for (int i=0; i<16; ++i) {
+                cachedResult[locale].append(districtWord + (startingChar + i));
+            }
+        }
+    }
+    return cachedResult;
 }
 
 }

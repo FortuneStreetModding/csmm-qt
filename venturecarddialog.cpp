@@ -9,7 +9,7 @@ VentureCardDialog::VentureCardDialog(const MapDescriptor &descriptorVal, QWidget
     ui(new Ui::VentureCardDialog)
 {
     ui->setupUi(this);
-    for (quint32 i=0; i<sizeof(descriptor.ventureCards); ++i) {
+    for (quint32 i=0; i<descriptor.ventureCards.size(); ++i) {
         if (descriptor.ventureCards[i]) {
             ui->listWidget->addItem(QString("%1)  %2").arg(i+1).arg(VanillaDatabase::getVentureCardDesc(i)));
         }

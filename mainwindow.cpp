@@ -1,18 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#ifdef Q_OS_WIN
-#include "lib/zip/zip.h"
-#else
-#include <archive.h>
-#include <archive_entry.h>
-#include "lib/archiveutil.h"
-#endif
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QStandardPaths>
 #include <QtConcurrent>
 #include <QInputDialog>
 #include "lib/asyncfuture.h"
@@ -22,6 +14,7 @@
 #include "downloadclidialog.h"
 #include "validationerrordialog.h"
 #include "lib/configuration.h"
+#include "lib/downloadtools.h"
 #include "lib/datafileset.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -198,65 +191,15 @@ void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
     ui->actionExport_to_WBFS_ISO->setEnabled(true);
 }
 
-#ifdef Q_OS_WIN
-#define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-cygwin32.zip"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-cygwin32.zip"
-#elif defined(Q_OS_MACOS)
-#define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-mac.tar.gz"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-mac.tar.gz"
-#else
-#define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-x86_64.tar.gz"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-x86_64.tar.gz"
-#endif
-
-namespace {
-    class DownloadException : public QException {
-    public:
-        DownloadException(const QString &msgStr) : message(msgStr) {}
-        const QString &getMessage() const { return message; }
-        void raise() const override { throw *this; }
-        DownloadException *clone() const override { return new DownloadException(*this); }
-    private:
-        QString message;
-    };
-}
-
 QFuture<void> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
-    QDir appDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-    appDir.mkpath(".");
-    QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
-    QFileInfo witCheck(wit), wszstCheck(wszst), wimgtCheck(wimgt);
-    if (alwaysAsk || !witCheck.exists() || !witCheck.isFile()
-            || !wszstCheck.exists() || !wszstCheck.isFile()
-            || !wimgtCheck.exists() || !wimgtCheck.isFile()) {
+    if (alwaysAsk || !DownloadTools::requiredFilesAvailable()) {
         DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
         if (dialog.exec() == QDialog::Accepted) {
-            auto downloadWit = downloadRequiredFiles(dialog.getWitURL(), [=](const QString &file) {
-                auto filename = QFileInfo(file).fileName();
-                if (filename == WIT_NAME || filename.endsWith(".dll")) {
-                    return appDir.filePath(filename);
-                }
-                return QString();
-            });
-            auto downloadWszst = downloadRequiredFiles(dialog.getWszstURL(), [=](const QString &file) {
-                auto filename = QFileInfo(file).fileName();
-                if (filename == WSZST_NAME || filename == WIMGT_NAME || filename.endsWith(".dll")) {
-                    return appDir.filePath(filename);
-                }
-                return QString();
-            });
-            auto downloadFut = (AsyncFuture::combine() << downloadWit << downloadWszst);
-            return downloadFut.subscribe([=]() {
+            auto fut = DownloadTools::downloadAllRequiredFiles(manager, [&](const QString &error) {
+                QMessageBox::critical(this, "Download", error);
+            }, dialog.getWitURL(), dialog.getWszstURL());
+            return AsyncFuture::observe(fut).subscribe([=]() {
                 QMessageBox::information(this, "Download", "Successfuly downloaded and extracted the programs.");
-            }, [=]() {
-                try {
-                    auto _downloadWit = downloadWit;
-                    auto _downloadWszst = downloadWszst;
-                    _downloadWit.waitForFinished();
-                    _downloadWszst.waitForFinished();
-                } catch (const DownloadException &ex) {
-                    QMessageBox::critical(this, "Download", ex.getMessage());
-                }
             }).future();
         }
         auto def = AsyncFuture::deferred<void>();
@@ -267,92 +210,6 @@ QFuture<void> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
     def.complete();
     return def.future();
 }
-
-template<class InToOutFiles>
-QFuture<void> MainWindow::downloadRequiredFiles(QUrl witURL, InToOutFiles func) {
-    QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
-    if (tempDir->isValid()) {
-        auto witArchiveFile = new QFile(tempDir->filePath("temp_wit"), this);
-        if (witArchiveFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
-            QNetworkRequest request = QNetworkRequest(witURL);
-            request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
-            QNetworkReply *reply = manager->get(request);
-            //manager->setTransferTimeout(1000);
-            connect(reply, &QNetworkReply::readyRead, this, [=]() {
-                witArchiveFile->write(reply->readAll());
-            });
-            return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> void {
-                if (reply->error() != QNetworkReply::NoError) {
-                    DownloadException ex(QString("Error downloading: %1").arg(reply->errorString()));
-                    reply->deleteLater();
-                    throw ex;
-                }
-                reply->deleteLater();
-
-                (void)tempDir; // keep alive
-
-#ifdef Q_OS_WIN
-                QString fname = witArchiveFile->fileName();
-                witArchiveFile->close();
-
-                zip_t *zip = zip_open(fname.toUtf8(), 0, 'r');
-                if (!zip) {
-                    throw DownloadException(QString("Error opening downloaded file %1").arg(fname));
-                }
-                int n = zip_total_entries(zip);
-                for (int i=0; i<n; ++i) {
-                    zip_entry_openbyindex(zip, i);
-
-                    auto name = zip_entry_name(zip);
-                    QString output = func(name);
-                    if (!zip_entry_isdir(zip) && !output.isEmpty()) {
-                        if (zip_entry_fread(zip, output.toUtf8()) < 0) {
-                            zip_close(zip);
-                            throw DownloadException(QString("Error extracting downloaded file %1").arg(fname));
-                        }
-                    }
-
-                    zip_entry_close(zip);
-                }
-                zip_close(zip);
-#else
-                int flags = ARCHIVE_EXTRACT_TIME;
-                flags |= ARCHIVE_EXTRACT_PERM;
-                flags |= ARCHIVE_EXTRACT_ACL;
-                flags |= ARCHIVE_EXTRACT_FFLAGS;
-
-                archive *a = archive_read_new();
-                archive_read_support_format_all(a);
-                archive_read_support_filter_all(a);
-                archive *ext = archive_write_disk_new();
-                archive_write_disk_set_options(ext, flags);
-                archive_write_disk_set_standard_lookup(ext);
-                witArchiveFile->seek(0);
-                int r = archive_read_open_fd(a, witArchiveFile->handle(), 16384);
-                if (r == ARCHIVE_OK) {
-                    r = extractFileTo(a, ext, func);
-                    if (r != ARCHIVE_OK) {
-                        throw DownloadException(QString("Error extracting downloaded file %1").arg(witArchiveFile->fileName()));
-                    }
-                } else {
-                    throw DownloadException(QString("Error opening downloaded file %1").arg(witArchiveFile->fileName()));
-                }
-                archive_read_close(a);
-                archive_read_free(a);
-                archive_write_close(ext);
-                archive_write_free(ext);
-#endif
-                witArchiveFile->deleteLater();
-            }).future();
-        } else {
-            throw DownloadException(QString("Temporary file could not be created"));
-        }
-    } else {
-        throw DownloadException(QString("Temporary directory could not be created"));
-    }
-}
-
-
 
 void MainWindow::exportToFolder() {
     auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory");
@@ -403,7 +260,7 @@ void MainWindow::exportToFolder() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(saveDir, *descriptors, false, ui->tableWidget->getTmpResourcesDir().path());
+            return PatchProcess::saveDir(saveDir, *descriptors, false, ui->actionDisplay_Map_Name_On_Results_Screen->isChecked(), ui->tableWidget->getTmpResourcesDir().path());
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
             throw exception;
@@ -450,6 +307,7 @@ void MainWindow::exportIsoWbfs() {
     progress->setValue(0);
 
     bool patchWiimmfi = ui->actionPatch_Wiimmfi->isChecked();
+    bool displayMapNameInResultsScreen = ui->actionDisplay_Map_Name_On_Results_Screen->isChecked();
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediatePath); });
     auto fut = AsyncFuture::observe(copyTask)
@@ -463,7 +321,7 @@ void MainWindow::exportIsoWbfs() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, ui->tableWidget->getTmpResourcesDir().path());
+            return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, displayMapNameInResultsScreen, ui->tableWidget->getTmpResourcesDir().path());
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
             throw exception;

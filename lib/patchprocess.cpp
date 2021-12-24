@@ -11,11 +11,14 @@
 #include "exewrapper.h"
 #include "maindol.h"
 #include "uimessage.h"
+#include "uigame013.h"
 #include "uimenu1900a.h"
 #include "vanilladatabase.h"
 #include "zip/zip.h"
 #include "brsar.h"
 #include "bsdiff/bspatchlib.h"
+#include "resultscenes.h"
+#include <QMessageBox>
 
 namespace PatchProcess {
 
@@ -34,6 +37,17 @@ static void loadUiMessages(QVector<MapDescriptor> &descriptors, const QDir &dir)
             }
             descriptor.names[locale] = uiMessages[locale].value(descriptor.nameMsgId);
             descriptor.descs[locale] = uiMessages[locale].value(descriptor.descMsgId);
+            descriptor.districtNames[locale].clear();
+            for (int i=0; i<descriptor.districtNameIds.size(); ++i) {
+                quint32 distId = descriptor.districtNameIds[i];
+                auto distName = uiMessages[locale].value(distId);
+                if (5454 <= distId && distId <= 5760) {
+                    auto distWord = VanillaDatabase::localeToDistrictWord()[locale];
+                    distWord.replace("\\s", " ");
+                    distName = distWord + distName;
+                }
+                descriptor.districtNames[locale].append(distName);
+            }
         }
         descriptor.readFrbFileInfo(dir.filePath(PARAM_FOLDER));
     }
@@ -46,7 +60,7 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadOnly)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections);
+            MainDol mainDolObj(stream, addressSections, false);
             auto mapDescriptors = mainDolObj.readMainDol(stream);
             loadUiMessages(mapDescriptors, dir);
             return mapDescriptors;
@@ -61,13 +75,12 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
 
 static void textReplace(QString& text, QString regexStr, QString replaceStr) {
     // need to use Regex, because there are different types of whitespaces in the messages (some are U+0020 while others are U+00A0)
-    // QT does not reliably match all whitespace characters with \\s
-    // so we have to make the whitespace matching ourselves
-    // 0x0020 is the normal space unicode character
-    // 0x00a0 is the no-break space unicode character
-    QString space = QString::fromUtf8("[\u0020\u00a0\uc2a0\uc220\u202f]");
-    QString regexStrWithSpaces = regexStr.replace(" ", space, Qt::CaseInsensitive);
-    QRegularExpression regex = QRegularExpression(regexStrWithSpaces, QRegularExpression::CaseInsensitiveOption);
+    // QT needs UseUnicodePropertiesOption to reliably match all whitespace characters with \\s
+
+    //QString space = QString::fromUtf8("[\u0020\u00a0\uc2a0\uc220\u202f]");
+    //QString regexStrWithSpaces = regexStr.replace(" ", space, Qt::CaseInsensitive);
+    QRegularExpression regex = QRegularExpression(regexStr,
+        QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
     text.replace(regex, replaceStr);
 }
 
@@ -99,8 +112,12 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
             if (mapDescriptor.descMsgId > 0) {
                 uiMessages[locale].remove(mapDescriptor.descMsgId);
             }
+            for (quint32 districtNameId: qAsConst(mapDescriptor.districtNameIds)) {
+                if (districtNameId > 0) uiMessages[locale].remove(districtNameId);
+            }
         }
     }
+
     // make new msg ids
     quint32 msgId = 25000;
     // add msg id for event square
@@ -159,36 +176,72 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
                 uiMessage[mapDescriptor.descMsgId] = mapDescriptor.descs[locale];
             }
         }
+        int dnsz = mapDescriptor.districtNames["en"].size();
+        mapDescriptor.districtNameIds = QVector<quint32>(dnsz);
+        for (int i=0; i<dnsz; ++i) {
+            // NOTE: We need to make sure that the district name ids for each map are contiguous
+            // due to the way that Fortune Street searches the district name.
+            mapDescriptor.districtNameIds[i] = msgId++;
+            for (auto it=uiMessages.begin(); it!=uiMessages.end(); ++it) {
+                auto locale = it.key();
+                auto &uiMessage = it.value();
+                // write EN messages to the UK file as well (we are not differentiating here)
+                if (locale == "uk") locale = "en";
+                // if there is no localization for this locale, use the english variant as default
+                if (!mapDescriptor.districtNames.contains(locale)
+                        || i >= mapDescriptor.districtNames[locale].size()) {
+                    uiMessage[mapDescriptor.districtNameIds[i]] = mapDescriptor.districtNames["en"][i];
+                } else {
+                    uiMessage[mapDescriptor.districtNameIds[i]] = mapDescriptor.districtNames[locale][i];
+                }
+            }
+        }
     }
-    // text replace Nintendo WFC -> Wiimmfi
-    if (patchWiimmfi) {
-        for (auto it=uiMessages.begin(); it!=uiMessages.end(); ++it) {
-            auto locale = it.key();
-            auto &uiMessage = it.value();
-            auto keys = uiMessage.keys();
-            for (quint32 id: qAsConst(keys)) {
-                auto &text = uiMessage[id];
+
+    for (auto it=uiMessages.begin(); it!=uiMessages.end(); ++it) {
+        auto locale = it.key();
+        auto &uiMessage = it.value();
+        auto keys = uiMessage.keys();
+        for (quint32 id: qAsConst(keys)) {
+            auto &text = uiMessage[id];
+
+            // text replace District <area> -> <area>
+            auto districtWord = VanillaDatabase::localeToDistrictWord()[locale];
+            textReplace(text, districtWord + "<area>", "<area>");
+            if (locale == "it") {
+                textReplace(text, "Quartiere<outline_off><n><outline_0><area>", "<area>");
+            }
+
+            // strip "District" from shop squares in view board
+            if (id == 2781) {
+                text = "";
+            }
+
+            // TODO find out what 2963 does if anything at all
+
+            // text replace Nintendo WFC -> Wiimmfi
+            if (patchWiimmfi) {
                 if (locale == "de") {
-                    textReplace(text, "die Nintendo Wi-Fi Connection", "Wiimmfi");
-                    textReplace(text, "der Nintendo Wi-Fi Connection", "Wiimmfi");
-                    textReplace(text, "zur Nintendo Wi-Fi Connection", "Wiimmfi");
+                    textReplace(text, "die\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
+                    textReplace(text, "der\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
+                    textReplace(text, "zur\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
                 }
                 if (locale == "fr") {
-                    textReplace(text, "Wi-Fi Nintendo", "Wiimmfi");
-                    textReplace(text, "CWF Nintendo", "Wiimmfi");
-                    textReplace(text, "Connexion Wi-Fi Nintendo", "Wiimmfi");
+                    textReplace(text, "Wi-Fi\\sNintendo", "Wiimmfi");
+                    textReplace(text, "CWF\\sNintendo", "Wiimmfi");
+                    textReplace(text, "Connexion\\sWi-Fi\\sNintendo", "Wiimmfi");
                 }
                 if (locale == "su") {
-                    textReplace(text, "Conexión Wi-Fi de Nintendo", "Wiimmfi");
-                    textReplace(text, "CWF de Nintendo", "Wiimmfi");
-                    textReplace(text, "Conexión Wi-Fi de<n>Nintendo", "Wiimmfi<n>");
-                    textReplace(text, "Conexión<n>Wi-Fi de Nintendo", "Wiimmfi<n>");
+                    textReplace(text, "Conexión\\sWi-Fi\\sde\\sNintendo", "Wiimmfi");
+                    textReplace(text, "CWF\\sde\\sNintendo", "Wiimmfi");
+                    textReplace(text, "Conexión\\sWi-Fi\\sde<n>Nintendo", "Wiimmfi<n>");
+                    textReplace(text, "Conexión<n>Wi-Fi\\sde\\sNintendo", "Wiimmfi<n>");
                 }
                 if (locale == "jp") {
                     textReplace(text, "Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ");
                 }
-                textReplace(text, "Nintendo Wi-Fi Connection", "Wiimmfi");
-                textReplace(text, "Nintendo WFC", "Wiimmfi");
+                textReplace(text, "Nintendo\\sWi-Fi\\sConnection", "Wiimmfi");
+                textReplace(text, "Nintendo\\sWFC", "Wiimmfi");
                 textReplace(text, "support.nintendo.com", "https://wiimmfi.de/error");
             }
         }
@@ -204,14 +257,14 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     }
 }
 
-static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir) {
+static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchResultBoardName) {
     qDebug() << "Running patchMainDolAsync()";
     QString mainDol = dir.filePath(MAIN_DOL);
     auto fut = AsyncFuture::observe(ExeWrapper::readSections(mainDol)).subscribe([=](const QVector<AddressSection> &addressSections) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections);
+            MainDol mainDolObj(stream, addressSections, patchResultBoardName);
             //mainDolFile.resize(0);
             mainDolObj.writeMainDol(stream, mapDescriptors);
         }
@@ -597,15 +650,167 @@ static void copyMapFiles(const QVector<MapDescriptor> &descriptors, const QDir &
     }
 }
 
-QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, const QDir &tmpDir) {
+static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
+    // t_m_00
+
+    QDir tmpDirObj(tmpDir.path());
+
+    /** maps the path of the various variants of the game_sequence_resultXXXXXXXX.arc files to their respective extraction path in the tmp directory */
+    auto gameResultExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the path of the various variants of the game_sequence_resultXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
+    auto gameResultToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    for (auto &locale: FS_LOCALES) {
+        auto gameResultPath = dir.filePath(gameSequenceResultArc(locale));
+
+        auto extractPath = tmpDirObj.filePath(QFileInfo(gameResultPath).baseName());
+        tmpDirObj.mkpath(extractPath);
+        (*gameResultExtractPaths)[gameResultPath] = extractPath;
+
+        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameResultPath).baseName() + "_");
+        tmpDirObj.mkpath(xmlytPath);
+        (*gameResultToXmlytBasePaths)[gameResultPath] = xmlytPath;
+    }
+    // extract the arc files
+    auto extractArcTasks = AsyncFuture::combine();
+    for (auto it=gameResultExtractPaths->begin(); it!=gameResultExtractPaths->end(); ++it) {
+        extractArcTasks << ExeWrapper::extractArcFile(it.key(), it.value());
+    }
+
+    return extractArcTasks.subscribe([=]() {
+        for (auto it = gameResultExtractPaths->begin(); it != gameResultExtractPaths->end(); ++it) {
+            auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_menu_011_scene.brlyt");
+            auto xmlytFile = QDir((*gameResultToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
+            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+            ResultScenes::widenResultTitle(xmlytFile);
+            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            {
+                QFile brlytFileObj(brlytFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+            }
+
+            brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_049_scene.brlyt");
+            xmlytFile = QDir((*gameResultToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
+            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+            ResultScenes::widenResultTitle(xmlytFile);
+            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            {
+                QFile brlytFileObj(brlytFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+            }
+        }
+
+        auto packArcFileTasks = AsyncFuture::combine();
+        for (auto it=gameResultExtractPaths->begin(); it!=gameResultExtractPaths->end(); ++it) {
+            packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
+        }
+        return packArcFileTasks.future();
+    }).future();
+}
+
+static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
+    QDir tmpDirObj(tmpDir.path());
+
+    /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective extraction path in the tmp directory */
+    auto gameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
+    auto gameBoardToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    for (auto &locale: FS_LOCALES) {
+        auto gameBoardPath = dir.filePath(gameBoardArc(locale));
+
+        auto extractPath = tmpDirObj.filePath(QFileInfo(gameBoardPath).baseName());
+        tmpDirObj.mkpath(extractPath);
+        (*gameBoardExtractPaths)[gameBoardPath] = extractPath;
+
+        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameBoardPath).baseName() + "_");
+        tmpDirObj.mkpath(xmlytPath);
+        (*gameBoardToXmlytBasePaths)[gameBoardPath] = xmlytPath;
+    }
+    // extract the arc files
+    auto extractArcTasks = AsyncFuture::combine();
+    for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
+        extractArcTasks << ExeWrapper::extractArcFile(it.key(), it.value());
+    }
+
+    return extractArcTasks.subscribe([=]() {
+        for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
+            auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_013.brlyt");
+            //auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
+            //ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
+
+            // HACK: manipulate the brylt file directly since benzin is wack.
+            // TODO try to incorporate a proper brylt library here
+            Ui_game_013::widenDistrictName(brlytFile);
+            //ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            {
+                QFile brlytFileObj(brlytFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+            }
+        }
+
+#if 0
+        for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
+            QDir brlanFileDir(QDir(it.value()).filePath("arc/anim"));
+            auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_game_013_Tag_*.brlan"}, QDir::Files);
+            for (auto &brlanFileInfo: brlanFilesInfo) {
+                auto brlanFile = brlanFileInfo.absoluteFilePath();
+                QFile::remove(brlanFile);
+                #if 0
+                auto xmlanFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
+
+                ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
+                ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
+
+                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+                QFile brlytFileObj(brlanFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+                #endif
+            }
+        }
+#endif
+        auto packArcFileTasks = AsyncFuture::combine();
+        for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
+            packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
+        }
+        return packArcFileTasks.future();
+    }).future();
+}
+
+QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     applyAllBspatches(output);
     brstmInject(output, descriptors, tmpDir);
-    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output))
+    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output, patchResultBoardName))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
     }).subscribe([=]() {
         return packTurnlots(descriptors, output, tmpDir);
+    }).subscribe([=]() {
+        if (!patchResultBoardName) {
+            auto def = AsyncFuture::deferred<void>();
+            def.complete();
+            return def.future();
+        }
+        return widenResultsMapBox(output, tmpDir);
+    }).subscribe([=]() {
+        return widenDistrictName(output, tmpDir);
     });
     return fut.subscribe([=]() {
         copyMapFiles(descriptors, output, tmpDir);

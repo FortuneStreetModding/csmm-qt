@@ -26,7 +26,7 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
                        "Looping Mode Horiz. Padding", "Looping Mode Vertical Square Count",
                        "Tour Bankruptcy Limit", "Tour Initial Cash", "Tour Opponents",
                        "Tour Clear Rank", "Name Msg ID", "Desc Msg ID",
-                       "Description", "Internal Name"};
+                       "Description", "Internal Name", "District Names", "District Name IDs"};
     setColumnCount(labels.size());
     setHorizontalHeaderLabels(labels);
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -166,6 +166,12 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setItem(row, colIdx++, readOnlyItem(descriptor.descs["en"]));
     setItem(row, colIdx++, readOnlyItem(descriptor.internalName));
+    setItem(row, colIdx++, readOnlyItem(descriptor.districtNames["en"].join("; ")));
+    QStringList districtNameIdStrs;
+    for (quint32 v: descriptor.districtNameIds) {
+        districtNameIdStrs.push_back(QString::number(v));
+    }
+    setItem(row, colIdx++, readOnlyItem(districtNameIdStrs.join("; ")));
 }
 
 void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
