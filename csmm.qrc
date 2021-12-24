@@ -199,5 +199,34 @@
         <file>files/game/langIT/game_board_IT.cmpres.bsdiff</file>
         <file>files/game/langUK/game_board_UK.cmpres.bsdiff</file>
         <file>files/game/game_board.cmpres.bsdiff</file>
+        <file>files/minimap/langDE/ui_minimap_icon2_ja.png</file>
+        <file>files/minimap/langDE/ui_minimap_icon2_w_ja.png</file>
+        <file>files/minimap/langDE/ui_minimap_icon_ja.png</file>
+        <file>files/minimap/langDE/ui_minimap_icon_w_ja.png</file>
+        <file>files/minimap/langEN/ui_minimap_icon2_ja.png</file>
+        <file>files/minimap/langEN/ui_minimap_icon2_w_ja.png</file>
+        <file>files/minimap/langEN/ui_minimap_icon_ja.png</file>
+        <file>files/minimap/langEN/ui_minimap_icon_w_ja.png</file>
+        <file>files/minimap/langES/ui_minimap_icon2_ja.png</file>
+        <file>files/minimap/langES/ui_minimap_icon2_w_ja.png</file>
+        <file>files/minimap/langES/ui_minimap_icon_ja.png</file>
+        <file>files/minimap/langES/ui_minimap_icon_w_ja.png</file>
+        <file>files/minimap/langFR/ui_minimap_icon2_ja.png</file>
+        <file>files/minimap/langFR/ui_minimap_icon2_w_ja.png</file>
+        <file>files/minimap/langFR/ui_minimap_icon_ja.png</file>
+        <file>files/minimap/langFR/ui_minimap_icon_w_ja.png</file>
+        <file>files/minimap/langIT/ui_minimap_icon2_ja.png</file>
+        <file>files/minimap/langIT/ui_minimap_icon2_w_ja.png</file>
+        <file>files/minimap/langIT/ui_minimap_icon_ja.png</file>
+        <file>files/minimap/langIT/ui_minimap_icon_w_ja.png</file>
+        <file>files/minimap/langUK/ui_minimap_icon2_ja.png</file>
+        <file>files/minimap/langUK/ui_minimap_icon2_w_ja.png</file>
+        <file>files/minimap/langUK/ui_minimap_icon_ja.png</file>
+        <file>files/minimap/langUK/ui_minimap_icon_w_ja.png</file>
+        <file>files/minimap/ui_minimap_icon2_ja.png</file>
+        <file>files/minimap/ui_minimap_icon2_w_ja.png</file>
+        <file>files/minimap/ui_minimap_icon_ja.png</file>
+        <file>files/minimap/ui_minimap_icon_w_ja.png</file>
+        <file>files/ui_mark_eventsquare.png</file>
     </qresource>
 </RCC>

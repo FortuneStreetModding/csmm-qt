@@ -12,7 +12,7 @@
 int main(int argc, char *argv[])
 {
     bool consoleMode = argc > 1;
-    // consoleMode = true;
+    consoleMode = true;
     if(consoleMode) {
         QCoreApplication app(argc, argv);
         QCoreApplication::setApplicationName("csmm");
