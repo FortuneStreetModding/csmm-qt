@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
         QCoreApplication::setApplicationVersion(QString("%1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
 
         QStringList arguments = QCoreApplication::arguments();
-        arguments.clear();
-        arguments << "csmm" << "save" << "C:\\BoomStreet\\ST7P01";
+        // arguments.clear();
+        // arguments << "csmm" << "save" << "C:\\BoomStreet\\ST7P01";
         maincli::run(arguments);
 
         QTimer::singleShot( 0, &app, &QCoreApplication::quit );
