@@ -27,11 +27,11 @@ quint32 MutatorTable::writeTable(const QVector<MapDescriptor> &descriptors) {
 void MutatorTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &descriptors) {
     quint32 tableAddr = writeTable(descriptors);
 
-    stream.device()->seek(addressMapper.toFileAddress(0x80412c88));
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80412c88));
     // store the tableAddr so that csmm can retrieve it
     stream << tableAddr;
     // call 0x80412c8c for the subroutine
-    stream.device()->seek(addressMapper.toFileAddress(0x80412c8c));
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80412c8c));
     auto routine = writeGetMutatorDataSubroutine(addressMapper, tableAddr);
     qDebug().noquote() << "Allocate (" + QString::number(routine.size()*4) + " bytes) at " + QString::number(0x80412c8c, 16) + " for GetMutatorDataSubroutine";
     for (auto word: routine) {
