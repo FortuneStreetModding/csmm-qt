@@ -246,12 +246,11 @@ QVector<quint32> EventSquare::writeGetMinimapTileIdForCustomSquareRoutine(const 
     asm_.append(PowerPcAsm::addi(31, 31, 0x36)),                                              // r31 <- r31 + 0x36
 
     asm_.append(PowerPcAsm::cmpwi(31, 0x80)),                                                 //\.
-    asm_.append(PowerPcAsm::bge(2)),                                                          //|. we actually need to add just +0x37. However, the game uses a
-    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                //|. different method when the minimapTileId is between 0x80 and 0x85.
-    asm_.append(PowerPcAsm::cmpwi(31, 0x85)),                                                 //|. If that happens, we add another 6 so that we can skip over the
-    asm_.append(PowerPcAsm::ble(2)),                                                          //|. tiles which the game handels differently.
-    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                ///
-    asm_.append(PowerPcAsm::addi(31, 31, 0x6)),                                               // r31 <- r31 + 0x6  (we actually need to add just +0x37. However,
+    asm_.append(PowerPcAsm::bge(2)),                                                          //|. we actually need to add just +0x36. However, the game uses a
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                //|. different method when the minimapTileId is 0x80 and 0x85.
+                                                                                              //|. If that happens, we add another 6 so that we can skip over the
+                                                                                              //|. tiles which the game handels differently.
+    asm_.append(PowerPcAsm::addi(31, 31, 0x6)),                                               ///. r31 <- r31 + 0x6
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
 
     return asm_;
