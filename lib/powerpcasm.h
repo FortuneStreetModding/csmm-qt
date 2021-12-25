@@ -78,6 +78,7 @@ namespace PowerPcAsm {
     quint32 b(qint32 offset);
     quint32 blt(quint32 currentPos, quint32 targetPos);
     quint32 blt(qint32 currentPos, qint32 targetPos);
+    quint32 blt(qint32 offset);
     quint32 ble(quint32 currentPos, quint32 targetPos);
     quint32 ble(qint32 currentPos, qint32 targetPos);
     quint32 ble(qint32 offset);

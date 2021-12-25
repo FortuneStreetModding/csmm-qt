@@ -99,6 +99,9 @@ quint32 blt(quint32 currentPos, quint32 targetPos) {
 quint32 blt(qint32 currentPos, qint32 targetPos) {
     return blt_opcode + ((4 * (targetPos - currentPos)) & 0x0000FFFF);
 }
+quint32 blt(qint32 offset) {
+    return blt_opcode + ((4 * offset) & 0x0000FFFF);
+}
 quint32 ble(quint32 currentPos, quint32 targetPos) {
     return ble_opcode + ((targetPos - currentPos) & 0x0000FFFF);
 }

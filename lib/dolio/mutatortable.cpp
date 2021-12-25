@@ -33,7 +33,7 @@ void MutatorTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     // call 0x80412c8c for the subroutine
     stream.device()->seek(addressMapper.boomToFileAddress(0x80412c8c));
     auto routine = writeGetMutatorDataSubroutine(addressMapper, tableAddr);
-    qDebug().noquote() << "Allocate (" + QString::number(routine.size()*4) + " bytes) at " + QString::number(0x80412c8c, 16) + " for GetMutatorDataSubroutine";
+    qDebug().noquote() << "Allocate (" + QString::number(routine.size()*4) + " bytes) at " + QString::number(addressMapper.boomStreetToStandard(0x80412c8c), 16) + " for GetMutatorDataSubroutine";
     for (auto word: routine) {
         stream << word;
     }
@@ -52,6 +52,8 @@ QVector<quint32> MutatorTable::writeGetMutatorDataSubroutine(const AddressMapper
     asm_.append(PowerPcAsm::lis(4, m.upper));           // \.
     asm_.append(PowerPcAsm::addi(4, 4, m.lower));       // |. r4 <- mapId
     asm_.append(PowerPcAsm::lwz(4, 0x0, 4));            // /.
+    asm_.append(PowerPcAsm::cmpwi(4, 0));               // \. if(r4 < 0)
+    asm_.append(PowerPcAsm::blt(8));                    // /.   goto retnone;
     asm_.append(PowerPcAsm::li(5, 2));                  // \.
     asm_.append(PowerPcAsm::slw(4, 4, 5));              // /. r4 <- r4 * 4
     asm_.append(PowerPcAsm::lis(5, t.upper));           // \.
@@ -60,7 +62,7 @@ QVector<quint32> MutatorTable::writeGetMutatorDataSubroutine(const AddressMapper
     asm_.append(PowerPcAsm::cmpwi(5, 0));               // \. if(r5 == NULL) {
     asm_.append(PowerPcAsm::bne(3));                    // |.
     int return_ = asm_.size();
-    asm_.append(PowerPcAsm::li(3, 0));                  // |.   return r3 <- NULL
+    asm_.append(PowerPcAsm::li(3, 0));                  // |.   retnone: return r3 <- NULL
     asm_.append(PowerPcAsm::blr());                     // /. }
     int loop = asm_.size();
     asm_.append(PowerPcAsm::lha(4, 0x0, 5));            // |. r4 <- mutator type
