@@ -73,15 +73,9 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
     }).future();
 }
 
-static void textReplace(QString& text, QString regexStr, QString replaceStr) {
-    // need to use Regex, because there are different types of whitespaces in the messages (some are U+0020 while others are U+00A0)
-    // QT needs UseUnicodePropertiesOption to reliably match all whitespace characters with \\s
-
-    //QString space = QString::fromUtf8("[\u0020\u00a0\uc2a0\uc220\u202f]");
-    //QString regexStrWithSpaces = regexStr.replace(" ", space, Qt::CaseInsensitive);
-    QRegularExpression regex = QRegularExpression(regexStr,
-        QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
-    text.replace(regex, replaceStr);
+static inline QRegularExpression re(const QString &regexStr) {
+    return QRegularExpression(regexStr,
+                              QRegularExpression::CaseInsensitiveOption | QRegularExpression::UseUnicodePropertiesOption);
 }
 
 bool hasWiimmfiText(const QDir &dir) {
@@ -109,6 +103,11 @@ static QString getFileCopy(const QString &fileName, const QDir &dir) {
     }
     return fileTo;
 }
+
+static const auto REG_WIFI_DE = re("(?:die|der|zur)\\sNintendo\\sWi-Fi\\sConnection");
+static const auto REG_WIFI_FR = re("(?:Wi-Fi|CWF|Connexion)\\sNintendo");
+static const auto REG_WIFI_SU = re("(?:Conexión(?:\\s|(<n>))Wi-Fi|CWF)\\sde(?:\\s|(<n>))Nintendo(\\.?)");
+static const auto REG_WIFI = re("Nintendo\\s(?:Wi-Fi\\sConnection|WFC)");
 
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
     qDebug() << "Running writeLocalizationFiles()";
@@ -219,14 +218,17 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
         auto locale = it.key();
         auto &uiMessage = it.value();
         auto keys = uiMessage.keys();
+
+        auto districtWord = VanillaDatabase::localeToDistrictWord()[locale];
+        auto districtReplaceRegex = re(districtWord + "<area>");
+
         for (quint32 id: qAsConst(keys)) {
             auto &text = uiMessage[id];
 
             // text replace District <area> -> <area>
-            auto districtWord = VanillaDatabase::localeToDistrictWord()[locale];
-            textReplace(text, districtWord + "<area>", "<area>");
+            text.replace(districtReplaceRegex, "<area>");
             if (locale == "it") {
-                textReplace(text, "Quartiere<outline_off><n><outline_0><area>", "<area>");
+                text.replace("Quartiere<outline_off><n><outline_0><area>", "<area>", Qt::CaseInsensitive);
             }
 
             // strip "District" from shop squares in view board
@@ -239,27 +241,19 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
             // text replace Nintendo WFC -> Wiimmfi
             if (patchWiimmfi) {
                 if (locale == "de") {
-                    textReplace(text, "die\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
-                    textReplace(text, "der\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
-                    textReplace(text, "zur\\sNintendo Wi-Fi\\sConnection", "Wiimmfi");
+                    text.replace(REG_WIFI_DE, "Wiimmfi");
                 }
                 if (locale == "fr") {
-                    textReplace(text, "Wi-Fi\\sNintendo", "Wiimmfi");
-                    textReplace(text, "CWF\\sNintendo", "Wiimmfi");
-                    textReplace(text, "Connexion\\sWi-Fi\\sNintendo", "Wiimmfi");
+                    text.replace(REG_WIFI_FR, "Wiimmfi");
                 }
                 if (locale == "su") {
-                    textReplace(text, "Conexión\\sWi-Fi\\sde\\sNintendo", "Wiimmfi");
-                    textReplace(text, "CWF\\sde\\sNintendo", "Wiimmfi");
-                    textReplace(text, "Conexión\\sWi-Fi\\sde<n>Nintendo", "Wiimmfi<n>");
-                    textReplace(text, "Conexión<n>Wi-Fi\\sde\\sNintendo", "Wiimmfi<n>");
+                    text.replace(REG_WIFI_SU, "Wiimmfi\\3\\1\\2");
                 }
                 if (locale == "jp") {
-                    textReplace(text, "Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ");
+                    text.replace("Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ", Qt::CaseInsensitive);
                 }
-                textReplace(text, "Nintendo\\sWi-Fi\\sConnection", "Wiimmfi");
-                textReplace(text, "Nintendo\\sWFC", "Wiimmfi");
-                textReplace(text, "support.nintendo.com", "https://wiimmfi.de/error");
+                text.replace(REG_WIFI, "Wiimmfi");
+                text.replace("support.nintendo.com", "https://wiimmfi.de/error", Qt::CaseInsensitive);
             }
         }
     }
@@ -862,15 +856,6 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
             }
         }
 #endif
-
-        // add dummy deferred here for edge case where there
-        // are no images to convert
-        auto def = AsyncFuture::deferred<void>();
-        def.complete();
-        convertTasks << def;
-
-        return convertTasks.future();
-    }).subscribe([=]() {
         auto packArcFileTasks = AsyncFuture::combine();
         for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
             packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
