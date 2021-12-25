@@ -277,18 +277,18 @@ QDataStream &operator>>(QDataStream &stream, Brsar::File &data) {
     return stream;
 }
 
-bool isVanilla(QDataStream &stream) {
+bool containsCsmmEntries(QDataStream &stream) {
     Brsar::File brsar;
     stream >> brsar;
     if(stream.status() == QDataStream::ReadCorruptData)
-        return true;
+        return false;
     for(int i = 0; i < brsar.entries.length(); i++) {
         auto &entry = brsar.entries[i];
         if(entry.fileName == QString("CSMM_999")) {
-            return false;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {

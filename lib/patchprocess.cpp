@@ -3,6 +3,9 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTemporaryDir>
+#include <QCryptographicHash>
+#include <QDirIterator>
+#include <QtConcurrent>
 #include "asyncfuture.h"
 #include "datafileset.h"
 #include "exewrapper.h"
@@ -13,6 +16,7 @@
 #include "vanilladatabase.h"
 #include "zip/zip.h"
 #include "brsar.h"
+#include "bsdiff/bspatchlib.h"
 #include "resultscenes.h"
 #include <QMessageBox>
 
@@ -83,12 +87,30 @@ bool hasWiimmfiText(const QDir &dir) {
     return false;
 }
 
+static QString getFileCopy(const QString &fileName, const QDir &dir) {
+    // copy the file to dir
+    QFileInfo fileInfo(fileName);
+    auto fileFrom = fileName;
+    auto fileTo = dir.filePath(fileInfo.fileName());
+    if(QFile::exists(fileTo))
+        return fileTo;
+    if(!QFile::copy(fileFrom, fileTo))
+        throw Exception(QString("Could not copy file %1 to %2").arg(fileFrom, fileTo));
+    QFile file(fileTo);
+    // if the file is not writable or readable, set the permissions
+    if(!file.isWritable() || !file.isReadable()) {
+        file.setPermissions(QFile::WriteUser | QFile::ReadUser);
+    }
+    return fileTo;
+}
+
 static const auto REG_WIFI_DE = re("(?:die|der|zur)\\sNintendo\\sWi-Fi\\sConnection");
 static const auto REG_WIFI_FR = re("(?:Wi-Fi|CWF|Connexion)\\sNintendo");
 static const auto REG_WIFI_SU = re("(?:Conexión(?:\\s|(<n>))Wi-Fi|CWF)\\sde(?:\\s|(<n>))Nintendo(\\.?)");
 static const auto REG_WIFI = re("Nintendo\\s(?:Wi-Fi\\sConnection|WFC)");
 
 static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
+    qDebug() << "Running writeLocalizationFiles()";
     // Key = locale, Value = file contents
     QMap<QString, UiMessage> uiMessages;
     for (auto &locale: FS_LOCALES) {
@@ -114,6 +136,35 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
 
     // make new msg ids
     quint32 msgId = 25000;
+    // add msg id for event square
+    uiMessages["en"][msgId] = "Event square";
+    uiMessages["uk"][msgId] = uiMessages["en"][msgId];
+    uiMessages["de"][msgId] = "Ereignisfeld";
+    uiMessages["fr"][msgId] = "Case Action";
+    uiMessages["it"][msgId] = "Casella Avvenimento";
+    uiMessages["su"][msgId] = "Casilla del Acontecimiento";
+    uiMessages["jp"][msgId] = "イベントマス";
+    msgId = 25001;
+    // add msg id for free parking square
+    uiMessages["en"][msgId] = "Free Parking";
+    uiMessages["uk"][msgId] = uiMessages["en"][msgId];
+    uiMessages["de"][msgId] = "Frei Parken";
+    uiMessages["fr"][msgId] = "Parc Gratuit";
+    uiMessages["it"][msgId] = "Posteggio gratuito";
+    uiMessages["su"][msgId] = "Parque Gratuito";
+    uiMessages["jp"][msgId] = "無料駐車場";
+    msgId = 25002;
+    // add msg id for free parking square description
+    uiMessages["en"][msgId] = "This is just a \"free\" resting place.";
+    uiMessages["uk"][msgId] = uiMessages["en"][msgId];
+    uiMessages["de"][msgId] = "Hier passiert gar nichts.";
+    uiMessages["fr"][msgId] = "Ce n'est qu'un espace de stationnement \"gratuit\".";
+    uiMessages["it"][msgId] = "Rilassatevi! Qui non succede assolutamente nulla.";
+    uiMessages["su"][msgId] = "Se trata simplemente de un lugar de descanso \"gratis\".";
+    uiMessages["jp"][msgId] = "このマスに止まると<n>何も起こりません。";
+    msgId++;
+
+    // write map descriptor names and descriptions
     for (auto &mapDescriptor: mapDescriptors) {
         mapDescriptor.nameMsgId = msgId++;
         for (auto it=uiMessages.begin(); it!=uiMessages.end(); ++it) {
@@ -218,9 +269,9 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
 }
 
 static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchResultBoardName) {
+    qDebug() << "Running patchMainDolAsync()";
     QString mainDol = dir.filePath(MAIN_DOL);
-    return AsyncFuture::observe(ExeWrapper::readSections(mainDol))
-            .subscribe([=](const QVector<AddressSection> &addressSections) {
+    auto fut = AsyncFuture::observe(ExeWrapper::readSections(mainDol)).subscribe([=](const QVector<AddressSection> &addressSections) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&mainDolFile);
@@ -228,10 +279,18 @@ static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescript
             //mainDolFile.resize(0);
             mainDolObj.writeMainDol(stream, mapDescriptors);
         }
+    });
+    return fut.subscribe([=](){}, [=]() {
+        try {
+            fut.future().waitForFinished();
+        } catch (const ExeWrapper::Exception &exception) {
+            throw Exception(exception.getMessage());
+        }
     }).future();
 }
 
 static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running injectMapIcons()";
     // first check if we need to inject any map icons in the first place. We do not need to if only vanilla map icons are used.
     bool allMapIconsVanilla = true;
     for (auto &mapDescriptor: mapDescriptors){
@@ -254,8 +313,11 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     auto gameSequenceExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     /** maps the path of the various variants of the game_sequenceXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
     auto gameSequenceToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the locale to the path */
+    auto localeGameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     for (auto &locale: FS_LOCALES) {
         auto gameSequencePath = dir.filePath(gameSequenceArc(locale));
+        (*localeGameBoardExtractPaths)[gameSequencePath] = locale;
 
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
         tmpDirObj.mkpath(extractPath);
@@ -267,6 +329,7 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }
     for (auto &locale: FS_LOCALES) {
         auto gameSequencePath = dir.filePath(gameSequenceWifiArc(locale));
+        (*localeGameBoardExtractPaths)[gameSequencePath] = locale;
 
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
         tmpDirObj.mkpath(extractPath);
@@ -312,6 +375,28 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
                     }).future();
                 }
             }
+        }
+
+        for (auto it = gameSequenceExtractPaths->begin(); it != gameSequenceExtractPaths->end(); ++it) {
+            auto locale = localeToUpper((*localeGameBoardExtractPaths)[it.key()]);
+            auto langDir = QString("lang%1/").arg(localeToUpper(locale));
+            if(locale.isEmpty())
+                langDir = QString();
+            auto minimapTmpPath = tmpDirObj.filePath(QString("minimap/%1").arg(langDir));
+            tmpDirObj.mkpath(minimapTmpPath);
+
+            auto icon2 = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_ja.png").arg(langDir), minimapTmpPath);
+            auto icon2_w = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_w_ja.png").arg(langDir), minimapTmpPath);
+            auto icon = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_ja.png").arg(langDir), minimapTmpPath);
+            auto icon_w = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_w_ja.png").arg(langDir), minimapTmpPath);
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon2, QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon2_w, QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon, QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon_w, QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
         }
 
         // convert the brlyt files to xmlyt, inject the map icons and convert it back
@@ -374,8 +459,8 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
     }).future();
 }
 
-
 static QFuture<void> packTurnlots(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running packTurnlots()";
     // Find out which backgrounds exist
     QSet<QString> uniqueNonVanillaBackgrounds;
     for (auto &mapDescriptor: mapDescriptors){
@@ -432,7 +517,8 @@ static QFuture<void> packTurnlots(const QVector<MapDescriptor> &mapDescriptors, 
 /*
  * @brief inject the brstm files, copy the to the correct folder, patch the brsar and prepare variables for the dol patch.
  */
-void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const QDir &tmpDir) {
+static void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const QDir &tmpDir) {
+    qDebug() << "Running brstmInject()";
     // copy brstm files from temp dir to output
     for (auto &descriptor: descriptors) {
         auto keys = descriptor.music.keys();
@@ -450,52 +536,159 @@ void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors, const 
             QFile::copy(brstmFileFrom, brstmFileTo);
         }
     }
-    // copy special csmm brsar file from program dir to sound folder and patch it
-    auto brsarFileFrom = ":/Itast.csmm.brsar";
-    auto brsarFileTo = output.filePath(SOUND_FOLDER+"/Itast.brsar");
-    QFileInfo brsarFileToInfo(brsarFileTo);
-    bool copyCsmmBrsar = false;
-    // check if the target file already is a csmm brsar
-    if (brsarFileToInfo.exists() && brsarFileToInfo.isFile()) {
-        QFile brsarFile(brsarFileTo);
-        if (brsarFile.open(QIODevice::ReadOnly)) {
-            QDataStream stream(&brsarFile);
-            if(Brsar::isVanilla(stream)) {
-                copyCsmmBrsar = true;
-            }
-            brsarFile.close();
-        }
-    } else {
-        copyCsmmBrsar = true;
-    }
-    QFileInfo brsarFileFromInfo(brsarFileFrom);
-    if (brsarFileFromInfo.exists() && brsarFileFromInfo.isFile()) {
-        if(copyCsmmBrsar) {
-            QFile(brsarFileTo).remove();
-            if(!QFile::copy(brsarFileFrom, brsarFileTo)) {
-                throw Exception(QString("Could not copy file %1 to %2").arg(brsarFileFrom, brsarFileTo));
-            }
-        }
-        QFile brsarFile(brsarFileTo);
-        // if the brsar file is not writable or readable, set the permissions
-        if(!brsarFile.isWritable() || !brsarFile.isReadable()) {
-            brsarFile.setPermissions(QFile::WriteUser | QFile::ReadUser);
-        }
+    // the Itast.brsar is assumed to have already been patched with Itast.brsar.bsdiff in the applyAllBspatches() method and now contains special CSMM entries
+    auto brsarFilePath = output.filePath(SOUND_FOLDER+"/Itast.brsar");
+    QFileInfo brsarFileInfo(brsarFilePath);
+    if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
+        QFile brsarFile(brsarFilePath);
+        // patch the special csmm entries in the brsar file
         if (brsarFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&brsarFile);
-            // brsar patch will also update the brsar indices in the music property of the mapdescriptors which will
-            // be needed later on when we apply the asm patch
-            Brsar::patch(stream, descriptors);
+            if(Brsar::containsCsmmEntries(stream)) {
+                stream.device()->seek(0);
+                Brsar::patch(stream, descriptors);
+            } else {
+                throw Exception(QString("The brsar file %1 does not contain CSMM entries. You must either start with a vanilla fortune street or use Tools->Save Clean Itast.csmm.brsar").arg(brsarFilePath));
+            }
             brsarFile.close();
         } else {
-            throw Exception(QString("Could not open file %1 for read/write. %2").arg(brsarFileTo, brsarFile.errorString()));
+            throw Exception(QString("Could not open file %1 for read/write. %2").arg(brsarFilePath, brsarFile.errorString()));
         }
     } else {
-        throw Exception(QString("Could not find %1").arg(brsarFileFrom));
+        throw Exception(QString("The file %1 does not exist.").arg(brsarFilePath));
+    }
+}
+
+static QString applyAllBspatches(const QDir &output) {
+    qDebug() << "Running applyAllBspatches()";
+
+    QFile f(":/files/bspatches.yaml");
+    if (f.open(QFile::ReadOnly)) {
+        QString contents = f.readAll();
+        auto yaml = YAML::Load(contents.toStdString());
+        for (auto it=yaml.begin(); it!=yaml.end(); ++it) {
+            QString vanillaRelPath = QString::fromStdString(it->first.as<std::string>());
+            QString vanilla = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["vanilla"].as<std::string>()).toLower();
+            QString patched = QString::fromStdString(yaml[vanillaRelPath.toStdString()]["patched"].as<std::string>()).toLower();
+            QString bsdiffPath = ":/" + vanillaRelPath + ".bsdiff";
+            QString cmpresPath = output.filePath(vanillaRelPath);
+            QString sha1 = PatchProcess::fileSha1(cmpresPath);
+            if (sha1 == vanilla) {
+                QString errors = applyBspatch(cmpresPath, cmpresPath, bsdiffPath);
+                if(!errors.isEmpty()) {
+                    return QString("Errors occured when applying %1 patch to file %2:\n%3").arg(bsdiffPath, cmpresPath, errors);
+                } else {
+                    qDebug() << "Patched: " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
+                }
+            } else if (sha1 == patched) {
+                qDebug() << "Already patched: " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
+            } else {
+                qDebug() << "Not patched (unknown file): " << cmpresPath << " sha1: " << fileSha1(cmpresPath);
+            }
+        }
+    }
+    return QString();
+}
+
+QString applyBspatch(const QString &oldfileStr, const QString &newfileStr, const QString &patchfileStr) {
+    unsigned char	*in_buf, *out_buf, *patch_buf;
+    int				in_sz, out_sz, patch_sz;
+    char			*errs;
+
+    QFile oldfile(oldfileStr);
+    if (!oldfile.open(QFile::ReadOnly)) {
+        return QString("Could not open %1 for reading.").arg(oldfileStr);
+    }
+    auto oldfileBytes = oldfile.readAll();
+    in_buf = (unsigned char*) oldfileBytes.data();
+    in_sz = oldfileBytes.length();
+    oldfile.close();
+
+    QFile patchfile(patchfileStr);
+    if (!patchfile.open(QFile::ReadOnly)) {
+        return QString("Could not open %1 for reading.").arg(patchfileStr);
+    }
+    auto patchfileBytes = patchfile.readAll();
+    patch_buf = (unsigned char*) patchfileBytes.data();
+    patch_sz = patchfileBytes.length();
+    patchfile.close();
+
+    errs = bspatch_mem(in_buf,in_sz, &out_buf, &out_sz, patch_buf, patch_sz, -1, -1, -1);
+    if (errs)
+        return QString(errs);
+
+    QFile newfile(newfileStr);
+    if (!newfile.open(QFile::WriteOnly)) {
+        return QString("Could not open %1 for writing.").arg(newfileStr);
+    }
+    newfile.write((char*) out_buf, out_sz);
+    return QString();
+}
+
+QString getSha1OfVanillaFileName(const QString &vanillaFileName) {
+    QFile f(":/files/bspatches.yaml");
+    if (f.open(QFile::ReadOnly)) {
+        QString contents = f.readAll();
+        auto yaml = YAML::Load(contents.toStdString());
+        return QString::fromStdString(yaml[vanillaFileName.toStdString()]["vanilla"].as<std::string>()).toLower();
+    }
+    throw Exception(QString("The file %1 is not a vanilla file").arg(vanillaFileName));
+}
+
+QString fileSha1(const QString &fileName) {
+   QFile f(fileName);
+   if (f.open(QFile::ReadOnly)) {
+       QCryptographicHash hash(QCryptographicHash::Sha1);
+       if (hash.addData(&f)) {
+           return hash.result().toHex().toLower();
+       }
+   }
+   return QByteArray().toHex();
+}
+
+
+static void copyMapFiles(const QVector<MapDescriptor> &descriptors, const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running copyMapFiles()";
+    // copy frb files from temp dir to output
+    for (auto &descriptor: descriptors) {
+        for (auto &frbFile: descriptor.frbFiles) {
+            if (frbFile.isEmpty()) continue;
+            auto frbFileFrom = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+            auto frbFileTo = dir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+            QFileInfo frbFileFromInfo(frbFileFrom);
+            if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
+                continue;
+            }
+            QFile(frbFileTo).remove();
+            QFile::copy(frbFileFrom, frbFileTo);
+        }
+        if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
+            // copy .cmpres file
+            for (auto &locale: FS_LOCALES) {
+                auto cmpresFileFrom = tmpDir.filePath(bgPath(locale, descriptor.background));
+                auto cmpresFileTo = dir.filePath(bgPath(locale, descriptor.background));
+                QFileInfo cmpresFileFromInfo(cmpresFileFrom);
+                if (!cmpresFileFromInfo.exists() || !cmpresFileFromInfo.isFile()) {
+                    continue;
+                }
+                QFile(cmpresFileTo).remove();
+                QFile::copy(cmpresFileFrom, cmpresFileTo);
+            }
+            // copy .scene file
+            auto sceneFileFrom = tmpDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+            auto sceneFileTo = dir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+            QFileInfo sceneFileFromInfo(sceneFileFrom);
+            if (!sceneFileFromInfo.exists() || !sceneFileFromInfo.isFile()) {
+                continue;
+            }
+            QFile(sceneFileTo).remove();
+            QFile::copy(sceneFileFrom, sceneFileTo);
+        }
     }
 }
 
 static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running widenResultsMapBox()";
     // t_m_00
 
     QDir tmpDirObj(tmpDir.path());
@@ -563,14 +756,19 @@ static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
 }
 
 static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running widenDistrictName()";
+
     QDir tmpDirObj(tmpDir.path());
 
     /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective extraction path in the tmp directory */
     auto gameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     /** maps the path of the various variants of the game_boardXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
     auto gameBoardToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
+    /** maps the locale to the path */
+    auto localeGameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     for (auto &locale: FS_LOCALES) {
         auto gameBoardPath = dir.filePath(gameBoardArc(locale));
+        (*localeGameBoardExtractPaths)[gameBoardPath] = locale;
 
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameBoardPath).baseName());
         tmpDirObj.mkpath(extractPath);
@@ -580,6 +778,7 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
         tmpDirObj.mkpath(xmlytPath);
         (*gameBoardToXmlytBasePaths)[gameBoardPath] = xmlytPath;
     }
+
     // extract the arc files
     auto extractArcTasks = AsyncFuture::combine();
     for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
@@ -587,6 +786,33 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
     }
 
     return extractArcTasks.subscribe([=]() {
+        // convert the png files to tpl and copy them to the correct location
+        auto convertTasks = AsyncFuture::combine();
+
+        auto mark_eventsquare = getFileCopy(QString(":/files/ui_mark_eventsquare.png"), tmpDirObj);
+        for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
+            auto locale = localeToUpper((*localeGameBoardExtractPaths)[it.key()]);
+            auto langDir = QString("lang%1/").arg(localeToUpper(locale));
+            if(locale.isEmpty())
+                langDir = QString();
+            auto minimapTmpPath = tmpDirObj.filePath(QString("minimap/%1").arg(langDir));
+            tmpDirObj.mkpath(minimapTmpPath);
+            auto icon2 = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_ja.png").arg(langDir), minimapTmpPath);
+            auto icon2_w = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon2_w_ja.png").arg(langDir), minimapTmpPath);
+            auto icon = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_ja.png").arg(langDir), minimapTmpPath);
+            auto icon_w = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_w_ja.png").arg(langDir), minimapTmpPath);
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon2, QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon2_w, QDir(it.value()).filePath("arc/timg/ui_minimap_icon2_w_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon, QDir(it.value()).filePath("arc/timg/ui_minimap_icon_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(icon_w, QDir(it.value()).filePath("arc/timg/ui_minimap_icon_w_ja.tpl"));
+            QFile::remove(QDir(it.value()).filePath("arc/timg/ui_mark_eventsquare.tpl"));
+            convertTasks << ExeWrapper::convertPngToTpl(mark_eventsquare, QDir(it.value()).filePath("arc/timg/ui_mark_eventsquare.tpl"));
+        }
+
         for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
             auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_013.brlyt");
             //auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
@@ -607,16 +833,42 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
             }
         }
 
+#if 0
+        for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
+            QDir brlanFileDir(QDir(it.value()).filePath("arc/anim"));
+            auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_game_013_Tag_*.brlan"}, QDir::Files);
+            for (auto &brlanFileInfo: brlanFilesInfo) {
+                auto brlanFile = brlanFileInfo.absoluteFilePath();
+                QFile::remove(brlanFile);
+                #if 0
+                auto xmlanFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
+
+                ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
+                ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
+
+                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+                QFile brlytFileObj(brlanFile);
+                if (brlytFileObj.open(QIODevice::ReadWrite)) {
+                    brlytFileObj.seek(0);
+                    brlytFileObj.putChar('R');
+                }
+                #endif
+            }
+        }
+#endif
         auto packArcFileTasks = AsyncFuture::combine();
         for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
             packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
         }
         return packArcFileTasks.future();
+    }).subscribe([]() {
+        return true;
     }).future();
 }
 
 QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir) {
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
+    applyAllBspatches(output);
     brstmInject(output, descriptors, tmpDir);
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output, patchResultBoardName))
             .subscribe([=]() {
@@ -634,42 +886,7 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
         return widenDistrictName(output, tmpDir);
     });
     return fut.subscribe([=]() {
-        // copy frb files from temp dir to output
-        for (auto &descriptor: descriptors) {
-            for (auto &frbFile: descriptor.frbFiles) {
-                if (frbFile.isEmpty()) continue;
-                auto frbFileFrom = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
-                auto frbFileTo = output.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
-                QFileInfo frbFileFromInfo(frbFileFrom);
-                if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
-                    continue;
-                }
-                QFile(frbFileTo).remove();
-                QFile::copy(frbFileFrom, frbFileTo);
-            }
-            if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
-                // copy .cmpres file
-                for (auto &locale: FS_LOCALES) {
-                    auto cmpresFileFrom = tmpDir.filePath(bgPath(locale, descriptor.background));
-                    auto cmpresFileTo = output.filePath(bgPath(locale, descriptor.background));
-                    QFileInfo cmpresFileFromInfo(cmpresFileFrom);
-                    if (!cmpresFileFromInfo.exists() || !cmpresFileFromInfo.isFile()) {
-                        continue;
-                    }
-                    QFile(cmpresFileTo).remove();
-                    QFile::copy(cmpresFileFrom, cmpresFileTo);
-                }
-                // copy .scene file
-                auto sceneFileFrom = tmpDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
-                auto sceneFileTo = output.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
-                QFileInfo sceneFileFromInfo(sceneFileFrom);
-                if (!sceneFileFromInfo.exists() || !sceneFileFromInfo.isFile()) {
-                    continue;
-                }
-                QFile(sceneFileTo).remove();
-                QFile::copy(sceneFileFrom, sceneFileTo);
-            }
-        }
+        copyMapFiles(descriptors, output, tmpDir);
     }, [=]() {
         try {
             fut.future().waitForFinished();

@@ -44,6 +44,15 @@ SOURCES += \
     lib/benzin/memfile.c \
     lib/benzin/xml.c \
     lib/brsar.cpp \
+    lib/bsdiff/bsdifflib.c \
+    lib/bsdiff/bspatchlib.c \
+    lib/bsdiff/bzip2/blocksort.c \
+    lib/bsdiff/bzip2/bzlib.c \
+    lib/bsdiff/bzip2/compress.c \
+    lib/bsdiff/bzip2/crctable.c \
+    lib/bsdiff/bzip2/decompress.c \
+    lib/bsdiff/bzip2/huffman.c \
+    lib/bsdiff/bzip2/randtable.c \
     lib/configuration.cpp \
     lib/dolio/backgroundtable.cpp \
     lib/dolio/bgmidtable.cpp \
@@ -65,6 +74,9 @@ SOURCES += \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
     lib/dolio/nameddistricts.cpp \
+    lib/dolio/mutatorrollshoppricemultiplier.cpp \
+    lib/dolio/mutatorshoppricemultiplier.cpp \
+    lib/dolio/mutatortable.cpp \
     lib/dolio/practiceboard.cpp \
     lib/dolio/rulesettable.cpp \
     lib/dolio/stagenameidtable.cpp \
@@ -80,6 +92,10 @@ SOURCES += \
     lib/freespacemanager.cpp \
     lib/maindol.cpp \
     lib/mapdescriptor.cpp \
+    lib/mutator/mutator.cpp \
+    lib/mutator/rollagain.cpp \
+    lib/mutator/rollshoppricemultiplier.cpp \
+    lib/mutator/shoppricemultiplier.cpp \
     lib/patchprocess.cpp \
     lib/powerpcasm.cpp \
     lib/pugixml/pugixml.cpp \
@@ -110,6 +126,12 @@ HEADERS += \
     lib/benzin/types.h \
     lib/benzin/xml.h \
     lib/brsar.h \
+    lib/bsdiff/bsdiff.h \
+    lib/bsdiff/bsdifflib.h \
+    lib/bsdiff/bspatch.h \
+    lib/bsdiff/bspatchlib.h \
+    lib/bsdiff/bzip2/bzlib.h \
+    lib/bsdiff/bzip2/bzlib_private.h \
     lib/configuration.h \
     lib/datafileset.h \
     lib/dolio/backgroundtable.h \
@@ -132,6 +154,9 @@ HEADERS += \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
     lib/dolio/nameddistricts.h \
+    lib/dolio/mutatorrollshoppricemultiplier.h \
+    lib/dolio/mutatorshoppricemultiplier.h \
+    lib/dolio/mutatortable.h \
     lib/dolio/practiceboard.h \
     lib/dolio/rulesettable.h \
     lib/dolio/stagenameidtable.h \
@@ -150,6 +175,10 @@ HEADERS += \
     lib/maindol.h \
     lib/mapdescriptor.h \
     lib/music.h \
+    lib/mutator/mutator.h \
+    lib/mutator/rollagain.h \
+    lib/mutator/rollshoppricemultiplier.h \
+    lib/mutator/shoppricemultiplier.h \
     lib/orderedmap.h \
     lib/patchprocess.h \
     lib/powerpcasm.h \

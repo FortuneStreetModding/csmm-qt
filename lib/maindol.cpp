@@ -28,6 +28,9 @@
 #include "dolio/displaymapinresults.h"
 #include "dolio/tinydistricts.h"
 #include "dolio/nameddistricts.h"
+#include "dolio/mutatorrollshoppricemultiplier.h"
+#include "dolio/mutatortable.h"
+#include "dolio/mutatorshoppricemultiplier.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections, bool patchResultBoardName) {
@@ -67,6 +70,13 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x80410648), addressMapper.boomStreetToStandard(0x80411b9b));
     // Map Data String Table and Map Data Table
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x80428978), addressMapper.boomStreetToStandard(0x804298cf));
+    //
+    // used additional address:
+    // 0x804363b4 (4 bytes):  force simulated button press
+    // 0x804363b8 (12 bytes): pointer to internal name table
+    // 0x804363c4 (4 bytes):  ForceVentureCardVariable
+    // 0x80412c88 - 0x80412d5f (214 bytes): GetMutatorDataSubroutine (originally: GetGainCoeffTable and GetMaxCapitalCoeff, but since it is replaced by tinydistricts.cpp we can repurpose that as a code cave)
+    //
     // Map Default Settings Table
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x804363c8), addressMapper.boomStreetToStandard(0x80436a87));
     // Unused costume string table 1
@@ -127,6 +137,11 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches(bool patchResultBoardName) 
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));
     patches.append(QSharedPointer<DolIO>(new NamedDistricts()));
 
+    // mutators
+    patches.append(QSharedPointer<DolIO>(new MutatorTable()));
+    patches.append(QSharedPointer<DolIO>(new MutatorRollShopPriceMultiplier()));
+    patches.append(QSharedPointer<DolIO>(new MutatorShopPriceMultiplier()));
+
     return patches;
 }
 
@@ -146,7 +161,18 @@ QVector<MapDescriptor> MainDol::writeMainDol(QDataStream &stream, const QVector<
     for (auto &patch: patches) {
         patch->write(stream, addressMapper, mapDescriptors, freeSpaceManager);
     }
+
+    auto totalFreeSpace = freeSpaceManager.calculateTotalFreeSpace();
+    auto largestFreeSpaceBlockSize = freeSpaceManager.calculateLargestFreeSpaceBlockSize();
+    auto remainingFreeSpace = freeSpaceManager.calculateTotalRemainingFreeSpace();
+    auto largestRemainingFreeSpaceBlockSize = freeSpaceManager.calculateLargestRemainingFreeSpaceBlockSize();
+    qfloat16 freeSpaceUsage = (qfloat16) remainingFreeSpace / (qfloat16) totalFreeSpace;
+    qfloat16 largestBlockUsage = (qfloat16) largestRemainingFreeSpaceBlockSize / (qfloat16) largestFreeSpaceBlockSize;
+    qDebug().noquote() << QString("Free Space Left: %1/%2 (%3)").arg(remainingFreeSpace).arg(totalFreeSpace).arg(freeSpaceUsage);
+    qDebug().noquote() << QString("  Largest Block: %1/%2 (%3)").arg(largestRemainingFreeSpaceBlockSize).arg(largestFreeSpaceBlockSize).arg(largestBlockUsage);
+
     freeSpaceManager.nullTheFreeSpace(stream, addressMapper);
+
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca30));
     stream << PowerPcAsm::li(3, mapDescriptors.size());
     return mapDescriptors;

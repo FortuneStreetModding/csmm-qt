@@ -123,6 +123,15 @@ QString MapDescriptor::toYaml() const {
     out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
     out << YAML::EndMap;
 
+    if(!mutators.empty()) {
+        out << YAML::Key << "mutators" << YAML::Value << YAML::BeginMap;
+        for (auto &mutator: mutators) {
+            out << YAML::Key << mutatorTypeToString(mutator->type).toStdString() << YAML::Value;
+            mutator->toYaml(out);
+        }
+        out << YAML::EndMap;
+    }
+
     if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
         out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
         for (int i=0; i<128; ++i) {
@@ -150,6 +159,57 @@ QString MapDescriptor::toYaml() const {
     out << YAML::EndDoc;
 
     return out.c_str();
+}
+
+bool MapDescriptor::operator==(const MapDescriptor &other) const {
+    if(mutators.size()!=other.mutators.size())
+        return false;
+    auto keys = mutators.keys();
+    for (auto &mutatorName: keys) {
+        if(!other.mutators.contains(mutatorName)) {
+            return false;
+        }
+        auto mutator = mutators[mutatorName];
+        auto otherMutator = other.mutators[mutatorName];
+        if(*mutator != *otherMutator)
+            return false;
+    }
+
+    return mapSet == other.mapSet
+            && zone == other.zone
+            && order == other.order
+            && isPracticeBoard == other.isPracticeBoard
+            && ruleSet == other.ruleSet
+            && initialCash == other.initialCash
+            && targetAmount == other.targetAmount
+            && baseSalary == other.baseSalary
+            && salaryIncrement == other.salaryIncrement
+            && maxDiceRoll == other.maxDiceRoll
+            && std::equal(std::begin(ventureCards), std::end(ventureCards), std::begin(other.ventureCards))
+            && std::equal(std::begin(frbFiles), std::end(frbFiles), std::begin(other.frbFiles))
+            && switchRotationOrigins == other.switchRotationOrigins
+            && theme == other.theme
+            && background == other.background
+            && bgmId == other.bgmId
+            && mapIcon == other.mapIcon
+            && music == other.music
+            && loopingMode == other.loopingMode
+            && loopingModeRadius == other.loopingModeRadius
+            && loopingModeHorizontalPadding == other.loopingModeHorizontalPadding
+            && loopingModeVerticalSquareCount == other.loopingModeVerticalSquareCount
+            && tourBankruptcyLimit == other.tourBankruptcyLimit
+            && tourInitialCash == other.tourInitialCash
+            && std::equal(std::begin(tourCharacters), std::end(tourCharacters), std::begin(other.tourCharacters))
+            && tourClearRank == other.tourClearRank
+            && unlockId == other.unlockId
+            && nameMsgId == other.nameMsgId
+            && descMsgId == other.descMsgId
+            && names == other.names
+            && descs == other.descs
+            && internalName == other.internalName
+            && mapDescriptorFilePath == other.mapDescriptorFilePath
+            && districtNames == other.districtNames
+            && districtNameIds == other.districtNameIds;
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
@@ -248,6 +308,12 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             if(musicType == MusicType::map) {
                 bgmId = BGM_MAP_CIRCUIT;
             }
+        }
+    }
+    if(yaml["mutators"]) {
+        for (auto it=yaml["mutators"].begin(); it!=yaml["mutators"].end(); ++it) {
+            auto mutatorStr = QString::fromStdString(it->first.as<std::string>());
+            mutators.insert(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
         }
     }
     if(yaml["ventureCards"]) {
@@ -433,42 +499,4 @@ QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int ma
         errorMsgs << QString("[mapset %1, zone %2] There must be no gaps in the ordering").arg(mapSet).arg(zone);
     }
     return result;
-}
-
-bool MapDescriptor::operator==(const MapDescriptor &other) const {
-    return mapSet == other.mapSet
-            && zone == other.zone
-            && order == other.order
-            && isPracticeBoard == other.isPracticeBoard
-            && ruleSet == other.ruleSet
-            && initialCash == other.initialCash
-            && targetAmount == other.targetAmount
-            && baseSalary == other.baseSalary
-            && salaryIncrement == other.salaryIncrement
-            && maxDiceRoll == other.maxDiceRoll
-            && std::equal(std::begin(ventureCards), std::end(ventureCards), std::begin(other.ventureCards))
-            && std::equal(std::begin(frbFiles), std::end(frbFiles), std::begin(other.frbFiles))
-            && switchRotationOrigins == other.switchRotationOrigins
-            && theme == other.theme
-            && background == other.background
-            && bgmId == other.bgmId
-            && mapIcon == other.mapIcon
-            && music == other.music
-            && loopingMode == other.loopingMode
-            && loopingModeRadius == other.loopingModeRadius
-            && loopingModeHorizontalPadding == other.loopingModeHorizontalPadding
-            && loopingModeVerticalSquareCount == other.loopingModeVerticalSquareCount
-            && tourBankruptcyLimit == other.tourBankruptcyLimit
-            && tourInitialCash == other.tourInitialCash
-            && std::equal(std::begin(tourCharacters), std::end(tourCharacters), std::begin(other.tourCharacters))
-            && tourClearRank == other.tourClearRank
-            && unlockId == other.unlockId
-            && nameMsgId == other.nameMsgId
-            && descMsgId == other.descMsgId
-            && names == other.names
-            && descs == other.descs
-            && internalName == other.internalName
-            && mapDescriptorFilePath == other.mapDescriptorFilePath
-            && districtNames == other.districtNames
-            && districtNameIds == other.districtNameIds;
 }
