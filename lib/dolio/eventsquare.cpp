@@ -76,8 +76,9 @@ void EventSquare::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     //stream.device()->seek(addressMapper.boomToFileAddress(0x800b270c)); stream << PowerPcAsm::lwz(5, 0x108, 18);
 
     // --- Icon ---
+    // TODO: the p_mark_eventsquare reference does not yet exist in the corresponding brylt file
+    quint32 ui_mark_eventsquare = allocate("p_mark_eventsquare");
     stream.device()->seek(addressMapper.boomToFileAddress(0x804160c8));
-    quint32 ui_mark_eventsquare = allocate("ui_mark_eventsquare");
     stream << ui_mark_eventsquare; // pointer to the texture name
     stream << ui_mark_eventsquare; // we need to write it twice: once for each design type (Mario and DragonQuest)
 
