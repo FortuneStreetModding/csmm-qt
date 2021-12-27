@@ -26,7 +26,7 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
         // bl Gm_Place_CalcRank        ->  b proc3StarHotelPriceMultiplier
         stream << PowerPcAsm::b(hijackAddr, proc3StarHotelPriceMultiplier);
     }
-
+#if 1
     // --- Calc Rank Multiplier ---
     {
         quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8008eb14);
@@ -35,10 +35,10 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
         auto routineCode = writeRankPriceMultiplier(addressMapper, procRankPriceMultiplier);
         for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
         stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
-        // lwzu r0, 0x3b38(r3)        ->  b procRankPriceMultiplier
+        // lis r3, 0x8045        ->  b procRankPriceMultiplier
         stream << PowerPcAsm::b(hijackAddr, procRankPriceMultiplier);
     }
-
+#endif
 }
 
 QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress) {
@@ -115,6 +115,7 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
 
     auto getMutatorDataSubroutine = addressMapper.boomStreetToStandard(0x80412c8c);
     auto returnAddr = addressMapper.boomStreetToStandard(0x8008eb1c);
+    auto tableAddr = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x80453b38));
 
     QVector<quint32> asm_;
     asm_.append(PowerPcAsm::mr(6, 4));                                                         // |. save shop price
@@ -126,8 +127,8 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                                      // \. if mutator != NULL
     asm_.append(PowerPcAsm::bne(4));                                                           // /.   goto mutator
                 // vanilla
-    asm_.append(PowerPcAsm::lis(3, 0x8045));                                                   // \. replaced opcodes
-    asm_.append(PowerPcAsm::lwzu(0, 0x3b38, 3));                                               // /.
+    asm_.append(PowerPcAsm::lis(3, tableAddr.upper));                                                   // \. replaced opcodes
+    asm_.append(PowerPcAsm::lwzu(0, tableAddr.lower, 3));                                               // /.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
                 // mutator stuff
     asm_.append(PowerPcAsm::addi(4, 4, 1));                                                    // |. r4 <- r4 + 1 (to account for rounding errors)
@@ -135,8 +136,8 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     asm_.append(PowerPcAsm::mullw(4, 4, 7));                                                   // |. r4 <- r4 * r7
     asm_.append(PowerPcAsm::lhz(7, 0x0, 3));                                                   // |. r7 <- numerator
     asm_.append(PowerPcAsm::divwu(4, 4, 7));                                                   // |. r4 <- r4 / r7
-    asm_.append(PowerPcAsm::lis(3, 0x8045));                                                   // \. replaced opcodes
-    asm_.append(PowerPcAsm::lwzu(0, 0x3b38, 3));                                               // /.
+    asm_.append(PowerPcAsm::lis(3, tableAddr.upper));                                                   // \. replaced opcodes
+    asm_.append(PowerPcAsm::lwzu(0, tableAddr.lower, 3));                                               // /.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
     return asm_;
 }
