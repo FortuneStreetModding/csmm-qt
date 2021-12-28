@@ -923,8 +923,8 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
         QString extractedYamlFile;
         int extractResult = zip_extract(yamlFileSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
             auto yamlFilePtr = (QString *)arg;
-            auto suffix = QFileInfo(candidate).suffix();
-            if (suffix == "yaml") {
+            QFileInfo fi(candidate);
+            if (fi.suffix() == "yaml" && !fi.completeBaseName().startsWith(".")) {
                 *yamlFilePtr = candidate;
             }
             return 0;
