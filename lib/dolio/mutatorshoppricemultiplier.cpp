@@ -26,7 +26,7 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
         // bl Gm_Place_CalcRank        ->  b proc3StarHotelPriceMultiplier
         stream << PowerPcAsm::b(hijackAddr, proc3StarHotelPriceMultiplier);
     }
-#if 1
+
     // --- Calc Rank Multiplier ---
     {
         quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8008eb14);
@@ -38,7 +38,6 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
         // lis r3, 0x8045        ->  b procRankPriceMultiplier
         stream << PowerPcAsm::b(hijackAddr, procRankPriceMultiplier);
     }
-#endif
 }
 
 QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress) {

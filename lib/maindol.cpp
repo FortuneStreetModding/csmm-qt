@@ -137,12 +137,11 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches(bool patchResultBoardName) 
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));
     patches.append(QSharedPointer<DolIO>(new NamedDistricts()));
 
-#if 1
     // mutators
     patches.append(QSharedPointer<DolIO>(new MutatorTable()));
     patches.append(QSharedPointer<DolIO>(new MutatorRollShopPriceMultiplier()));
     patches.append(QSharedPointer<DolIO>(new MutatorShopPriceMultiplier()));
-#endif
+
     return patches;
 }
 

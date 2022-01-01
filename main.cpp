@@ -35,9 +35,9 @@ int main(int argc, char *argv[])
         }
     #endif
         initDarkThemeSettings();
-        MainWindow w;
-        w.setWindowTitle(QString("CSMM %1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
-        w.show();
+        MainWindow *w = new MainWindow;
+        w->setWindowTitle(QString("CSMM %1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
+        w->show();
         int e = app.exec();
         exit( e ); // needed to exit the hidden console
         return e;

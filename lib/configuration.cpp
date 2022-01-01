@@ -15,8 +15,7 @@ QString to_string(QString mapId, QString mapSet, QString mapZone, QString mapOrd
             .arg(mapZone, 5, QChar(' '))
             .arg(mapOrder, 5, QChar(' '))
             .arg(practiceBoard, 5, QChar(' '))
-            .arg(name.leftJustified(24, ' ', true))
-            .arg(mapDescriptorRelativePath);
+            .arg(name.leftJustified(24, ' ', true), mapDescriptorRelativePath);
 }
 
 QString to_string(int mapId, int mapSet, int mapZone, int mapOrder, int practiceBoard, QString name, QString mapDescriptorRelativePath) {

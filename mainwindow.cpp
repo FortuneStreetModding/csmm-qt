@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow), manager(new QNetworkAccessManager(this))
 {
+    setAttribute(Qt::WA_DeleteOnClose);
+
     ui->setupUi(this);
     ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
