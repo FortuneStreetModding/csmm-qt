@@ -470,10 +470,7 @@ QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet
             errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at most 32").arg(mapSet).arg(zoneVal);
         }
     }
-    auto vals = numMapsPerZone.values();
-    if (std::accumulate(vals.begin(), vals.end(), 0) > 66) { // TODO lift this limit by modifying Game::MapSelectUI::CreateMapList
-        errorMsgs << QString("[map set %1] The number of boards must be at most 66");
-    }
+
     return result;
 }
 

@@ -67,6 +67,29 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream.skipRawData(4);
     // addi r1, r1, 0x70 -> addi r1, r1, 0xb0
     stream << PowerPcAsm::addi(1, 1, N);
+
+    // CreateMapList requires the array to be allocated to be large enough to fit all 3 zones.
+    // The array originally could fit up to 66 elements, we enlarge it to fit 66+32=98.
+
+    N = 0x190 + 32*sizeof(quint32);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801875d0));
+    // stwu r1, -0x190(r1) -> stwu r1, -0x210(r1)
+    stream << PowerPcAsm::stwu(1, -N, 1);
+    stream.skipRawData(4);
+    // stw r0, 0x194(r1) -> stw r0, 0x214(r1)
+    stream << PowerPcAsm::stw(0, N+4, 1);
+    // stmw r16, 0x150(r1) -> stmw r16, 0x1d0(r1)
+    stream << PowerPcAsm::stmw(25, N-0x40, 1);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80187c38));
+    // lmw r16, 0x150(r1) -> lmw r16, 0x1d0(r1)
+    stream << PowerPcAsm::lmw(25, N-0x40, 1);
+    // lwz r0, 0x194(r1) -> lwz r0, 0x214(r1)
+    stream << PowerPcAsm::lwz(0, N+4, 1);
+    stream.skipRawData(4);
+    // addi r1, r1, 0x190 -> addi r1, r1, 0x210
+    stream << PowerPcAsm::addi(1, 1, N);
 }
 
 void ExpandMapsInZone::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) {
