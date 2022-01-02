@@ -7,7 +7,6 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     int N = 0x60 + 16*sizeof(quint32);
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020f570));
-
     // stwu r1, -0x60(r1) -> stwu r1, -0xa0(r1)
     stream << PowerPcAsm::stwu(1, -N, 1);
     stream.skipRawData(8);
@@ -22,7 +21,51 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     // lwz r0, 0x64(r1) -> lwz r0, 0xa4(r1)
     stream << PowerPcAsm::lwz(0, N+4, 1);
     stream.skipRawData(4);
-    // addi r1, r1, 0x60 ->addi r1, r1, 0xa0
+    // addi r1, r1, 0x60 -> addi r1, r1, 0xa0
+    stream << PowerPcAsm::addi(1, 1, N);
+
+    // Do similar stuff with CanUnlockMap.
+
+    N = 0x60 + 16*sizeof(quint32);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e72f0));
+    // stwu r1, -0x60(r1) -> stwu r1, -0xa0(r1)
+    stream << PowerPcAsm::stwu(1, -N, 1);
+    stream.skipRawData(4);
+    // stw r0, 0x64(r1) -> stw r0, 0xa4(r1)
+    stream << PowerPcAsm::stw(0, N+4, 1);
+    // stw r0, 0x5c(r1) -> stw r0, 0x9c(r1)
+    stream << PowerPcAsm::stw(31, N-4, 1);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x801e73ac));
+    // lwz r0, 0x64(r1) -> lwz r0, 0xa4(r1)
+    stream << PowerPcAsm::lwz(0, N+4, 1);
+    // lwz r0, 0x5c(r1) -> lwz r0, 0x9c(r1)
+    stream << PowerPcAsm::lwz(31, N-4, 1);
+    stream.skipRawData(4);
+    // addi r1, r1, 0x60 -> addi r1, r1, 0xa0
+    stream << PowerPcAsm::addi(1, 1, N);
+
+    // And SetZone.
+
+    N = 0x70 + 16*sizeof(quint32);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8021ebd4));
+    // stwu r1, -0x70(r1) -> stwu r1, -0xb0(r1)
+    stream << PowerPcAsm::stwu(1, -N, 1);
+    stream.skipRawData(8);
+    // stw r0, 0x74(r1) -> stw r0, 0xb4(r1)
+    stream << PowerPcAsm::stw(0, N+4, 1);
+    // stmw r25, 0x54(r1) -> stmw r25, 0x94(r1)
+    stream << PowerPcAsm::stmw(25, N-0x1c, 1);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8021ed38));
+    // lmw r25, 0x54(r1) -> lmw r25, 0x94(r1)
+    stream << PowerPcAsm::lmw(25, N-0x1c, 1);
+    // lwz r0, 0x74(r1) -> lwz r0, 0xb4(r1)
+    stream << PowerPcAsm::lwz(0, N+4, 1);
+    stream.skipRawData(4);
+    // addi r1, r1, 0x70 -> addi r1, r1, 0xb0
     stream << PowerPcAsm::addi(1, 1, N);
 }
 
