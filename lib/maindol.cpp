@@ -31,6 +31,7 @@
 #include "dolio/mutatorrollshoppricemultiplier.h"
 #include "dolio/mutatortable.h"
 #include "dolio/mutatorshoppricemultiplier.h"
+#include "dolio/expandmapsinzone.h"
 #include "powerpcasm.h"
 
 MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections, bool patchResultBoardName) {
@@ -138,9 +139,14 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches(bool patchResultBoardName) 
     patches.append(QSharedPointer<DolIO>(new NamedDistricts()));
 
     // mutators
+    // TODO re-enable when we find the ai message looping bug
+#if 0
     patches.append(QSharedPointer<DolIO>(new MutatorTable()));
     patches.append(QSharedPointer<DolIO>(new MutatorRollShopPriceMultiplier()));
     patches.append(QSharedPointer<DolIO>(new MutatorShopPriceMultiplier()));
+#endif
+
+    patches.append(QSharedPointer<DolIO>(new ExpandMapsInZone()));
 
     return patches;
 }

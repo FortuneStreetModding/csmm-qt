@@ -63,6 +63,7 @@ SOURCES += \
     lib/dolio/dolio.cpp \
     lib/dolio/doliotable.cpp \
     lib/dolio/eventsquare.cpp \
+    lib/dolio/expandmapsinzone.cpp \
     lib/dolio/forcesimulatedbuttonpress.cpp \
     lib/dolio/frbmaptable.cpp \
     lib/dolio/internalnametable.cpp \
@@ -143,6 +144,7 @@ HEADERS += \
     lib/dolio/dolio.h \
     lib/dolio/doliotable.h \
     lib/dolio/eventsquare.h \
+    lib/dolio/expandmapsinzone.h \
     lib/dolio/forcesimulatedbuttonpress.h \
     lib/dolio/frbmaptable.h \
     lib/dolio/internalnametable.h \

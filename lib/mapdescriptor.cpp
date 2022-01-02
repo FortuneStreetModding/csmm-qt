@@ -466,8 +466,8 @@ QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet
         if (numMapsPerZone[zoneVal] < 6) {
             errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at least 6").arg(mapSet).arg(zoneVal);
         }
-        if (numMapsPerZone[zoneVal] > 16) {
-            errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at most 16").arg(mapSet).arg(zoneVal);
+        if (numMapsPerZone[zoneVal] > 19) {
+            errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at most 19").arg(mapSet).arg(zoneVal);
         }
     }
     return result;
