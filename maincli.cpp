@@ -5,6 +5,7 @@
 #include<QCommandLineParser>
 #include<QTemporaryDir>
 
+#include "lib/await.h"
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
@@ -13,45 +14,6 @@
 #include "lib/datafileset.h"
 
 namespace maincli {
-
-// From: https://github.com/benlau/asyncfuture/issues/11
-
-template <typename T>
-inline T await(QFuture<T> future, int timeout = -1) {
-     if (future.isFinished()) {
-         return future.result();
-     }
-
-     QFutureWatcher<T> watcher;
-     watcher.setFuture(future);
-     QEventLoop loop;
-
-     if (timeout > 0) {
-         QTimer::singleShot(timeout, &loop, &QEventLoop::quit);
-     }
-
-     QObject::connect(&watcher, SIGNAL(finished()), &loop, SLOT(quit()));
-     loop.exec();
-
-     return future.result();
-}
-
-inline void await(QFuture<void> future, int timeout = -1) {
-     if (future.isFinished()) {
-         return;
-     }
-
-     QFutureWatcher<void> watcher;
-     watcher.setFuture(future);
-     QEventLoop loop;
-
-     if (timeout > 0) {
-         QTimer::singleShot(timeout, &loop, &QEventLoop::quit);
-     }
-
-     QObject::connect(&watcher, SIGNAL(finished()), &loop, SLOT(quit()));
-     loop.exec();
-}
 
 void setupSubcommand(QCommandLineParser& parser, QString name, QString description) {
     parser.clearPositionalArguments();

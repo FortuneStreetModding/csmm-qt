@@ -7,6 +7,7 @@
 #include <QDirIterator>
 #include <QtConcurrent>
 #include "asyncfuture.h"
+#include "await.h"
 #include "datafileset.h"
 #include "exewrapper.h"
 #include "maindol.h"
@@ -364,15 +365,16 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
                     mapIconToTplName[mapDescriptor.mapIcon] = tplName;
                 }
                 if (mapIconPngInfo.exists() && mapIconPngInfo.isFile()) {
-                    convertTasks << AsyncFuture::observe(ExeWrapper::convertPngToTpl(mapIconPng, mapIconTpl))
+                    await(AsyncFuture::observe(ExeWrapper::convertPngToTpl(mapIconPng, mapIconTpl))
                                     .subscribe([=]() {
+                        //qDebug() << mapIconPng;
                         auto values = gameSequenceExtractPaths->values();
                         for (auto &value: qAsConst(values)) {
                             auto mapIconTplCopy = QDir(value).filePath("arc/timg/" + tplName);
                             QFile::remove(mapIconTplCopy);
                             QFile::copy(mapIconTpl, mapIconTplCopy);
                         }
-                    }).future();
+                    }).future());
                 }
             }
         }
@@ -755,8 +757,8 @@ static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
     }).future();
 }
 
-static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
-    qDebug() << "Running widenDistrictName()";
+static QFuture<void> modifyGameBoardArc(const QDir &dir, const QDir &tmpDir) {
+    qDebug() << "Running modifyGameBoardArc()";
 
     QDir tmpDirObj(tmpDir.path());
 
@@ -831,31 +833,25 @@ static QFuture<void> widenDistrictName(const QDir &dir, const QDir &tmpDir) {
                     brlytFileObj.putChar('R');
                 }
             }
-        }
-
 #if 0
-        for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
-            QDir brlanFileDir(QDir(it.value()).filePath("arc/anim"));
-            auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_game_013_Tag_*.brlan"}, QDir::Files);
-            for (auto &brlanFileInfo: brlanFilesInfo) {
-                auto brlanFile = brlanFileInfo.absoluteFilePath();
-                QFile::remove(brlanFile);
-                #if 0
-                auto xmlanFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
+            brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_052.brlyt");
+            auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
 
-                ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
-                ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
+            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
 
-                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-                QFile brlytFileObj(brlanFile);
+            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
+
+            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
+            {
+                QFile brlytFileObj(brlytFile);
                 if (brlytFileObj.open(QIODevice::ReadWrite)) {
                     brlytFileObj.seek(0);
                     brlytFileObj.putChar('R');
                 }
-                #endif
             }
-        }
 #endif
+        }
+
         auto packArcFileTasks = AsyncFuture::combine();
         for (auto it=gameBoardExtractPaths->begin(); it!=gameBoardExtractPaths->end(); ++it) {
             packArcFileTasks << ExeWrapper::packDfolderToArc(it.value(), it.key());
@@ -883,7 +879,7 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, b
         }
         return widenResultsMapBox(output, tmpDir);
     }).subscribe([=]() {
-        return widenDistrictName(output, tmpDir);
+        return modifyGameBoardArc(output, tmpDir);
     });
     return fut.subscribe([=]() {
         copyMapFiles(descriptors, output, tmpDir);

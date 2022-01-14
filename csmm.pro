@@ -3,7 +3,7 @@ TARGET = csmm
 #Application version
 VERSION_MAJOR = 1
 VERSION_MINOR = 6
-VERSION_BUILD = 2
+VERSION_BUILD = 3
 
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
        "VERSION_MINOR=$$VERSION_MINOR"\
@@ -102,6 +102,7 @@ SOURCES += \
     lib/pugixml/pugixml.cpp \
     lib/resultscenes.cpp \
     lib/uigame013.cpp \
+    lib/uigame052.cpp \
     lib/uimenu1900a.cpp \
     lib/uimessage.cpp \
     lib/vanilladatabase.cpp \
@@ -119,6 +120,7 @@ HEADERS += \
     lib/addressmapping.h \
     lib/archiveutil.h \
     lib/asyncfuture.h \
+    lib/await.h \
     lib/benzin/brlan.h \
     lib/benzin/brlyt.h \
     lib/benzin/endian.h \
@@ -188,6 +190,7 @@ HEADERS += \
     lib/pugixml/pugixml.hpp \
     lib/resultscenes.h \
     lib/uigame013.h \
+    lib/uigame052.h \
     lib/uimenu1900a.h \
     lib/uimessage.h \
     lib/vanilladatabase.h \
