@@ -4,8 +4,10 @@
 #include <QMainWindow>
 #include <QFuture>
 #include <QtNetwork>
+#include <QSharedPointer>
 #include <QTemporaryDir>
 #include "lib/mapdescriptor.h"
+#include "lib/optionalpatch.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,7 +26,7 @@ private:
 
     QNetworkAccessManager *manager;
 
-    QTemporaryDir tempGameDir;
+    QSharedPointer<QTemporaryDir> tempGameDir;
 
     void openFile();
     void openIsoWbfs();
@@ -38,5 +40,6 @@ private:
     void loadMapList();
 
     QString getSaveId();
+    QSet<OptionalPatch> getOptionalPatches(bool packed);
 };
 #endif // MAINWINDOW_H

@@ -60,6 +60,9 @@ namespace PatchProcess {
 
     QString getSha1OfVanillaFileName(const QString &vanillaFileName);
     QString fileSha1(const QString &fileName);
+
+    const QString SHA1_VANILLA_MAIN_DOLS[] = {"6c7ed3015c1aed62686d09cc068e57789cfbecd0", "327fe0460c0b5497c5b8fe17bb4b4475b6cdeed3"};
+    bool isMainDolVanilla(const QDir &dir);
 }
 
 #endif // PATCHPROCESS_H

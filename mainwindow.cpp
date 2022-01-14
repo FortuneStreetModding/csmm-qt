@@ -139,6 +139,16 @@ void MainWindow::openFile() {
     }
     AsyncFuture::observe(checkForRequiredFiles())
             .subscribe([=]() {
+        if (!PatchProcess::isMainDolVanilla(QDir(dirname))) {
+            auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
+                                 "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
+                                 QMessageBox::Yes | QMessageBox::No);
+            if (btn != QMessageBox::Yes) {
+                auto def = AsyncFuture::deferred<QVector<MapDescriptor>>();
+                def.cancel();
+                return def.future();
+            }
+        }
         return PatchProcess::openDir(QDir(dirname));
     }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
         if (descriptors.isEmpty()) {
@@ -151,7 +161,8 @@ void MainWindow::openFile() {
 }
 
 void MainWindow::openIsoWbfs() {
-    if (!tempGameDir.isValid()) {
+    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
+    if (!newTempGameDir->isValid()) {
         QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
         return;
     }
@@ -159,15 +170,26 @@ void MainWindow::openIsoWbfs() {
     if (isoWbfs.isEmpty()) return;
 
     auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
+
     AsyncFuture::observe(checkForRequiredFiles())
             .subscribe([=]() {
         *progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
         (*progress)->setWindowModality(Qt::WindowModal);
         (*progress)->setValue(0);
-        return ExeWrapper::extractWbfsIso(isoWbfs, tempGameDir.path());
+        return ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path());
     }).subscribe([=]() {
         (*progress)->setValue(1);
-        return PatchProcess::openDir(tempGameDir.path());
+        if (!PatchProcess::isMainDolVanilla(newTempGameDir->path())) {
+            auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
+                                 "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
+                                 QMessageBox::Yes | QMessageBox::No);
+            if (btn != QMessageBox::Yes) {
+                auto def = AsyncFuture::deferred<QVector<MapDescriptor>>();
+                def.cancel();
+                return def.future();
+            }
+        }
+        return PatchProcess::openDir(newTempGameDir->path());
     }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
         if (descriptors.isEmpty()) {
             QMessageBox::critical(this, "Import", "Error loading WBFS/ISO file contents");
@@ -175,7 +197,8 @@ void MainWindow::openIsoWbfs() {
         }
         (*progress)->setValue(2);
         loadDescriptors(descriptors);
-        setWindowFilePath(tempGameDir.path());
+        setWindowFilePath(newTempGameDir->path());
+        tempGameDir = newTempGameDir;
     });
 }
 
@@ -248,9 +271,7 @@ void MainWindow::exportToFolder() {
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
-    QSet<OptionalPatch> optionalPatches;
-    if(ui->actionDisplay_Map_Name_On_Results_Screen->isChecked())
-        optionalPatches.insert(ResultBoardName);
+    QSet<OptionalPatch> optionalPatches = getOptionalPatches(false);
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
     auto fut = AsyncFuture::observe(copyTask)
@@ -311,11 +332,7 @@ void MainWindow::exportIsoWbfs() {
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
-    QSet<OptionalPatch> optionalPatches;
-    if(ui->actionDisplay_Map_Name_On_Results_Screen->isChecked())
-        optionalPatches.insert(ResultBoardName);
-    if(ui->actionPatch_Wiimmfi->isChecked())
-        optionalPatches.insert(Wiimmfi);
+    QSet<OptionalPatch> optionalPatches = getOptionalPatches(true);
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediatePath); });
     auto fut = AsyncFuture::observe(copyTask)
@@ -388,4 +405,16 @@ void MainWindow::validateMaps() {
     } else {
         (new ValidationErrorDialog(errorMsgs, this))->exec();
     }
+}
+
+QSet<OptionalPatch> MainWindow::getOptionalPatches(bool packed) {
+    QSet<OptionalPatch> optionalPatches;
+    if(ui->actionDisplay_Map_Name_On_Results_Screen->isChecked())
+        optionalPatches.insert(ResultBoardName);
+    if(packed && ui->actionPatch_Wiimmfi->isChecked())
+        optionalPatches.insert(Wiimmfi);
+    if (ui->actionUpdate_Minimap_Icons->isChecked()) {
+        optionalPatches.insert(UpdateMinimapIcons);
+    }
+    return optionalPatches;
 }
