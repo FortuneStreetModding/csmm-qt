@@ -248,6 +248,9 @@ void MainWindow::exportToFolder() {
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
+    QSet<OptionalPatch> optionalPatches;
+    if(ui->actionDisplay_Map_Name_On_Results_Screen->isChecked())
+        optionalPatches.insert(ResultBoardName);
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
     auto fut = AsyncFuture::observe(copyTask)
@@ -262,7 +265,7 @@ void MainWindow::exportToFolder() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(saveDir, *descriptors, false, ui->actionDisplay_Map_Name_On_Results_Screen->isChecked(), ui->tableWidget->getTmpResourcesDir().path());
+            return PatchProcess::saveDir(saveDir, *descriptors, optionalPatches, ui->tableWidget->getTmpResourcesDir().path());
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
             throw exception;
@@ -308,8 +311,11 @@ void MainWindow::exportIsoWbfs() {
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
-    bool patchWiimmfi = ui->actionPatch_Wiimmfi->isChecked();
-    bool displayMapNameInResultsScreen = ui->actionDisplay_Map_Name_On_Results_Screen->isChecked();
+    QSet<OptionalPatch> optionalPatches;
+    if(ui->actionDisplay_Map_Name_On_Results_Screen->isChecked())
+        optionalPatches.insert(ResultBoardName);
+    if(ui->actionPatch_Wiimmfi->isChecked())
+        optionalPatches.insert(Wiimmfi);
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediatePath); });
     auto fut = AsyncFuture::observe(copyTask)
@@ -323,7 +329,7 @@ void MainWindow::exportIsoWbfs() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(intermediatePath, *descriptors, patchWiimmfi, displayMapNameInResultsScreen, ui->tableWidget->getTmpResourcesDir().path());
+            return PatchProcess::saveDir(intermediatePath, *descriptors, optionalPatches, ui->tableWidget->getTmpResourcesDir().path());
         } catch (const PatchProcess::Exception &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
             throw exception;
@@ -333,7 +339,7 @@ void MainWindow::exportIsoWbfs() {
         return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
     }).subscribe([=]() {
         progress->setValue(3);
-        if (patchWiimmfi)
+        if (optionalPatches.contains(Wiimmfi))
             return ExeWrapper::patchWiimmfi(saveFile);
         auto def = AsyncFuture::deferred<void>();
         def.complete();

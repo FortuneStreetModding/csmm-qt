@@ -34,10 +34,10 @@
 #include "dolio/expandmapsinzone.h"
 #include "powerpcasm.h"
 
-MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections, bool patchResultBoardName) {
+MainDol::MainDol(QDataStream &stream, const QVector<AddressSection> &mappingSections, const QSet<OptionalPatch> &optionalPatches) {
     addressMapper = setupAddressMapper(stream, mappingSections);
     freeSpaceManager = setupFreeSpaceManager(addressMapper);
-    patches = setupPatches(patchResultBoardName);
+    patches = setupPatches(optionalPatches);
 }
 
 AddressMapper MainDol::setupAddressMapper(QDataStream &stream, const QVector<AddressSection> &fileMappingSections) {
@@ -99,7 +99,7 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
     return result;
 }
 
-QVector<QSharedPointer<DolIO>> MainDol::setupPatches(bool patchResultBoardName) {
+QVector<QSharedPointer<DolIO>> MainDol::setupPatches(const QSet<OptionalPatch> &optionalPatches) {
     QVector<QSharedPointer<DolIO>> patches;
     patches.append(QSharedPointer<DolIO>(new MapOriginTable()));
     // map description table must be after map origin table
@@ -132,7 +132,7 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches(bool patchResultBoardName) 
     patches.append(QSharedPointer<DolIO>(new ForceSimulatedButtonPress()));
     patches.append(QSharedPointer<DolIO>(new WifiFix()));
     patches.append(QSharedPointer<DolIO>(new MusicTable()));
-    if (patchResultBoardName) {
+    if (optionalPatches.contains(ResultBoardName)) {
         patches.append(QSharedPointer<DolIO>(new DisplayMapInResults()));
     }
     patches.append(QSharedPointer<DolIO>(new TinyDistricts()));

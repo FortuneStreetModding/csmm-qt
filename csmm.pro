@@ -183,6 +183,7 @@ HEADERS += \
     lib/mutator/rollagain.h \
     lib/mutator/rollshoppricemultiplier.h \
     lib/mutator/shoppricemultiplier.h \
+    lib/optionalpatch.h \
     lib/orderedmap.h \
     lib/patchprocess.h \
     lib/powerpcasm.h \

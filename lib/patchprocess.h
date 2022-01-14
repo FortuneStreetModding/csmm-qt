@@ -5,6 +5,7 @@
 #include <QFuture>
 #include <QVector>
 #include "mapdescriptor.h"
+#include "lib/optionalpatch.h"
 
 namespace PatchProcess {
     /**
@@ -23,7 +24,7 @@ namespace PatchProcess {
      * @param tmpDir holds temporary files to copy to output if needed
      * @return a future resolving to whether the save was successful
      */
-    QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir);
+    QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, const QSet<OptionalPatch> &optionalPatches, const QDir &tmpDir);
 
     /**
      * @brief exportYaml Exports the map descriptor file and .frb(s).

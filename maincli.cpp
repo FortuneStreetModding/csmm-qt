@@ -324,16 +324,19 @@ void run(QStringList arguments)
                         dolOriginal.copy(dolBackupPath);
                     }
 
-                    bool displayMapNameInResultsScreenVal = !parser.isSet(displayMapNameInResultsOption) || parser.value(displayMapNameInResultsOption).toInt() != 0;
+                    QSet<OptionalPatch> optionalPatches;
+                    if(parser.isSet(displayMapNameInResultsOption) && parser.value(displayMapNameInResultsOption).toInt() == 0)
+                        optionalPatches.insert(ResultBoardName);
+                    if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0)
+                        optionalPatches.insert(Wiimmfi);
 
-                    if(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0) {
-                        await(PatchProcess::saveDir(sourceDir, descriptors, false, displayMapNameInResultsScreenVal, intermediateDir.path()));
-                    } else {
+                    if(optionalPatches.contains(Wiimmfi)) {
                         cout << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.\n";
                         cout << "\n";
                         cout.flush();
-                        await(PatchProcess::saveDir(sourceDir, descriptors, true, displayMapNameInResultsScreenVal, intermediateDir.path()));
                     }
+                    await(PatchProcess::saveDir(sourceDir, descriptors, optionalPatches, intermediateDir.path()));
+
                     cout << "\n";
                     cout << "Pending changes have been saved\n";
                 } catch (const PatchProcess::Exception &exception) {

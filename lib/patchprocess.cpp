@@ -61,7 +61,8 @@ QFuture<QVector<MapDescriptor>> openDir(const QDir &dir) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadOnly)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections, false);
+            QSet<OptionalPatch> emptySet;
+            MainDol mainDolObj(stream, addressSections, emptySet);
             auto mapDescriptors = mainDolObj.readMainDol(stream);
             loadUiMessages(mapDescriptors, dir);
             return mapDescriptors;
@@ -269,14 +270,14 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     }
 }
 
-static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchResultBoardName) {
+static QFuture<void> patchMainDolAsync(const QVector<MapDescriptor> &mapDescriptors, const QDir &dir, const QSet<OptionalPatch> &optionalPatches) {
     qDebug() << "Running patchMainDolAsync()";
     QString mainDol = dir.filePath(MAIN_DOL);
     auto fut = AsyncFuture::observe(ExeWrapper::readSections(mainDol)).subscribe([=](const QVector<AddressSection> &addressSections) {
         QFile mainDolFile(mainDol);
         if (mainDolFile.open(QIODevice::ReadWrite)) {
             QDataStream stream(&mainDolFile);
-            MainDol mainDolObj(stream, addressSections, patchResultBoardName);
+            MainDol mainDolObj(stream, addressSections, optionalPatches);
             //mainDolFile.resize(0);
             mainDolObj.writeMainDol(stream, mapDescriptors);
         }
@@ -862,11 +863,13 @@ static QFuture<void> modifyGameBoardArc(const QDir &dir, const QDir &tmpDir) {
     }).future();
 }
 
-QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, bool patchWiimmfi, bool patchResultBoardName, const QDir &tmpDir) {
+QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, const QSet<OptionalPatch> &optionalPatches, const QDir &tmpDir) {
+    bool patchWiimmfi = optionalPatches.contains(Wiimmfi);
+    bool patchResultBoardName = optionalPatches.contains(ResultBoardName);
     writeLocalizationFiles(descriptors, output, patchWiimmfi);
     applyAllBspatches(output);
     brstmInject(output, descriptors, tmpDir);
-    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output, patchResultBoardName))
+    auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output, optionalPatches))
             .subscribe([=]() {
         return injectMapIcons(descriptors, output, tmpDir);
     }).subscribe([=]() {
