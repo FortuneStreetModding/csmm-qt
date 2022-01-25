@@ -127,7 +127,6 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream << PowerPcAsm::addi(1, 1, N);
 
     // IsLastStage
-
     N = 0x90 + std::max(maxMapsPerMapSetAndZone - 32, 0) * sizeof(quint32);
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020f684));
@@ -151,6 +150,7 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     // IsZoneClear
 
     N = 0xa0 + std::max(maxMapsPerMapSetAndZone - 34, 0) * sizeof(quint32);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80210370));
     // stwu r1, -0xa0(r1)
     stream << PowerPcAsm::stwu(1, -N, 1);
     stream.skipRawData(12);
@@ -234,7 +234,6 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream << PowerPcAsm::addi(1, 1, N);
 
     // Init_SelectBit
-
     N = 0xc0 + std::max(maxMapsPerMapSetAndZone - 34, 0) * sizeof(quint32);
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x802542a4));
@@ -257,7 +256,6 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream << PowerPcAsm::addi(1, 1, N);
 
     // InitializeInfo
-
     N = 0xc0 + std::max(maxMapsPerMapSetAndZone - 34, 0) * sizeof(quint32);
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x802543d0));
