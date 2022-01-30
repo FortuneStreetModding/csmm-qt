@@ -15,4 +15,12 @@ The csmm-qt project can then be built the usual way.
 
 ## Building on MacOS/Linux
 
-For these OSes, this project depends on libarchive, mxml, and yaml-cpp (which you can install with a package manager of your choice). The project can then be built as usual.
+For these OSes, this project depends on libarchive, mxml, the Boehm garbage collector (bdwgc), and yaml-cpp.
+
+libarchive and yaml-cpp can be installed via your favorite package manager.
+
+On MacOS, Homebrew's mxml causes major crashing problems, so you'll have to run `./configure` followed by `make` in the `lib/mxml` directory. On non-MacOS Unix-like systems you can probably get away with using a package manager here.
+
+On MacOS, you can install the Boehm garbage collector with `brew install bdw-gc` if you have Homebrew. Otherwise you'll have to cd to `lib/bdw-gc`, and run `./autogen.sh`, `./configure`, and `make` in that order.
+
+The project can then be built as usual.
