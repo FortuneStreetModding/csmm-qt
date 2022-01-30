@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mxml.h>
+#include <gc/gc.h>
 
 #include "general.h"
 #include "types.h"
@@ -310,10 +311,10 @@ void SetupConstants( )
         strcpy( tevswapsel[2]  , "GX_TEV_SWAP2" );
         strcpy( tevswapsel[3]  , "GX_TEV_SWAP3" );
 	
-        materials = (char*)malloc(12);
+        materials = (char*)GC_MALLOC(12);
         numberOfMaterials = 0;
         lengthOfMaterials = 0;
-        textures = (char*)malloc(12);
+        textures = (char*)GC_MALLOC(12);
         numberOfTextures = 0;
         lengthOfTextures = 0;
 }
@@ -541,7 +542,7 @@ void PrintBRLYTEntry_txl1(brlyt_entry entry, u8* brlyt_file, mxml_node_t *tag)
 		naame = mxmlNewElement(entries, "name"); mxmlNewTextf(naame, 0, "%s", name);
 		BRLYT_fileoffset = tempLocation;
 		int newSize = lengthOfTextures+sizeof(name);
-		textures = realloc(textures, newSize);
+        textures = GC_REALLOC(textures, newSize);
 		numberOfTextures += 1;
 		memcpy(textures+lengthOfTextures, name, sizeof(name));
 		lengthOfTextures = newSize;
@@ -885,7 +886,7 @@ void PrintBRLYTEntry_mat1(brlyt_entry entry, u8* brlyt_file, mxml_node_t *tag)
 		//flags = mxmlNewElement(entries, "flags"); mxmlNewTextf(flags, 0, "%08x", be32(data3.flags));
 
 		int newSize = lengthOfMaterials+strlen(data3.name)+1;
-		materials = realloc(materials, newSize);
+        materials = GC_REALLOC(materials, newSize);
 		numberOfMaterials += 1;
 		memcpy(materials+lengthOfMaterials, data3.name, 1+strlen(data3.name));
 		lengthOfMaterials = newSize;
@@ -1284,7 +1285,7 @@ void parse_brlyt(char *filename, char *filenameout)
 	}
 	fseek(fp, 0, SEEK_END);
 	size_t file_size = ftell(fp);
-	u8* brlyt_file = (u8*)malloc(file_size);
+    u8* brlyt_file = (u8*)GC_MALLOC(file_size);
 	fseek(fp, 0, SEEK_SET);
 	fread(brlyt_file, file_size, 1, fp);
 	fclose(fp);
@@ -1302,7 +1303,7 @@ void parse_brlyt(char *filename, char *filenameout)
 		BRLYT_fileoffset += be32(tempentry.length);
 	}
 	int entrycount = i;
-	entries = (brlyt_entry*)calloc(entrycount, sizeof(brlyt_entry));
+    entries = (brlyt_entry*)GC_MALLOC(entrycount * sizeof(brlyt_entry));
 	if(entries == NULL) {
 		printf("Couldn't allocate for entries!\n");
 		exit(1);
@@ -1329,11 +1330,7 @@ void parse_brlyt(char *filename, char *filenameout)
 	PrintBRLYTEntries(entries, entrycount, brlyt_file, xmlyt);
 	mxmlSaveFile(xml, xmlFile, whitespace_cb);
 	fclose(xmlFile);
-	mxmlDelete(xml);
-	free(entries);
-	free(brlyt_file);
-	free(materials);
-	free(textures);
+    mxmlDelete(xml);
 }
 
 void WritePane( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u32 * blobsize , FILE * fp , u32 * fileOffset )
@@ -1593,7 +1590,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		*fileOffset = *fileOffset + sizeof(chunk);
 
 		char *names;
-		names = malloc(sizeof(names));
+        names = GC_MALLOC(sizeof(names));
 		int lengthOfNames = 0;
 		numberOfTextures = 0;
 		mxml_node_t *subnode = mxmlFindElement(node, node, "entries", NULL, NULL, MXML_DESCEND);
@@ -1606,7 +1603,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 
 			u32 *offsunks;
 
-			offsunks = malloc(sizeof(u32));
+            offsunks = GC_MALLOC(sizeof(u32));
 
 			brlyt_offsunk_chunk chunk2;
 			mxml_node_t *valnode;
@@ -1619,8 +1616,8 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 					oldNameLength = lengthOfNames;
 					lengthOfNames += strlen(tempSub);
 
-					offsunks = realloc(offsunks, (numEntries + 1)*(2 * sizeof(u32)));
-					if (offsunks == NULL) printf("NULLed by a realloc\n");
+                    offsunks = GC_REALLOC(offsunks, (numEntries + 1)*(2 * sizeof(u32)));
+                    if (offsunks == NULL) printf("NULLed by a GC_REALLOC\n");
 
 					offsunks[(numEntries*2)+0] = baseOffset;
 					offsunks[(numEntries*2)+1] = 0;
@@ -1631,7 +1628,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 
 					baseOffset += (strlen(tempSub) + 1);
 
-					names = realloc(names, 1 + sizeof(char) * lengthOfNames);
+                    names = GC_REALLOC(names, 1 + sizeof(char) * lengthOfNames);
 					strcpy(&names[oldNameLength], tempSub);
 					char nuller = '\0';
 					memcpy(&names[lengthOfNames], &nuller, sizeof(char));
@@ -1650,8 +1647,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 
 				fwrite(&offsunks[i*2], sizeof(u32), 1, fp);
 				fwrite(&offsunks[i*2+1], sizeof(u32), 1, fp);
-			}
-			free(offsunks);
+            }
 		}
 		fseek(fp, *fileOffset, SEEK_SET);
 		fwrite(names, lengthOfNames, 1, fp);
@@ -1663,9 +1659,8 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 			fwrite(&nuller, sizeof(char), toAdd, fp);
 			*fileOffset = *fileOffset + toAdd;
 		}
-		textures = malloc(lengthOfNames * sizeof(char));
-		memcpy(textures, names, lengthOfNames * sizeof(char));
-		free(names);
+        textures = GC_MALLOC(lengthOfNames * sizeof(char));
+        memcpy(textures, names, lengthOfNames * sizeof(char));
 	}
 	if ( memcmp(temp, fnl1, sizeof(fnl1)) == 0)
 	{
@@ -1676,7 +1671,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		*fileOffset = *fileOffset + sizeof(chunk);
 
 		char *names;
-		names = malloc(sizeof(char));
+        names = GC_MALLOC(sizeof(char));
 		int lengthOfNames = 0;
 		mxml_node_t *subnode = mxmlFindElement(node, node, "entries", NULL, NULL, MXML_DESCEND);
 		if (subnode != NULL)
@@ -1688,7 +1683,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 			int numoffsOffset = *fileOffset - 4;
 
 			u32 *offsunks;
-			offsunks = malloc(sizeof(u32));
+            offsunks = GC_MALLOC(sizeof(u32));
 
 			brlyt_offsunk_chunk chunk2;
 			mxml_node_t *valnode;
@@ -1701,7 +1696,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 					oldNameLength = lengthOfNames;
 					lengthOfNames += strlen(tempSub);
 
-					offsunks = realloc(offsunks, (numEntries + 1)*(2 * sizeof(u32)));
+                    offsunks = GC_REALLOC(offsunks, (numEntries + 1)*(2 * sizeof(u32)));
 					offsunks[(numEntries*2)+0] = baseOffset;
 					offsunks[(numEntries*2)+1] = 0;
 
@@ -1709,7 +1704,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 					numEntries++;
 
 					baseOffset += (strlen(tempSub) + 1);
-					names = realloc(names, 1 + sizeof(char) * lengthOfNames);
+                    names = GC_REALLOC(names, 1 + sizeof(char) * lengthOfNames);
 					memcpy(&names[oldNameLength], tempSub, strlen(tempSub));
 					char nuller = '\0';
 					memcpy(&names[lengthOfNames], &nuller, sizeof(char));
@@ -1728,8 +1723,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 
 				fwrite(&offsunks[i*2], sizeof(u32), 1, fp);
 				fwrite(&offsunks[i*2+1], sizeof(u32), 1, fp);
-			}
-			free(offsunks);
+            }
 		}
 		fseek(fp, *fileOffset, SEEK_SET);
 		fwrite(names, lengthOfNames, 1, fp);
@@ -1740,8 +1734,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 			char nuller[3] = {'\0', '\0', '\0'};
 			fwrite(&nuller, sizeof(char), toAdd, fp);
 			*fileOffset = *fileOffset + toAdd;
-		}
-		free(names);
+        }
 	}
 	if ( memcmp(temp, mat1, sizeof(mat1)) == 0)
 	{
@@ -1759,7 +1752,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		fwrite(&numchunk, sizeof(numchunk), 1, fp);
 		*fileOffset = *fileOffset + sizeof(numchunk);
 
-		int *offsets = calloc(numberOfEntries, sizeof(int));
+        int *offsets = GC_MALLOC(numberOfEntries * sizeof(int));
 		int offsetsOffset = ftell(fp);
 		int materialOffset = 0;
 		actualNumber = numberOfEntries;
@@ -1785,7 +1778,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 			memset(chunk.name, 0, 20);
 			strcpy(chunk.name, temp);
 
-			materials = realloc(materials, lengthOfMaterials + strlen(chunk.name) + 1);
+            materials = GC_REALLOC(materials, lengthOfMaterials + strlen(chunk.name) + 1);
 			memcpy(&materials[lengthOfMaterials], chunk.name, strlen(chunk.name) + 1);
 			lengthOfMaterials += (1 + strlen(chunk.name));
 			numberOfMaterials += 1;
@@ -2885,8 +2878,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 				initialOffset += matSize;
 				matSize = 0;
 			}
-		}
-		free(offsets);
+        }
 	}
 	if ( memcmp(temp, pan1, sizeof(pan1)) == 0)
 	{
@@ -3476,14 +3468,14 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		}
 		u32 numberOfPicCoords = 0;
 		u32 sets = 1;
-		float* picCoords = malloc(8 * sizeof(float));
+        float* picCoords = GC_MALLOC(8 * sizeof(float));
 		subnode = mxmlFindElement(node, node, "coordinates", NULL, NULL, MXML_DESCEND);
 		if (subnode != NULL)
 		{
 			mxml_node_t *setnode;
 			for (setnode = mxmlFindElement(subnode, subnode, "set", NULL, NULL, MXML_DESCEND); setnode != NULL; setnode = mxmlFindElement(setnode, subnode, "set", NULL, NULL, MXML_DESCEND))
 			{
-				picCoords = realloc(picCoords, sizeof(float) * 8 * sets);
+                picCoords = GC_REALLOC(picCoords, sizeof(float) * 8 * sets);
 				mxml_node_t *valnode;
 				valnode=mxmlFindElement(setnode, setnode, "coordTL", NULL, NULL, MXML_DESCEND);
 				if ( valnode != NULL )
@@ -3570,7 +3562,6 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		*fileOffset = *fileOffset + sizeof(chunk2);
 		fwrite(picCoords, numberOfPicCoords * sizeof(float), 1, fp);
 		*fileOffset = *fileOffset + (sizeof(float) * numberOfPicCoords);
-		free(picCoords);
 	}
 	if ( memcmp(temp, usd1, sizeof(usd1)) == 0)
 	{
@@ -3595,8 +3586,8 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		fwrite(&chunk, sizeof(brlyt_usdstart_chunk), 1, fp);
 		*fileOffset = *fileOffset + sizeof(chunk);
 
-		u32 * working = malloc(sizeof(u32) * short_swap_bytes(chunk.string_count));
-		char * stringg = malloc(sizeof(char) * 8 * short_swap_bytes(chunk.string_count));
+        u32 * working = GC_MALLOC(sizeof(u32) * short_swap_bytes(chunk.string_count));
+        char * stringg = GC_MALLOC(sizeof(char) * 8 * short_swap_bytes(chunk.string_count));
 		memset(stringg, 0, sizeof(char) * 8 * short_swap_bytes(chunk.string_count));
 		char * stringg_temp = stringg;
 		u32 index = 0;
@@ -3657,9 +3648,6 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		*fileOffset = *fileOffset + (sizeof(u32) * short_swap_bytes(chunk.string_count));
 		fwrite(stringg, sizeof(char) * 8 * short_swap_bytes(chunk.string_count), 1, fp);
 		*fileOffset = *fileOffset + (sizeof(char) * 8 * short_swap_bytes(chunk.string_count));
-
-		free(working);
-		free(stringg);
 	}
 	if ( memcmp(temp, grp1, sizeof(grp1)) == 0)
 	{
@@ -3676,7 +3664,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		strcpy(chunk.name, temp);
 		int numSubs = 0;
 		char *subs;
-	subs = malloc(0 * sizeof(char));
+    subs = GC_MALLOC(0 * sizeof(char));
 		u32 subsLength = 0;
 
 		mxml_node_t *subnode = mxmlFindElement(node, node, "subs", NULL, NULL, MXML_DESCEND);
@@ -3690,7 +3678,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 					char tempSub[256];
 					get_value(valnode, tempSub, 256);
 					subsLength += 16;
-					subs = realloc(subs, 1 + sizeof(char) * subsLength);
+                    subs = GC_REALLOC(subs, 1 + sizeof(char) * subsLength);
 					memset(&subs[oldSubsLength], 0x00, 16);
 					strcpy(&subs[oldSubsLength], tempSub);
 					numSubs++;
@@ -3701,8 +3689,7 @@ void WriteBRLYTEntry( mxml_node_t * tree , mxml_node_t * node , u8** tagblob , u
 		fwrite(&chunk, sizeof(chunk), 1, fp);
 		*fileOffset = *fileOffset + sizeof(chunk);
 		fwrite(subs, sizeof(char) * subsLength, 1, fp);
-		*fileOffset = *fileOffset + subsLength;
-		free(subs);
+        *fileOffset = *fileOffset + subsLength;
 	}
 	if ( memcmp(temp, grs1, sizeof(grs1)) == 0)
 	{
@@ -3847,8 +3834,6 @@ void make_brlyt(char* infile, char* outfile)
 {
 	printf("\x1b[33mParsing XMLYT @ \x1b[0m%s.\n", infile);
 	write_brlyt(infile, outfile);
-	free(materials);
-	free(textures);
 	printf("\x1b[34mParsing XMLYT @ \x1b[0m%s complete.\n", infile);
 }
 

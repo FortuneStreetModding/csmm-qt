@@ -15,6 +15,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <mxml.h>
+#include <gc/gc.h>
 
 #include "general.h"
 #include "memfile.h"
@@ -669,15 +670,15 @@ void create_entries_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, brlan_en
 	subnode = node;
 	for (x = 0, subnode = mxmlFindElement(subnode, node, "entry", NULL, NULL, MXML_DESCEND); subnode != NULL; subnode = mxmlFindElement(subnode, node, "entry", NULL, NULL, MXML_DESCEND), x++) {
 		head->entry_count++;
-		entry = realloc(entry, sizeof(tag_entry) * head->entry_count);
-		entryinfo = realloc(entryinfo, sizeof(tag_entryinfo) * head->entry_count);
+        entry = GC_REALLOC(entry, sizeof(tag_entry) * head->entry_count);
+        entryinfo = GC_REALLOC(entryinfo, sizeof(tag_entryinfo) * head->entry_count);
 		if(data == NULL)
 		{
-			data = (tag_data**)malloc(sizeof(tag_data*) * head->entry_count);
-			data2 = (tag_data2**)malloc(sizeof(tag_data2*) * head->entry_count);
+            data = (tag_data**)GC_MALLOC(sizeof(tag_data*) * head->entry_count);
+            data2 = (tag_data2**)GC_MALLOC(sizeof(tag_data2*) * head->entry_count);
 		} else {
-			data = (tag_data**)realloc(data, sizeof(tag_data*) * head->entry_count);
-            data2 = (tag_data2**)realloc(data2, sizeof(tag_data2*) * head->entry_count);
+            data = (tag_data**)GC_REALLOC(data, sizeof(tag_data*) * head->entry_count);
+            data2 = (tag_data2**)GC_REALLOC(data2, sizeof(tag_data2*) * head->entry_count);
 		}
 		data[x] = NULL;
 		data2[x] = NULL;
@@ -714,7 +715,7 @@ void create_entries_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, brlan_en
 		for (i = 0, subsubnode = mxmlFindElement(subsubnode, subnode, "triplet", NULL, NULL, MXML_DESCEND); subsubnode != NULL; subsubnode = mxmlFindElement(subsubnode, subnode, "triplet", NULL, NULL, MXML_DESCEND), i++) {
 
 			entryinfo[x].coord_count++;
-			data[x] = realloc(data[x], sizeof(tag_data) * entryinfo[x].coord_count);
+            data[x] = GC_REALLOC(data[x], sizeof(tag_data) * entryinfo[x].coord_count);
 			tempnode = mxmlFindElement(subsubnode, subsubnode, "frame", NULL, NULL, MXML_DESCEND);
 			if(tempnode == NULL) {
 				printf("Couldn't find attribute \"frame\"!\n");
@@ -740,7 +741,7 @@ void create_entries_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, brlan_en
 		for (i = 0, subsubnode = mxmlFindElement(subnode, subnode, "pair", NULL, NULL, MXML_DESCEND); subsubnode != NULL; subsubnode = mxmlFindElement(subsubnode, subnode, "pair", NULL, NULL, MXML_DESCEND), i++) {
 			entryinfo[x].data_type = 0x100;
 			entryinfo[x].coord_count++;
-			data2[x] = realloc(data2[x], sizeof(tag_data2) * entryinfo[x].coord_count);
+            data2[x] = GC_REALLOC(data2[x], sizeof(tag_data2) * entryinfo[x].coord_count);
 			tempnode = mxmlFindElement(subsubnode, subsubnode, "data1", NULL, NULL, MXML_DESCEND);
 			if(tempnode == NULL) {
 				printf("Couldn't find attribute \"data1\"!\n");
@@ -770,7 +771,7 @@ void create_entries_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, brlan_en
 	u32 entryloc = ftell(fp);
 	u32 animLen;
 	WriteBRLANTagEntries(entry, head->entry_count, fp);
-	u32* entryinfolocs = (u32*)calloc(head->entry_count, sizeof(u32));
+    u32* entryinfolocs = (u32*)GC_MALLOC(head->entry_count * sizeof(u32));
 	for(x = 0; x < head->entry_count; x++) {
 		entryinfolocs[x] = ftell(fp);
 		if (x>0)
@@ -800,19 +801,13 @@ void create_entries_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, brlan_en
 				fwrite(&writedata, sizeof(tag_data2), 1, fp);
 			}
 		}
-	}
-    if ( data )
-		free(data);
-    if ( data2 )
-		free(data2);
+    }
 	u32 oldpos = ftell(fp);
 	fseek(fp, entryloc, SEEK_SET);
 	for( x = 0; x < head->entry_count; x++)
 		entry[x].offset += sizeof(u32) * (head->entry_count) + 8;
 	WriteBRLANTagEntries(entry, head->entry_count, fp);
 	fseek(fp, oldpos, SEEK_SET);
-	free(entry);
-	free(entryinfo);
 }
 
 void create_tag_from_xml(mxml_node_t *pai1_node, mxml_node_t *node, FILE* fp)
@@ -1057,7 +1052,7 @@ void write_brlan(char *infile, char* outfile)
 			}
 			u32 tmp2_size = sizeof(char) * cnt2 * 0x14;
 			dbgprintf("size: %d\n", tmp2_size);
-			char * temp2 = malloc(sizeof(char) * cnt2 * 0x14);
+            char * temp2 = GC_MALLOC(sizeof(char) * cnt2 * 0x14);
 			memset(temp2, 0, sizeof(char) * cnt2 * 0x14);
 			char * ofs = temp2;
 			for(str_node = mxmlFindElement(second, second, "string", NULL, NULL, MXML_DESCEND); str_node != NULL; str_node = mxmlFindElement(str_node, second, "string", NULL, NULL, MXML_DESCEND))
@@ -1069,8 +1064,7 @@ void write_brlan(char *infile, char* outfile)
 				memcpy(ofs, tempp, 0x14);
 				ofs += 0x14;
 			}
-			fwrite(temp2, tmp2_size, 1, fp);
-			free(temp2);
+            fwrite(temp2, tmp2_size, 1, fp);
 		}
 		pathead.group_num = cnt2;
 		pathead.group_num = short_swap_bytes(pathead.group_num);
