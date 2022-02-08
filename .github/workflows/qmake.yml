@@ -81,7 +81,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         cd lib/bdwgc
-        cmake . -G "MinGW Makefiles"
+        cmake . -G "MinGW Makefiles" -Denable_threads=OFF
         mingw32-make
 
     - name: Install Qt
