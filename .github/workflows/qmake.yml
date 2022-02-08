@@ -60,6 +60,11 @@ jobs:
       with:
         submodules: true
 
+    - name: Check mingw
+      run: |
+        mingw32-make --version
+        where mingw32-make
+
     - name: Build mxml
       working-directory: ${{github.workspace}}
       shell: bash
