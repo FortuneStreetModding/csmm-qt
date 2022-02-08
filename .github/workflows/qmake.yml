@@ -67,6 +67,7 @@ jobs:
         cd lib/mxml
         ./configure
         mingw32-make
+
     - name: Build yaml-cpp
       working-directory: ${{github.workspace}}
       run: |
@@ -74,6 +75,13 @@ jobs:
         mkdir build
         cd build
         cmake .. -G "MinGW Makefiles"
+        mingw32-make
+
+    - name: Build bdwgc
+      working-directory: ${{github.workspace}}
+      run: |
+        cd lib/bdwgc
+        cmake . -G "MinGW Makefiles" -Denable_threads=OFF
         mingw32-make
 
     - name: Install Qt
