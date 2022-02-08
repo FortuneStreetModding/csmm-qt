@@ -25,6 +25,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 CONFIG += console
+CONFIG += resources_big
 
 include(lib/qtshell/qtshell.pri)
 
