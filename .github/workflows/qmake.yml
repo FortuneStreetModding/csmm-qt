@@ -23,8 +23,14 @@ jobs:
     - name: Install dependencies
       run: |
         brew install libarchive
-        brew install libmxml
         brew install yaml-cpp
+    
+    - name: Build mxml
+      working-directory: ${{github.workspace}}
+      run: |
+        cd lib/mxml
+        ./configure
+        make
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
