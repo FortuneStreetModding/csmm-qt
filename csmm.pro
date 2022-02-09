@@ -14,7 +14,7 @@ VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_BUILD}
 QMAKE_TARGET_BUNDLE_PREFIX = com.fortunestreetmodding
 
 INCLUDEPATH += lib/mxml /usr/local/opt/libarchive/include /usr/local/include /usr/local/opt/bdw-gc/include $$_PRO_FILE_PWD_/lib/bdwgc/include
-LIBS += -L$$_PRO_FILE_PWD_/lib/mxml/ -L/usr/local/opt/libarchive/lib -L/usr/local/lib -L/usr/local/opt/bdw-gc/lib -L$$_PRO_FILE_PWD_/lib/bdwgc -lpthread -lmxml -lyaml-cpp -lgc
+LIBS += -L$$_PRO_FILE_PWD_/lib/mxml/ -L/usr/local/opt/libarchive/lib -L/usr/local/lib -L/usr/local/opt/bdw-gc/lib -L$$_PRO_FILE_PWD_/lib/bdwgc -lpthread -lmxml.a -lyaml-cpp -lgc
 win32: INCLUDEPATH += lib/yaml-cpp/include
 win32: LIBS += -L$$_PRO_FILE_PWD_/lib/yaml-cpp/build
 !win32: LIBS += -larchive
