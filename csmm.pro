@@ -19,6 +19,8 @@ win32: INCLUDEPATH += lib/yaml-cpp/include
 win32: LIBS += -L$$_PRO_FILE_PWD_/lib/yaml-cpp/build
 !win32: LIBS += -larchive
 
+win32: DEFINES += GC_DLL
+
 QT       += core gui network concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
