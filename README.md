@@ -21,7 +21,7 @@ For these OSes, this project depends on libarchive, mxml, the Boehm garbage coll
 
 libarchive and yaml-cpp can be installed via your favorite package manager.
 
-On MacOS, Homebrew's mxml causes major crashing problems, so you'll have to run `./configure` followed by `make` in the `lib/mxml` directory. On non-MacOS Unix-like systems you can probably get away with using a package manager here.
+Mxml seems to cause major crashing problems when it is a shared library, so you'll have to run `./configure` followed by `make` in the `lib/mxml` directory.
 
 On MacOS, you can install the Boehm garbage collector with `brew install bdw-gc` if you have Homebrew. Otherwise you'll have to cd to `lib/bdw-gc`, and run `./autogen.sh`, `./configure`, and `make` in that order.
 
