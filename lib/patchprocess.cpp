@@ -1,7 +1,7 @@
 #include "patchprocess.h"
 
 #include <fstream>
-#include <filesystem>
+#include "lib/filesystem.hpp"
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTemporaryDir>
@@ -943,7 +943,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             throw Exception("Zip file has no map descriptor");
         }
 
-        std::ifstream yamlStream(std::filesystem::u8path(extractedYamlFile.toStdString()));
+        ghc::filesystem::ifstream yamlStream(ghc::filesystem::u8path(extractedYamlFile.toStdString()));
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
             QFileInfo yamlFileZipInfo(yamlFileSrc);
@@ -1021,7 +1021,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
         }
     } else {
-        std::ifstream yamlStream(std::filesystem::u8path(yamlFileSrc.toStdString()));
+        ghc::filesystem::ifstream yamlStream(ghc::filesystem::u8path(yamlFileSrc.toStdString()));
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
             // import frb files

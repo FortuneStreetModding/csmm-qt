@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <filesystem>
+#include "lib/filesystem.hpp"
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -253,7 +253,7 @@ void MainWindow::exportToFolder() {
             // need to use utf 16 b/c windows behaves strangely w/ utf 8
             auto copyTask = QtConcurrent::run([=] {
                 std::error_code error;
-                std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
+                ghc::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
                 return !error;
             });
             auto fut = AsyncFuture::observe(copyTask).subscribe([=](bool result) {
@@ -279,7 +279,7 @@ void MainWindow::exportToFolder() {
     QSet<OptionalPatch> optionalPatches = getOptionalPatches(false);
     auto copyTask = QtConcurrent::run([=] {
         std::error_code error;
-        std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
+        ghc::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
         return !error;
     });
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
@@ -345,7 +345,7 @@ void MainWindow::exportIsoWbfs() {
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] {
         std::error_code error;
-        std::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
+        ghc::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
         return !error;
     });
     auto fut = AsyncFuture::observe(copyTask)

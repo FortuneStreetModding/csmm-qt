@@ -175,6 +175,7 @@ HEADERS += \
     lib/dolio/wififix.h \
     lib/downloadtools.h \
     lib/exewrapper.h \
+    lib/filesystem.hpp \
     lib/fortunestreetdata.h \
     lib/freespacemanager.h \
     lib/fslocale.h \
