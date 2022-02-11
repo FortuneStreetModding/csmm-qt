@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <filesystem>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -10,7 +11,6 @@
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/patchprocess.h"
-#include "lib/qtshell/qtshell.h"
 #include "downloadclidialog.h"
 #include "validationerrordialog.h"
 #include "lib/configuration.h"
@@ -250,7 +250,12 @@ void MainWindow::exportToFolder() {
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
 
-            auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
+            // need to use utf 16 b/c windows behaves strangely w/ utf 8
+            auto copyTask = QtConcurrent::run([=] {
+                std::error_code error;
+                std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
+                return !error;
+            });
             auto fut = AsyncFuture::observe(copyTask).subscribe([=](bool result) {
                 if (!result) {
                     QMessageBox::critical(this, "Save", "Could not copy game data.");
@@ -272,7 +277,11 @@ void MainWindow::exportToFolder() {
     progress->setValue(0);
 
     QSet<OptionalPatch> optionalPatches = getOptionalPatches(false);
-    auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", saveDir); });
+    auto copyTask = QtConcurrent::run([=] {
+        std::error_code error;
+        std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
+        return !error;
+    });
     auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
     auto fut = AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
@@ -334,7 +343,11 @@ void MainWindow::exportIsoWbfs() {
 
     QSet<OptionalPatch> optionalPatches = getOptionalPatches(true);
     QString intermediatePath = intermediateResults->path();
-    auto copyTask = QtConcurrent::run([=] { return QtShell::cp("-R", windowFilePath() + "/*", intermediatePath); });
+    auto copyTask = QtConcurrent::run([=] {
+        std::error_code error;
+        std::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
+        return !error;
+    });
     auto fut = AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
         if (!result) {

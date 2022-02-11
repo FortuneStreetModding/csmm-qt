@@ -13,6 +13,8 @@ VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_BUILD}
 
 QMAKE_TARGET_BUNDLE_PREFIX = com.fortunestreetmodding
 
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+
 INCLUDEPATH += lib/mxml /usr/local/opt/libarchive/include /usr/local/include /usr/local/opt/bdw-gc/include $$_PRO_FILE_PWD_/lib/bdwgc/include
 LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -L/usr/local/opt/bdw-gc/lib -L$$_PRO_FILE_PWD_/lib/bdwgc -lpthread $$_PRO_FILE_PWD_/lib/mxml/libmxml.a -lyaml-cpp -lgc
 win32: INCLUDEPATH += lib/yaml-cpp/include
@@ -28,8 +30,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += c++17
 CONFIG += console
 CONFIG += resources_big
-
-include(lib/qtshell/qtshell.pri)
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
