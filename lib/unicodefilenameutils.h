@@ -22,6 +22,7 @@ public:
         buf.close();
     }
 #else
+public:
     unicode_ifstream(const QString &fileName) : ghc::filesystem::ifstream(fileName.toStdU16String(), std::ios::in) {}
 #endif
 };
