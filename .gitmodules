@@ -1,11 +1,12 @@
 [submodule "lib/mxml"]
 	path = lib/mxml
 	url = https://github.com/michaelrsweet/mxml
-  ignore = dirty
+	ignore = dirty
 [submodule "lib/yaml-cpp"]
 	path = lib/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
-  ignore = dirty
+	ignore = dirty
 [submodule "lib/bdwgc"]
 	path = lib/bdwgc
 	url = https://github.com/ivmai/bdwgc/
+	ignore = dirty

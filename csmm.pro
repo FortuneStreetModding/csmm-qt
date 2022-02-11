@@ -197,6 +197,7 @@ HEADERS += \
     lib/uigame052.h \
     lib/uimenu1900a.h \
     lib/uimessage.h \
+    lib/unicodefilenameutils.h \
     lib/vanilladatabase.h \
     lib/zip/miniz.h \
     lib/zip/zip.h \

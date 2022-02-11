@@ -1,7 +1,6 @@
 #include "patchprocess.h"
 
 #include <fstream>
-#include "lib/filesystem.hpp"
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QTemporaryDir>
@@ -21,6 +20,7 @@
 #include "brsar.h"
 #include "bsdiff/bspatchlib.h"
 #include "resultscenes.h"
+#include "unicodefilenameutils.h"
 #include <QMessageBox>
 
 namespace PatchProcess {
@@ -943,7 +943,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             throw Exception("Zip file has no map descriptor");
         }
 
-        ghc::filesystem::ifstream yamlStream(ghc::filesystem::u8path(extractedYamlFile.toStdString()));
+        ufutils::unicode_ifstream yamlStream(extractedYamlFile);
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
             QFileInfo yamlFileZipInfo(yamlFileSrc);
@@ -1021,7 +1021,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
         }
     } else {
-        ghc::filesystem::ifstream yamlStream(ghc::filesystem::u8path(yamlFileSrc.toStdString()));
+        ufutils::unicode_ifstream yamlStream(yamlFileSrc);
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
             // import frb files
