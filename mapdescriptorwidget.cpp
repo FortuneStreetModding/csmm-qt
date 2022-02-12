@@ -62,11 +62,6 @@ static QTableWidgetItem *readOnlyItem(const QString &str) {
     return item;
 }
 
-#ifdef Q_OS_WIN
-#define FILE_FILTER "Map Descriptor Files (*.yaml;*.zip);;Map Descriptor Yaml (*.yaml);;Map Descriptor Zip (*.zip)"
-#else
-#define FILE_FILTER "Map Descriptor Files (*.yaml);;Zip Files (*.zip)"
-#endif
 void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor &descriptor) {
     descriptors[row] = QSharedPointer<MapDescriptor>::create(descriptor);
     // Descriptor pointer is so that the button event handlers work properly when descriptors
@@ -78,7 +73,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     auto importYamlButton = new QPushButton("Import .yaml or .zip");
     connect(importYamlButton, &QPushButton::clicked, this, [=](bool) {
-        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), FILE_FILTER);
+        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml;*.zip)");
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
