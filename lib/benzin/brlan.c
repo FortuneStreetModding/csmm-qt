@@ -1200,6 +1200,5 @@ void write_brlan(char *infile, char* outfile)
 
 void make_brlan(char* infile, char* outfile)
 {
-	printf("Parsing XMLAN @ %s.\n", infile);
 	write_brlan(infile, outfile);
 }

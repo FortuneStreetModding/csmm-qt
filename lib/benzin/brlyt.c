@@ -3832,8 +3832,6 @@ void write_brlyt(char *infile, char *outfile)
 
 void make_brlyt(char* infile, char* outfile)
 {
-	printf("\x1b[33mParsing XMLYT @ \x1b[0m%s.\n", infile);
-	write_brlyt(infile, outfile);
-	printf("\x1b[34mParsing XMLYT @ \x1b[0m%s complete.\n", infile);
+    write_brlyt(infile, outfile);
 }
 
