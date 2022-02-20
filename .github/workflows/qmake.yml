@@ -60,7 +60,7 @@ jobs:
       with:
         files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-macos.dmg
   windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v2
       with:
