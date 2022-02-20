@@ -96,6 +96,22 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x801fce28), addressMapper.boomStreetToStandard(0x801ff777));
     // District name table
     result.addFreeSpace(addressMapper.boomStreetToStandard(0x80417460), addressMapper.boomStreetToStandard(0x80417507));
+    // -- Random Matchmaking Code --
+    // WifiFreeScene
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x8023d088), addressMapper.boomStreetToStandard(0x8023d307));
+    // WifiFreeUI
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x8023d600), addressMapper.boomStreetToStandard(0x8023d7d3));
+    // WifiFreeLobbyScene
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x80240f54), addressMapper.boomStreetToStandard(0x802434eb));
+    // WifiFreeRegulationScene
+    result.addFreeSpace(addressMapper.boomStreetToStandard(0x80243508), addressMapper.boomStreetToStandard(0x80243b4f));
+    // -- These 3 are still being called by the WifiFriend code and as such cannot be removed --
+    // WifiFreeLobbyUI
+    // result.addFreeSpace(addressMapper.boomStreetToStandard(0x80243b6c), addressMapper.boomStreetToStandard(0x80246eeb));
+    // WifiFreeRegulationUI
+    // result.addFreeSpace(addressMapper.boomStreetToStandard(0x80246f08), addressMapper.boomStreetToStandard(0x802479d3));
+    // WifiFreeRegulationSelectUI
+    // result.addFreeSpace(addressMapper.boomStreetToStandard(0x802479d4), addressMapper.boomStreetToStandard(0x80247de3));
     return result;
 }
 
