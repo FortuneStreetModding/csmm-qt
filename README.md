@@ -3,6 +3,11 @@ Custom Street Map Manager cross-platform port
 
 **IMPORTANT: Make sure to use --recursive when cloning this repository, in order to initialize the submodules!**
 
+## Requirements
+
+- Qt 5.15.2
+- mingw810_64 (Windows)
+
 ## Building on Windows (MinGW)
 
 For the mxml dependency you need Git for Window's `bash` (generally under `C:\Program Files\Git\bin` or the like) or some other `bash` shell. In the `lib/mxml` directory, run `./configure` followed by `mingw32-make`.
