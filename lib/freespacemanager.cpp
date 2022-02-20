@@ -61,8 +61,7 @@ int FreeSpaceManager::calculateLargestFreeSpaceBlockSize() const {
 
 int FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize() const {
     quint32 end = findLargestFreeSpaceBlock(remainingFreeSpaceBlocks);
-    // TODO edit below to remainingFreeSpaceBlocks?
-    return end - totalFreeSpaceBlocks[end];
+    return end - remainingFreeSpaceBlocks[end];
 }
 
 quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose) {
