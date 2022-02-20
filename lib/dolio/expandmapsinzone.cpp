@@ -123,6 +123,7 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream << PowerPcAsm::lmw(24, N-0x20, 1);
     // lwz r0, 0xb4(r1)
     stream << PowerPcAsm::lwz(0, N+4, 1);
+    stream.skipRawData(4);
     // addi r1, r1, 0xb0
     stream << PowerPcAsm::addi(1, 1, N);
 
