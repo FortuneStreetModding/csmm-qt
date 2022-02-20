@@ -7,7 +7,7 @@ Custom Street Map Manager cross-platform port
 
 For the mxml dependency you need Git for Window's `bash` (generally under `C:\Program Files\Git\bin` or the like) or some other `bash` shell. In the `lib/mxml` directory, run `./configure` followed by `mingw32-make`.
 
-For the yaml-cpp dependency, you don't need Cygwin to build. Make a new directory inside `lib/yaml-cpp` called `build`, `cd` to it, and run `cmake .. -G 'MinGW Makefiles'` followed by `mingw32-make`.
+For the yaml-cpp dependency, you don't need Cygwin to build. Make a new directory inside `lib/yaml-cpp` called `build`, `cd` to it, and run `cmake .. -G "MinGW Makefiles"` followed by `mingw32-make`.
 
 For bdwgc, you should cd to `lib/bdwgc`, and run `cmake . -G "MinGW Makefiles" -Denable_threads=OFF` (this is different from yaml-cpp's command) followed by by `mingw32-make`.
 
