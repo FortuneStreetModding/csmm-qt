@@ -131,9 +131,7 @@ HEADERS += \
     lib/benzin/types.h \
     lib/benzin/xml.h \
     lib/brsar.h \
-    lib/bsdiff/bsdiff.h \
     lib/bsdiff/bsdifflib.h \
-    lib/bsdiff/bspatch.h \
     lib/bsdiff/bspatchlib.h \
     lib/bsdiff/bzip2/bzlib.h \
     lib/bsdiff/bzip2/bzlib_private.h \
