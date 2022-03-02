@@ -1,10 +1,10 @@
 #include "uimenu1900a.h"
-
+#include <brlan.h>
+#include <brlyt.h>
 #include <QFileInfo>
 #include <QSet>
-#include <QTemporaryFile>
 #include <QDebug>
-#include "pugixml/pugixml.hpp"
+#include "unicodefilenameutils.h"
 
 namespace Ui_menu_19_00a {
 
@@ -31,113 +31,145 @@ QString constructMapIconTplName(const QString &mapIcon) {
     return QString("ui_menu007_%1.tpl").arg(basename);
 }
 
-bool injectMapIconsLayout(const QString &xmlytFile, const QMap<QString, QString> &mapIconToTplName) {
+bool injectMapIconsLayout(const QString &brlytFile, const QMap<QString, QString> &mapIconToTplName) {
     if (!checkMapIconsForValidity(mapIconToTplName)) return false;
-    pugi::xml_document doc;
-    auto result = doc.load_file(xmlytFile.toUtf8());
-    if (result.status != pugi::status_ok) {
-        return false;
+
+    bq::brlyt::Brlyt brlyt;
+
+    {
+        ufutils::unicode_ifstream stream(brlytFile);
+        brlyt.read(stream);
+        if (!stream) {
+            return false;
+        }
     }
 
     // TEXTURES
-    auto tplEntriesNode = doc.select_node("/xmlyt/tag[@type='txl1']/entries");
-    auto tplEntryNameList = doc.select_nodes("/xmlyt/tag[@type='txl1']/entries/name");
-    for (auto &tplEntryName: tplEntryNameList) {
-        if (isMapTpl(tplEntryName.node().text().get())) {
-            tplEntriesNode.node().remove_child(tplEntryName.node());
-        }
-    }
-    auto values = mapIconToTplName.values();
-    for (auto &tpl: values) {
-        auto newNode = tplEntriesNode.node().append_child("name");
-        newNode.text().set(tpl.toUtf8().data());
+
+    auto &texs = brlyt.txl1.textures;
+    auto texIt = std::remove_if(texs.begin(), texs.end(), [](const std::string &s) { return isMapTpl(QString::fromStdString(s)); });
+    texs.erase(texIt, texs.end());
+    auto newTplNames = mapIconToTplName.values();
+    for (auto &tplName: qAsConst(newTplNames)) {
+        texs.push_back(tplName.toStdString());
     }
 
     // MATERIALS
-    auto materialNodesTexture = doc.select_nodes("/xmlyt/tag[@type='mat1']/entries/texture");
-    pugi::xml_node templateMaterialNode;
-    QSet<QString> nonMapIconMatNames;
-    for (auto materialNodeTexture: materialNodesTexture) {
-        auto materialNode = materialNodeTexture.parent();
-        auto tplName = materialNodeTexture.node().attribute("name").value();
-        if (isMapTpl(tplName)) {
-            if (templateMaterialNode.type() == pugi::node_null) {
-                templateMaterialNode = materialNode;
-            } else {
-                materialNode.parent().remove_child(materialNode);
-            }
+    QSet<QString> nonMapIconMaterials;
+    auto &mats = brlyt.mat1.materials;
+    auto matIsMapIcon = [](const std::shared_ptr<bq::brlyt::Material> &mat) {
+        auto &textures = mat->textureMaps;
+        return std::find_if(textures.begin(), textures.end(), [](const bq::brlyt::TextureRef &ref) { return isMapTpl(QString::fromStdString(ref.name)); }) != textures.end();
+    };
+    std::shared_ptr<bq::brlyt::Material> materialTemplate;
+    for (auto &mat: mats) {
+        if (matIsMapIcon(mat)) {
+            materialTemplate = mat;
         } else {
-            nonMapIconMatNames.insert(materialNode.attribute("name").value());
+            nonMapIconMaterials.insert(QString::fromStdString(mat->name));
         }
     }
-    auto matEntriesNode = doc.select_node("/xmlyt/tag[@type='mat1']");
-    for (auto it=mapIconToTplName.begin(); it!=mapIconToTplName.end(); ++it) {
-        auto newElem = matEntriesNode.node().prepend_copy(templateMaterialNode);
-        newElem.attribute("name").set_value(it.key().toUtf8().data());
-        newElem.child("texture").attribute("name").set_value(it.value().toUtf8().data());
+    auto matIt = std::remove_if(mats.begin(), mats.end(), matIsMapIcon);
+    mats.erase(matIt, mats.end());
+
+    QMap<QString, std::shared_ptr<bq::brlyt::Material>> mapIconToMaterial;
+
+    for (auto it = mapIconToTplName.begin(); it != mapIconToTplName.end(); ++it) {
+        auto newMat = std::make_shared<bq::brlyt::Material>(*materialTemplate);
+        newMat->name = it.key().toStdString();
+        for (auto &textureRef: newMat->textureMaps) {
+            if (isMapTpl(QString::fromStdString(textureRef.name))) {
+                textureRef.name = it.value().toStdString();
+            }
+        }
+        mats.push_back(newMat);
+        mapIconToMaterial[it.key()] = newMat;
     }
-    templateMaterialNode.parent().remove_child(templateMaterialNode);
 
     // PICS
-    auto picNodesMaterial = doc.select_nodes("/xmlyt/tag[@type='pic1']/material");
-    pugi::xml_node templatePicNode;
-    pugi::xml_node insertionPoint;
-    for (auto picNodeMaterial: picNodesMaterial) {
-        auto picNode = picNodeMaterial.parent();
-        auto matName = picNodeMaterial.node().attribute("name").value();
-        if (!nonMapIconMatNames.contains(matName)) {
-            if (insertionPoint.type() == pugi::node_null) {
-                insertionPoint = picNode.previous_sibling();
-            }
-            if (templatePicNode.type() == pugi::node_null) {
-                templatePicNode = picNode;
-            } else {
-                picNode.parent().remove_child(picNode);
-            }
-        }
-    }
-    auto keys = mapIconToTplName.keys();
-    for (auto &mapIcon: keys) {
-        auto newElem = insertionPoint.parent().insert_copy_after(templatePicNode, insertionPoint);
-        newElem.attribute("name").set_value(mapIcon.toUtf8().data());
-        newElem.child("material").attribute("name").set_value(mapIcon.toUtf8().data());
-    }
-    templatePicNode.parent().remove_child(templatePicNode);
+    std::shared_ptr<bq::BasePane> mapIconParent;
+    std::shared_ptr<bq::brlyt::Pic1> templatePic;
 
-    return doc.save_file(xmlytFile.toUtf8());
+    auto picIsMapIcon = [&](std::shared_ptr<bq::BasePane> pane) {
+        auto pic1 = std::dynamic_pointer_cast<bq::brlyt::Pic1>(pane);
+        if (pic1) {
+            return !nonMapIconMaterials.contains(QString::fromStdString(pic1->material->name));
+        }
+        return false;
+    };
+    std::function<void(std::shared_ptr<bq::BasePane>)> traverse = [&](std::shared_ptr<bq::BasePane> cur) mutable {
+        for (auto &nxt: cur->children) {
+            if (picIsMapIcon(nxt)) {
+                mapIconParent = cur;
+                templatePic = std::dynamic_pointer_cast<bq::brlyt::Pic1>(nxt);
+                return;
+            }
+            traverse(nxt);
+        }
+    };
+    traverse(brlyt.rootPane);
+
+    auto picIt = std::remove_if(mapIconParent->children.begin(), mapIconParent->children.end(), picIsMapIcon);
+    mapIconParent->children.erase(picIt, mapIconParent->children.end());
+
+    auto mapIcons = mapIconToTplName.keys();
+    for (auto &icon: qAsConst(mapIcons)) {
+        auto newPic = std::make_shared<bq::brlyt::Pic1>(*templatePic);
+        newPic->material = mapIconToMaterial[icon];
+        newPic->name = icon.toStdString();
+        mapIconParent->children.push_back(newPic);
+        newPic->parent = mapIconParent;
+    }
+
+    // WRITE FILE
+
+    ufutils::unicode_ofstream stream(brlytFile);
+    brlyt.write(stream);
+    return !stream.fail();
 }
 
-bool injectMapIconsAnimation(const QString &xmlanFile, const QMap<QString, QString> &mapIconToTplName) {
+bool injectMapIconsAnimation(const QString &brlanFile, const QMap<QString, QString> &mapIconToTplName) {
     if (!checkMapIconsForValidity(mapIconToTplName)) return false;
-    pugi::xml_document doc;
-    auto result = doc.load_file(xmlanFile.toUtf8());
-    if (result.status != pugi::status_ok) {
-        return false;
+
+    bq::brlan::Brlan brlan;
+
+    {
+        ufutils::unicode_ifstream stream(brlanFile);
+        brlan.read(stream);
+        if (!stream) {
+            return false;
+        }
     }
 
     static const QSet<QString> ignorePanes = { "p_rank_1", "n_bg_b_00_anime", "p_rank_2", "n_bg_anime", "n_hatena_anime", "n_new_anime", "p_bg_flash", "w_bg_button_00", "p_rank_1_leaf", "p_rank_2_leaf", "n_rank_leaf", "p_new", "p_rank_1", "p_rank_2", "p_rank_1_leaf", "p_rank_2_leaf" };
 
-    auto paneNodes = doc.select_nodes("/xmlan/pai1/pane");
-    pugi::xml_node animationPaneTemplate;
-    for (auto paneNode: paneNodes) {
-        if (!ignorePanes.contains(paneNode.node().attribute("name").value())) {
-            if (animationPaneTemplate.type() == pugi::node_null) {
-                animationPaneTemplate = paneNode.node();
-            } else {
-                paneNode.parent().remove_child(paneNode.node());
-            }
+    auto isForMapIcon = [&](const bq::brlan::PaiEntry &entry) {
+        return !ignorePanes.contains(QString::fromStdString(entry.name));
+    };
+
+    auto &entries = brlan.animationInfo.entries;
+    bq::brlan::PaiEntry templateEntry;
+
+    for (auto &entry: entries) {
+        if (isForMapIcon(entry)) {
+            templateEntry = entry;
+            break;
         }
     }
-    auto animationEntriesRefNode = doc.select_node("/xmlan/pai1/pane[@name='n_rank_leaf']");
-    auto animationEntriesNodeParent = doc.select_node("/xmlan/pai1");
-    auto keys = mapIconToTplName.keys();
-    for (auto &mapIcon: keys) {
-        auto newElem = animationEntriesNodeParent.node().insert_copy_after(animationPaneTemplate, animationEntriesRefNode.node());
-        newElem.attribute("name").set_value(mapIcon.toUtf8().data());
-    }
-    animationPaneTemplate.parent().remove_child(animationPaneTemplate);
 
-    return doc.save_file(xmlanFile.toUtf8());
+    auto entriesIt = std::remove_if(entries.begin(), entries.end(), isForMapIcon);
+    entries.erase(entriesIt, entries.end());
+
+    auto mapIcons = mapIconToTplName.keys();
+    for (auto &icon: qAsConst(mapIcons)) {
+        auto newEntry = templateEntry;
+        newEntry.name = icon.toStdString();
+        entries.push_back(newEntry);
+    }
+
+    ufutils::unicode_ofstream stream(brlanFile);
+    brlan.write(stream);
+    return !stream.fail();
 }
 
 }

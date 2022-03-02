@@ -3,7 +3,7 @@
 
 #include <QDataStream>
 #include <QVector>
-#include "../mapdescriptor.h"
+#include "mapdescriptor.h"
 
 namespace Brsar{
 

@@ -2,7 +2,6 @@
 
 #include "darkdetect.h"
 #include <QApplication>
-#include <gc/gc.h>
 
 #if defined( Q_OS_WIN )
 #include <windows.h>
@@ -12,8 +11,6 @@
 
 int main(int argc, char *argv[])
 {
-    GC_INIT();
-
     bool consoleMode = argc > 1;
     // consoleMode = true;
     if(consoleMode) {

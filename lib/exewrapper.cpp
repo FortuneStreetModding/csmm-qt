@@ -1,10 +1,6 @@
 #include "exewrapper.h"
 
 #include "asyncfuture.h"
-extern "C" {
-#include "benzin/brlan.h"
-#include "benzin/brlyt.h"
-}
 #include <QDir>
 #include <QDataStream>
 #include <QProcess>
@@ -126,24 +122,6 @@ QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcF
     // wszst CREATE --overwrite --u8 --no-compress --pt-dir=REMOVE --transform TPL.CMPR --n-mipmaps 0 game_turnlot_BG.d
     proc->start(getWszstPath(), {"CREATE", "--overwrite", "--u8", "--no-compress", "--pt-dir=REMOVE", "--transform", "TPL.CMPR", "--n-mipmaps", "0", dFolder, "--dest", arcFile});
     return observeProcess(proc);
-}
-void convertBrlytToXmlyt(const QString &brlytFile, const QString &xmlytFile) {
-    auto brlytFileArr = brlytFile.toUtf8();
-    auto xmlytFileArr = xmlytFile.toUtf8();
-    if (QFileInfo(brlytFile).suffix() == "brlyt") {
-        parse_brlyt(brlytFileArr.data(), xmlytFileArr.data());
-    } else {
-        parse_brlan(brlytFileArr.data(), xmlytFileArr.data());
-    }
-}
-void convertXmlytToBrlyt(const QString &xmlytFile, const QString &brlytFile) {
-    auto brlytFileArr = brlytFile.toUtf8();
-    auto xmlytFileArr = xmlytFile.toUtf8();
-    if (QFileInfo(brlytFile).suffix() == "brlyt") {
-        make_brlyt(xmlytFileArr.data(), brlytFileArr.data());
-    } else {
-        make_brlan(xmlytFileArr.data(), brlytFileArr.data());
-    }
 }
 QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
     QProcess *proc = new QProcess();

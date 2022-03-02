@@ -5,7 +5,7 @@
 
 namespace Ui_game_052
 {
-bool widenDistrictName(const QString &xmlytFile);
+bool widenDistrictName(const QString &brlytFile);
 };
 
 #endif // UIGAME052_H

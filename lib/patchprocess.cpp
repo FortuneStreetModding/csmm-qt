@@ -315,8 +315,6 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
 
     /** maps the path of the various variants of the game_sequenceXXXXXXXX.arc files to their respective extraction path in the tmp directory */
     auto gameSequenceExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
-    /** maps the path of the various variants of the game_sequenceXXXXXXXX.arc files to their respective temporary path for the converted xmlyt base path */
-    auto gameSequenceToXmlytBasePaths = QSharedPointer<QMap<QString, QString>>::create();
     /** maps the locale to the path */
     auto localeGameBoardExtractPaths = QSharedPointer<QMap<QString, QString>>::create();
     for (auto &locale: FS_LOCALES) {
@@ -326,10 +324,6 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
         tmpDirObj.mkpath(extractPath);
         (*gameSequenceExtractPaths)[gameSequencePath] = extractPath;
-
-        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName() + "_");
-        tmpDirObj.mkpath(xmlytPath);
-        (*gameSequenceToXmlytBasePaths)[gameSequencePath] = xmlytPath;
     }
     for (auto &locale: FS_LOCALES) {
         auto gameSequencePath = dir.filePath(gameSequenceWifiArc(locale));
@@ -338,10 +332,6 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName());
         tmpDirObj.mkpath(extractPath);
         (*gameSequenceExtractPaths)[gameSequencePath] = extractPath;
-
-        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameSequencePath).baseName() + "_");
-        tmpDirObj.mkpath(xmlytPath);
-        (*gameSequenceToXmlytBasePaths)[gameSequencePath] = xmlytPath;
     }
 
     // extract the arc files
@@ -410,19 +400,10 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
         // convert the brlyt files to xmlyt, inject the map icons and convert it back
         for (auto it=gameSequenceExtractPaths->begin(); it!=gameSequenceExtractPaths->end(); ++it) {
             auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_menu_19_00a.brlyt");
-            auto xmlytFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
 
-            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
-            bool success = Ui_menu_19_00a::injectMapIconsLayout(xmlytFile, mapIconToTplName);
-            if(!success)
+            bool success = Ui_menu_19_00a::injectMapIconsLayout(brlytFile, mapIconToTplName);
+            if(!success) {
                 qCritical() << QString("Was unable to inject map icons into ") + brlytFile;
-            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
-
-            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-            QFile brlytFileObj(brlytFile);
-            if (brlytFileObj.open(QIODevice::ReadWrite)) {
-                brlytFileObj.seek(0);
-                brlytFileObj.putChar('R');
             }
         }
         // convert the brlan files to xmlan, inject the map icons and convert it back
@@ -431,20 +412,10 @@ static QFuture<void> injectMapIcons(const QVector<MapDescriptor> &mapDescriptors
             auto brlanFilesInfo = brlanFileDir.entryInfoList({"ui_menu_19_00a_Tag_*.brlan"}, QDir::Files);
             for (auto &brlanFileInfo: brlanFilesInfo) {
                 auto brlanFile = brlanFileInfo.absoluteFilePath();
-                auto xmlanFile = QDir((*gameSequenceToXmlytBasePaths)[it.key()]).filePath(brlanFileInfo.baseName() + ".xmlan");
 
-                ExeWrapper::convertBrlytToXmlyt(brlanFile, xmlanFile);
-                bool success = Ui_menu_19_00a::injectMapIconsAnimation(xmlanFile, mapIconToTplName);
+                bool success = Ui_menu_19_00a::injectMapIconsAnimation(brlanFile, mapIconToTplName);
                 if(!success) {
                     qCritical() << QString("Was unable to inject map icons into ") + brlanFile;
-                }
-                ExeWrapper::convertXmlytToBrlyt(xmlanFile, brlanFile);
-
-                // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-                QFile brlytFileObj(brlanFile);
-                if (brlytFileObj.open(QIODevice::ReadWrite)) {
-                    brlytFileObj.seek(0);
-                    brlytFileObj.putChar('R');
                 }
             }
         }
@@ -711,10 +682,6 @@ static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
         auto extractPath = tmpDirObj.filePath(QFileInfo(gameResultPath).baseName());
         tmpDirObj.mkpath(extractPath);
         (*gameResultExtractPaths)[gameResultPath] = extractPath;
-
-        auto xmlytPath = tmpDirObj.filePath(QFileInfo(gameResultPath).baseName() + "_");
-        tmpDirObj.mkpath(xmlytPath);
-        (*gameResultToXmlytBasePaths)[gameResultPath] = xmlytPath;
     }
     // extract the arc files
     auto extractArcTasks = AsyncFuture::combine();
@@ -725,34 +692,12 @@ static QFuture<void> widenResultsMapBox(const QDir &dir, const QDir &tmpDir) {
     return extractArcTasks.subscribe([=]() {
         for (auto it = gameResultExtractPaths->begin(); it != gameResultExtractPaths->end(); ++it) {
             auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_menu_011_scene.brlyt");
-            auto xmlytFile = QDir((*gameResultToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
-            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
-            ResultScenes::widenResultTitle(xmlytFile);
-            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
 
-            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-            {
-                QFile brlytFileObj(brlytFile);
-                if (brlytFileObj.open(QIODevice::ReadWrite)) {
-                    brlytFileObj.seek(0);
-                    brlytFileObj.putChar('R');
-                }
-            }
+            ResultScenes::widenResultTitle(brlytFile);
 
             brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_049_scene.brlyt");
-            xmlytFile = QDir((*gameResultToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
-            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
-            ResultScenes::widenResultTitle(xmlytFile);
-            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
 
-            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-            {
-                QFile brlytFileObj(brlytFile);
-                if (brlytFileObj.open(QIODevice::ReadWrite)) {
-                    brlytFileObj.seek(0);
-                    brlytFileObj.putChar('R');
-                }
-            }
+            ResultScenes::widenResultTitle(brlytFile);
         }
 
         auto packArcFileTasks = AsyncFuture::combine();
@@ -825,39 +770,8 @@ static QFuture<void> modifyGameBoardArc(const QDir &dir, const QDir &tmpDir, boo
 
         for (auto it = gameBoardExtractPaths->begin(); it != gameBoardExtractPaths->end(); ++it) {
             auto brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_013.brlyt");
-            //auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
-            //ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
 
-            // HACK: manipulate the brylt file directly since benzin is wack.
-            // TODO try to incorporate a proper brylt library here
             Ui_game_013::widenDistrictName(brlytFile);
-            //ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
-
-            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-            {
-                QFile brlytFileObj(brlytFile);
-                if (brlytFileObj.open(QIODevice::ReadWrite)) {
-                    brlytFileObj.seek(0);
-                    brlytFileObj.putChar('R');
-                }
-            }
-#if 0
-            brlytFile = QDir(it.value()).filePath("arc/blyt/ui_game_052.brlyt");
-            auto xmlytFile = QDir((*gameBoardToXmlytBasePaths)[it.key()]).filePath(QFileInfo(brlytFile).baseName() + ".xmlyt");
-
-            ExeWrapper::convertBrlytToXmlyt(brlytFile, xmlytFile);
-
-            ExeWrapper::convertXmlytToBrlyt(xmlytFile, brlytFile);
-
-            // strange phenomenon: when converting the xmlyt files back to brlyt using benzin, sometimes the first byte is not correctly written. This fixes it as the first byte must be an 'R'.
-            {
-                QFile brlytFileObj(brlytFile);
-                if (brlytFileObj.open(QIODevice::ReadWrite)) {
-                    brlytFileObj.seek(0);
-                    brlytFileObj.putChar('R');
-                }
-            }
-#endif
         }
 
         auto packArcFileTasks = AsyncFuture::combine();

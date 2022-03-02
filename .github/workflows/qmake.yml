@@ -25,11 +25,13 @@ jobs:
         brew install libarchive
         brew install yaml-cpp
     
-    - name: Build mxml
+    - name: Build libbecquerel
       working-directory: ${{github.workspace}}
       run: |
-        cd lib/mxml
-        ./configure
+        cd lib/libbecquerel
+        mkdir build
+        cd build
+        cmake ..
         make
 
     - name: Install Qt
@@ -66,12 +68,13 @@ jobs:
       with:
         submodules: true
 
-    - name: Build mxml
+    - name: Build libbecquerel
       working-directory: ${{github.workspace}}
-      shell: bash
       run: |
-        cd lib/mxml
-        ./configure
+        cd lib/libbecquerel
+        mkdir build
+        cd build
+        cmake .. -G "MinGW Makefiles"
         mingw32-make
 
     - name: Build yaml-cpp
@@ -81,13 +84,6 @@ jobs:
         mkdir build
         cd build
         cmake .. -G "MinGW Makefiles"
-        mingw32-make
-
-    - name: Build bdwgc
-      working-directory: ${{github.workspace}}
-      run: |
-        cd lib/bdwgc
-        cmake . -G "MinGW Makefiles" -Denable_threads=OFF
         mingw32-make
 
     - name: Install Qt
@@ -124,7 +120,6 @@ jobs:
         Copy-Item -Path "C:\Program Files\Git\mingw64\bin\libgcc_s_seh-1.dll"  -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
         Copy-Item -Path "C:\Program Files\Git\mingw64\bin\libstdc++-6.dll"     -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
         Copy-Item -Path "C:\Program Files\Git\mingw64\bin\libwinpthread-1.dll" -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
-        Copy-Item -Path ${{github.workspace}}/lib/bdwgc/libgc.dll              -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
     - name: Archive
       uses: thedoctor0/zip-release@master
       with:

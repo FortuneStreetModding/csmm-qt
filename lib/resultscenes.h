@@ -5,7 +5,7 @@
 
 namespace ResultScenes {
 
-bool widenResultTitle(const QString &xmlytFile);
+bool widenResultTitle(const QString &brlytFile);
 
 }
 

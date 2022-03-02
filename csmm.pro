@@ -15,13 +15,11 @@ QMAKE_TARGET_BUNDLE_PREFIX = com.fortunestreetmodding
 
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 
-INCLUDEPATH += lib/mxml /usr/local/opt/libarchive/include /usr/local/include /usr/local/opt/bdw-gc/include $$_PRO_FILE_PWD_/lib/bdwgc/include
-LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -L/usr/local/opt/bdw-gc/lib -L$$_PRO_FILE_PWD_/lib/bdwgc -lpthread $$_PRO_FILE_PWD_/lib/mxml/libmxml.a -lyaml-cpp -lgc
+INCLUDEPATH += /usr/local/opt/libarchive/include /usr/local/include lib/libbecquerel
+LIBS += -L/usr/local/opt/libarchive/lib -L/usr/local/lib -L$$_PRO_FILE_PWD_/lib/libbecquerel/build -lyaml-cpp -lbecquerel
 win32: INCLUDEPATH += lib/yaml-cpp/include
 win32: LIBS += -L$$_PRO_FILE_PWD_/lib/yaml-cpp/build
 !win32: LIBS += -larchive
-
-win32: DEFINES += GC_DLL
 
 QT       += core gui network concurrent
 
@@ -39,12 +37,6 @@ DEFINES += NOMINMAX
 SOURCES += \
     downloadclidialog.cpp \
     lib/addressmapping.cpp \
-    lib/benzin/brlan.c \
-    lib/benzin/brlyt.c \
-    lib/benzin/endian.c \
-    lib/benzin/general.c \
-    lib/benzin/memfile.c \
-    lib/benzin/xml.c \
     lib/brsar.cpp \
     lib/bsdiff/bsdifflib.c \
     lib/bsdiff/bspatchlib.c \
@@ -123,13 +115,6 @@ HEADERS += \
     lib/archiveutil.h \
     lib/asyncfuture.h \
     lib/await.h \
-    lib/benzin/brlan.h \
-    lib/benzin/brlyt.h \
-    lib/benzin/endian.h \
-    lib/benzin/general.h \
-    lib/benzin/memfile.h \
-    lib/benzin/types.h \
-    lib/benzin/xml.h \
     lib/brsar.h \
     lib/bsdiff/bsdifflib.h \
     lib/bsdiff/bspatchlib.h \
@@ -221,3 +206,7 @@ macos:ICON=AppIcon.icns
 
 RESOURCES += \
     csmm.qrc
+
+DISTFILES += \
+    LICENSE \
+    README.md

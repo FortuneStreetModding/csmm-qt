@@ -1,43 +1,39 @@
 #include "uigame013.h"
-#include <QDataStream>
-#include <QFile>
+#include <brlyt.h>
+#include "unicodefilenameutils.h"
 
 namespace Ui_game_013 {
 
 bool widenDistrictName(const QString &brlytFile) {
-#if 0
-    pugi::xml_document doc;
-    auto result = doc.load_file(xmlytFile.toUtf8());
-    if (result.status != pugi::status_ok) {
-        return false;
+    bq::brlyt::Brlyt brlyt;
+
+    {
+        ufutils::unicode_ifstream stream(brlytFile);
+        brlyt.read(stream);
+        if (!stream) {
+            return false;
+        }
     }
 
-    pugi::xpath_node node;
-    node = doc.select_node("/xmlyt/tag[@name='t_area01']/size/width");
-    node.node().text().set(300);
-    node = doc.select_node("/xmlyt/tag[@name='t_area01']/translate/x");
-    node.node().text().set(-20.5);
-    node = doc.select_node("/xmlyt/tag[@name='t_area01']/font/alignment/@x");
-    node.attribute().set_value("Right");
+    std::function<void(std::shared_ptr<bq::BasePane>)> traverse = [&](std::shared_ptr<bq::BasePane> cur) {
+        auto txt1 = std::dynamic_pointer_cast<bq::brlyt::Txt1>(cur);
+        if (txt1 && txt1->name == "t_area01") {
+            txt1->width = 300;
+            txt1->translate.x = -20.5;
+            // textAlign%3 <- 2 (right align)
+            txt1->textAlign = 3 * (txt1->textAlign / 3) + 2;
+        }
 
-    return doc.save_file(xmlytFile.toUtf8());
-#endif
+        for (auto &nxt: cur->children) {
+            traverse(nxt);
+        }
+    };
 
-    QFile brlytFileObj(brlytFile);
-    if (brlytFileObj.open(QIODevice::ReadWrite)) {
-        QDataStream stream(&brlytFileObj);
-        stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-        stream.setByteOrder(QDataStream::BigEndian);
+    traverse(brlyt.rootPane);
 
-        brlytFileObj.seek(22740); // /xmlyt/tag[@name='t_area01']/size/width
-        stream << 300.0f;
-        brlytFileObj.seek(22708); // /xmlyt/tag[@name='t_area01']/translate/x
-        stream << -20.5f;
-        brlytFileObj.seek(22756); // /xmlyt/tag[@name='t_area01']/font/alignment
-        stream << quint8(5); // right align x center align y
-
-        return true;
-    } else return false;
+    ufutils::unicode_ofstream stream(brlytFile);
+    brlyt.write(stream);
+    return !stream.fail();
 }
 
 }
