@@ -1,5 +1,5 @@
 #include "mutator.h"
-#include "lib/patchprocess.h"
+#include "lib/importexportutils.h"
 
 #include "rollagain.h"
 #include "rollshoppricemultiplier.h"
@@ -22,14 +22,14 @@ MutatorType stringToMutatorType(const QString &str) {
 
 QSharedPointer<Mutator> Mutator::fromYaml(QString mutatorStr, const YAML::Node &yaml) {
     if(!stringToMutatorTypes.contains(mutatorStr))
-        throw PatchProcess::Exception(QString("Invalid mutator %1").arg(mutatorStr));
+        throw ImportExportUtils::Exception(QString("Invalid mutator %1").arg(mutatorStr));
     switch(stringToMutatorType(mutatorStr)) {
-        case NoneType: throw PatchProcess::Exception(QString("Invalid mutator %1").arg(mutatorStr));
+        case NoneType: throw ImportExportUtils::Exception(QString("Invalid mutator %1").arg(mutatorStr));
         case RollAgainType: return QSharedPointer<Mutator>(new RollAgain(yaml));
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(yaml));
         case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(yaml));
     }
-    throw PatchProcess::Exception(QString("Invalid mutator %1").arg(mutatorStr));
+    throw ImportExportUtils::Exception(QString("Invalid mutator %1").arg(mutatorStr));
 }
 
 QVector<quint32> Mutator::toBytes() const {
@@ -57,7 +57,7 @@ QSharedPointer<Mutator> Mutator::fromBytes(QDataStream &stream) {
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(stream));
         case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(stream));
     }
-    throw PatchProcess::Exception(QString("Invalid mutator %1").arg(type));
+    throw ImportExportUtils::Exception(QString("Invalid mutator %1").arg(type));
 }
 
 Mutator::~Mutator(void) {}

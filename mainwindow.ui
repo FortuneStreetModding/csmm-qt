@@ -79,10 +79,7 @@
     <property name="title">
      <string>Optional Patches</string>
     </property>
-    <addaction name="actionPatch_Wiimmfi"/>
     <addaction name="actionPatch_SaveId"/>
-    <addaction name="actionDisplay_Map_Name_On_Results_Screen"/>
-    <addaction name="actionUpdate_Minimap_Icons"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">

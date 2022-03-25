@@ -7,7 +7,7 @@
 #include <QSharedPointer>
 #include <QTemporaryDir>
 #include "lib/mapdescriptor.h"
-#include "lib/optionalpatch.h"
+#include "lib/mods/csmmmodpack.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -28,7 +28,9 @@ private:
 
     QSharedPointer<QTemporaryDir> tempGameDir;
 
-    void openFile();
+    ModListType modList;
+
+    void openDir();
     void openIsoWbfs();
     void exportToFolder();
     void exportIsoWbfs();
@@ -40,6 +42,5 @@ private:
     void loadMapList();
 
     QString getSaveId();
-    QSet<OptionalPatch> getOptionalPatches(bool packed);
 };
 #endif // MAINWINDOW_H

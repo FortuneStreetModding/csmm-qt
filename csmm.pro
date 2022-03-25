@@ -1,8 +1,8 @@
 TARGET = csmm
 
 #Application version
-VERSION_MAJOR = 1
-VERSION_MINOR = 7
+VERSION_MAJOR = 2
+VERSION_MINOR = 0
 VERSION_BUILD = 0
 
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
@@ -48,50 +48,60 @@ SOURCES += \
     lib/bsdiff/bzip2/huffman.c \
     lib/bsdiff/bzip2/randtable.c \
     lib/configuration.cpp \
-    lib/dolio/backgroundtable.cpp \
-    lib/dolio/bgmidtable.cpp \
-    lib/dolio/bgsequencetable.cpp \
-    lib/dolio/defaulttargetamounttable.cpp \
-    lib/dolio/designtypetable.cpp \
-    lib/dolio/displaymapinresults.cpp \
-    lib/dolio/dolio.cpp \
-    lib/dolio/doliotable.cpp \
-    lib/dolio/eventsquare.cpp \
-    lib/dolio/expandmapsinzone.cpp \
-    lib/dolio/forcesimulatedbuttonpress.cpp \
-    lib/dolio/frbmaptable.cpp \
-    lib/dolio/internalnametable.cpp \
-    lib/dolio/mapdescriptiontable.cpp \
-    lib/dolio/mapgalaxyparamtable.cpp \
-    lib/dolio/mapicontable.cpp \
-    lib/dolio/maporigintable.cpp \
-    lib/dolio/mapsetzoneorder.cpp \
-    lib/dolio/mapswitchparamtable.cpp \
-    lib/dolio/musictable.cpp \
-    lib/dolio/nameddistricts.cpp \
-    lib/dolio/mutatorrollshoppricemultiplier.cpp \
-    lib/dolio/mutatorshoppricemultiplier.cpp \
-    lib/dolio/mutatortable.cpp \
-    lib/dolio/practiceboard.cpp \
-    lib/dolio/rulesettable.cpp \
-    lib/dolio/stagenameidtable.cpp \
-    lib/dolio/tinydistricts.cpp \
-    lib/dolio/tourbankruptcylimittable.cpp \
-    lib/dolio/tourclearranktable.cpp \
-    lib/dolio/tourinitialcashtable.cpp \
-    lib/dolio/touropponentstable.cpp \
-    lib/dolio/venturecardtable.cpp \
-    lib/dolio/wififix.cpp \
+    lib/importexportutils.cpp \
+    lib/mods/arc/defaultminimapicons.cpp \
+    lib/mods/arc/turnlotscenes.cpp \
+    lib/mods/defaultmodlist.cpp \
+    lib/mods/dolio/allocatedescriptorcount.cpp \
+    lib/mods/dolio/backgroundtable.cpp \
+    lib/mods/dolio/bgmidtable.cpp \
+    lib/mods/dolio/bgsequencetable.cpp \
+    lib/mods/dolio/defaulttargetamounttable.cpp \
+    lib/mods/dolio/designtypetable.cpp \
+    lib/mods/dolio/displaymapinresults.cpp \
+    lib/mods/dolio/dolio.cpp \
+    lib/mods/dolio/doliotable.cpp \
+    lib/mods/dolio/eventsquaremod.cpp \
+    lib/mods/dolio/expandmapsinzone.cpp \
+    lib/mods/dolio/forcesimulatedbuttonpress.cpp \
+    lib/mods/dolio/frbmaptable.cpp \
+    lib/mods/dolio/internalnametable.cpp \
+    lib/mods/dolio/mapdescriptiontable.cpp \
+    lib/mods/dolio/mapgalaxyparamtable.cpp \
+    lib/mods/dolio/mapicontable.cpp \
+    lib/mods/dolio/maporigintable.cpp \
+    lib/mods/dolio/mapsetzoneorder.cpp \
+    lib/mods/dolio/mapswitchparamtable.cpp \
+    lib/mods/dolio/musictable.cpp \
+    lib/mods/dolio/nameddistricts.cpp \
+    lib/mods/dolio/mutatorrollshoppricemultiplier.cpp \
+    lib/mods/dolio/mutatorshoppricemultiplier.cpp \
+    lib/mods/dolio/mutatortable.cpp \
+    lib/mods/dolio/practiceboard.cpp \
+    lib/mods/dolio/rulesettable.cpp \
+    lib/mods/dolio/stagenameidtable.cpp \
+    lib/mods/dolio/tinydistricts.cpp \
+    lib/mods/dolio/tourbankruptcylimittable.cpp \
+    lib/mods/dolio/tourclearranktable.cpp \
+    lib/mods/dolio/tourinitialcashtable.cpp \
+    lib/mods/dolio/touropponentstable.cpp \
+    lib/mods/dolio/venturecardtable.cpp \
+    lib/mods/dolio/wififix.cpp \
     lib/exewrapper.cpp \
     lib/fortunestreetdata.cpp \
     lib/freespacemanager.cpp \
-    lib/maindol.cpp \
+    lib/gameinstance.cpp \
     lib/mapdescriptor.cpp \
+    lib/mods/freespace/districtnamefreespace.cpp \
+    lib/mods/freespace/initialfreespace.cpp \
+    lib/mods/freespace/mapdatafreespace.cpp \
+    lib/mods/freespace/venturecardfreespace.cpp \
+    lib/mods/freespace/wififreespace.cpp \
+    lib/mods/misc/defaultmiscpatches.cpp \
     lib/mutator/mutator.cpp \
     lib/mutator/rollagain.cpp \
     lib/mutator/rollshoppricemultiplier.cpp \
     lib/mutator/shoppricemultiplier.cpp \
-    lib/patchprocess.cpp \
     lib/powerpcasm.cpp \
     lib/pugixml/pugixml.cpp \
     lib/resultscenes.cpp \
@@ -122,56 +132,67 @@ HEADERS += \
     lib/bsdiff/bzip2/bzlib_private.h \
     lib/configuration.h \
     lib/datafileset.h \
-    lib/dolio/backgroundtable.h \
-    lib/dolio/bgmidtable.h \
-    lib/dolio/bgsequencetable.h \
-    lib/dolio/defaulttargetamounttable.h \
-    lib/dolio/designtypetable.h \
-    lib/dolio/displaymapinresults.h \
-    lib/dolio/dolio.h \
-    lib/dolio/doliotable.h \
-    lib/dolio/eventsquare.h \
-    lib/dolio/expandmapsinzone.h \
-    lib/dolio/forcesimulatedbuttonpress.h \
-    lib/dolio/frbmaptable.h \
-    lib/dolio/internalnametable.h \
-    lib/dolio/mapdescriptiontable.h \
-    lib/dolio/mapgalaxyparamtable.h \
-    lib/dolio/mapicontable.h \
-    lib/dolio/maporigintable.h \
-    lib/dolio/mapsetzoneorder.h \
-    lib/dolio/mapswitchparamtable.h \
-    lib/dolio/musictable.h \
-    lib/dolio/nameddistricts.h \
-    lib/dolio/mutatorrollshoppricemultiplier.h \
-    lib/dolio/mutatorshoppricemultiplier.h \
-    lib/dolio/mutatortable.h \
-    lib/dolio/practiceboard.h \
-    lib/dolio/rulesettable.h \
-    lib/dolio/stagenameidtable.h \
-    lib/dolio/tinydistricts.h \
-    lib/dolio/tourbankruptcylimittable.h \
-    lib/dolio/tourclearranktable.h \
-    lib/dolio/tourinitialcashtable.h \
-    lib/dolio/touropponentstable.h \
-    lib/dolio/venturecardtable.h \
-    lib/dolio/wififix.h \
+    lib/importexportutils.h \
+    lib/mods/arc/defaultminimapicons.h \
+    lib/mods/arc/turnlotscenes.h \
+    lib/mods/csmmmodpack.h \
+    lib/mods/defaultmodlist.h \
+    lib/mods/dolio/allocatedescriptorcount.h \
+    lib/mods/dolio/backgroundtable.h \
+    lib/mods/dolio/bgmidtable.h \
+    lib/mods/dolio/bgsequencetable.h \
+    lib/mods/dolio/defaulttargetamounttable.h \
+    lib/mods/dolio/designtypetable.h \
+    lib/mods/dolio/displaymapinresults.h \
+    lib/mods/dolio/dolio.h \
+    lib/mods/dolio/doliotable.h \
+    lib/mods/dolio/eventsquaremod.h \
+    lib/mods/dolio/expandmapsinzone.h \
+    lib/mods/dolio/forcesimulatedbuttonpress.h \
+    lib/mods/dolio/frbmaptable.h \
+    lib/mods/dolio/internalnametable.h \
+    lib/mods/dolio/mapdescriptiontable.h \
+    lib/mods/dolio/mapgalaxyparamtable.h \
+    lib/mods/dolio/mapicontable.h \
+    lib/mods/dolio/maporigintable.h \
+    lib/mods/dolio/mapsetzoneorder.h \
+    lib/mods/dolio/mapswitchparamtable.h \
+    lib/mods/dolio/musictable.h \
+    lib/mods/dolio/nameddistricts.h \
+    lib/mods/dolio/mutatorrollshoppricemultiplier.h \
+    lib/mods/dolio/mutatorshoppricemultiplier.h \
+    lib/mods/dolio/mutatortable.h \
+    lib/mods/dolio/practiceboard.h \
+    lib/mods/dolio/rulesettable.h \
+    lib/mods/dolio/stagenameidtable.h \
+    lib/mods/dolio/tinydistricts.h \
+    lib/mods/dolio/tourbankruptcylimittable.h \
+    lib/mods/dolio/tourclearranktable.h \
+    lib/mods/dolio/tourinitialcashtable.h \
+    lib/mods/dolio/touropponentstable.h \
+    lib/mods/dolio/venturecardtable.h \
+    lib/mods/dolio/wififix.h \
     lib/downloadtools.h \
     lib/exewrapper.h \
     lib/filesystem.hpp \
     lib/fortunestreetdata.h \
     lib/freespacemanager.h \
     lib/fslocale.h \
-    lib/maindol.h \
+    lib/gameinstance.h \
     lib/mapdescriptor.h \
+    lib/mods/csmmmod.h \
+    lib/mods/freespace/districtnamefreespace.h \
+    lib/mods/freespace/initialfreespace.h \
+    lib/mods/freespace/mapdatafreespace.h \
+    lib/mods/freespace/venturecardfreespace.h \
+    lib/mods/freespace/wififreespace.h \
+    lib/mods/misc/defaultmiscpatches.h \
     lib/music.h \
     lib/mutator/mutator.h \
     lib/mutator/rollagain.h \
     lib/mutator/rollshoppricemultiplier.h \
     lib/mutator/shoppricemultiplier.h \
-    lib/optionalpatch.h \
     lib/orderedmap.h \
-    lib/patchprocess.h \
     lib/powerpcasm.h \
     lib/pugixml/pugiconfig.hpp \
     lib/pugixml/pugixml.hpp \

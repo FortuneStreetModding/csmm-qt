@@ -7,7 +7,7 @@
 #include <QPushButton>
 #include <QTextStream>
 #include "lib/datafileset.h"
-#include "lib/patchprocess.h"
+#include "lib/importexportutils.h"
 #include "venturecarddialog.h"
 
 // Internal types for table items
@@ -77,12 +77,12 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            PatchProcess::importYaml(openYaml, newDescriptor, tmpDir.path());
+            ImportExportUtils::importYaml(openYaml, newDescriptor, getGameDirectory());
             descriptorPtr->setFromImport(newDescriptor);
             descriptorPtr->mapDescriptorFilePath = openYaml;
             dirty = true;
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
-        } catch (const PatchProcess::Exception &exception) {
+        } catch (const ImportExportUtils::Exception &exception) {
             QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
         } catch (const YAML::Exception &exception) {
             QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
@@ -95,7 +95,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         auto gameDirectory = getGameDirectory();
         auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)");
         if (saveYamlTo.isEmpty()) return;
-        PatchProcess::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
+        ImportExportUtils::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
     });
     setCellWidget(row, colIdx++, exportYamlButton);
 
@@ -199,8 +199,4 @@ const QVector<QSharedPointer<MapDescriptor>> &MapDescriptorWidget::getDescriptor
 
 void MapDescriptorWidget::setGameDirectoryFunction(const std::function<QString()> &fn) {
     getGameDirectory = fn;
-}
-
-const QTemporaryDir &MapDescriptorWidget::getTmpResourcesDir() {
-    return tmpDir;
 }

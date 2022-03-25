@@ -2,7 +2,7 @@
 
 #include <QTextStream>
 
-#include "patchprocess.h"
+#include "importexportutils.h"
 
 namespace Configuration {
 
@@ -215,7 +215,7 @@ void load(QString fileName, QVector<MapDescriptor> &descriptors, const QDir& tmp
         descriptors[entry.mapId].order = entry.mapOrder;
         descriptors[entry.mapId].isPracticeBoard = entry.practiceBoard;
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
-            PatchProcess::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId], tmpDir);
+            ImportExportUtils::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId], tmpDir);
         }
     }
 }

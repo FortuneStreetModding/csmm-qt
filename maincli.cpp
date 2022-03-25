@@ -8,10 +8,12 @@
 #include "lib/await.h"
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
-#include "lib/patchprocess.h"
+#include "lib/importexportutils.h"
 #include "lib/configuration.h"
 #include "lib/downloadtools.h"
 #include "lib/datafileset.h"
+#include "lib/mods/csmmmodpack.h"
+#include "lib/mods/defaultmodlist.h"
 
 namespace maincli {
 
@@ -71,9 +73,6 @@ void run(QStringList arguments)
     // QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
     QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
-    QCommandLineOption wiimmfiOption(QStringList() << "w" << "wiimmfi", "Whether to patch for wiimmfi or not <0=no | 1=yes (default)>.", "wiimmfi");
-    QCommandLineOption displayMapNameInResultsOption(QStringList() << "d" << "displayMapInResults", "Whether to display the map name in results screen <0=no | 1=yes (default)>", "displayMapInResults");
-    QCommandLineOption updateMinimapIconsOption("updateMinimapIcons", "Whether to let CSMM update minimap icons to accomodate event squares <0=no | 1=yes (default)>", "updateMinimapIcons");
     QCommandLineOption witUrlOption("wit-url", "The URL where to download WIT", "url", WIT_URL);
     QCommandLineOption wszstUrlOption("wszst-url","The URL where to download WSZST", "url", WSZST_URL);
     QCommandLineOption helpOption(QStringList() << "h" << "?" << "help", "Show the help");
@@ -163,7 +162,11 @@ void run(QStringList arguments)
             if(!targetDir.exists()) {
                 targetDir.mkpath(".");
             }
-            auto descriptors = await(PatchProcess::openDir(sourceDir));
+            auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+            auto mods = DefaultModList::defaultModList();
+            CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+            modpack.load(sourceDir.path());
+            auto descriptors = gameInstance.mapDescriptors();
             if (descriptors.isEmpty()) {
                 cout << source << " is not a proper Fortune Street directory.";
                 QCoreApplication::exit(1); return;
@@ -190,7 +193,7 @@ void run(QStringList arguments)
                     QString targetPath(targetDir.filePath(descriptor.internalName + ".yaml"));
                     cout << "Exporting " << descriptor.internalName << " to " << targetPath << "...\n";
                     cout.flush();
-                    PatchProcess::exportYaml(sourceDir, targetPath, descriptor);
+                    ImportExportUtils::exportYaml(sourceDir, targetPath, descriptor);
                     atLeastOneMatch = true;
                 }
             }
@@ -239,7 +242,11 @@ void run(QStringList arguments)
             }
             QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
             if(!file.exists()) {
-                auto descriptors = await(PatchProcess::openDir(sourceDir));
+                auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                auto mods = DefaultModList::defaultModList();
+                CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+                modpack.load(sourceDir.path());
+                auto descriptors = gameInstance.mapDescriptors();
                 if (descriptors.isEmpty()) {
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
@@ -271,7 +278,11 @@ void run(QStringList arguments)
             if(file.exists()) {
                 cout << Configuration::status(sourceDir.filePath("csmm_pending_changes.csv"));
             } else {
-                auto descriptors = await(PatchProcess::openDir(sourceDir));
+                auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                auto mods = DefaultModList::defaultModList();
+                CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+                modpack.load(sourceDir.path());
+                auto descriptors = gameInstance.mapDescriptors();
                 if (descriptors.isEmpty()) {
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
@@ -284,10 +295,6 @@ void run(QStringList arguments)
         // --- save ---
         setupSubcommand(parser, "save", "Write the pending changes into the Fortune Street game directory.");
         parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "save <gameDir>");
-
-        parser.addOption(displayMapNameInResultsOption);
-        parser.addOption(updateMinimapIconsOption);
-        parser.addOption(wiimmfiOption);
 
         parser.process(arguments);
         const QStringList args = parser.positionalArguments();
@@ -307,13 +314,17 @@ void run(QStringList arguments)
                     cout << "Could not create an intermediate directory.";
                     QCoreApplication::exit(1); return;
                 }
-                auto descriptors = await(PatchProcess::openDir(sourceDir));
+                auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                auto mods = DefaultModList::defaultModList();
+                CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+                modpack.load(sourceDir.path());
+                auto descriptors = gameInstance.mapDescriptors();
                 if (descriptors.isEmpty()) {
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
                 }
                 try {
-                    Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, intermediateDir.path());
+                    Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, sourceDir.path());
 
                     QString dolOriginalPath(sourceDir.filePath(MAIN_DOL));
                     QString dolBackupPath(sourceDir.filePath(MAIN_DOL) + ".bak");
@@ -326,24 +337,16 @@ void run(QStringList arguments)
                         dolOriginal.copy(dolBackupPath);
                     }
 
-                    QSet<OptionalPatch> optionalPatches;
-                    if(!(parser.isSet(displayMapNameInResultsOption) && parser.value(displayMapNameInResultsOption).toInt() == 0))
-                        optionalPatches.insert(ResultBoardName);
-                    if(!(parser.isSet(wiimmfiOption) && parser.value(wiimmfiOption).toInt() == 0))
-                        optionalPatches.insert(Wiimmfi);
-                    if(!(parser.isSet(updateMinimapIconsOption) && parser.value(updateMinimapIconsOption).toInt() == 0))
-                        optionalPatches.insert(UpdateMinimapIcons);
-
-                    if(optionalPatches.contains(Wiimmfi)) {
+                    if (std::any_of(mods.begin(), mods.end(), [](auto &mod) { return mod->modId() == "wifiFix"; })) {
                         cout << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.\n";
                         cout << "\n";
                         cout.flush();
                     }
-                    await(PatchProcess::saveDir(sourceDir, descriptors, optionalPatches, intermediateDir.path()));
+                    modpack.save(sourceDir.path());
 
                     cout << "\n";
                     cout << "Pending changes have been saved\n";
-                } catch (const PatchProcess::Exception &exception) {
+                } catch (const ImportExportUtils::Exception &exception) {
                     cout << QString("Error loading the map: %1").arg(exception.getMessage());
                 } catch (const YAML::Exception &exception) {
                     cout << QString("Error loading the map: %1").arg(exception.what());
@@ -429,7 +432,7 @@ void run(QStringList arguments)
             cout << "Creating " << targetInfo.suffix() << " file at " << target << " out from " << source << "...";
             cout.flush();
 
-            bool patchWiimmfi = PatchProcess::hasWiimmfiText(sourceDir);
+            bool patchWiimmfi = ImportExportUtils::hasWiimmfiText(sourceDir);
             await(ExeWrapper::createWbfsIso(source, target, saveId));
             if(patchWiimmfi) {
                 await(ExeWrapper::patchWiimmfi(target));

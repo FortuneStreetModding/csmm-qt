@@ -43,6 +43,8 @@ inline void await(QFuture<void> future, int timeout = -1) {
 
      QObject::connect(&watcher, SIGNAL(finished()), &loop, SLOT(quit()));
      loop.exec();
+
+     future.waitForFinished(); // throw errors if applicable
 }
 
 
