@@ -1,4 +1,4 @@
-name: QMake Build
+name: CMake Build
 
 on:
   release:
@@ -80,7 +80,7 @@ jobs:
       shell: bash
       run: |
         mkdir "csmm-$VERSION_NAME"
-        mv "release/csmm.exe" "csmm-$VERSION_NAME/csmm.exe"
+        mv "csmm.exe" "csmm-$VERSION_NAME/csmm.exe"
 
     - name: Deploy
       working-directory: ${{github.workspace}}
