@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 if(APPLE)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 endif()
 
 set(PROJECT_VERSION 2.0.0)
@@ -28,7 +28,7 @@ find_package(Qt5 COMPONENTS Network REQUIRED)
 find_package(Qt5 COMPONENTS Concurrent REQUIRED)
 
 set(SOURCES
-	downloadclidialog.cpp
+    downloadclidialog.cpp
     darkdetect.h
     downloadclidialog.h
     downloadclidialog.ui
@@ -210,16 +210,16 @@ set(SOURCES
 qt_add_big_resources(SOURCES csmm.qrc)
 
 if(APPLE)
-	set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
-	set(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.icns)
-	set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
-		MACOSX_PACKAGE_LOCATION "Resources")
-	add_executable(csmm MACOSX_BUNDLE ${SOURCES} ${APP_ICON_MACOSX})
+    set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
+    set(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.icns)
+    set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources")
+    add_executable(csmm MACOSX_BUNDLE ${SOURCES} ${APP_ICON_MACOSX})
 elseif(WIN32)
-	set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
-	add_executable(csmm ${SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
+    add_executable(csmm ${SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
 else()
-	add_executable(csmm ${SOURCES})
+    add_executable(csmm ${SOURCES})
 endif()
 
 target_compile_definitions(csmm PUBLIC CSMM_VERSION="${PROJECT_VERSION}")
@@ -229,9 +229,9 @@ if(APPLE)
 endif()
 
 if(NOT WIN32)
-	find_package(LibArchive REQUIRED)
-	target_include_directories(csmm PRIVATE ${LibArchive_INCLUDE_DIRS})
-	target_link_libraries(csmm PRIVATE ${LibArchive_LIBRARIES})
+    find_package(LibArchive REQUIRED)
+    target_include_directories(csmm PRIVATE ${LibArchive_INCLUDE_DIRS})
+    target_link_libraries(csmm PRIVATE ${LibArchive_LIBRARIES})
 endif()
 
 find_package(yaml-cpp REQUIRED)
