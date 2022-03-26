@@ -228,10 +228,6 @@ if(APPLE)
     set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
 endif()
 
-if(WIN32)
-    set(CMAKE_MODULE_PATH "C:\\Program Files (x86)\\YAML_CPP")
-endif()
-
 if(NOT WIN32)
     find_package(LibArchive REQUIRED)
     target_include_directories(csmm PRIVATE ${LibArchive_INCLUDE_DIRS})
