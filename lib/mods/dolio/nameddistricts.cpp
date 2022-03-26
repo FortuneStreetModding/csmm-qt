@@ -110,7 +110,6 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::freeUiMe
                 for (int id: qAsConst(descriptor.districtNameIds)) {
                     messages.remove(id);
                 }
-                descriptor.districtNameIds.clear();
             }
         };
     }
@@ -119,6 +118,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::freeUiMe
 
 void NamedDistricts::allocateUiMessages(const QString &, GameInstance &gameInstance, const ModListType &) {
     for (auto &descriptor: gameInstance.mapDescriptors()) {
+        descriptor.districtNameIds.clear();
         for (int i=0; i<descriptor.districtNames["en"].size(); ++i) {
             int newId = gameInstance.nextUiMessageId();
             descriptor.districtNameIds.push_back(newId);
@@ -149,7 +149,6 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMe
                 }
 
                 for (auto &descriptor: instance.mapDescriptors()) {
-                    descriptor.districtNameIds.clear();
                     for (int i=0; i<descriptor.districtNames[locale].size(); ++i) {
                         messages[descriptor.districtNameIds[i]] = descriptor.districtNames[locale][i];
                     }

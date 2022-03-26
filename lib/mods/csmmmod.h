@@ -38,15 +38,12 @@ public:
 class ArcFileInterface {
 public:
     /**
-     * @brief Typedef for functions that modify the contents of .arc files; takes the extracted directory path as an argument.
+     * @brief Typedef for functions that modify the contents of .arc files; takes the extracted directory path as the last argument.
      */
     typedef std::function<void(const QString &, GameInstance &, const ModListType &, const QString &)> ModifyArcFunction;
 
     /**
      * @brief Used to modify .arc files on save.
-     * @param root the root directory of the game
-     * @param gameInstance the game instance
-     * @param modList the mod list
      * @return a mapping from the .arc file path relative to the game root to the function used to modify the .arc
      */
     virtual QMap<QString, ModifyArcFunction> modifyArcFile() = 0;
@@ -78,25 +75,19 @@ public:
 class UiMessageInterface {
 public:
     /**
-     * @brief These functions take the UiMessage to be loaded as an argument.
+     * @brief These functions take the UiMessage to be loaded as the last argument.
      */
     typedef std::function<void(const QString &, GameInstance &, const ModListType &, const UiMessage &)> LoadMessagesFunction;
     /**
-     * @brief These functions take the UiMessage to be manipulated as an argument.
+     * @brief These functions take the UiMessage to be manipulated as the last argument.
      */
     typedef std::function<void(const QString &, GameInstance &, const ModListType &, UiMessage &)> SaveMessagesFunction;
 
     /**
-     * @param root the root directory of the game
-     * @param gameInstance the game instance object
-     * @param modList the mod list
      * @return a mapping from the language file path relative to root to a function for loading that language file
      */
     virtual QMap<QString, LoadMessagesFunction> loadUiMessages() = 0;
     /**
-     * @param root the root directory of the game
-     * @param gameInstance the game instance object
-     * @param modList the mod list
      * @return a mapping from the language file path relative to root to a function for freeing old l10n ids
      */
     virtual QMap<QString, SaveMessagesFunction> freeUiMessages() = 0;
@@ -108,9 +99,6 @@ public:
      */
     virtual void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) = 0;
     /**
-     * @param root the root directory of the game
-     * @param gameInstance the game instance object
-     * @param modList the mod list
      * @return a mapping from the language file path relative to root to a function for saving to the language file
      */
     virtual QMap<QString, SaveMessagesFunction> saveUiMessages() = 0;

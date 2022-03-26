@@ -46,7 +46,7 @@ void run(QStringList arguments)
 -- Make sure that you have installed the required external tools via the GUI --
     File -> (Re-)Download External Tools
 
-)").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
+)").arg(CSMM_VERSION));
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsOptions);
 
     QString commandsDescription = QString(R"(
