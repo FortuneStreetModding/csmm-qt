@@ -24,15 +24,6 @@ jobs:
       run: |
         brew install libarchive
         brew install yaml-cpp
-    
-    - name: Build libbecquerel
-      working-directory: ${{github.workspace}}
-      run: |
-        cd lib/libbecquerel
-        mkdir build
-        cd build
-        cmake ..
-        make
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
@@ -40,9 +31,9 @@ jobs:
         version: 5.15.2
         target: desktop
 
-    - name: Configure QMake
+    - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: qmake csmm.pro -config release
+      run: cmake .
 
     - name: Build
       working-directory: ${{github.workspace}}
@@ -68,24 +59,6 @@ jobs:
       with:
         submodules: true
 
-    - name: Build libbecquerel
-      working-directory: ${{github.workspace}}
-      run: |
-        cd lib/libbecquerel
-        mkdir build
-        cd build
-        cmake .. -G "MinGW Makefiles"
-        mingw32-make
-
-    - name: Build yaml-cpp
-      working-directory: ${{github.workspace}}
-      run: |
-        cd lib/yaml-cpp
-        mkdir build
-        cd build
-        cmake .. -G "MinGW Makefiles"
-        mingw32-make
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
       with:
@@ -93,9 +66,10 @@ jobs:
         target: desktop
         arch: win64_mingw81
 
-    - name: Configure QMake
+    - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: qmake csmm.pro
+      shell: bash
+      run: cmake . -G "MinGW Makefiles"
 
     - name: Build
       working-directory: ${{github.workspace}}
