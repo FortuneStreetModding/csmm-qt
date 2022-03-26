@@ -6,7 +6,7 @@
 #include <QSet>
 #include <QString>
 #include <QVector>
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 #include "fortunestreetdata.h"
 #include "music.h"
 #include "mutator/mutator.h"
