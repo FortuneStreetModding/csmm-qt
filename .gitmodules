@@ -6,3 +6,7 @@
 	path = lib/libbecquerel
 	url = https://github.com/FortuneStreetModding/libbecquerel
 	ignore = dirty
+[submodule "lib/pybind11"]
+	path = lib/pybind11
+	url = https://github.com/pybind/pybind11
+	ignore = dirty

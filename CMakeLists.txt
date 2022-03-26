@@ -248,6 +248,10 @@ else()
     target_link_libraries(csmm PRIVATE yaml-cpp)
 endif()
 
+set(PYBIND11_FINDPYTHON ON)
+add_subdirectory(lib/pybind11)
+target_link_libraries(csmm PRIVATE pybind11::embed)
+
 target_include_directories(csmm PRIVATE lib/libbecquerel)
 add_subdirectory(lib/libbecquerel)
 target_link_libraries(csmm PRIVATE becquerel)
