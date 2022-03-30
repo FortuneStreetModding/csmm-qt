@@ -74,6 +74,7 @@ void run(QStringList arguments)
     QCommandLineOption wiimmfiOption(QStringList() << "w" << "wiimmfi", "Whether to patch for wiimmfi or not <0=no | 1=yes (default)>.", "wiimmfi");
     QCommandLineOption displayMapNameInResultsOption(QStringList() << "d" << "displayMapInResults", "Whether to display the map name in results screen <0=no | 1=yes (default)>", "displayMapInResults");
     QCommandLineOption updateMinimapIconsOption("updateMinimapIcons", "Whether to let CSMM update minimap icons to accomodate event squares <0=no | 1=yes (default)>", "updateMinimapIcons");
+    QCommandLineOption addAuthorToDescriptionOption("addAuthorToDescription", "Whether to append the author of the map to the map description <0=no (default) | 1=yes>", "addAuthorToDescription");
     QCommandLineOption witUrlOption("wit-url", "The URL where to download WIT", "url", WIT_URL);
     QCommandLineOption wszstUrlOption("wszst-url","The URL where to download WSZST", "url", WSZST_URL);
     QCommandLineOption helpOption(QStringList() << "h" << "?" << "help", "Show the help");
@@ -287,6 +288,7 @@ void run(QStringList arguments)
 
         parser.addOption(displayMapNameInResultsOption);
         parser.addOption(updateMinimapIconsOption);
+        parser.addOption(addAuthorToDescriptionOption);
         parser.addOption(wiimmfiOption);
 
         parser.process(arguments);
@@ -333,6 +335,8 @@ void run(QStringList arguments)
                         optionalPatches.insert(Wiimmfi);
                     if(!(parser.isSet(updateMinimapIconsOption) && parser.value(updateMinimapIconsOption).toInt() == 0))
                         optionalPatches.insert(UpdateMinimapIcons);
+                    if(!(parser.isSet(addAuthorToDescriptionOption) && parser.value(addAuthorToDescriptionOption).toInt() == 0))
+                        optionalPatches.insert(AddAuthorToDescription);
 
                     if(optionalPatches.contains(Wiimmfi)) {
                         cout << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.\n";

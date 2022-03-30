@@ -83,6 +83,7 @@
     <addaction name="actionPatch_SaveId"/>
     <addaction name="actionDisplay_Map_Name_On_Results_Screen"/>
     <addaction name="actionUpdate_Minimap_Icons"/>
+    <addaction name="actionAppend_Author_to_Map_Description"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -229,6 +230,14 @@
    </property>
    <property name="text">
     <string>Update Minimap Icons</string>
+   </property>
+  </action>
+  <action name="actionAppend_Author_to_Map_Description">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Append Author to Map Description</string>
    </property>
   </action>
  </widget>

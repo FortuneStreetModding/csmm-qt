@@ -113,7 +113,7 @@ static const auto REG_WIFI_FR = re("(?:Wi-Fi|CWF|Connexion)\\sNintendo");
 static const auto REG_WIFI_SU = re("(?:Conexión(?:\\s|(<n>))Wi-Fi|CWF)\\sde(?:\\s|(<n>))Nintendo(\\.?)");
 static const auto REG_WIFI = re("Nintendo\\s(?:Wi-Fi\\sConnection|WFC)");
 
-static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi) {
+static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const QDir &dir, bool patchWiimmfi, bool addAuthorToMapDescription) {
     qDebug() << "Running writeLocalizationFiles()";
     // Key = locale, Value = file contents
     QMap<QString, UiMessage> uiMessages;
@@ -191,7 +191,10 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
             if (locale == "uk") locale = "en";
             // if there is no localization for this locale, use the english variant as default
             if (!mapDescriptor.descs.contains(locale) || mapDescriptor.descs[locale].trimmed().isEmpty()) {
-                uiMessage[mapDescriptor.descMsgId] = mapDescriptor.descs["en"];
+                locale = "en";
+            }
+            if(addAuthorToMapDescription && !mapDescriptor.authors.isEmpty()) {
+                uiMessage[mapDescriptor.descMsgId] = mapDescriptor.descs[locale] + " [" + mapDescriptor.authors.join(", ") + "]";
             } else {
                 uiMessage[mapDescriptor.descMsgId] = mapDescriptor.descs[locale];
             }
@@ -788,7 +791,8 @@ QFuture<void> saveDir(const QDir &output, QVector<MapDescriptor> &descriptors, c
     bool patchWiimmfi = optionalPatches.contains(Wiimmfi);
     bool patchResultBoardName = optionalPatches.contains(ResultBoardName);
     bool updateMinimapIcons = optionalPatches.contains(UpdateMinimapIcons);
-    writeLocalizationFiles(descriptors, output, patchWiimmfi);
+    bool addAuthorToMapDescription = optionalPatches.contains(AddAuthorToDescription);
+    writeLocalizationFiles(descriptors, output, patchWiimmfi, addAuthorToMapDescription);
     applyAllBspatches(output);
     brstmInject(output, descriptors, tmpDir);
     auto fut = AsyncFuture::observe(patchMainDolAsync(descriptors, output, optionalPatches))

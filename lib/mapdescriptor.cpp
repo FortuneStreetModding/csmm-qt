@@ -209,7 +209,8 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && internalName == other.internalName
             && mapDescriptorFilePath == other.mapDescriptorFilePath
             && districtNames == other.districtNames
-            && districtNameIds == other.districtNameIds;
+            && districtNameIds == other.districtNameIds
+            && std::equal(std::begin(authors), std::end(authors), std::begin(other.authors));
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
@@ -332,6 +333,17 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
                 auto convVal = QString::fromStdString(val.as<std::string>());
                 districtNames[key].push_back(convVal);
             }
+        }
+    } else {
+        districtNames = VanillaDatabase::getVanillaDistrictNames();
+    }
+
+    if (yaml["authors"]) {
+        auto authorNodes = yaml["authors"];
+        for (auto it=authorNodes.begin(); it!=authorNodes.end(); ++it) {
+            const YAML::Node& authorNode = *it;
+            auto authorName = QString::fromStdString(authorNode["name"].as<std::string>());
+            authors.append(authorName);
         }
     } else {
         districtNames = VanillaDatabase::getVanillaDistrictNames();

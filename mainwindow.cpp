@@ -426,8 +426,9 @@ QSet<OptionalPatch> MainWindow::getOptionalPatches(bool packed) {
         optionalPatches.insert(ResultBoardName);
     if(packed && ui->actionPatch_Wiimmfi->isChecked())
         optionalPatches.insert(Wiimmfi);
-    if (ui->actionUpdate_Minimap_Icons->isChecked()) {
+    if (ui->actionUpdate_Minimap_Icons->isChecked())
         optionalPatches.insert(UpdateMinimapIcons);
-    }
+    if (ui->actionAppend_Author_to_Map_Description->isChecked())
+        optionalPatches.insert(AddAuthorToDescription);
     return optionalPatches;
 }

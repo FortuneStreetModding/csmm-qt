@@ -91,6 +91,7 @@ struct MapDescriptor {
     QMap<QString, QStringList> districtNames;
     QVector<quint32> districtNameIds;
     QMap<QString, QSharedPointer<Mutator>> mutators;
+    QStringList authors;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 

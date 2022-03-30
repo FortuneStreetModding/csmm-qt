@@ -4,7 +4,8 @@
 enum OptionalPatch {
     Wiimmfi = 1,
     ResultBoardName = 2,
-    UpdateMinimapIcons = 3
+    UpdateMinimapIcons = 3,
+    AddAuthorToDescription = 4
 };
 
 #endif // OPTIONALPATCH_H
