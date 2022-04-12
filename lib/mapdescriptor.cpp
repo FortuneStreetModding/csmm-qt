@@ -240,7 +240,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     }
     switchRotationOrigins.clear();
     for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
-        switchRotationOrigins.append({originPoint["x"].as<float>(), originPoint["y"].as<float>(),});
+        switchRotationOrigins.push_back({originPoint["x"].as<float>(), originPoint["y"].as<float>()});
     }
     if(yaml["looping"]) {
         auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();

@@ -90,7 +90,7 @@ void MapSwitchParamTable::readRotationOriginPoints(quint32 address, QDataStream 
             stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
             float dummy;
             stream >> point.x >> dummy /* ignore Z value */ >> point.y;
-            mapDescriptor.switchRotationOrigins.append(point);
+            mapDescriptor.switchRotationOrigins.push_back(point);
         }
     }
 }
