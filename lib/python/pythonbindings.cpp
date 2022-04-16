@@ -48,15 +48,6 @@ static void bindStdArray(pybind11::handle h, const std::string &name, Args &&...
     bindConstContainerOps(cls, name);
 }
 
-template<class T, class ...Args>
-static void bindQVector(pybind11::handle h, const std::string &name, Args &&...args) {
-    pybind11::class_<QVector<T>> cls(h, name.c_str(), std::forward(args)...);
-    cls.def(pybind11::init<>());
-    pybind11::detail::vector_if_copy_constructible<QVector<T>, decltype(cls)>(cls);
-    pybind11::detail::vector_accessor<QVector<T>, decltype(cls)>(cls);
-    bindConstContainerOps(cls, name);
-}
-
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     pybind11::enum_<RuleSet>(m, "RuleSet")
             .value("Easy", Easy)
@@ -66,16 +57,36 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .value("DragonQuest", DragonQuest)
             .value("Mario", Mario);
 
+    pybind11::enum_<BgmId> bgmIdEnum(m, "BgmId");
+    auto &bgmIdMap = Bgm::bgmIdMapping();
+    for (auto it=bgmIdMap.begin(); it!=bgmIdMap.end(); ++it) {
+        bgmIdEnum.value(it.key().toUtf8(), it.value());
+    }
+
+    pybind11::enum_<MusicType> musicTypeEnum(m, "MusicType");
+    auto &musicTypeMap = Music::stringToMusicTypeMapping();
+    for (auto it=musicTypeMap.begin(); it!=musicTypeMap.end(); ++it) {
+        musicTypeEnum.value(it.key().toUtf8(), it.value());
+    }
+
     pybind11::class_<OriginPoint>(m, "OriginPoint")
             .def(pybind11::init([](float x, float y) { return OriginPoint{x, y}; }), pybind11::arg("x"),  pybind11::arg("y"))
             .def_readwrite("x", &OriginPoint::x)
             .def_readwrite("y", &OriginPoint::y);
 
+    pybind11::class_<MusicEntry>(m, "MusicEntry")
+            .def_readwrite("brstmBaseFilename", &MusicEntry::brstmBaseFilename)
+            .def_readwrite("volume", &MusicEntry::volume)
+            .def_readwrite("brsarIndex", &MusicEntry::brsarIndex)
+            .def_readwrite("brstmFileSize", &MusicEntry::brstmFileSize);
+
     bindStdArray<bool, 128>(m, "VentureCardTable");
 
     bindStdArray<QString, 4>(m, "FrbFiles");
 
-    bindQVector<OriginPoint>(m, "OriginPoints");
+    pybind11::bind_vector<std::vector<OriginPoint>>(m, "OriginPoints");
+
+    pybind11::bind_map<std::map<MusicType, MusicEntry>>(m, "MusicEntryTable");
 
     pybind11::class_<MapDescriptor>(m, "MapDescriptor")
             .def(pybind11::init<>())
@@ -94,5 +105,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("frbFiles", &MapDescriptor::frbFiles)
             .def_readwrite("switchRotationOrigins", &MapDescriptor::switchRotationOrigins)
             .def_readwrite("theme", &MapDescriptor::theme)
-            .def_readwrite("background", &MapDescriptor::background);
+            .def_readwrite("background", &MapDescriptor::background)
+            .def_readwrite("bgmId", &MapDescriptor::bgmId)
+            .def_readwrite("mapIcon", &MapDescriptor::mapIcon)
+            .def_readwrite("music", &MapDescriptor::music);
 }

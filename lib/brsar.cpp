@@ -313,8 +313,8 @@ void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
     int brsarIndex = brsarIndex_min;
     for (int i=0; i<descriptors.length(); i++) {
         auto &descriptor = descriptors[i];
-        auto keys = descriptor.music.keys();
-        for (auto &musicType: keys) {
+        for (auto &musicTypeEnt: descriptor.music) {
+            auto &musicType = musicTypeEnt.first;
             if(brsarIndex<brsarIndex_max) {
                 auto &musicEntry = descriptor.music[musicType];
                 bool isBgm = Music::musicTypeIsBgm(musicType);

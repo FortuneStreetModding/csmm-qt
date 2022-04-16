@@ -11,8 +11,8 @@ quint32 MusicTable::writeBgmTable(const QVector<MapDescriptor> &descriptors) {
         QVector<quint32> mapMusicTable;
         // get the BGM music types only
         QVector<MusicType> bgmOnlyMusicTypes;
-        auto keys = descriptor.music.keys();
-        for (auto &musicType: keys) {
+        for (auto &ent: descriptor.music) {
+            auto &musicType = ent.first;
             if(Music::musicTypeIsBgm(musicType))
                 bgmOnlyMusicTypes.append(musicType);
         }
@@ -23,7 +23,7 @@ quint32 MusicTable::writeBgmTable(const QVector<MapDescriptor> &descriptors) {
             // write the original bgmid (the value to look for)
             mapMusicTable.append(musicType);
             // write the new brsar index (the value which shall be replaced)
-            mapMusicTable.append(descriptor.music[musicType].brsarIndex);
+            mapMusicTable.append(descriptor.music.at(musicType).brsarIndex);
         }
         if(bgmOnlyMusicTypes.empty()) {
             table.append(0);
@@ -40,8 +40,8 @@ quint32 MusicTable::writeMeTable(const QVector<MapDescriptor> &descriptors) {
         QVector<quint32> mapMusicTable;
         // get the ME music types only
         QVector<MusicType> meOnlyMusicTypes;
-        auto keys = descriptor.music.keys();
-        for (auto &musicType: keys) {
+        for (auto &ent: descriptor.music) {
+            auto &musicType = ent.first;
             if(!Music::musicTypeIsBgm(musicType))
                 meOnlyMusicTypes.append(musicType);
         }
@@ -52,7 +52,7 @@ quint32 MusicTable::writeMeTable(const QVector<MapDescriptor> &descriptors) {
             // write the original meId (the value to look for)
             mapMusicTable.append(musicType);
             // write the new brsar index (the value which shall be replaced)
-            mapMusicTable.append(descriptor.music[musicType].brsarIndex);
+            mapMusicTable.append(descriptor.music.at(musicType).brsarIndex);
         }
         if(meOnlyMusicTypes.empty()) {
             table.append(0);
@@ -187,7 +187,8 @@ void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, cons
     DolIOTable::saveFiles(root, gameInstance, modList);
 
     for (auto &descriptor: gameInstance.mapDescriptors()) {
-        for (auto &musicEntry: descriptor.music) {
+        for (auto &mapEnt: descriptor.music) {
+            auto &musicEntry = mapEnt.second;
             QFileInfo brstmFileInfo(QDir(root).filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename+".brstm"));
             if (!brstmFileInfo.exists()) {
                 throw ModException(QString("file %1 doesn't exist").arg(brstmFileInfo.absoluteFilePath()));

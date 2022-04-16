@@ -99,7 +99,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     });
     setCellWidget(row, colIdx++, exportYamlButton);
 
-    setItem(row, colIdx++, readOnlyItem(descriptor.names["en"]));
+    setItem(row, colIdx++, readOnlyItem(descriptor.names.at("en")));
 
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.mapSet), MAP_SET_TYPE));
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.zone), ZONE_TYPE));
@@ -159,9 +159,9 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.nameMsgId)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.descMsgId)));
 
-    setItem(row, colIdx++, readOnlyItem(descriptor.descs["en"]));
+    setItem(row, colIdx++, readOnlyItem(descriptor.descs.at("en")));
     setItem(row, colIdx++, readOnlyItem(descriptor.internalName));
-    setItem(row, colIdx++, readOnlyItem(descriptor.districtNames["en"].join("; ")));
+    setItem(row, colIdx++, readOnlyItem(descriptor.districtNames.at("en").join("; ")));
     QStringList districtNameIdStrs;
     for (quint32 v: descriptor.districtNameIds) {
         districtNameIdStrs.push_back(QString::number(v));

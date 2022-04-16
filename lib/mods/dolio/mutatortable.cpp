@@ -3,8 +3,8 @@
 
 quint32 MutatorTable::writeMutatorData(const MapDescriptor &descriptor) {
     QVector<quint32> data;
-    for(auto& mutator : descriptor.mutators) {
-        data.append(mutator->toBytes());
+    for(auto& mutatorEnt : descriptor.mutators) {
+        data.append(mutatorEnt.second->toBytes());
     }
     // zero-terminate the mutator list
     data.append(0);
@@ -96,7 +96,7 @@ void MutatorTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescr
                 auto mutator = Mutator::fromBytes(stream);
                 while(!mutator.isNull()) {
                     mutator = Mutator::fromBytes(stream);
-                    descriptor.mutators.insert(mutatorTypeToString(mutator->type),mutator);
+                    descriptor.mutators.emplace(mutatorTypeToString(mutator->type), mutator);
                 }
 
                 stream.device()->seek(pos);

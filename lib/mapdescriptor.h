@@ -68,12 +68,12 @@ struct MapDescriptor {
     quint32 maxDiceRoll = 0;
     std::array<bool, 128> ventureCards = {false};
     std::array<QString, 4> frbFiles;
-    QVector<OriginPoint> switchRotationOrigins;
+    std::vector<OriginPoint> switchRotationOrigins;
     BoardTheme theme = Mario;
     QString background;
     BgmId bgmId = BGM_MAP_CIRCUIT;
     QString mapIcon;
-    QMap<MusicType, MusicEntry> music;
+    std::map<MusicType, MusicEntry> music;
     LoopingMode loopingMode = None;
     float loopingModeRadius = 0;
     float loopingModeHorizontalPadding = 0;
@@ -84,13 +84,13 @@ struct MapDescriptor {
     quint32 tourClearRank = 2;
     quint32 nameMsgId = 0;
     quint32 descMsgId = 0;
-    QMap<QString, QString> names;
-    QMap<QString, QString> descs;
+    std::map<QString, QString> names;
+    std::map<QString, QString> descs;
     QString internalName;
     QString mapDescriptorFilePath;
-    QMap<QString, QStringList> districtNames;
-    QVector<quint32> districtNameIds;
-    QMap<QString, QSharedPointer<Mutator>> mutators;
+    std::map<QString, QStringList> districtNames;
+    std::vector<quint32> districtNameIds;
+    std::map<QString, QSharedPointer<Mutator>> mutators;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 

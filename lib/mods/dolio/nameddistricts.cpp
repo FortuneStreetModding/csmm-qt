@@ -56,7 +56,7 @@ void NamedDistricts::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDes
             //qDebug() << startVal << tableLen;
             mapDescriptor.districtNameIds.clear();
             for (quint32 i=startVal; i<startVal+tableLen; ++i) {
-                mapDescriptor.districtNameIds.append(i);
+                mapDescriptor.districtNameIds.push_back(i);
             }
         }
     } else {
@@ -67,7 +67,7 @@ void NamedDistricts::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDes
             for (int j = i; j < mapDescriptors.size(); j += 0x15) {
                 mapDescriptors[j].districtNameIds.clear();
                 for (quint32 k=startVal; k<startVal+tableLen; ++k) {
-                    mapDescriptors[j].districtNameIds.append(k);
+                    mapDescriptors[j].districtNameIds.push_back(k);
                 }
             }
         }

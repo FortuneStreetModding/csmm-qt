@@ -156,7 +156,8 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             // check if <MAPNAME>-Music.zip also needs to be extracted
             if(!descriptor.music.empty()) {
                 bool allBrstmsAvailable = true;
-                for (MusicEntry &musicEntry: descriptor.music) {
+                for (auto &mapEnt: descriptor.music) {
+                    auto &musicEntry = mapEnt.second;
                     QString extractedBrstmFile = QFileInfo(extractedYamlFile).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
                     if(!QFileInfo::exists(extractedBrstmFile)) {
                         allBrstmsAvailable = false;
@@ -230,7 +231,8 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 QFile::copy(mapIconFileFrom, mapIconFileTo);
             }
             // import music if needed
-            for (MusicEntry &musicEntry: descriptor.music) {
+            for (auto &mapEnt: descriptor.music) {
+                auto &musicEntry = mapEnt.second;
                 auto brstmFileFrom = QFileInfo(yamlFileSrc).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
                 QFileInfo brstmFileInfo(brstmFileFrom);
                 if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {

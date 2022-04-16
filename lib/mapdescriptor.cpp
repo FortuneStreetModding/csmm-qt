@@ -42,16 +42,16 @@ QString MapDescriptor::toYaml() const {
 
     out << YAML::Key << "name" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk" || names[fslocale].isEmpty())
+        if(fslocale == "uk" || names.at(fslocale).isEmpty())
             continue;
-        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << names[fslocale].toStdString();
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << names.at(fslocale).toStdString();
     }
     out << YAML::EndMap;
     out << YAML::Key << "desc" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk" || names[fslocale].isEmpty())
+        if(fslocale == "uk" || names.at(fslocale).isEmpty())
             continue;
-        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << descs[fslocale].toStdString();
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << descs.at(fslocale).toStdString();
     }
     out << YAML::EndMap;
     out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
@@ -73,16 +73,16 @@ QString MapDescriptor::toYaml() const {
     if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId) {
         if(music.empty()) {
             out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
-        } else if(!music.contains(MusicType::map)) {
+        } else if(!music.count(MusicType::map)) {
             out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
         }
     }
 
     if(!music.empty()) {
         out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
-        auto keys = music.keys();
-        for (auto &musicType: keys) {
-            auto musicEntry = music[musicType];
+        for (auto &musicTypeEnt: music) {
+            auto &musicType = musicTypeEnt.first;
+            auto musicEntry = music.at(musicType);
             out << YAML::Key << Music::musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
         }
         out << YAML::EndMap;
@@ -126,8 +126,8 @@ QString MapDescriptor::toYaml() const {
     if(!mutators.empty()) {
         out << YAML::Key << "mutators" << YAML::Value << YAML::BeginMap;
         for (auto &mutator: mutators) {
-            out << YAML::Key << mutatorTypeToString(mutator->type).toStdString() << YAML::Value;
-            mutator->toYaml(out);
+            out << YAML::Key << mutatorTypeToString(mutator.second->type).toStdString() << YAML::Value;
+            mutator.second->toYaml(out);
         }
         out << YAML::EndMap;
     }
@@ -143,10 +143,10 @@ QString MapDescriptor::toYaml() const {
     if (!districtNames.empty()) {
         out << YAML::Key << "districtNames" << YAML::Value << YAML::BeginMap;
         for (auto &fslocale: FS_LOCALES) {
-            if (fslocale == "uk" || districtNames[fslocale].isEmpty())
+            if (fslocale == "uk" || districtNames.at(fslocale).isEmpty())
                 continue;
             out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginSeq;
-            for (auto &distName: districtNames[fslocale]) {
+            for (auto &distName: districtNames.at(fslocale)) {
                 out << distName.toStdString();
             }
             out << YAML::EndSeq;
@@ -164,13 +164,13 @@ QString MapDescriptor::toYaml() const {
 bool MapDescriptor::operator==(const MapDescriptor &other) const {
     if(mutators.size()!=other.mutators.size())
         return false;
-    auto keys = mutators.keys();
-    for (auto &mutatorName: keys) {
-        if(!other.mutators.contains(mutatorName)) {
+    for (auto &mutatorEnt: mutators) {
+        auto &mutatorName = mutatorEnt.first;
+        if(!other.mutators.count(mutatorName)) {
             return false;
         }
-        auto mutator = mutators[mutatorName];
-        auto otherMutator = other.mutators[mutatorName];
+        auto mutator = mutators.at(mutatorName);
+        auto otherMutator = other.mutators.at(mutatorName);
         if(*mutator != *otherMutator)
             return false;
     }
@@ -219,8 +219,8 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     for (auto it=yaml["desc"].begin(); it!=yaml["desc"].end(); ++it) {
         descs[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
     }
-    names.remove("uk");
-    descs.remove("uk");
+    names.erase("uk");
+    descs.erase("uk");
 
     ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
     theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
@@ -313,7 +313,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     if(yaml["mutators"]) {
         for (auto it=yaml["mutators"].begin(); it!=yaml["mutators"].end(); ++it) {
             auto mutatorStr = QString::fromStdString(it->first.as<std::string>());
-            mutators.insert(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
+            mutators.emplace(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
         }
     }
     if(yaml["ventureCards"]) {
@@ -334,7 +334,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             }
         }
     } else {
-        districtNames = VanillaDatabase::getVanillaDistrictNames();
+        districtNames = VanillaDatabase::getVanillaDistrictNames().toStdMap();
     }
 
     return true;
@@ -349,7 +349,7 @@ MapDescriptor &MapDescriptor::setFromImport(const MapDescriptor &other) {
 
 QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj) {
     // TODO add more info here?
-    debugStream << "MapDescriptor(" << obj.names["en"] << ", firstFile=" << obj.frbFiles[0] << ")";
+    debugStream << "MapDescriptor(" << obj.names.at("en") << ", firstFile=" << obj.frbFiles[0] << ")";
     return debugStream;
 }
 
