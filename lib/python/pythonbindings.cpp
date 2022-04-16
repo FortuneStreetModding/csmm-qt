@@ -69,6 +69,11 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
         musicTypeEnum.value(it.key().toUtf8(), it.value());
     }
 
+    pybind11::enum_<LoopingMode>(m, "LoopingMode")
+            .value("None", None)
+            .value("Vertical", Vertical)
+            .value("Both", Both);
+
     pybind11::class_<OriginPoint>(m, "OriginPoint")
             .def(pybind11::init([](float x, float y) { return OriginPoint{x, y}; }), pybind11::arg("x"),  pybind11::arg("y"))
             .def_readwrite("x", &OriginPoint::x)
@@ -108,5 +113,11 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("background", &MapDescriptor::background)
             .def_readwrite("bgmId", &MapDescriptor::bgmId)
             .def_readwrite("mapIcon", &MapDescriptor::mapIcon)
-            .def_readwrite("music", &MapDescriptor::music);
+            .def_readwrite("music", &MapDescriptor::music)
+            .def_readwrite("loopingMode", &MapDescriptor::loopingMode)
+            .def_readwrite("loopingModeRadius", &MapDescriptor::loopingModeRadius)
+            .def_readwrite("loopingModeHorizontalPadding", &MapDescriptor::loopingModeHorizontalPadding)
+            .def_readwrite("loopingModeVerticalSquareCount", &MapDescriptor::loopingModeVerticalSquareCount)
+            .def_readwrite("tourBankruptcyLimit", &MapDescriptor::tourBankruptcyLimit)
+            .def_readwrite("tourInitialCash", &MapDescriptor::tourInitialCash);
 }
