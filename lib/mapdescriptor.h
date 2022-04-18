@@ -53,6 +53,7 @@ enum Character : quint32 {
 };
 QString tourCharacterToString(Character character);
 Character stringToTourCharacter(const QString &str);
+const QMap<QString, Character> &stringToTourCharactersMapping();
 
 struct MapDescriptor {
     qint8 mapSet = -1;

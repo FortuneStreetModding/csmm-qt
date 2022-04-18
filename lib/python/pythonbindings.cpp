@@ -69,6 +69,12 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
         musicTypeEnum.value(it.key().toUtf8(), it.value());
     }
 
+    pybind11::enum_<Character> characterEnum(m, "Character");
+    auto &charactersMap = stringToTourCharactersMapping();
+    for (auto it = charactersMap.begin(); it != charactersMap.end(); ++it) {
+        characterEnum.value(it.key().toUtf8(), it.value());
+    }
+
     pybind11::enum_<LoopingMode>(m, "LoopingMode")
             .value("None", None)
             .value("Vertical", Vertical)
@@ -92,6 +98,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     pybind11::bind_vector<std::vector<OriginPoint>>(m, "OriginPoints");
 
     pybind11::bind_map<std::map<MusicType, MusicEntry>>(m, "MusicEntryTable");
+
+    bindStdArray<Character, 3>(m, "TourCharacters");
 
     pybind11::class_<MapDescriptor>(m, "MapDescriptor")
             .def(pybind11::init<>())
@@ -119,5 +127,9 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("loopingModeHorizontalPadding", &MapDescriptor::loopingModeHorizontalPadding)
             .def_readwrite("loopingModeVerticalSquareCount", &MapDescriptor::loopingModeVerticalSquareCount)
             .def_readwrite("tourBankruptcyLimit", &MapDescriptor::tourBankruptcyLimit)
-            .def_readwrite("tourInitialCash", &MapDescriptor::tourInitialCash);
+            .def_readwrite("tourInitialCash", &MapDescriptor::tourInitialCash)
+            .def_readwrite("tourCharacters", &MapDescriptor::tourCharacters)
+            .def_readwrite("tourClearRank", &MapDescriptor::tourClearRank)
+            .def_readwrite("nameMsgId", &MapDescriptor::nameMsgId)
+            .def_readwrite("descMsgId", &MapDescriptor::descMsgId);
 }

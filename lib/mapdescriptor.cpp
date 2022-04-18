@@ -392,6 +392,9 @@ QString tourCharacterToString(Character character) {
 Character stringToTourCharacter(const QString &str) {
     return stringToTourCharacters.value(str);
 }
+const QMap<QString, Character> &stringToTourCharactersMapping() {
+    return stringToTourCharacters;
+}
 
 void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
     // TODO improve error stuff
