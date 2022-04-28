@@ -94,7 +94,7 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> NamedDistricts::loadUiMe
                         distWord.replace("\\s", " ");
                         distName = distWord + distName;
                     }
-                    descriptor.districtNames[locale].append(distName);
+                    descriptor.districtNames[locale].push_back(distName);
                 }
             }
         };

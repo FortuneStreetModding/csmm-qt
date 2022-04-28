@@ -161,7 +161,8 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setItem(row, colIdx++, readOnlyItem(descriptor.descs.at("en")));
     setItem(row, colIdx++, readOnlyItem(descriptor.internalName));
-    setItem(row, colIdx++, readOnlyItem(descriptor.districtNames.at("en").join("; ")));
+    auto &distNames = descriptor.districtNames.at("en");
+    setItem(row, colIdx++, readOnlyItem(QStringList(distNames.begin(), distNames.end()).join("; ")));
     QStringList districtNameIdStrs;
     for (quint32 v: descriptor.districtNameIds) {
         districtNameIdStrs.push_back(QString::number(v));

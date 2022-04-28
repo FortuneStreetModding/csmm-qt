@@ -40,12 +40,13 @@ static void bindConstContainerOps(pybind11::class_<Cont> &cls, const std::string
 }
 
 template<class T, size_t N, class ...Args>
-static void bindStdArray(pybind11::handle h, const std::string &name, Args &&...args) {
+static pybind11::class_<std::array<T, N>> bindStdArray(pybind11::handle h, const std::string &name, Args &&...args) {
     pybind11::class_<std::array<T, N>> cls(h, name.c_str(), std::forward(args)...);
     cls.def(pybind11::init<>());
     pybind11::detail::vector_if_copy_constructible<std::array<T, N>, decltype(cls)>(cls);
     pybind11::detail::vector_accessor<std::array<T, N>, decltype(cls)>(cls);
     bindConstContainerOps(cls, name);
+    return cls;
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
@@ -101,6 +102,14 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
 
     bindStdArray<Character, 3>(m, "TourCharacters");
 
+    pybind11::bind_map<std::map<QString, QString>>(m, "LanguageTable");
+
+    pybind11::bind_vector<std::vector<QString>>(m, "StringList");
+
+    pybind11::bind_map<std::map<QString, std::vector<QString>>>(m, "ListLanguageTable");
+
+    pybind11::bind_vector<std::vector<quint32>>(m, "LanguageIdList");
+
     pybind11::class_<MapDescriptor>(m, "MapDescriptor")
             .def(pybind11::init<>())
             .def_readwrite("mapSet", &MapDescriptor::mapSet)
@@ -131,5 +140,11 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("tourCharacters", &MapDescriptor::tourCharacters)
             .def_readwrite("tourClearRank", &MapDescriptor::tourClearRank)
             .def_readwrite("nameMsgId", &MapDescriptor::nameMsgId)
-            .def_readwrite("descMsgId", &MapDescriptor::descMsgId);
+            .def_readwrite("descMsgId", &MapDescriptor::descMsgId)
+            .def_readwrite("names", &MapDescriptor::names)
+            .def_readwrite("descs", &MapDescriptor::descs)
+            .def_readwrite("internalName", &MapDescriptor::internalName)
+            .def_readwrite("mapDescriptorFilePath", &MapDescriptor::mapDescriptorFilePath)
+            .def_readwrite("districtNames", &MapDescriptor::districtNames)
+            .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds);
 }

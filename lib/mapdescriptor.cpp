@@ -143,7 +143,7 @@ QString MapDescriptor::toYaml() const {
     if (!districtNames.empty()) {
         out << YAML::Key << "districtNames" << YAML::Value << YAML::BeginMap;
         for (auto &fslocale: FS_LOCALES) {
-            if (fslocale == "uk" || districtNames.at(fslocale).isEmpty())
+            if (fslocale == "uk" || districtNames.at(fslocale).empty())
                 continue;
             out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginSeq;
             for (auto &distName: districtNames.at(fslocale)) {

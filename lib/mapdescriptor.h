@@ -89,7 +89,7 @@ struct MapDescriptor {
     std::map<QString, QString> descs;
     QString internalName;
     QString mapDescriptorFilePath;
-    std::map<QString, QStringList> districtNames;
+    std::map<QString, std::vector<QString>> districtNames;
     std::vector<quint32> districtNameIds;
     std::map<QString, QSharedPointer<Mutator>> mutators;
 

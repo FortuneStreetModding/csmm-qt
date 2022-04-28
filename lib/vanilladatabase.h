@@ -20,7 +20,7 @@ bool isDefaultVentureCards(const std::array<bool, 128> &ventureCards, RuleSet ru
 void setDefaultVentureCards(RuleSet ruleSet, std::array<bool, 128> &outVentureCards);
 QSet<QString> getVanillaIcons();
 const QMap<QString, QString> &localeToDistrictWord();
-const QMap<QString, QStringList> & getVanillaDistrictNames();
+const QMap<QString, std::vector<QString>> &getVanillaDistrictNames();
 }
 
 #endif // VANILLADATABASE_H
