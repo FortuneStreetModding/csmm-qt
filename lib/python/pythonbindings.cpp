@@ -104,6 +104,9 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("y", &OriginPoint::y);
 
     pybind11::class_<MusicEntry>(m, "MusicEntry")
+            .def(pybind11::init([](const QString &brstmBaseFilename, quint8 volume, qint32 brsarIndex, quint32 brstmFileSize) {
+                return MusicEntry{brstmBaseFilename, volume, brsarIndex, brstmFileSize};
+            }), pybind11::arg("brstmBaseFilename"), pybind11::arg("volume"), pybind11::arg("brsarIndex"), pybind11::arg("brstmFileSize"))
             .def_readwrite("brstmBaseFilename", &MusicEntry::brstmBaseFilename)
             .def_readwrite("volume", &MusicEntry::volume)
             .def_readwrite("brsarIndex", &MusicEntry::brsarIndex)
@@ -164,6 +167,33 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("mapDescriptorFilePath", &MapDescriptor::mapDescriptorFilePath)
             .def_readwrite("districtNames", &MapDescriptor::districtNames)
             .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds);
+
+    pybind11::class_<AddressMapper>(m, "AddressMapper")
+            .def("canConvertToFileAddress", &AddressMapper::canConvertToFileAddress)
+            .def("toFileAddress", &AddressMapper::toFileAddress)
+            .def("boomToFileAddress", &AddressMapper::boomToFileAddress)
+            .def("fileAddressToStandardVirtualAddress", &AddressMapper::fileAddressToStandardVirtualAddress)
+            .def("boomStreetToStandard", &AddressMapper::boomStreetToStandard)
+            .def("standardToBoomStreet", &AddressMapper::standardToBoomStreet)
+            .def("canConvertBoomStreetToStandard", &AddressMapper::canConvertBoomStreetToStandard);
+
+    pybind11::class_<FreeSpaceManager>(m, "FreeSpaceManager")
+            .def("addFreeSpace", &FreeSpaceManager::addFreeSpace)
+            .def("calculateTotalRemainingFreeSpace", &FreeSpaceManager::calculateTotalRemainingFreeSpace)
+            .def("calculateTotalFreeSpace", &FreeSpaceManager::calculateTotalFreeSpace)
+            .def("calculateLargestFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestFreeSpaceBlockSize)
+            .def("calculateLargestRemainingFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize)
+            //.def("allocateUnusedSpace", &FreeSpaceManager::allocateUnusedSpace) // TODO uncomment when QByteArray is bound
+            .def("calculateTotalRemainingFreeSpace", &FreeSpaceManager::calculateTotalRemainingFreeSpace)
+            .def("reset", &FreeSpaceManager::reset);
+
+    pybind11::class_<GameInstance>(m, "GameInstance")
+            .def_property("mapDescriptors",
+                          qNonConstOverload<>(&GameInstance::mapDescriptors),
+                          [](GameInstance &instance, const QVector<MapDescriptor> &descs) { instance.mapDescriptors() = descs; })
+            .def("addressMapper", &GameInstance::addressMapper)
+            .def("freeSpaceManager", qNonConstOverload<>(&GameInstance::freeSpaceManager))
+            .def("nextUiMessageId", &GameInstance::nextUiMessageId); // TODO add stuff
 
     pybind11::class_<CSMMMod, PyCSMMMod>(m, "CSMMMod")
             .def(pybind11::init<>())
