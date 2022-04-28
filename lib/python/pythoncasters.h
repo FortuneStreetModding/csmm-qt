@@ -9,6 +9,9 @@ namespace pybind11::detail {
 template<class T>
 struct type_caster<QVector<T>> : list_caster<QVector<T>, T> {};
 
+template<class T>
+struct type_caster<QSet<T>> : set_caster<QSet<T>, T> {};
+
 template <typename Type, typename Key, typename Value>
 struct qt_map_caster {
     using key_conv = make_caster<Key>;

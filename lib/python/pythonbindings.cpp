@@ -1,6 +1,7 @@
 #include "pythonbindings.h"
 #include <pybind11/embed.h>
 #include <pybind11/stl_bind.h>
+#include "lib/mods/csmmmod.h"
 
 static std::ostream &operator<<(std::ostream &stream, const QString &str) {
     return stream << str.toStdString();
@@ -48,6 +49,22 @@ static pybind11::class_<std::array<T, N>> bindStdArray(pybind11::handle h, const
     bindConstContainerOps(cls, name);
     return cls;
 }
+
+class PyCSMMMod : public virtual CSMMMod {
+public:
+    QString modId() const override {
+        PYBIND11_OVERRIDE_PURE(QString, CSMMMod, modId);
+    }
+    int priority() const override {
+        PYBIND11_OVERRIDE_PURE(int, CSMMMod, priority);
+    }
+    QSet<QString> depends() const override {
+        PYBIND11_OVERRIDE_PURE(QSet<QString>, CSMMMod, depends);
+    }
+    QSet<QString> after() const override {
+        PYBIND11_OVERRIDE_PURE(QSet<QString>, CSMMMod, after);
+    }
+};
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     pybind11::enum_<RuleSet>(m, "RuleSet")
@@ -147,4 +164,11 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("mapDescriptorFilePath", &MapDescriptor::mapDescriptorFilePath)
             .def_readwrite("districtNames", &MapDescriptor::districtNames)
             .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds);
+
+    pybind11::class_<CSMMMod, PyCSMMMod>(m, "CSMMMod")
+            .def(pybind11::init<>())
+            .def("modId", &CSMMMod::modId)
+            .def("priority", &CSMMMod::priority)
+            .def("depends", &CSMMMod::depends)
+            .def("after", &CSMMMod::after);
 }
