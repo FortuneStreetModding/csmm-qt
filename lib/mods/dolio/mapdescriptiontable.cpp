@@ -3,13 +3,13 @@
 #include "lib/fslocale.h"
 #include "lib/datafileset.h"
 
-quint32 MapDescriptionTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 MapDescriptionTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.descMsgId);
     return allocate(table, "MapDescriptionTable");
 }
 
-void MapDescriptionTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void MapDescriptionTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     short tableRowCount = (short)mapDescriptors.size();
     quint32 mapDescriptionTableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(mapDescriptionTableAddr);
@@ -23,7 +23,7 @@ void MapDescriptionTable::writeAsm(QDataStream &stream, const AddressMapper &add
     stream.skipRawData(4); stream << PowerPcAsm::addi(4, 4, v.lower);
 }
 
-void MapDescriptionTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void MapDescriptionTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         readVanillaTable(stream, mapDescriptors);
     } else {
@@ -53,7 +53,7 @@ bool MapDescriptionTable::readIsVanilla(QDataStream &stream, const AddressMapper
     return opcode == PowerPcAsm::subi(3, 3, 0x15);
 }
 
-void MapDescriptionTable::readVanillaTable(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors) {
+void MapDescriptionTable::readVanillaTable(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors) {
     quint32 descMsgIdTable[18];
     for (auto &elem: descMsgIdTable) {
         stream >> elem;

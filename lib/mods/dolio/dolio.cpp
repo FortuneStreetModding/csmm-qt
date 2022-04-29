@@ -52,7 +52,7 @@ quint32 DolIO::allocate(const QString &str) {
     return allocate(data, "");
 }
 
-void DolIO::write(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors, FreeSpaceManager &freeSpaceManager) {
+void DolIO::write(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, FreeSpaceManager &freeSpaceManager) {
     streamPtr = &stream;
     mapperPtr = &addressMapper;
     fsmPtr = &freeSpaceManager;

@@ -1,13 +1,13 @@
 #include "backgroundtable.h"
 #include "lib/powerpcasm.h"
 
-quint32 BackgroundTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 BackgroundTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(allocate(descriptor.background));
     return allocate(table, "BackgroundTable");
 }
 
-void BackgroundTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void BackgroundTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -20,7 +20,7 @@ void BackgroundTable::writeAsm(QDataStream &stream, const AddressMapper &address
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca90)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void BackgroundTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
+void BackgroundTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0xC);
     }

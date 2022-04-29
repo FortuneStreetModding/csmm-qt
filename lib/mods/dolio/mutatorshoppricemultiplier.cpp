@@ -2,7 +2,7 @@
 #include "lib/powerpcasm.h"
 #include "lib/mutator/mutator.h"
 
-void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &) {
+void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
     // --- Base Shop Price Multiplier ---
     {
         quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8008ee8c);
@@ -141,5 +141,5 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     return asm_;
 }
 
-void MutatorShopPriceMultiplier::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) { /* crab nothing to do crab */ }
+void MutatorShopPriceMultiplier::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
 

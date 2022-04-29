@@ -1,7 +1,7 @@
 #include "frbmaptable.h"
 #include "lib/powerpcasm.h"
 
-quint32 FrbMapTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 FrbMapTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
         for (auto &frbFile: descriptor.frbFiles) {
@@ -11,7 +11,7 @@ quint32 FrbMapTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     return allocate(table, "FrbMapTable");
 }
 
-void FrbMapTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void FrbMapTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -40,7 +40,7 @@ void FrbMapTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapp
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb10)); stream << PowerPcAsm::lwz(0, 0xc, 4);
 }
 
-void FrbMapTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
+void FrbMapTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x18);
     }

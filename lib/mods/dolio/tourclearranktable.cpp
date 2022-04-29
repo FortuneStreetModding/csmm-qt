@@ -1,13 +1,13 @@
 #include "tourclearranktable.h"
 #include "lib/powerpcasm.h"
 
-quint32 TourClearRankTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 TourClearRankTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.tourClearRank);
     return allocate(table, "TourClearRankTable");
 }
 
-void TourClearRankTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void TourClearRankTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -31,7 +31,7 @@ void TourClearRankTable::writeAsm(QDataStream &stream, const AddressMapper &addr
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021212c)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void TourClearRankTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void TourClearRankTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x18);
     }

@@ -1,7 +1,7 @@
 #include "expandmapsinzone.h"
 #include "lib/powerpcasm.h"
 
-void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &descriptors) {
+void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &descriptors) {
     int mapsPerMapSetAndZone[2*3] = {0};
     for (auto &descriptor: descriptors) {
         if (descriptor.mapSet == 0 || descriptor.mapSet == 1) {
@@ -279,6 +279,6 @@ void ExpandMapsInZone::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream << PowerPcAsm::addi(1, 1, N);
 }
 
-void ExpandMapsInZone::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) {
+void ExpandMapsInZone::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) {
     // nothing to do
 }

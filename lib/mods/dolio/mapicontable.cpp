@@ -6,7 +6,7 @@
 #include "lib/uimenu1900a.h"
 #include "lib/vanilladatabase.h"
 
-void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     auto mapIcons = writeIconStrings(mapDescriptors);
     QMap<QString, quint32> iconTableMap;
     quint32 iconTableAddr = writeIconTable(mapIcons, iconTableMap);
@@ -128,7 +128,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineWriteSubroutineSkipMapUnlockCheck);
 }
 
-void MapIconTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
+void MapIconTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
     for (auto &mapDescriptor: mapDescriptors) {
         if (isVanilla) {
             // in vanilla there is a mapping of bgXXX to p_bg_XXX which we will assume here without actually reading what is inside the main.dol
@@ -164,7 +164,7 @@ bool MapIconTable::readIsVanilla(QDataStream &stream, const AddressMapper &addre
     return opcode == PowerPcAsm::cmpw(28, 30);
 }
 
-QMap<QString, quint32> MapIconTable::writeIconStrings(const QVector<MapDescriptor> &mapDescriptors) {
+QMap<QString, quint32> MapIconTable::writeIconStrings(const std::vector<MapDescriptor> &mapDescriptors) {
     // Find out which map icons exist
     QSet<QString> allUniqueMapIcons;
     for (auto &mapDescriptor: mapDescriptors) {
@@ -206,7 +206,7 @@ quint32 MapIconTable::writeIconTable(const QMap<QString, quint32> &mapIcons, QMa
     return iconTableAddr;
 }
 
-quint32 MapIconTable::writeMapIconPointerTable(const QVector<MapDescriptor> &mapDescriptors, const QMap<QString, quint32> &iconTableMap) {
+quint32 MapIconTable::writeMapIconPointerTable(const std::vector<MapDescriptor> &mapDescriptors, const QMap<QString, quint32> &iconTableMap) {
     QVector<quint32> mapIconTable;
     for (auto &mapDescriptor: mapDescriptors) {
         quint32 mapIconAddr = 0;

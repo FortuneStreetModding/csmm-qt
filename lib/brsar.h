@@ -169,7 +169,7 @@ struct File {
     friend QDataStream &operator>>(QDataStream &stream, File &data);
 };
 
-void patch(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors);
+void patch(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors);
 bool containsCsmmEntries(QDataStream &stream);
 
 }

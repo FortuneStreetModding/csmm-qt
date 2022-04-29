@@ -1,6 +1,6 @@
 #include "doliotable.h"
 
-void DolIOTable::readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors) {
+void DolIOTable::readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) {
     bool isVanilla = readIsVanilla(stream, addressMapper);
     qint16 rowCount = readTableRowCount(stream, addressMapper, isVanilla);
     if (rowCount != -1 && rowCount != mapDescriptors.size()) {

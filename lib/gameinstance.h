@@ -9,16 +9,16 @@
 
 struct GameInstance {
 public:
-    GameInstance(const QVector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager);
-    QVector<MapDescriptor> &mapDescriptors();
-    const QVector<MapDescriptor> &mapDescriptors() const;
+    GameInstance(const std::vector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager);
+    std::vector<MapDescriptor> &mapDescriptors();
+    const std::vector<MapDescriptor> &mapDescriptors() const;
     const AddressMapper &addressMapper() const;
     FreeSpaceManager &freeSpaceManager();
     const FreeSpaceManager &freeSpaceManager() const;
     int nextUiMessageId();
-    static GameInstance fromGameDirectory(const QString &dir, const QVector<MapDescriptor> &descriptors = {});
+    static GameInstance fromGameDirectory(const QString &dir, const std::vector<MapDescriptor> &descriptors = {});
 private:
-    QVector<MapDescriptor> descriptors;
+    std::vector<MapDescriptor> descriptors;
     AddressMapper mapper;
     FreeSpaceManager fsm;
     int curUiMessageId;

@@ -396,7 +396,7 @@ const QMap<QString, Character> &stringToTourCharactersMapping() {
     return stringToTourCharacters;
 }
 
-void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
+void getPracticeBoards(const std::vector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
     // TODO improve error stuff
     easyPracticeBoard = -1;
     standardPracticeBoard = -1;
@@ -427,7 +427,7 @@ void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPra
     }
 }
 
-QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList &errorMsgs) {
+QMap<int, int> getMapSets(const std::vector<MapDescriptor> &descriptors, QStringList &errorMsgs) {
     QMap<int, int> result;
     for (int i=0; i<descriptors.size(); ++i) {
         if (descriptors[i].mapSet == 0 || descriptors[i].mapSet == 1) {
@@ -447,7 +447,7 @@ QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList
     return result;
 }
 
-QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs) {
+QMap<int, int> getMapZones(const std::vector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs) {
     QMap<int, int> result;
     QMap<int, int> numMapsPerZone, numMapsPerZoneOtherSet;
     for (int i=0; i<descriptors.size(); ++i) {
@@ -474,7 +474,7 @@ QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet
     return result;
 }
 
-QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs) {
+QMap<int, int> getMapOrderings(const std::vector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs) {
     QMap<int, int> result;
 
     for (int i=0; i<descriptors.size(); ++i) {

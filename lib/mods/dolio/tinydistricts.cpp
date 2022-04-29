@@ -43,7 +43,7 @@ static const quint16 VALUE_MULTIPLIER_TABLE[8*9] = {
     0, 0x180, 0x200, 0x400, 0xA00, 0xC00, 0xE00,0x1000,0x1300
 };
 
-void TinyDistricts::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void TinyDistricts::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     QVector<quint16> table;
     for (const auto & v : PRICE_MULTIPLIER_TABLE) {
         table.append(v);
@@ -99,4 +99,4 @@ QVector<quint32> TinyDistricts::writeSingleShopDistrictCheckRoutine(const Addres
 }
 
 
-void TinyDistricts::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) { /* crab nothing to do crab */ }
+void TinyDistricts::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }

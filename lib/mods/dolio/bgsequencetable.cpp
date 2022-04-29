@@ -1,7 +1,7 @@
 #include "bgsequencetable.h"
 #include "lib/powerpcasm.h"
 
-quint32 BGSequenceTable::writeTable(const QVector<MapDescriptor> &descriptors, quint32 bgSequenceMarioStadium) {
+quint32 BGSequenceTable::writeTable(const std::vector<MapDescriptor> &descriptors, quint32 bgSequenceMarioStadium) {
     QVector<quint32> table;
     // the BGSequence is only used for mario stadium to animate the Miis playing baseball in the background.
     // As such this will be hardcoded whenever bg004 is selected.
@@ -9,7 +9,7 @@ quint32 BGSequenceTable::writeTable(const QVector<MapDescriptor> &descriptors, q
     return allocate(table, "BGSequenceTable");
 }
 
-void BGSequenceTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void BGSequenceTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     // hardcoded virtual address for the parameter table on how the Miis are being animated to play baseball in the background
     quint32 bgSequenceMarioStadium = addressMapper.boomStreetToStandard(0x80428968);
     quint32 tableAddr = writeTable(mapDescriptors, bgSequenceMarioStadium);
@@ -24,7 +24,7 @@ void BGSequenceTable::writeAsm(QDataStream &stream, const AddressMapper &address
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb80)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void BGSequenceTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void BGSequenceTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x4);
     }

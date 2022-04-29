@@ -2,7 +2,7 @@
 #include "lib/powerpcasm.h"
 #include "lib/vanilladatabase.h"
 
-quint32 MapSetZoneOrder::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 MapSetZoneOrder::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QByteArray mapSetZoneOrderTable;
     for (auto &descriptor: descriptors) {
         mapSetZoneOrderTable.append(descriptor.mapSet);
@@ -18,7 +18,7 @@ quint32 MapSetZoneOrder::writeTable(const QVector<MapDescriptor> &descriptors) {
     return allocate(mapSetZoneOrderTable, "MapSetZoneOrderTable");
 }
 
-void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
 
     // --- Game::GameSequenceDataAdapter::GetNumMapsInZone ---
@@ -47,7 +47,7 @@ void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &address
     stream << (short)mapDescriptors.size();
 }
 
-void MapSetZoneOrder::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void MapSetZoneOrder::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         setVanillaMapSetZoneOrder(mapDescriptors);
     } else {
@@ -87,7 +87,7 @@ bool MapSetZoneOrder::readIsVanilla(QDataStream &stream, const AddressMapper &ad
     return opcode == PowerPcAsm::cmpwi(29, 0);
 }
 
-QVector<quint32> MapSetZoneOrder::writeSubroutineGetNumMapsInZone(const QVector<MapDescriptor> &mapDescriptors) {
+QVector<quint32> MapSetZoneOrder::writeSubroutineGetNumMapsInZone(const std::vector<MapDescriptor> &mapDescriptors) {
     // precondition:  r3  _ZONE_TYPE
     // postcondition: r3  num maps
     QVector<quint32> asm_;
@@ -110,7 +110,7 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetNumMapsInZone(const QVector<
     return asm_;
 }
 
-QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapper &, const QVector<MapDescriptor> &mapDescriptors, quint32 /*mapSetZoneOrderTable*/, quint32 entryAddr, quint32 returnAddr) {
+QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapper &, const std::vector<MapDescriptor> &mapDescriptors, quint32 /*mapSetZoneOrderTable*/, quint32 entryAddr, quint32 returnAddr) {
     //PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(mapSetZoneOrderTable);
 
     // precondition:  r5  MapSet
@@ -145,15 +145,15 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapp
         asm_l2.clear();
         for (quint8 zone: qAsConst(zonesSorted)) {
             asm_l2.append(PowerPcAsm::cmpwi(29, zone));
-            QVector<MapDescriptor> maps;
+            std::vector<MapDescriptor> maps;
             for (auto &mapDescriptor: mapDescriptors) {
                 if (mapDescriptor.mapSet == mapSet) {
                     if (zone == 0) {
-                        if (mapDescriptor.zone == 1) maps.append(mapDescriptor);
+                        if (mapDescriptor.zone == 1) maps.push_back(mapDescriptor);
                     } else if (zone == 1) {
-                        if (mapDescriptor.zone == 0) maps.append(mapDescriptor);
+                        if (mapDescriptor.zone == 0) maps.push_back(mapDescriptor);
                     } else {
-                        if (mapDescriptor.zone == zone) maps.append(mapDescriptor);
+                        if (mapDescriptor.zone == zone) maps.push_back(mapDescriptor);
                     }
                 }
             }
@@ -162,7 +162,7 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapp
             asm_l3.clear();
             asm_l3.append(PowerPcAsm::li(3, (short)maps.size()));
             for (auto &map: maps) {
-                short mapId = (short)mapDescriptors.indexOf(map);
+                short mapId = std::find(mapDescriptors.begin(), mapDescriptors.end(), map) - mapDescriptors.begin();
                 //var mapDescriptor = mapDescriptors[i];
                 asm_l3.append(PowerPcAsm::li(4, mapId));
                 asm_l3.append(PowerPcAsm::stw(4, i, 30));
@@ -178,7 +178,7 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapp
     return asm_;
 }
 
-void MapSetZoneOrder::setVanillaMapSetZoneOrder(QVector<MapDescriptor> &mapDescriptors) {
+void MapSetZoneOrder::setVanillaMapSetZoneOrder(std::vector<MapDescriptor> &mapDescriptors) {
     for (int i=0; i<mapDescriptors.size(); ++i) {
         auto &mapDescriptor = mapDescriptors[i];
         mapDescriptor.mapSet = VanillaDatabase::getVanillaMapSet(i);

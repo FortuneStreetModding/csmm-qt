@@ -1,7 +1,7 @@
 #include "mapgalaxyparamtable.h"
 #include "lib/powerpcasm.h"
 
-quint32 MapGalaxyParamTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 MapGalaxyParamTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
         if (descriptor.loopingMode == None) {
@@ -18,7 +18,7 @@ quint32 MapGalaxyParamTable::writeTable(const QVector<MapDescriptor> &descriptor
     return allocate(table, "MapGalaxyParamTable");
 }
 
-void MapGalaxyParamTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void MapGalaxyParamTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -31,7 +31,7 @@ void MapGalaxyParamTable::writeAsm(QDataStream &stream, const AddressMapper &add
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb50)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void MapGalaxyParamTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
+void MapGalaxyParamTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x2C);
     }

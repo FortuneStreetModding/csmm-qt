@@ -5,7 +5,7 @@
 #include "lib/vanilladatabase.h"
 
 
-quint32 MusicTable::writeBgmTable(const QVector<MapDescriptor> &descriptors) {
+quint32 MusicTable::writeBgmTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
         QVector<quint32> mapMusicTable;
@@ -34,7 +34,7 @@ quint32 MusicTable::writeBgmTable(const QVector<MapDescriptor> &descriptors) {
     return allocate(table, "MapBgmPointerTable");
 }
 
-quint32 MusicTable::writeMeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 MusicTable::writeMeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
         QVector<quint32> mapMusicTable;
@@ -64,7 +64,7 @@ quint32 MusicTable::writeMeTable(const QVector<MapDescriptor> &descriptors) {
 }
 
 
-void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 bgmTableAddr = writeBgmTable(mapDescriptors);
     quint32 meTableAddr = writeMeTable(mapDescriptors);
 
@@ -156,7 +156,7 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     return asm_;
 }
 
-void MusicTable::readAsm(QDataStream &, QVector<MapDescriptor> &, const AddressMapper &, bool ) {
+void MusicTable::readAsm(QDataStream &, std::vector<MapDescriptor> &, const AddressMapper &, bool ) {
     // TODO
 }
 

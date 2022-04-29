@@ -190,10 +190,10 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     pybind11::class_<GameInstance>(m, "GameInstance")
             .def_property("mapDescriptors",
                           qNonConstOverload<>(&GameInstance::mapDescriptors),
-                          [](GameInstance &instance, const QVector<MapDescriptor> &descs) { instance.mapDescriptors() = descs; })
+                          [](GameInstance &instance, const std::vector<MapDescriptor> &descs) { instance.mapDescriptors() = descs; })
             .def("addressMapper", &GameInstance::addressMapper)
             .def("freeSpaceManager", qNonConstOverload<>(&GameInstance::freeSpaceManager))
-            .def("nextUiMessageId", &GameInstance::nextUiMessageId); // TODO add stuff
+            .def("nextUiMessageId", &GameInstance::nextUiMessageId);
 
     pybind11::class_<CSMMMod, PyCSMMMod>(m, "CSMMMod")
             .def(pybind11::init<>())

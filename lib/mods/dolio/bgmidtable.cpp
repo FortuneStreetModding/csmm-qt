@@ -1,13 +1,13 @@
 #include "bgmidtable.h"
 #include "lib/powerpcasm.h"
 
-quint32 BGMIDTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 BGMIDTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.bgmId);
     return allocate(table, "BGMIDTable");
 }
 
-void BGMIDTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void BGMIDTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -21,7 +21,7 @@ void BGMIDTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca64)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void BGMIDTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void BGMIDTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x4);
     }

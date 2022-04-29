@@ -37,7 +37,7 @@
 //   }
 // }
 //
-void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &) {
+void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
     // --- Mutator Dice Rolled Flag ---
     QVector<quint32> singleValue;
     singleValue.append(0);
@@ -282,5 +282,5 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCloseDice(const AddressMap
     return asm_;
 }
 
-void MutatorRollShopPriceMultiplier::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) { /* crab nothing to do crab */ }
+void MutatorRollShopPriceMultiplier::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
 

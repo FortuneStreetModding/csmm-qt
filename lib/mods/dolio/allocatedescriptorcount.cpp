@@ -2,7 +2,7 @@
 
 #include "lib/powerpcasm.h"
 
-void AllocateDescriptorCount::readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors)
+void AllocateDescriptorCount::readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors)
 {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca30));
     quint32 opcode;
@@ -11,7 +11,7 @@ void AllocateDescriptorCount::readAsm(QDataStream &stream, const AddressMapper &
     mapDescriptors.resize(count);
 }
 
-void AllocateDescriptorCount::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors)
+void AllocateDescriptorCount::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors)
 {
     // crab nothing to do crab
 }

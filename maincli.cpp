@@ -167,7 +167,7 @@ void run(QStringList arguments)
             CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
             modpack.load(sourceDir.path());
             auto descriptors = gameInstance.mapDescriptors();
-            if (descriptors.isEmpty()) {
+            if (descriptors.empty()) {
                 cout << source << " is not a proper Fortune Street directory.";
                 QCoreApplication::exit(1); return;
             }
@@ -180,7 +180,7 @@ void run(QStringList arguments)
                 mapIdList.append(str.toInt());
 
             bool atLeastOneMatch = false;
-            for(int i=0;i<descriptors.count();i++) {
+            for(int i=0;i<descriptors.size();i++) {
                 auto descriptor = descriptors.at(i);
                 bool exportIt = false;
                 if (parser.isSet(allOption))
@@ -247,7 +247,7 @@ void run(QStringList arguments)
                 CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
-                if (descriptors.isEmpty()) {
+                if (descriptors.empty()) {
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
                 }
@@ -283,7 +283,7 @@ void run(QStringList arguments)
                 CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
-                if (descriptors.isEmpty()) {
+                if (descriptors.empty()) {
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
                 }
@@ -319,7 +319,7 @@ void run(QStringList arguments)
                 CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
-                if (descriptors.isEmpty()) {
+                if (descriptors.empty()) {
                     cout << source << " is not a proper Fortune Street directory.";
                     QCoreApplication::exit(1); return;
                 }

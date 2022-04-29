@@ -3,8 +3,8 @@
 #include "lib/fslocale.h"
 #include "lib/powerpcasm.h"
 
-void EventSquareMod::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) { /* crab nothing to do crab */ }
-void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &) {
+void EventSquareMod::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
+void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
     // this is the virtual address for the ForceVentureCardVariable: 0x804363c4
     // instead of allocating space for the venture card variable with the free space manager, we use a fixed virtual address
     // so that this variable can be reused by other hacks outside of CSMM.

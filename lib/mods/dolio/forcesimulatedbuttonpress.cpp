@@ -1,8 +1,8 @@
 #include "forcesimulatedbuttonpress.h"
 #include "lib/powerpcasm.h"
 
-void ForceSimulatedButtonPress::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) {}
-void ForceSimulatedButtonPress::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &) {
+void ForceSimulatedButtonPress::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) {}
+void ForceSimulatedButtonPress::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x802bb120);
     quint32 returnAddr = addressMapper.boomStreetToStandard(0x802bb124);
 

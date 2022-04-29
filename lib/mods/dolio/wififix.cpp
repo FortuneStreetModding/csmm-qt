@@ -3,7 +3,7 @@
 #include "lib/datafileset.h"
 #include "lib/fslocale.h"
 
-void WifiFix::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) { /* crab nothing to do crab */ }
+void WifiFix::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
 
 QMap<QString, UiMessageInterface::LoadMessagesFunction> WifiFix::loadUiMessages() {
     // crab nothing to do crab
@@ -55,7 +55,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> WifiFix::saveUiMessages(
     return result;
 }
 
-void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     // --- Skip "Random or Friend" Wifi Menu ---
     // we disable that menu, since random cannot work with added maps anymore
     stream.device()->seek(addressMapper.boomToFileAddress(0x802405b8));
@@ -97,7 +97,7 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     // different rule is selected. As such we need to implement an asm hack which selects the default map depending on the currently selected rule.
     short defaultStandardMap = 0;
     short defaultEasyMap = 0;
-    for (short i = 0; i < mapDescriptors.count(); i++) {
+    for (short i = 0; i < mapDescriptors.size(); i++) {
         MapDescriptor mapDescriptor = mapDescriptors.at(i);
         if (mapDescriptor.mapSet == 1 && mapDescriptor.zone == 0 && mapDescriptor.order == 0) {
             defaultStandardMap = i;

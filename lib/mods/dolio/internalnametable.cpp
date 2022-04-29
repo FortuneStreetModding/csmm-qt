@@ -2,13 +2,13 @@
 #include "lib/powerpcasm.h"
 #include <cstring>
 
-quint32 InternalNameTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 InternalNameTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(allocate(descriptor.internalName));
     return allocate(table, "InternalNameTable");
 }
 
-void InternalNameTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void InternalNameTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -18,7 +18,7 @@ void InternalNameTable::writeAsm(QDataStream &stream, const AddressMapper &addre
     stream.device()->seek(addressMapper.boomToFileAddress(0x804363bc)); stream << PowerPcAsm::lis(5, v.upper) << PowerPcAsm::addi(5, 5, v.lower);
 }
 
-void InternalNameTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
+void InternalNameTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x8);
     }

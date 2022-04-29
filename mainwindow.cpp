@@ -81,7 +81,7 @@ void MainWindow::saveMapList() {
     if(saveFileInfo.exists()) {
         QFile::remove(saveFile);
     }
-    QVector<MapDescriptor> descriptors;
+    std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
     Configuration::save(saveFile, descriptors);
@@ -94,7 +94,7 @@ void MainWindow::loadMapList() {
     if(!openFileInfo.exists()) {
         QMessageBox::critical(this, "Open Map List", QString("Error loading the map list: %1").arg(openFile));
     }
-    QVector<MapDescriptor> descriptors;
+    std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
     ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
@@ -230,7 +230,7 @@ void MainWindow::openIsoWbfs() {
     });
 }
 
-void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
+void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) {
     ui->tableWidget->clearDescriptors();
     for (auto &descriptor: descriptors) {
         ui->tableWidget->appendMapDescriptor(descriptor);
@@ -309,7 +309,7 @@ void MainWindow::exportToFolder() {
         ghc::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
         return !error;
     });
-    auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
+    auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
     auto fut = AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
         if (!result) {
@@ -361,7 +361,7 @@ void MainWindow::exportIsoWbfs() {
         }
     }
 
-    auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
+    auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
 
     auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 4, this);
     progress->setWindowModality(Qt::WindowModal);
@@ -418,7 +418,7 @@ void MainWindow::exportIsoWbfs() {
 
 void MainWindow::validateMaps() {
     QStringList errorMsgs;
-    QVector<MapDescriptor> descriptors;
+    std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
 

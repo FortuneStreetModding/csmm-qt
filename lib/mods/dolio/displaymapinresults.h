@@ -8,9 +8,9 @@ public:
     static constexpr std::string_view MODID = "displayMapInResults";
     QString modId() const override { return MODID.data(); }
     QMap<QString, ModifyArcFunction> modifyArcFile() override;
-    void readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors) override;
+    void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
 protected:
-    void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) override;
+    void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;
 };
 
 #endif // DISPLAYMAPINRESULTS_H

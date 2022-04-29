@@ -5,15 +5,15 @@
 #include "lib/exewrapper.h"
 #include "lib/powerpcasm.h"
 
-GameInstance::GameInstance(const QVector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager)
+GameInstance::GameInstance(const std::vector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager)
     : descriptors(descriptors), mapper(addressMapper), fsm(freeSpaceManager), curUiMessageId(MIN_CSMM_UI_MESSAGE_ID) {
 }
 
-QVector<MapDescriptor> &GameInstance::mapDescriptors() {
+std::vector<MapDescriptor> &GameInstance::mapDescriptors() {
     return descriptors;
 }
 
-const QVector<MapDescriptor> &GameInstance::mapDescriptors() const {
+const std::vector<MapDescriptor> &GameInstance::mapDescriptors() const {
     return descriptors;
 }
 
@@ -33,7 +33,7 @@ int GameInstance::nextUiMessageId() {
     return curUiMessageId++;
 }
 
-GameInstance GameInstance::fromGameDirectory(const QString &dir, const QVector<MapDescriptor> &descriptors)
+GameInstance GameInstance::fromGameDirectory(const QString &dir, const std::vector<MapDescriptor> &descriptors)
 {
     QString mainDol = QDir(dir).filePath(MAIN_DOL);
     auto fileMappingSections = await(ExeWrapper::readSections(mainDol));

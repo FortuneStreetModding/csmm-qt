@@ -1,13 +1,13 @@
 #include "tourinitialcashtable.h"
 #include "lib/powerpcasm.h"
 
-quint32 TourInitialCashTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 TourInitialCashTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.tourInitialCash);
     return allocate(table, "TourInitialCashTable");
 }
 
-void TourInitialCashTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void TourInitialCashTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     int tableRowCount = mapDescriptors.size();
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
@@ -43,7 +43,7 @@ void TourInitialCashTable::writeAsm(QDataStream &stream, const AddressMapper &ad
     stream.device()->seek(addressMapper.boomToFileAddress(0x80211d94)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void TourInitialCashTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void TourInitialCashTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x8);
     }

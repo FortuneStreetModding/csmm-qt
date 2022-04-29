@@ -291,7 +291,7 @@ bool containsCsmmEntries(QDataStream &stream) {
     return false;
 }
 
-void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
+void patch(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
     Brsar::File brsar;
     stream >> brsar;
     // TODO error handling
@@ -311,7 +311,7 @@ void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
     }
 
     int brsarIndex = brsarIndex_min;
-    for (int i=0; i<descriptors.length(); i++) {
+    for (int i=0; i<descriptors.size(); i++) {
         auto &descriptor = descriptors[i];
         for (auto &musicTypeEnt: descriptor.music) {
             auto &musicType = musicTypeEnt.first;

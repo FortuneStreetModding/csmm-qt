@@ -6,11 +6,11 @@
 
 static QVector<quint32> writeDesiredTextSubroutine(quint32 location, const AddressMapper &addressMapper);
 
-void DisplayMapInResults::readAsm(QDataStream &, const AddressMapper &, QVector<MapDescriptor> &) {
+void DisplayMapInResults::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) {
     // nothing to do
 }
 
-void DisplayMapInResults::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void DisplayMapInResults::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     (void) mapDescriptors;
 
     // subroutine location not known yet so we start w/ 0

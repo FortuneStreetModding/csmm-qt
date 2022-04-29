@@ -1,7 +1,7 @@
 #include "touropponentstable.h"
 #include "lib/powerpcasm.h"
 
-quint32 TourOpponentsTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 TourOpponentsTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
         for (Character character: descriptor.tourCharacters) {
@@ -11,7 +11,7 @@ quint32 TourOpponentsTable::writeTable(const QVector<MapDescriptor> &descriptors
     return allocate(table, "TourOpponentsTable");
 }
 
-void TourOpponentsTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void TourOpponentsTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     int tableRowCount = mapDescriptors.size();
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
@@ -49,7 +49,7 @@ void TourOpponentsTable::writeAsm(QDataStream &stream, const AddressMapper &addr
     stream.device()->seek(addressMapper.boomToFileAddress(0x80211bb8)); stream << PowerPcAsm::lwz(0, 0x0, 3);
 }
 
-void TourOpponentsTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void TourOpponentsTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0xC);
     }

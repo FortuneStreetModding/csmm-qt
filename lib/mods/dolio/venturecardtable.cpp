@@ -1,7 +1,7 @@
 #include "venturecardtable.h"
 #include "lib/powerpcasm.h"
 
-quint32 VentureCardTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 VentureCardTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QByteArray ventureCardCompressedTable;
     for (auto &descriptor: descriptors) {
         // here we bitpack the venture card table so that each byte stores 8 venture cards. This results
@@ -24,8 +24,8 @@ quint32 VentureCardTable::writeTable(const QVector<MapDescriptor> &descriptors) 
 /// Hijack the LoadBoard() routine. Intercept the moment when the (now compressed) ventureCardTable is passed on to the InitChanceBoard() routine.
 /// Call the decompressVentureCardTable routine and pass the resulting decompressed ventureCardTable (located at ventureCardDecompressedTableAddr) to the InitChanceBoard() routine instead.
 /// </summary>
-void VentureCardTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
-    int tableRowCount = mapDescriptors.count();
+void VentureCardTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
+    int tableRowCount = mapDescriptors.size();
     quint32 ventureCardCompressedTableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(ventureCardCompressedTableAddr);
 
@@ -45,7 +45,7 @@ void VentureCardTable::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream << PowerPcAsm::bl(addressMapper.boomStreetToStandard(0x8007e130), ventureCardDecompressTableRoutine);
 }
 
-void VentureCardTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void VentureCardTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         readVanillaVentureCardTable(stream, mapDescriptors);
     } else {
@@ -126,7 +126,7 @@ QVector<quint32> VentureCardTable::writeSubroutine(quint32 ventureCardDecompress
     return asm_;
 }
 
-void VentureCardTable::readVanillaVentureCardTable(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors) {
+void VentureCardTable::readVanillaVentureCardTable(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors) {
     for (int i = 0; i < 42; i++) {
         for (int j = 0; j < 128; j++) {
             quint8 val;
@@ -138,7 +138,7 @@ void VentureCardTable::readVanillaVentureCardTable(QDataStream &stream, QVector<
     }
 }
 
-void VentureCardTable::readCompressedVentureCardTable(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors) {
+void VentureCardTable::readCompressedVentureCardTable(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors) {
     for (auto &mapDescriptor: mapDescriptors) {
         quint32 i = 0;
         while (i < mapDescriptor.ventureCards.size()) {

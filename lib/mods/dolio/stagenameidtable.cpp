@@ -3,13 +3,13 @@
 #include "lib/fslocale.h"
 #include "lib/datafileset.h"
 
-quint32 StageNameIDTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 StageNameIDTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.nameMsgId);
     return allocate(table, "StageNameIDTable");
 }
 
-void StageNameIDTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void StageNameIDTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -20,7 +20,7 @@ void StageNameIDTable::writeAsm(QDataStream &stream, const AddressMapper &addres
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca70)); stream << PowerPcAsm::lis(3, v.upper) << PowerPcAsm::addi(3, 3, v.lower);
 }
 
-void StageNameIDTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void StageNameIDTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x0);
     }

@@ -5,7 +5,7 @@
 #include "lib/uigame013.h"
 #include "lib/vanilladatabase.h"
 
-void NamedDistricts::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void NamedDistricts::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -20,7 +20,7 @@ void NamedDistricts::writeAsm(QDataStream &stream, const AddressMapper &addressM
     stream << PowerPcAsm::addi(29, 29, v.lower);
 }
 
-quint32 NamedDistricts::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 NamedDistricts::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &desc: descriptors) {
         table.append(desc.districtNameIds[0]);
@@ -48,7 +48,7 @@ quint32 NamedDistricts::readTableAddr(QDataStream &stream, const AddressMapper &
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-void NamedDistricts::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void NamedDistricts::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (!isVanilla) {
         for (auto &mapDescriptor: mapDescriptors) {
             quint32 startVal, tableLen;

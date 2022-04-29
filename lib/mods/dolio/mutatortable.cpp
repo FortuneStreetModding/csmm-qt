@@ -11,9 +11,9 @@ quint32 MutatorTable::writeMutatorData(const MapDescriptor &descriptor) {
     return allocate(data, QString("MutatorData_%1").arg(descriptor.internalName));
 }
 
-quint32 MutatorTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 MutatorTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
-    for (int i=0; i<descriptors.length(); i++) {
+    for (int i=0; i<descriptors.size(); i++) {
         const MapDescriptor& descriptor = descriptors.at(i);
         if(descriptor.mutators.empty()) {
             table.append(0);
@@ -24,7 +24,7 @@ quint32 MutatorTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     return allocate(table, "MutatorTable");
 }
 
-void MutatorTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &descriptors) {
+void MutatorTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &descriptors) {
     quint32 tableAddr = writeTable(descriptors);
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x80412c88));
@@ -83,7 +83,7 @@ QVector<quint32> MutatorTable::writeGetMutatorDataSubroutine(const AddressMapper
     return asm_;
 }
 
-void MutatorTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void MutatorTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (!isVanilla) {
         for (auto &descriptor: mapDescriptors) {
             descriptor.mutators.clear();

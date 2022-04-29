@@ -1,13 +1,13 @@
 #include "tourbankruptcylimittable.h"
 #include "lib/powerpcasm.h"
 
-quint32 TourBankruptcyLimitTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 TourBankruptcyLimitTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.tourBankruptcyLimit);
     return allocate(table, "TourBankruptcyLimitTable");
 }
 
-void TourBankruptcyLimitTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void TourBankruptcyLimitTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     int tableRowCount = mapDescriptors.size();
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
@@ -44,7 +44,7 @@ void TourBankruptcyLimitTable::writeAsm(QDataStream &stream, const AddressMapper
     stream.device()->seek(addressMapper.boomToFileAddress(0x80212040)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void TourBankruptcyLimitTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void TourBankruptcyLimitTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x4);
     }

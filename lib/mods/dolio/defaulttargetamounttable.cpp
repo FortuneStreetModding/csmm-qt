@@ -1,13 +1,13 @@
 #include "defaulttargetamounttable.h"
 #include "lib/powerpcasm.h"
 
-quint32 DefaultTargetAmountTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 DefaultTargetAmountTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.targetAmount);
     return allocate(table, "DefaultGoalMoneyTable");
 }
 
-void DefaultTargetAmountTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void DefaultTargetAmountTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     int tableRowCount = mapDescriptors.size();
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair((quint32)tableAddr);
@@ -39,7 +39,7 @@ void DefaultTargetAmountTable::writeAsm(QDataStream &stream, const AddressMapper
     stream.device()->seek(addressMapper.boomToFileAddress(0x80211ca0)); stream << PowerPcAsm::mulli(3, 31, 0x04);
 }
 
-void DefaultTargetAmountTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void DefaultTargetAmountTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x0);
     }

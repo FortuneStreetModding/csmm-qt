@@ -1,7 +1,7 @@
 #include "practiceboard.h"
 #include "lib/powerpcasm.h"
 
-void PracticeBoard::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void PracticeBoard::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
     short easyPracticeBoard = -1;
     short standardPracticeBoard = -1;
 
@@ -15,7 +15,7 @@ void PracticeBoard::writeAsm(QDataStream &stream, const AddressMapper &addressMa
     stream.device()->seek(addressMapper.boomToFileAddress(0x80173c04)); stream << PowerPcAsm::li(0, standardPracticeBoard);
 }
 
-void PracticeBoard::readAsm(QDataStream &stream, const AddressMapper &addressMapper, QVector<MapDescriptor> &mapDescriptors) {
+void PracticeBoard::readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x80173bf8 + 2));
     qint16 easyPracticeBoard; stream >> easyPracticeBoard;
     stream.device()->seek(addressMapper.boomToFileAddress(0x80173c04 + 2));
