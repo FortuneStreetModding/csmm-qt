@@ -1,9 +1,9 @@
-#ifndef MAPORIGINTABLE_H
-#define MAPORIGINTABLE_H
+#ifndef TOURCLEARKEYTABLE_H
+#define TOURCLEARKEYTABLE_H
 
 #include "doliotable.h"
 
-class MapOriginTable : public DolIOTable {
+class TourClearKeyTable : public DolIOTable {
 public:
     void readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
 protected:
@@ -14,4 +14,4 @@ protected:
     quint32 readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
 };
 
-#endif // MAPORIGINTABLE_H
+#endif // TOURCLEARKEYTABLE_H

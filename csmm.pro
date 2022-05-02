@@ -64,7 +64,6 @@ SOURCES += \
     lib/dolio/mapdescriptiontable.cpp \
     lib/dolio/mapgalaxyparamtable.cpp \
     lib/dolio/mapicontable.cpp \
-    lib/dolio/maporigintable.cpp \
     lib/dolio/mapsetzoneorder.cpp \
     lib/dolio/mapswitchparamtable.cpp \
     lib/dolio/musictable.cpp \
@@ -77,6 +76,7 @@ SOURCES += \
     lib/dolio/stagenameidtable.cpp \
     lib/dolio/tinydistricts.cpp \
     lib/dolio/tourbankruptcylimittable.cpp \
+    lib/dolio/tourclearkeytable.cpp \
     lib/dolio/tourclearranktable.cpp \
     lib/dolio/tourinitialcashtable.cpp \
     lib/dolio/touropponentstable.cpp \
@@ -138,7 +138,6 @@ HEADERS += \
     lib/dolio/mapdescriptiontable.h \
     lib/dolio/mapgalaxyparamtable.h \
     lib/dolio/mapicontable.h \
-    lib/dolio/maporigintable.h \
     lib/dolio/mapsetzoneorder.h \
     lib/dolio/mapswitchparamtable.h \
     lib/dolio/musictable.h \
@@ -151,6 +150,7 @@ HEADERS += \
     lib/dolio/stagenameidtable.h \
     lib/dolio/tinydistricts.h \
     lib/dolio/tourbankruptcylimittable.h \
+    lib/dolio/tourclearkeytable.h \
     lib/dolio/tourclearranktable.h \
     lib/dolio/tourinitialcashtable.h \
     lib/dolio/touropponentstable.h \

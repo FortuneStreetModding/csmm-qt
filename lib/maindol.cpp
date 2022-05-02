@@ -12,7 +12,7 @@
 #include "dolio/mapdescriptiontable.h"
 #include "dolio/mapgalaxyparamtable.h"
 #include "dolio/mapicontable.h"
-#include "dolio/maporigintable.h"
+#include "dolio/tourclearkeytable.h"
 #include "dolio/mapsetzoneorder.h"
 #include "dolio/mapswitchparamtable.h"
 #include "dolio/practiceboard.h"
@@ -117,7 +117,7 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
 
 QVector<QSharedPointer<DolIO>> MainDol::setupPatches(const QSet<OptionalPatch> &optionalPatches) {
     QVector<QSharedPointer<DolIO>> patches;
-    patches.append(QSharedPointer<DolIO>(new MapOriginTable()));
+    patches.append(QSharedPointer<DolIO>(new TourClearKeyTable()));
     // map description table must be after map origin table
     patches.append(QSharedPointer<DolIO>(new MapDescriptionTable()));
     patches.append(QSharedPointer<DolIO>(new BackgroundTable()));

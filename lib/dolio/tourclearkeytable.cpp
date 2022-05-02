@@ -1,13 +1,13 @@
-#include "maporigintable.h"
+#include "tourclearkeytable.h"
 #include "lib/powerpcasm.h"
 
-quint32 MapOriginTable::writeTable(const QVector<MapDescriptor> &descriptors) {
+quint32 TourClearKeyTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.unlockKey);
-    return allocate(table, "MapOriginTable");
+    return allocate(table, "TourClearKeyTable");
 }
 
-void MapOriginTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
+void TourClearKeyTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const QVector<MapDescriptor> &mapDescriptors) {
     quint32 tableAddr = writeTable(mapDescriptors);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
 
@@ -20,7 +20,7 @@ void MapOriginTable::writeAsm(QDataStream &stream, const AddressMapper &addressM
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb68)); stream << PowerPcAsm::lwz(3, 0x0, 3);
 }
 
-void MapOriginTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
+void TourClearKeyTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (isVanilla) {
         stream.skipRawData(0x30);
     }
@@ -34,18 +34,18 @@ void MapOriginTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDes
     }
 }
 
-quint32 MapOriginTable::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool) {
+quint32 TourClearKeyTable::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb5c));
     quint32 lisOpcode, addiOpcode;
     stream >> lisOpcode >> addiOpcode;
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 MapOriginTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
+qint16 TourClearKeyTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
     return -1;
 }
 
-bool MapOriginTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
+bool TourClearKeyTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb58));
     quint32 opcode; stream >> opcode;
     // mulli r0,r3,0x38
