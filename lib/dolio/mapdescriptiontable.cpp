@@ -1,5 +1,6 @@
 #include "mapdescriptiontable.h"
 #include "lib/powerpcasm.h"
+#include "lib/vanilladatabase.h"
 
 quint32 MapDescriptionTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
@@ -57,8 +58,9 @@ void MapDescriptionTable::readVanillaTable(QDataStream &stream, QVector<MapDescr
         stream >> elem;
     }
     int j = 0;
-    for (auto &mapDescriptor: mapDescriptors) {
-        if (mapDescriptor.unlockKey < 18) {
+    for(int i=0;i<mapDescriptors.length(); i++) {
+        auto& mapDescriptor = mapDescriptors[i];
+        if (VanillaDatabase::getVanillaZone(i) != -1) {
             mapDescriptor.descMsgId = descMsgIdTable[j];
             ++j;
             if (j == 18) {

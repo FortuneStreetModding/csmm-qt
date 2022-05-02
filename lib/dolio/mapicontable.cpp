@@ -125,10 +125,11 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
 }
 
 void MapIconTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
-    for (auto &mapDescriptor: mapDescriptors) {
+    for(int i=0;i<mapDescriptors.length(); i++) {
+        auto& mapDescriptor = mapDescriptors[i];
         if (isVanilla) {
             // in vanilla there is a mapping of bgXXX to p_bg_XXX which we will assume here without actually reading what is inside the main.dol
-            if (mapDescriptor.unlockKey < 18) {
+            if (VanillaDatabase::getVanillaZone(i) != -1) {
                 QRegularExpression reg("\\d+");
                 auto number = reg.match(mapDescriptor.background).captured();
                 mapDescriptor.mapIcon = QString("p_bg_") + number;

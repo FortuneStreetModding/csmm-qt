@@ -82,6 +82,7 @@ struct MapDescriptor {
     quint32 tourInitialCash = 0;
     std::array<Character, 3> tourCharacters = {CharacterMario, Luigi, Peach};
     quint32 tourClearRank = 2;
+    quint32 tourClearKey = 0;
     quint32 nameMsgId = 0;
     quint32 descMsgId = 0;
     QMap<QString, QString> names;
@@ -111,5 +112,9 @@ void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPra
 QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList &errorMsgs);
 QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs);
 QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs);
+
+// Conversion Functions
+quint32 unlockKeyToInt(QString unlockKey);
+QString unlockKeyToStr(quint32 unlockKey);
 
 #endif // MAPDESCRIPTOR_H

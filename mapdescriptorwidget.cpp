@@ -18,7 +18,7 @@ static constexpr int UNLOCK_KEY_TYPE = QTableWidgetItem::UserType + 3;
 
 MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
     QStringList labels{"", "", "Name", "MapSet [Editable]", "Zone [Editable]", "Order [Editable]",
-                       "Is Practice Board [Editable]", "Unlock Key [Editable]", "Ruleset", "Initial Cash", "Target Amount",
+                       "Is Practice Board [Editable]", "Unlock Key [Editable]", "Clear Key", "Ruleset", "Initial Cash", "Target Amount",
                        "Base Salary", "Salary Increment", "Max. Dice Roll",
                        "Venture Cards", "FRB Files", "Switch Origin Points",
                        "Board Theme", "Background", "Background Music ID",
@@ -36,19 +36,21 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
 
         if (theItem->type() < QTableWidgetItem::UserType) return;
 
-        bool ok;
-        int value = theItem->text().toInt(&ok);
-        if (!ok) return;
-        if (theItem->type() == MAP_SET_TYPE) {
-            descriptors[row]->mapSet = value;
-        } else if (theItem->type() == ZONE_TYPE) {
-            descriptors[row]->zone = value;
-        } else if (theItem->type() == ORDER_TYPE) {
-            descriptors[row]->order = value;
-        } else if (theItem->type() == UNLOCK_KEY_TYPE) {
-            descriptors[row]->unlockKey = value;
+        if (theItem->type() == UNLOCK_KEY_TYPE) {
+            descriptors[row]->unlockKey = unlockKeyToInt(theItem->text());
         } else {
-            return;
+            bool ok;
+            int value = theItem->text().toInt(&ok);
+            if (!ok) return;
+            if (theItem->type() == MAP_SET_TYPE) {
+                descriptors[row]->mapSet = value;
+            } else if (theItem->type() == ZONE_TYPE) {
+                descriptors[row]->zone = value;
+            } else if (theItem->type() == ORDER_TYPE) {
+                descriptors[row]->order = value;
+            } else {
+                return;
+            }
         }
         dirty = true;
     });
@@ -113,7 +115,8 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     });
     setCellWidget(row, colIdx++, isPracticeBoardCheck);
 
-    setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.unlockKey), UNLOCK_KEY_TYPE));
+    setItem(row, colIdx++, new QTableWidgetItem(unlockKeyToStr(descriptor.unlockKey), UNLOCK_KEY_TYPE));
+    setItem(row, colIdx++, readOnlyItem(unlockKeyToStr(descriptor.tourClearKey)));
 
     setItem(row, colIdx++, readOnlyItem(descriptor.ruleSet == Easy ? "Easy" : "Standard"));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.initialCash)));

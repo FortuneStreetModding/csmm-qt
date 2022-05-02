@@ -1,5 +1,6 @@
 #include "mapdescriptor.h"
 #include <QDebug>
+#include <QRegularExpression>
 #include "vanilladatabase.h"
 #include "fslocale.h"
 #include "patchprocess.h"
@@ -121,6 +122,7 @@ QString MapDescriptor::toYaml() const {
         out << YAML::Key << QString("opponent%1").arg(i+1).toStdString() << YAML::Value << tourCharacterToString(tourCharacters[i]).toStdString();
     }
     out << YAML::Key << "clearRank" << YAML::Value << tourClearRank;
+    out << YAML::Key << "clearKey" << YAML::Value << unlockKeyToStr(tourClearKey).toStdString();
     out << YAML::EndMap;
 
     if(!mutators.empty()) {
@@ -179,6 +181,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && zone == other.zone
             && order == other.order
             && isPracticeBoard == other.isPracticeBoard
+            && unlockKey == other.unlockKey
             && ruleSet == other.ruleSet
             && initialCash == other.initialCash
             && targetAmount == other.targetAmount
@@ -201,7 +204,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && tourInitialCash == other.tourInitialCash
             && std::equal(std::begin(tourCharacters), std::end(tourCharacters), std::begin(other.tourCharacters))
             && tourClearRank == other.tourClearRank
-            && unlockKey == other.unlockKey
+            && tourClearKey == other.tourClearKey
             && nameMsgId == other.nameMsgId
             && descMsgId == other.descMsgId
             && names == other.names
@@ -267,6 +270,10 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
                 );
     }
     tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
+    if(yaml["tourMode"]["clearKey"]) {
+        auto tourClearKeyStr = QString::fromStdString(yaml["tourMode"]["clearKey"].as<std::string>());
+        tourClearKey = unlockKeyToInt(tourClearKeyStr);
+    }
     background = QString::fromStdString(yaml["background"].as<std::string>());
 
     if(VanillaDatabase::hasDefaultMapIcon(background))
@@ -509,4 +516,32 @@ QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int ma
         errorMsgs << QString("[mapset %1, zone %2] There must be no gaps in the ordering").arg(mapSet).arg(zone);
     }
     return result;
+}
+
+quint32 unlockKeyToInt(QString unlockKey) {
+    QRegularExpression re("^[0-9A-Z]{3,5}$");
+    QRegularExpressionMatch match = re.match(unlockKey);
+    if(match.hasMatch()) {
+        // its a custom unlock key -> OK
+        bool flag;
+        quint32 unlockKeyInt = unlockKey.toUInt(&flag, 36);
+        return unlockKeyInt;
+    } else {
+        bool flag;
+        quint32 unlockKeyInt = unlockKey.toUInt(&flag);
+        if(flag && unlockKeyInt < 40) {
+            // its a vanilla unlock key -> OK
+            return unlockKeyInt;
+        } else {
+            throw PatchProcess::Exception(QString("The tour clearKey '%1' must be 3 to 5 characters and only capital letters and digits are allowed.").arg(unlockKey));
+        }
+    }
+}
+
+QString unlockKeyToStr(quint32 unlockKey) {
+    if(unlockKey < 40) {
+        return QString::number(unlockKey);
+    } else {
+        return QString::number(unlockKey, 36);
+    }
 }

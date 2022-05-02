@@ -118,10 +118,9 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
 QVector<QSharedPointer<DolIO>> MainDol::setupPatches(const QSet<OptionalPatch> &optionalPatches) {
     QVector<QSharedPointer<DolIO>> patches;
     patches.append(QSharedPointer<DolIO>(new TourClearKeyTable()));
-    // map description table must be after map origin table
     patches.append(QSharedPointer<DolIO>(new MapDescriptionTable()));
     patches.append(QSharedPointer<DolIO>(new BackgroundTable()));
-    // map icon table must be after the map background table and map origin table
+    // map icon table must be after the map background table
     patches.append(QSharedPointer<DolIO>(new MapIconTable()));
 
     patches.append(QSharedPointer<DolIO>(new MapSetZoneOrder()));
