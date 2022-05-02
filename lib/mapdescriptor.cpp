@@ -201,7 +201,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && tourInitialCash == other.tourInitialCash
             && std::equal(std::begin(tourCharacters), std::end(tourCharacters), std::begin(other.tourCharacters))
             && tourClearRank == other.tourClearRank
-            && unlockId == other.unlockId
+            && unlockKey == other.unlockKey
             && nameMsgId == other.nameMsgId
             && descMsgId == other.descMsgId
             && names == other.names
@@ -353,9 +353,9 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
 }
 
 MapDescriptor &MapDescriptor::setFromImport(const MapDescriptor &other) {
-    auto stuffToRetain = std::make_tuple(mapSet, zone, order, isPracticeBoard, unlockId, nameMsgId, descMsgId);
+    auto stuffToRetain = std::make_tuple(mapSet, zone, order, isPracticeBoard, unlockKey, nameMsgId, descMsgId);
     *this = other;
-    std::tie(mapSet, zone, order, isPracticeBoard, unlockId, nameMsgId, descMsgId) = stuffToRetain;
+    std::tie(mapSet, zone, order, isPracticeBoard, unlockKey, nameMsgId, descMsgId) = stuffToRetain;
     return *this;
 }
 

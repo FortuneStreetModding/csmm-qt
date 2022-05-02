@@ -59,7 +59,7 @@ struct MapDescriptor {
     qint8 zone = -1;
     qint8 order = -1;
     bool isPracticeBoard = false;
-    quint32 unlockId = 0;
+    quint32 unlockKey = 0;
     RuleSet ruleSet = Standard;
     quint32 initialCash = 0;
     quint32 targetAmount = 0;

@@ -128,7 +128,7 @@ void MapIconTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescr
     for (auto &mapDescriptor: mapDescriptors) {
         if (isVanilla) {
             // in vanilla there is a mapping of bgXXX to p_bg_XXX which we will assume here without actually reading what is inside the main.dol
-            if (mapDescriptor.unlockId < 18) {
+            if (mapDescriptor.unlockKey < 18) {
                 QRegularExpression reg("\\d+");
                 auto number = reg.match(mapDescriptor.background).captured();
                 mapDescriptor.mapIcon = QString("p_bg_") + number;

@@ -58,7 +58,7 @@ void MapDescriptionTable::readVanillaTable(QDataStream &stream, QVector<MapDescr
     }
     int j = 0;
     for (auto &mapDescriptor: mapDescriptors) {
-        if (mapDescriptor.unlockId < 18) {
+        if (mapDescriptor.unlockKey < 18) {
             mapDescriptor.descMsgId = descMsgIdTable[j];
             ++j;
             if (j == 18) {

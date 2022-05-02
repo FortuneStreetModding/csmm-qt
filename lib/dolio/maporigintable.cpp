@@ -3,7 +3,7 @@
 
 quint32 MapOriginTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
-    for (auto &descriptor: descriptors) table.append(descriptor.unlockId);
+    for (auto &descriptor: descriptors) table.append(descriptor.unlockKey);
     return allocate(table, "MapOriginTable");
 }
 
@@ -25,7 +25,7 @@ void MapOriginTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDes
         stream.skipRawData(0x30);
     }
     for (auto &mapDescriptor: mapDescriptors) {
-        stream >> mapDescriptor.unlockId;
+        stream >> mapDescriptor.unlockKey;
         if (isVanilla) {
             // in vanilla main.dol the table has other stuff in it like bgm id, map frb files, etc.
             // this we need to skip to go the next target amount in the table
