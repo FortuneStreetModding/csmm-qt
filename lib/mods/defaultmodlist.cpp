@@ -47,54 +47,54 @@ namespace DefaultModList {
 ModListType defaultModList() {
     ModListType patches;
 
-    patches.append(QSharedPointer<AllocateDescriptorCount>::create());
+    patches.append(std::make_shared<AllocateDescriptorCount>());
 
-    patches.append(QSharedPointer<MapOriginTable>::create());
-    patches.append(QSharedPointer<MapDescriptionTable>::create());
-    patches.append(QSharedPointer<BackgroundTable>::create());
-    patches.append(QSharedPointer<MapIconTable>::create());
-    patches.append(QSharedPointer<MapSetZoneOrder>::create());
-    patches.append(QSharedPointer<PracticeBoard>::create());
-    patches.append(QSharedPointer<DefaultTargetAmountTable>::create());
-    patches.append(QSharedPointer<VentureCardTable>::create());
-    patches.append(QSharedPointer<EventSquareMod>::create());
-    patches.append(QSharedPointer<RuleSetTable>::create());
-    patches.append(QSharedPointer<TourBankruptcyLimitTable>::create());
-    patches.append(QSharedPointer<TourInitialCashTable>::create());
-    patches.append(QSharedPointer<TourOpponentsTable>::create());
-    patches.append(QSharedPointer<TourClearRankTable>::create());
-    patches.append(QSharedPointer<StageNameIDTable>::create());
-    patches.append(QSharedPointer<BGMIDTable>::create());
-    patches.append(QSharedPointer<DesignTypeTable>::create());
-    patches.append(QSharedPointer<FrbMapTable>::create());
-    patches.append(QSharedPointer<MapSwitchParamTable>::create());
-    patches.append(QSharedPointer<MapGalaxyParamTable>::create());
-    patches.append(QSharedPointer<BGSequenceTable>::create());
-    patches.append(QSharedPointer<InternalNameTable>::create());
-    patches.append(QSharedPointer<ForceSimulatedButtonPress>::create());
-    patches.append(QSharedPointer<WifiFix>::create());
-    patches.append(QSharedPointer<MusicTable>::create());
-    patches.append(QSharedPointer<DisplayMapInResults>::create());
-    patches.append(QSharedPointer<TinyDistricts>::create());
-    patches.append(QSharedPointer<NamedDistricts>::create());
+    patches.append(std::make_shared<MapOriginTable>());
+    patches.append(std::make_shared<MapDescriptionTable>());
+    patches.append(std::make_shared<BackgroundTable>());
+    patches.append(std::make_shared<MapIconTable>());
+    patches.append(std::make_shared<MapSetZoneOrder>());
+    patches.append(std::make_shared<PracticeBoard>());
+    patches.append(std::make_shared<DefaultTargetAmountTable>());
+    patches.append(std::make_shared<VentureCardTable>());
+    patches.append(std::make_shared<EventSquareMod>());
+    patches.append(std::make_shared<RuleSetTable>());
+    patches.append(std::make_shared<TourBankruptcyLimitTable>());
+    patches.append(std::make_shared<TourInitialCashTable>());
+    patches.append(std::make_shared<TourOpponentsTable>());
+    patches.append(std::make_shared<TourClearRankTable>());
+    patches.append(std::make_shared<StageNameIDTable>());
+    patches.append(std::make_shared<BGMIDTable>());
+    patches.append(std::make_shared<DesignTypeTable>());
+    patches.append(std::make_shared<FrbMapTable>());
+    patches.append(std::make_shared<MapSwitchParamTable>());
+    patches.append(std::make_shared<MapGalaxyParamTable>());
+    patches.append(std::make_shared<BGSequenceTable>());
+    patches.append(std::make_shared<InternalNameTable>());
+    patches.append(std::make_shared<ForceSimulatedButtonPress>());
+    patches.append(std::make_shared<WifiFix>());
+    patches.append(std::make_shared<MusicTable>());
+    patches.append(std::make_shared<DisplayMapInResults>());
+    patches.append(std::make_shared<TinyDistricts>());
+    patches.append(std::make_shared<NamedDistricts>());
 
     // mutators
-    patches.append(QSharedPointer<MutatorTable>::create());
-    patches.append(QSharedPointer<MutatorRollShopPriceMultiplier>::create());
-    patches.append(QSharedPointer<MutatorShopPriceMultiplier>::create());
+    patches.append(std::make_shared<MutatorTable>());
+    patches.append(std::make_shared<MutatorRollShopPriceMultiplier>());
+    patches.append(std::make_shared<MutatorShopPriceMultiplier>());
 
-    patches.append(QSharedPointer<ExpandMapsInZone>::create());
+    patches.append(std::make_shared<ExpandMapsInZone>());
 
-    patches.append(QSharedPointer<DefaultMinimapIcons>::create());
-    patches.append(QSharedPointer<TurnlotScenes>::create());
+    patches.append(std::make_shared<DefaultMinimapIcons>());
+    patches.append(std::make_shared<TurnlotScenes>());
 
-    patches.append(QSharedPointer<DistrictNameFreeSpace>::create());
-    patches.append(QSharedPointer<WifiFreeSpace>::create());
-    patches.append(QSharedPointer<VentureCardFreeSpace>::create());
-    patches.append(QSharedPointer<InitialFreeSpace>::create());
-    patches.append(QSharedPointer<MapDataFreeSpace>::create());
+    patches.append(std::make_shared<DistrictNameFreeSpace>());
+    patches.append(std::make_shared<WifiFreeSpace>());
+    patches.append(std::make_shared<VentureCardFreeSpace>());
+    patches.append(std::make_shared<InitialFreeSpace>());
+    patches.append(std::make_shared<MapDataFreeSpace>());
 
-    patches.append(QSharedPointer<DefaultMiscPatches>::create());
+    patches.append(std::make_shared<DefaultMiscPatches>());
 
     return patches;
 }

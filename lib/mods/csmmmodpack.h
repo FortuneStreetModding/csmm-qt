@@ -10,8 +10,8 @@ class CSMMModpack {
 public:
     template<class InputIterator>
     CSMMModpack(GameInstance &gameInstance, InputIterator modsStart, InputIterator modsEnd) : gameInstance(gameInstance) {
-        QMap<int, QHash<QString, QSharedPointer<CSMMMod>>> modTable;
-        QHash<QString, QSharedPointer<CSMMMod>> priorityIndependentModTable;
+        QMap<int, QHash<QString, std::shared_ptr<CSMMMod>>> modTable;
+        QHash<QString, std::shared_ptr<CSMMMod>> priorityIndependentModTable;
         for (auto it = modsStart; it != modsEnd; ++it) {
             modTable[-(*it)->priority()][(*it)->modId()] = *it; // store negative priority so that higher priority is visited first
             if (priorityIndependentModTable.contains((*it)->modId())) {
@@ -26,7 +26,7 @@ public:
         for (auto &modTableForPriority: modTable) {
             // do a reverse toplogical sort
 
-            std::function<void(const QSharedPointer<CSMMMod> &)> visit = [&](const QSharedPointer<CSMMMod> &mod) {
+            std::function<void(const std::shared_ptr<CSMMMod> &)> visit = [&](const std::shared_ptr<CSMMMod> &mod) {
                 auto modid = mod->modId();
 
                 if (permanentMarks.contains(modid)) {
@@ -70,7 +70,7 @@ public:
         QHash<QString, QMap<QString, UiMessageInterface::LoadMessagesFunction>> modToLoaders;
 
         for (auto &mod: modList) {
-            auto uiMessageInterface = mod.dynamicCast<UiMessageInterface>();
+            auto uiMessageInterface = std::dynamic_pointer_cast<UiMessageInterface>(mod);
             if (uiMessageInterface) {
                 auto loaders = uiMessageInterface->loadUiMessages();
                 for (auto it=loaders.begin(); it!=loaders.end(); ++it) {
@@ -91,7 +91,7 @@ public:
         for (auto &mod: modList) {
             qDebug() << QString("loading mod '%1'").arg(mod->modId());
 
-            auto generalFileInterface = mod.dynamicCast<GeneralInterface>();
+            auto generalFileInterface = std::dynamic_pointer_cast<GeneralInterface>(mod);
             if (generalFileInterface) {
                 generalFileInterface->loadFiles(root, gameInstance, modList);
             }
@@ -117,7 +117,7 @@ public:
         }
 
         for (auto &mod: modList) {
-            auto uiMessageInterface = mod.dynamicCast<UiMessageInterface>();
+            auto uiMessageInterface = std::dynamic_pointer_cast<UiMessageInterface>(mod);
             if (uiMessageInterface) {
                 auto freers = uiMessageInterface->freeUiMessages();
                 auto savers = uiMessageInterface->saveUiMessages();
@@ -130,7 +130,7 @@ public:
                 messageFreers[mod->modId()] = std::move(freers);
                 messageSavers[mod->modId()] = std::move(savers);
             }
-            auto arcFileInterface = mod.dynamicCast<ArcFileInterface>();
+            auto arcFileInterface = std::dynamic_pointer_cast<ArcFileInterface>(mod);
             if (arcFileInterface) {
                 auto modArcModifiers = arcFileInterface->modifyArcFile();
                 for (auto it=modArcModifiers.begin(); it!=modArcModifiers.end(); ++it) {
@@ -163,7 +163,7 @@ public:
                     it.value()(root, gameInstance, modList, messageFiles[it.key()]);
                 }
             }
-            auto uiMessageInterface = mod.dynamicCast<UiMessageInterface>();
+            auto uiMessageInterface = std::dynamic_pointer_cast<UiMessageInterface>(mod);
             if (uiMessageInterface) {
                 uiMessageInterface->allocateUiMessages(root, gameInstance, modList);
             }
@@ -173,7 +173,7 @@ public:
                     it.value()(root, gameInstance, modList, messageFiles[it.key()]);
                 }
             }
-            auto generalFileInterface = mod.dynamicCast<GeneralInterface>();
+            auto generalFileInterface = std::dynamic_pointer_cast<GeneralInterface>(mod);
             if (generalFileInterface) {
                 generalFileInterface->saveFiles(root, gameInstance, modList);
             }

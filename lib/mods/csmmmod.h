@@ -11,7 +11,7 @@
 
 class CSMMMod;
 
-typedef QVector<QSharedPointer<CSMMMod>> ModListType;
+typedef QVector<std::shared_ptr<CSMMMod>> ModListType;
 
 class CSMMMod {
 public:

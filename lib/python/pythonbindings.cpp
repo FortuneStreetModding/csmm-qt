@@ -50,6 +50,8 @@ static pybind11::class_<std::array<T, N>> bindStdArray(pybind11::handle h, const
     return cls;
 }
 
+namespace {
+
 class PyCSMMMod : public virtual CSMMMod {
 public:
     QString modId() const override {
@@ -65,6 +67,17 @@ public:
         PYBIND11_OVERRIDE_PURE(QSet<QString>, CSMMMod, after);
     }
 };
+
+class PyArcFileInterface : public virtual ArcFileInterface {
+private:
+    typedef QMap<QString, ModifyArcFunction> ResultType;
+public:
+    QMap<QString, ModifyArcFunction> modifyArcFile() override {
+        PYBIND11_OVERRIDE_PURE(ResultType, ArcFileInterface, modifyArcFile);
+    }
+};
+
+}
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     pybind11::enum_<RuleSet>(m, "RuleSet")
@@ -129,6 +142,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     pybind11::bind_map<std::map<QString, std::vector<QString>>>(m, "ListLanguageTable");
 
     pybind11::bind_vector<std::vector<quint32>>(m, "LanguageIdList");
+
+    pybind11::bind_vector<std::vector<MapDescriptor>>(m, "MapDescriptorList");
 
     pybind11::class_<MapDescriptor>(m, "MapDescriptor")
             .def(pybind11::init<>())
@@ -201,4 +216,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def("priority", &CSMMMod::priority)
             .def("depends", &CSMMMod::depends)
             .def("after", &CSMMMod::after);
+
+    pybind11::class_<ArcFileInterface, PyArcFileInterface>(m, "ArcFileInterface")
+            .def(pybind11::init<>())
+            .def("modifyArcFile", &ArcFileInterface::modifyArcFile);
 }

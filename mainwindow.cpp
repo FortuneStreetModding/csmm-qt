@@ -396,7 +396,7 @@ void MainWindow::exportIsoWbfs() {
         }
     }).subscribe([=]() {
         progress->setValue(3);
-        if (std::find_if(modList.begin(), modList.end(), [](const QSharedPointer<CSMMMod> &mod) { return mod->modId() == "wifiFix"; })) {
+        if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
             return ExeWrapper::patchWiimmfi(saveFile);
         }
         auto def = AsyncFuture::deferred<void>();
