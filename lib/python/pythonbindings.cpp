@@ -77,6 +77,35 @@ public:
     }
 };
 
+class PyGeneralInterface : public virtual GeneralInterface {
+public:
+    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
+        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, loadFiles);
+    }
+    void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
+        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, saveFiles);
+    }
+};
+
+class PyUiMessageInterface : public virtual UiMessageInterface {
+private:
+    typedef QMap<QString, LoadMessagesFunction> LoadResultType;
+    typedef QMap<QString, SaveMessagesFunction> SaveResultType;
+public:
+    QMap<QString, LoadMessagesFunction> loadUiMessages() override {
+        PYBIND11_OVERRIDE_PURE(LoadResultType, UiMessageInterface, loadUiMessages);
+    }
+    QMap<QString, SaveMessagesFunction> freeUiMessages() override {
+        PYBIND11_OVERRIDE_PURE(SaveResultType, UiMessageInterface, freeUiMessages);
+    }
+    void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
+        PYBIND11_OVERRIDE_PURE(void, UiMessageInterface, allocateUiMessages);
+    }
+    QMap<QString, SaveMessagesFunction> saveUiMessages() override {
+        PYBIND11_OVERRIDE_PURE(SaveResultType, UiMessageInterface, saveUiMessages);
+    }
+};
+
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
@@ -210,14 +239,26 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def("freeSpaceManager", qNonConstOverload<>(&GameInstance::freeSpaceManager))
             .def("nextUiMessageId", &GameInstance::nextUiMessageId);
 
-    pybind11::class_<CSMMMod, PyCSMMMod>(m, "CSMMMod")
+    pybind11::class_<CSMMMod, PyCSMMMod, std::shared_ptr<CSMMMod>>(m, "CSMMMod")
             .def(pybind11::init<>())
             .def("modId", &CSMMMod::modId)
             .def("priority", &CSMMMod::priority)
             .def("depends", &CSMMMod::depends)
             .def("after", &CSMMMod::after);
 
-    pybind11::class_<ArcFileInterface, PyArcFileInterface>(m, "ArcFileInterface")
+    pybind11::class_<ArcFileInterface, PyArcFileInterface, std::shared_ptr<ArcFileInterface>>(m, "ArcFileInterface")
             .def(pybind11::init<>())
             .def("modifyArcFile", &ArcFileInterface::modifyArcFile);
+
+    pybind11::class_<GeneralInterface, PyGeneralInterface, std::shared_ptr<GeneralInterface>>(m, "GeneralInterface")
+            .def(pybind11::init<>())
+            .def("loadFiles", &GeneralInterface::loadFiles)
+            .def("saveFiles", &GeneralInterface::saveFiles);
+
+    pybind11::class_<UiMessageInterface, PyUiMessageInterface, std::shared_ptr<UiMessageInterface>>(m, "UiMessageInterface")
+            .def(pybind11::init<>())
+            .def("loadUiMessages", &UiMessageInterface::loadUiMessages)
+            .def("saveUiMessages", &UiMessageInterface::saveUiMessages)
+            .def("freeUiMessages", &UiMessageInterface::freeUiMessages)
+            .def("allocateUiMessages", &UiMessageInterface::allocateUiMessages);
 }
