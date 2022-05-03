@@ -12,7 +12,6 @@
 #include "dolio/mapdescriptiontable.h"
 #include "dolio/mapgalaxyparamtable.h"
 #include "dolio/mapicontable.h"
-#include "dolio/tourclearkeytable.h"
 #include "dolio/mapsetzoneorder.h"
 #include "dolio/mapswitchparamtable.h"
 #include "dolio/practiceboard.h"
@@ -22,6 +21,8 @@
 #include "dolio/tourclearranktable.h"
 #include "dolio/tourinitialcashtable.h"
 #include "dolio/touropponentstable.h"
+#include "dolio/tourclearkeytable.h"
+#include "dolio/unlockkeytable.h"
 #include "dolio/venturecardtable.h"
 #include "dolio/wififix.h"
 #include "dolio/musictable.h"
@@ -117,7 +118,6 @@ FreeSpaceManager MainDol::setupFreeSpaceManager(AddressMapper addressMapper) {
 
 QVector<QSharedPointer<DolIO>> MainDol::setupPatches(const QSet<OptionalPatch> &optionalPatches) {
     QVector<QSharedPointer<DolIO>> patches;
-    patches.append(QSharedPointer<DolIO>(new TourClearKeyTable()));
     patches.append(QSharedPointer<DolIO>(new MapDescriptionTable()));
     patches.append(QSharedPointer<DolIO>(new BackgroundTable()));
     // map icon table must be after the map background table
@@ -136,6 +136,8 @@ QVector<QSharedPointer<DolIO>> MainDol::setupPatches(const QSet<OptionalPatch> &
     patches.append(QSharedPointer<DolIO>(new TourInitialCashTable()));
     patches.append(QSharedPointer<DolIO>(new TourOpponentsTable()));
     patches.append(QSharedPointer<DolIO>(new TourClearRankTable()));
+    patches.append(QSharedPointer<DolIO>(new TourClearKeyTable()));
+    patches.append(QSharedPointer<DolIO>(new UnlockKeyTable()));
     patches.append(QSharedPointer<DolIO>(new StageNameIDTable()));
     patches.append(QSharedPointer<DolIO>(new BGMIDTable()));
     patches.append(QSharedPointer<DolIO>(new DesignTypeTable()));

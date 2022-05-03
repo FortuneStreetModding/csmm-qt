@@ -181,7 +181,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && zone == other.zone
             && order == other.order
             && isPracticeBoard == other.isPracticeBoard
-            && unlockKey == other.unlockKey
+            && std::equal(std::begin(unlockKeys), std::end(unlockKeys), std::begin(other.unlockKeys))
             && ruleSet == other.ruleSet
             && initialCash == other.initialCash
             && targetAmount == other.targetAmount
@@ -360,9 +360,9 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
 }
 
 MapDescriptor &MapDescriptor::setFromImport(const MapDescriptor &other) {
-    auto stuffToRetain = std::make_tuple(mapSet, zone, order, isPracticeBoard, unlockKey, nameMsgId, descMsgId);
+    auto stuffToRetain = std::make_tuple(mapSet, zone, order, isPracticeBoard, unlockKeys, nameMsgId, descMsgId);
     *this = other;
-    std::tie(mapSet, zone, order, isPracticeBoard, unlockKey, nameMsgId, descMsgId) = stuffToRetain;
+    std::tie(mapSet, zone, order, isPracticeBoard, unlockKeys, nameMsgId, descMsgId) = stuffToRetain;
     return *this;
 }
 
@@ -518,30 +518,40 @@ QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int ma
     return result;
 }
 
-quint32 unlockKeyToInt(QString unlockKey) {
-    QRegularExpression re("^[0-9A-Z]{3,5}$");
-    QRegularExpressionMatch match = re.match(unlockKey);
-    if(match.hasMatch()) {
-        // its a custom unlock key -> OK
-        bool flag;
-        quint32 unlockKeyInt = unlockKey.toUInt(&flag, 36);
+qint32 unlockKeyToInt(QString unlockKeyStr) {
+    QRegularExpression re("[a-z]");
+    QRegularExpressionMatch match = re.match(unlockKeyStr);
+    bool flag;
+    qint32 unlockKeyInt = unlockKeyStr.toInt(&flag, 36);
+    if(flag && unlockKeyInt >= -1 && unlockKeyStr.length() <= 5 && !match.hasMatch()) {
         return unlockKeyInt;
     } else {
-        bool flag;
-        quint32 unlockKeyInt = unlockKey.toUInt(&flag);
-        if(flag && unlockKeyInt < 40) {
-            // its a vanilla unlock key -> OK
-            return unlockKeyInt;
-        } else {
-            throw PatchProcess::Exception(QString("The tour clearKey '%1' must be 3 to 5 characters and only capital letters and digits are allowed.").arg(unlockKey));
-        }
+        throw PatchProcess::Exception(QString("The unlock key '%1' must be max 5 characters long and only uppercase letters and digits are allowed.").arg(unlockKeyStr));
     }
 }
 
-QString unlockKeyToStr(quint32 unlockKey) {
-    if(unlockKey < 40) {
+QString unlockKeyToStr(qint32 unlockKey) {
+    if(unlockKey == -1) {
         return QString::number(unlockKey);
     } else {
-        return QString::number(unlockKey, 36);
+        return QString::number(unlockKey, 36).toUpper();
     }
+}
+
+QString unlockKeysToStr(QVector<qint32> unlockKeys) {
+    QStringList list;
+    for(auto unlockKey : unlockKeys) {
+        list.append(unlockKeyToStr(unlockKey));
+    }
+    return list.join(",");
+}
+
+QVector<qint32> unlockKeysToVector(QString unlockKeysStr) {
+    QStringList list;
+    list = unlockKeysStr.split(",");
+    QVector<qint32> unlockKeys;
+    for(auto& unlockKeyStr : list) {
+        unlockKeys.append(unlockKeyToInt(unlockKeyStr));
+    }
+    return unlockKeys;
 }

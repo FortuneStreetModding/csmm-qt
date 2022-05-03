@@ -37,7 +37,12 @@ MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
         if (theItem->type() < QTableWidgetItem::UserType) return;
 
         if (theItem->type() == UNLOCK_KEY_TYPE) {
-            descriptors[row]->unlockKey = unlockKeyToInt(theItem->text());
+            descriptors[row]->unlockKeysStr = theItem->text();
+            try {
+                descriptors[row]->unlockKeys = unlockKeysToVector(theItem->text());
+            } catch (PatchProcess::Exception &) {
+                return;
+            }
         } else {
             bool ok;
             int value = theItem->text().toInt(&ok);
@@ -115,7 +120,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     });
     setCellWidget(row, colIdx++, isPracticeBoardCheck);
 
-    setItem(row, colIdx++, new QTableWidgetItem(unlockKeyToStr(descriptor.unlockKey), UNLOCK_KEY_TYPE));
+    setItem(row, colIdx++, new QTableWidgetItem(unlockKeysToStr(descriptor.unlockKeys), UNLOCK_KEY_TYPE));
     setItem(row, colIdx++, readOnlyItem(unlockKeyToStr(descriptor.tourClearKey)));
 
     setItem(row, colIdx++, readOnlyItem(descriptor.ruleSet == Easy ? "Easy" : "Standard"));

@@ -59,7 +59,8 @@ struct MapDescriptor {
     qint8 zone = -1;
     qint8 order = -1;
     bool isPracticeBoard = false;
-    quint32 unlockKey = 0;
+    QVector<qint32> unlockKeys = {-1};
+    QString unlockKeysStr;
     RuleSet ruleSet = Standard;
     quint32 initialCash = 0;
     quint32 targetAmount = 0;
@@ -82,7 +83,7 @@ struct MapDescriptor {
     quint32 tourInitialCash = 0;
     std::array<Character, 3> tourCharacters = {CharacterMario, Luigi, Peach};
     quint32 tourClearRank = 2;
-    quint32 tourClearKey = 0;
+    qint32 tourClearKey = -1;
     quint32 nameMsgId = 0;
     quint32 descMsgId = 0;
     QMap<QString, QString> names;
@@ -114,7 +115,9 @@ QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet
 QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs);
 
 // Conversion Functions
-quint32 unlockKeyToInt(QString unlockKey);
-QString unlockKeyToStr(quint32 unlockKey);
+qint32 unlockKeyToInt(QString unlockKey);
+QString unlockKeyToStr(qint32 unlockKey);
+QString unlockKeysToStr(QVector<qint32> unlockKeys);
+QVector<qint32> unlockKeysToVector(QString unlockKeysStr);
 
 #endif // MAPDESCRIPTOR_H

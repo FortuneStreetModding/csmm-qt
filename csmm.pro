@@ -80,6 +80,7 @@ SOURCES += \
     lib/dolio/tourclearranktable.cpp \
     lib/dolio/tourinitialcashtable.cpp \
     lib/dolio/touropponentstable.cpp \
+    lib/dolio/unlockkeytable.cpp \
     lib/dolio/venturecardtable.cpp \
     lib/dolio/wififix.cpp \
     lib/exewrapper.cpp \
@@ -154,6 +155,7 @@ HEADERS += \
     lib/dolio/tourclearranktable.h \
     lib/dolio/tourinitialcashtable.h \
     lib/dolio/touropponentstable.h \
+    lib/dolio/unlockkeytable.h \
     lib/dolio/venturecardtable.h \
     lib/dolio/wififix.h \
     lib/downloadtools.h \

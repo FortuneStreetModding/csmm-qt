@@ -413,6 +413,15 @@ void MainWindow::validateMaps() {
         }
     }
 
+        for (int i=0; i<descriptors.size(); i++) {
+            auto& descriptor = descriptors[i];
+            try {
+                descriptor.unlockKeys = unlockKeysToVector(descriptor.unlockKeysStr);
+            } catch (PatchProcess::Exception &e) {
+                errorMsgs.append(QString("[board %1] %2").arg(i).arg(e.getMessage()));
+            }
+        }
+
     if (errorMsgs.isEmpty()) {
         QMessageBox::information(this, "Validation", "Validation passed.");
     } else {

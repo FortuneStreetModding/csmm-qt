@@ -7,70 +7,77 @@ struct MapSetZone {
     qint8 mapSet;
     qint8 zone;
     qint8 order;
+    QVector<qint32> unlockKeys;
     qint8 mapId;
 };
 
-static const MapSetZone MAP_SET_ZONE_TABLE[] = {
-    {1, 0, 0, 3},
-    {1, 0, 1, 7},
-    {1, 0, 2, 1},
-    {1, 0, 3, 0},
-    {1, 0, 4, 4},
-    {1, 0, 5, 2},
+static const MapSetZone MAP_SET_ZONE_UNLOCKKEYS_TABLE[] = {
+    {1, 0, 0, {-1}, 3},
+    {1, 0, 1, {-1}, 7},
+    {1, 0, 2, {-1}, 1},
+    {1, 0, 3, {-1}, 0},
+    {1, 0, 4, {-1}, 4},
+    {1, 0, 5, {-1}, 2},
 
-    {1, 1, 0, 9},
-    {1, 1, 1, 17},
-    {1, 1, 2, 10},
-    {1, 1, 3, 13},
-    {1, 1, 4, 12},
-    {1, 1, 5, 14},
+    {1, 1, 0, {-1}, 9},
+    {1, 1, 1, {-1}, 17},
+    {1, 1, 2, {-1}, 10},
+    {1, 1, 3, {-1}, 13},
+    {1, 1, 4, {-1}, 12},
+    {1, 1, 5, {-1}, 14},
 
-    {1, 2, 0, 15},
-    {1, 2, 1, 5},
-    {1, 2, 2, 6},
-    {1, 2, 3, 8},
-    {1, 2, 4, 11},
-    {1, 2, 5, 16},
+    {1, 2, 0, {20,21,22,23,24,27,29,30,32,33,34,37}, 15},
+    {1, 2, 1, {35}, 5},
+    {1, 2, 2, {25}, 6},
+    {1, 2, 3, {26}, 8},
+    {1, 2, 4, {28}, 11},
+    {1, 2, 5, {31}, 16},
 
-    {0, 0, 0, 24},
-    {0, 0, 1, 28},
-    {0, 0, 2, 22},
-    {0, 0, 3, 21},
-    {0, 0, 4, 25},
-    {0, 0, 5, 23},
+    {0, 0, 0, {-1}, 24},
+    {0, 0, 1, {-1}, 28},
+    {0, 0, 2, {-1}, 22},
+    {0, 0, 3, {-1}, 21},
+    {0, 0, 4, {-1}, 25},
+    {0, 0, 5, {-1}, 23},
 
-    {0, 1, 0, 30},
-    {0, 1, 1, 38},
-    {0, 1, 2, 31},
-    {0, 1, 3, 34},
-    {0, 1, 4, 33},
-    {0, 1, 5, 35},
+    {0, 1, 0, {-1}, 30},
+    {0, 1, 1, {-1}, 38},
+    {0, 1, 2, {-1}, 31},
+    {0, 1, 3, {-1}, 34},
+    {0, 1, 4, {-1}, 33},
+    {0, 1, 5, {-1}, 35},
 
-    {0, 2, 0, 36},
-    {0, 2, 1, 26},
-    {0, 2, 2, 27},
-    {0, 2, 3, 29},
-    {0, 2, 4, 32},
-    {0, 2, 5, 37},
+    {0, 2, 0, {0,1,2,3,4,7,9,10,12,13,14,17}, 36},
+    {0, 2, 1, {36}, 26},
+    {0, 2, 2, {26}, 27},
+    {0, 2, 3, {27}, 29},
+    {0, 2, 4, {29}, 32},
+    {0, 2, 5, {32}, 37},
 };
 
 qint8 getVanillaMapSet(int mapId) {
-    for (auto &entry: MAP_SET_ZONE_TABLE) {
+    for (auto &entry: MAP_SET_ZONE_UNLOCKKEYS_TABLE) {
         if (entry.mapId == mapId) return entry.mapSet;
     }
     return -1;
 }
 qint8 getVanillaZone(int mapId) {
-    for (auto &entry: MAP_SET_ZONE_TABLE) {
+    for (auto &entry: MAP_SET_ZONE_UNLOCKKEYS_TABLE) {
         if (entry.mapId == mapId) return entry.zone;
     }
     return -1;
 }
 qint8 getVanillaOrder(int mapId) {
-    for (auto &entry: MAP_SET_ZONE_TABLE) {
+    for (auto &entry: MAP_SET_ZONE_UNLOCKKEYS_TABLE) {
         if (entry.mapId == mapId) return entry.order;
     }
     return -1;
+}
+QVector<qint32> getVanillaUnlockKeys(int mapId) {
+    for (auto &entry: MAP_SET_ZONE_UNLOCKKEYS_TABLE) {
+        if (entry.mapId == mapId) return entry.unlockKeys;
+    }
+    return {-1};
 }
 
 struct VentureCard {
