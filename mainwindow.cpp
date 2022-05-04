@@ -61,6 +61,26 @@ MainWindow::MainWindow(QWidget *parent)
         }
         ui->actionPatch_SaveId->setChecked(getSaveId() != "01");
     });
+    connect(ui->actionExport_default_modlists_txt, &QAction::triggered, this, [&]() {
+        auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)");
+
+        QSaveFile fileObj(saveFile);
+
+        if (!fileObj.open(QFile::WriteOnly)) {
+            QMessageBox::critical(this, "Error exporting modlist.txt", "Error opening file for saving");
+        }
+
+        auto defaultModList = DefaultModList::defaultModList();
+
+        QTextStream stream(&fileObj);
+        stream.setCodec("UTF-8");
+
+        for (auto &mod: defaultModList) {
+            stream << mod->modId() << "\n";
+        }
+
+        fileObj.commit();
+    });
 }
 
 QString MainWindow::getSaveId() {
