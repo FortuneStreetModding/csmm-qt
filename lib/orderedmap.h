@@ -511,7 +511,7 @@ template <typename Key, typename Value>
 QList<Value> OrderedMap<Key, Value>::values() const
 {
     QList<Value> values;
-    foreach (const Key &key, insertOrder.toStdList()) {
+    for (const Key &key: insertOrder.toStdList()) {
         OMHashValue v = data.value(key);
         values.append(v.first);
     }

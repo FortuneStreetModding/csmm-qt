@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
+ADD_DEFINITIONS(-DQT_NO_KEYWORDS)
+
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 endif()
@@ -207,6 +209,7 @@ set(SOURCES
     venturecarddialog.ui
     lib/python/pythoncasters.h
     lib/python/pythonbindings.h lib/python/pythonbindings.cpp
+    lib/mods/modloader.h lib/mods/modloader.cpp
 )
 
 qt_add_big_resources(SOURCES csmm.qrc)
