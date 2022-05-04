@@ -23,6 +23,8 @@ ModListType importModpack(const QString &modpackDir) {
         modids.insert(modid);
     }
 
+    //qDebug() << "length 1: " << result.length();
+
     // filter out default mods that aren't from the modlist.txt
     auto removeIterator = std::remove_if(result.begin(), result.end(), [&](const auto &mod) { return !modids.contains(mod->modId()); });
     // remove modids from modid set that are already accounted for
@@ -32,6 +34,8 @@ ModListType importModpack(const QString &modpackDir) {
     // do the actual removing
     result.erase(removeIterator, result.end());
 
+    //qDebug() << "length 2: " << result.length();
+
     // temporarily add modpack folder to python module search path
     auto sys = pybind11::module_::import("sys");
     auto sysPath = sys.attr("path");
@@ -39,9 +43,13 @@ ModListType importModpack(const QString &modpackDir) {
 
     try {
         for (auto &modid: qAsConst(modids)) {
+            qDebug() << "trying to import user mod" << modid;
+
             // append mod instance for each user modid
             auto modModule = pybind11::module_::import(modid.toUtf8());
-            result.append(modModule.attr("Mod")().cast<std::shared_ptr<CSMMMod>>());
+            result.append(modModule.attr("mod").cast<std::shared_ptr<CSMMMod>>());
+
+            qDebug() << "successfully imported user mod" << result.back()->modId();
         }
     } catch (const pybind11::error_already_set &error) {
         sysPath.attr("pop")(0); // revert python module search path
@@ -49,6 +57,8 @@ ModListType importModpack(const QString &modpackDir) {
     }
 
     sysPath.attr("pop")(0);
+
+    //qDebug() << "length 3: " << result.length();
 
     return result;
 }

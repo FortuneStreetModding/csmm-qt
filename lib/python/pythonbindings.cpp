@@ -58,13 +58,13 @@ public:
         PYBIND11_OVERRIDE_PURE(QString, CSMMMod, modId);
     }
     int priority() const override {
-        PYBIND11_OVERRIDE_PURE(int, CSMMMod, priority);
+        PYBIND11_OVERRIDE(int, CSMMMod, priority);
     }
     QSet<QString> depends() const override {
-        PYBIND11_OVERRIDE_PURE(QSet<QString>, CSMMMod, depends);
+        PYBIND11_OVERRIDE(QSet<QString>, CSMMMod, depends);
     }
     QSet<QString> after() const override {
-        PYBIND11_OVERRIDE_PURE(QSet<QString>, CSMMMod, after);
+        PYBIND11_OVERRIDE(QSet<QString>, CSMMMod, after);
     }
 };
 
@@ -80,10 +80,10 @@ public:
 class PyGeneralInterface : public virtual GeneralInterface {
 public:
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
-        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, loadFiles);
+        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, loadFiles, root, gameInstance, modList);
     }
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
-        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, saveFiles);
+        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, saveFiles, root, gameInstance, modList);
     }
 };
 
@@ -99,7 +99,7 @@ public:
         PYBIND11_OVERRIDE_PURE(SaveResultType, UiMessageInterface, freeUiMessages);
     }
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
-        PYBIND11_OVERRIDE_PURE(void, UiMessageInterface, allocateUiMessages);
+        PYBIND11_OVERRIDE_PURE(void, UiMessageInterface, allocateUiMessages, root, gameInstance, modList);
     }
     QMap<QString, SaveMessagesFunction> saveUiMessages() override {
         PYBIND11_OVERRIDE_PURE(SaveResultType, UiMessageInterface, saveUiMessages);

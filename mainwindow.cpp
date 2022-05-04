@@ -17,6 +17,7 @@
 #include "lib/downloadtools.h"
 #include "lib/datafileset.h"
 #include "lib/mods/defaultmodlist.h"
+#include "lib/mods/modloader.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -80,6 +81,17 @@ MainWindow::MainWindow(QWidget *parent)
         }
 
         fileObj.commit();
+    });
+    connect(ui->actionImport_mod_pack, &QAction::triggered, this, [&]() {
+        auto dir = QFileDialog::getExistingDirectory(this, "Import mod pack");
+
+        try {
+            modList = ModLoader::importModpack(dir);
+        } catch (const std::runtime_error &error) {
+            QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
+        } catch (...) { // TODO add catches for specific errors
+            QMessageBox::critical(this, "Error importing modpack", "Error importing modpack");
+        }
     });
 }
 

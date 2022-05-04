@@ -102,6 +102,7 @@
     <addaction name="actionValidate"/>
     <addaction name="separator"/>
     <addaction name="actionExport_default_modlists_txt"/>
+    <addaction name="actionImport_mod_pack"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -233,6 +234,11 @@
   <action name="actionExport_default_modlists_txt">
    <property name="text">
     <string>Export default modlist.txt</string>
+   </property>
+  </action>
+  <action name="actionImport_mod_pack">
+   <property name="text">
+    <string>Import mod pack</string>
    </property>
   </action>
  </widget>
