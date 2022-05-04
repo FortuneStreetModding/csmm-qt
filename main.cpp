@@ -3,6 +3,8 @@
 #include "darkdetect.h"
 #include <QApplication>
 
+#include <pybind11/embed.h>
+
 #if defined( Q_OS_WIN )
 #include <windows.h>
 #endif
@@ -11,6 +13,8 @@
 
 int main(int argc, char *argv[])
 {
+    pybind11::scoped_interpreter guard{}; // start the python interpreter
+
     bool consoleMode = argc > 1;
     // consoleMode = true;
     if(consoleMode) {
