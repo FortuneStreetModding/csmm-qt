@@ -52,8 +52,10 @@ static pybind11::class_<std::array<T, N>> bindStdArray(pybind11::handle h, const
 
 namespace {
 
-class PyCSMMMod : public virtual CSMMMod {
+class PyCSMMMod : public CSMMMod {
 public:
+    using CSMMMod::CSMMMod;
+
     QString modId() const override {
         PYBIND11_OVERRIDE_PURE(QString, CSMMMod, modId);
     }
@@ -68,17 +70,21 @@ public:
     }
 };
 
-class PyArcFileInterface : public virtual ArcFileInterface {
+class PyArcFileInterface : public ArcFileInterface {
 private:
     typedef QMap<QString, ModifyArcFunction> ResultType;
 public:
+    using ArcFileInterface::ArcFileInterface;
+
     QMap<QString, ModifyArcFunction> modifyArcFile() override {
         PYBIND11_OVERRIDE_PURE(ResultType, ArcFileInterface, modifyArcFile);
     }
 };
 
-class PyGeneralInterface : public virtual GeneralInterface {
+class PyGeneralInterface : public GeneralInterface {
 public:
+    using GeneralInterface::GeneralInterface;
+
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
         PYBIND11_OVERRIDE_PURE(void, GeneralInterface, loadFiles, root, gameInstance, modList);
     }
@@ -87,11 +93,13 @@ public:
     }
 };
 
-class PyUiMessageInterface : public virtual UiMessageInterface {
+class PyUiMessageInterface : public UiMessageInterface {
 private:
     typedef QMap<QString, LoadMessagesFunction> LoadResultType;
     typedef QMap<QString, SaveMessagesFunction> SaveResultType;
 public:
+    using UiMessageInterface::UiMessageInterface;
+
     QMap<QString, LoadMessagesFunction> loadUiMessages() override {
         PYBIND11_OVERRIDE_PURE(LoadResultType, UiMessageInterface, loadUiMessages);
     }
@@ -244,7 +252,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def("modId", &CSMMMod::modId)
             .def("priority", &CSMMMod::priority)
             .def("depends", &CSMMMod::depends)
-            .def("after", &CSMMMod::after);
+            .def("after", &CSMMMod::after)
+            .def("modpackDir", &CSMMMod::modpackDir);
 
     pybind11::class_<ArcFileInterface, PyArcFileInterface, std::shared_ptr<ArcFileInterface>>(m, "ArcFileInterface")
             .def(pybind11::init<>())

@@ -148,17 +148,6 @@
     <string>Ctrl+Shift+E</string>
    </property>
   </action>
-  <action name="actionPatch_Wiimmfi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Patch Wiimmfi</string>
-   </property>
-  </action>
   <action name="actionImport_WBFS_ISO">
    <property name="text">
     <string>Import WBFS/ISO</string>
@@ -221,28 +210,6 @@
    </property>
    <property name="text">
     <string>Save map list (*.csv)</string>
-   </property>
-  </action>
-  <action name="actionDisplay_Map_Name_On_Results_Screen">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Display Map Name On Results Screen</string>
-   </property>
-  </action>
-  <action name="actionUpdate_Minimap_Icons">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Update Minimap Icons</string>
    </property>
   </action>
   <action name="actionExport_default_modlists_txt">

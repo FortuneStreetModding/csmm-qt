@@ -30,6 +30,8 @@ private:
 
     ModListType modList;
 
+    std::shared_ptr<QTemporaryDir> tempModpackDir;
+
     void openDir();
     void openIsoWbfs();
     void exportToFolder();

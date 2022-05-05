@@ -5,6 +5,7 @@
 #include "lib/await.h"
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
+#include "lib/mods/csmmmod.h"
 #include "lib/python/pythonbindings.h"
 
 class CSMMModpack {

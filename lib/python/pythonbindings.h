@@ -6,8 +6,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/functional.h>
 #include <QVector>
-
-class CSMMMod;
+#include "lib/mods/csmmmod_decl.h"
 
 /**
  * Wrapper class for CSMM mods.
@@ -18,11 +17,11 @@ public:
 
     template<class T>
     static CSMMModHolder fromCppObj() {
-        return CSMMModHolder(std::make_shared<T>(), nullptr);
+        return CSMMModHolder(std::make_shared<T>(), pybind11::none());
     }
 
     static CSMMModHolder fromPyObj(pybind11::object obj) {
-        return CSMMModHolder(obj.cast<std::shared_ptr<CSMMMod>>(), std::make_shared<pybind11::object>(obj));
+        return CSMMModHolder(obj.cast<std::shared_ptr<CSMMMod>>(), obj);
     }
 
     CSMMMod &operator*() {
@@ -45,15 +44,15 @@ public:
         return modPtr;
     }
 
-    std::shared_ptr<const pybind11::object> pyObject() const {
-        return objPtr;
+    pybind11::object pyObject() {
+        return obj;
     }
 
     template<class T>
     std::shared_ptr<T> getCapability() {
-        if (objPtr) {
+        if (!obj.is_none()) {
             try {
-                return objPtr->cast<std::shared_ptr<T>>();
+                return obj.cast<std::shared_ptr<T>>();
             } catch (const pybind11::cast_error &error) {
                 return nullptr;
             }
@@ -62,17 +61,17 @@ public:
     }
 
     bool operator==(const CSMMModHolder &other) const {
-        return modPtr == other.modPtr && objPtr == other.objPtr;
+        return modPtr == other.modPtr && obj.is(other.obj);
     }
 
     bool operator!=(const CSMMModHolder &other) const {
         return !(*this == other);
     }
 private:
-    CSMMModHolder(std::shared_ptr<CSMMMod> modPtr, std::shared_ptr<pybind11::object> objPtr) : modPtr(modPtr), objPtr(objPtr) {}
+    CSMMModHolder(std::shared_ptr<CSMMMod> modPtr, pybind11::object obj) : modPtr(modPtr), obj(obj) {}
 
     std::shared_ptr<CSMMMod> modPtr;
-    std::shared_ptr<pybind11::object> objPtr;
+    pybind11::object obj;
 };
 
 /**
@@ -89,13 +88,12 @@ struct csmm_mod_holder_caster {
     }
 
     static handle
-    cast(const CSMMModHolder &holder, return_value_policy policy, handle parent) {
+    cast(CSMMModHolder holder, return_value_policy policy, handle parent) {
         auto pyObj = holder.pyObject();
-        if (!pyObj) {
+        if (pyObj.is_none()) {
             return pybind11::cast(holder.modHandle()).release();
         }
-        auto res = *pyObj;
-        return res.release();
+        return pyObj.release();
     }
 
     PYBIND11_TYPE_CASTER(CSMMModHolder, const_name("CSMMMod"));

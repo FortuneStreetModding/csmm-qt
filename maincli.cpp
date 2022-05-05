@@ -167,7 +167,7 @@ void run(QStringList arguments)
                 }
                 auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                 auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
-                CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+                CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
                 if (descriptors.empty()) {
@@ -249,7 +249,7 @@ void run(QStringList arguments)
                 if(!file.exists()) {
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
-                    CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+                    CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
@@ -286,7 +286,7 @@ void run(QStringList arguments)
                 } else {
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
-                    CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+                    CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
@@ -323,7 +323,7 @@ void run(QStringList arguments)
                     }
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
-                    CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
+                    CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
@@ -344,7 +344,7 @@ void run(QStringList arguments)
                             dolOriginal.copy(dolBackupPath);
                         }
 
-                        if (std::any_of(mods.begin(), mods.end(), [](auto &mod) { return mod->modId() == "wifiFix"; })) {
+                        if (std::any_of(mods.first.begin(), mods.first.end(), [](auto &mod) { return mod->modId() == "wifiFix"; })) {
                             cout << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.\n";
                             cout << "\n";
                             cout.flush();

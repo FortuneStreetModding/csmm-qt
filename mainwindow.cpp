@@ -90,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
 
         try {
-            modList = ModLoader::importModpackFile(file);
+            std::tie(modList, tempModpackDir) = ModLoader::importModpackFile(file);
             updateModListWidget();
             QMessageBox::information(this, "Import mod pack", "Modpack successfully imported.");
         } catch (const std::runtime_error &error) {
@@ -347,7 +347,7 @@ void MainWindow::exportToFolder() {
         }
     }
 
-    if (ui->actionPatch_Wiimmfi->isChecked()) {
+    if (true) { // TODO check if wifiFix is a modid
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
 

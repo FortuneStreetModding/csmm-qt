@@ -5,43 +5,7 @@
 
 namespace ModLoader {
 
-ModListType importModpackFile(const QString &file) {
-    if (file.isEmpty()) { // special case: empty string yields default modpack
-        return DefaultModList::defaultModList();
-    }
-
-    QTemporaryDir tmpDir;
-
-    if (!tmpDir.isValid()) {
-        throw ModException("could not create temporary directory");
-    }
-
-    QString dir;
-
-    if (QFileInfo(file).suffix() == "zip") {
-        QString extractedFile;
-        int zipResult = zip_extract(file.toUtf8(), tmpDir.path().toUtf8(), [](const char *candidate, void *arg) {
-            QFileInfo fi(candidate);
-            QString *extractedFilePtr = (QString *)arg;
-
-            if (fi.fileName() == "modlist.txt") {
-                *extractedFilePtr = candidate;
-            }
-
-            return 0;
-        }, &extractedFile);
-        if (zipResult < 0) {
-            throw ModException("zip file could not be extracted");
-        }
-        dir = QFileInfo(extractedFile).dir().path();
-    } else {
-        dir = QFileInfo(file).dir().path();
-    }
-
-    return ModLoader::importModpackDir(dir);
-}
-
-ModListType importModpackDir(const QString &modpackDir) {
+static ModListType importModpackDir(const QString &modpackDir) {
     ModListType result(DefaultModList::defaultModList());
 
     QFile modListFile(QDir(modpackDir).filePath("modlist.txt"));
@@ -59,8 +23,6 @@ ModListType importModpackDir(const QString &modpackDir) {
         modids.insert(modid);
     }
 
-    //qDebug() << "length 1: " << result.length();
-
     // filter out default mods that aren't from the modlist.txt
     auto removeIterator = std::remove_if(result.begin(), result.end(), [&](const auto &mod) { return !modids.contains(mod->modId()); });
     // remove modids from modid set that are already accounted for
@@ -69,8 +31,6 @@ ModListType importModpackDir(const QString &modpackDir) {
     }
     // do the actual removing
     result.erase(removeIterator, result.end());
-
-    //qDebug() << "length 2: " << result.length();
 
     // temporarily add modpack folder to python module search path
     auto sys = pybind11::module_::import("sys");
@@ -94,9 +54,49 @@ ModListType importModpackDir(const QString &modpackDir) {
 
     sysPath.attr("pop")(0);
 
-    //qDebug() << "length 3: " << result.length();
+    for (auto &mod: result) {
+        mod->setModpackDir(modpackDir);
+    }
 
     return result;
+}
+
+std::pair<ModListType, std::shared_ptr<QTemporaryDir>> importModpackFile(const QString &file) {
+    if (file.isEmpty()) { // special case: empty string yields default modpack
+        return std::make_pair(DefaultModList::defaultModList(), nullptr);
+    }
+
+    std::shared_ptr<QTemporaryDir> tmpDir;
+
+    QString dir;
+
+    if (QFileInfo(file).suffix() == "zip") {
+        QString extractedFile;
+
+        tmpDir = std::make_shared<QTemporaryDir>();
+        if (!tmpDir->isValid()) {
+            throw ModException("could not create temporary directory");
+        }
+
+        int zipResult = zip_extract(file.toUtf8(), tmpDir->path().toUtf8(), [](const char *candidate, void *arg) {
+            QFileInfo fi(candidate);
+            QString *extractedFilePtr = (QString *)arg;
+
+            if (fi.fileName() == "modlist.txt") {
+                *extractedFilePtr = candidate;
+            }
+
+            return 0;
+        }, &extractedFile);
+        if (zipResult < 0) {
+            throw ModException("zip file could not be extracted");
+        }
+        dir = QFileInfo(extractedFile).dir().path();
+    } else {
+        dir = QFileInfo(file).dir().path();
+    }
+
+    return make_pair(ModLoader::importModpackDir(dir), tmpDir);
 }
 
 }

@@ -3,6 +3,7 @@
 #include "darkdetect.h"
 #include <QApplication>
 
+#include "lib/python/pythonbindings.h"
 #include <pybind11/embed.h>
 
 #if defined( Q_OS_WIN )

@@ -209,6 +209,7 @@ set(SOURCES
     venturecarddialog.ui
     lib/python/pythonbindings.h lib/python/pythonbindings.cpp
     lib/mods/modloader.h lib/mods/modloader.cpp
+    lib/mods/csmmmod_decl.h
 )
 
 qt_add_big_resources(SOURCES csmm.qrc)

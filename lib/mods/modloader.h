@@ -6,8 +6,10 @@
 
 namespace ModLoader {
 
-ModListType importModpackFile(const QString &file);
-ModListType importModpackDir(const QString &modpackDir);
+/**
+ * @return a pair containing (1) a list of mods and (2) a temporary directory holding the modpack if applicable
+ */
+std::pair<ModListType, std::shared_ptr<QTemporaryDir>> importModpackFile(const QString &file);
 
 }
 
