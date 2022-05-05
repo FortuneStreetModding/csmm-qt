@@ -91,11 +91,13 @@ MainWindow::MainWindow(QWidget *parent)
 
         try {
             modList = ModLoader::importModpackFile(file);
+            updateModListWidget();
         } catch (const std::runtime_error &error) {
             QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
             PyErr_Clear();
         }
     });
+    updateModListWidget();
 }
 
 QString MainWindow::getSaveId() {
@@ -145,6 +147,15 @@ void MainWindow::loadMapList() {
     } catch (const YAML::Exception &exception) {
         QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
     }
+}
+
+void MainWindow::updateModListWidget() {
+    ui->modListWidget->clear();
+    QStringList modStrs;
+    for (auto &mod: modList) {
+        modStrs.append(mod->modId());
+    }
+    ui->modListWidget->addItems(modStrs);
 }
 
 void MainWindow::saveCleanItastCsmmBrsar() {

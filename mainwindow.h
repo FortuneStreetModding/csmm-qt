@@ -40,6 +40,7 @@ private:
     void saveCleanItastCsmmBrsar();
     void saveMapList();
     void loadMapList();
+    void updateModListWidget();
 
     QString getSaveId();
 };

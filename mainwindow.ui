@@ -16,7 +16,21 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="MapDescriptorWidget" name="tableWidget"/>
+     <layout class="QHBoxLayout" name="mainArea">
+      <item>
+       <widget class="MapDescriptorWidget" name="tableWidget"/>
+      </item>
+      <item>
+       <widget class="QListWidget" name="modListWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QWidget" name="mapToolbar" native="true">
