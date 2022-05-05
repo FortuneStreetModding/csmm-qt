@@ -92,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
         try {
             modList = ModLoader::importModpackFile(file);
             updateModListWidget();
+            QMessageBox::information(this, "Import mod pack", "Modpack successfully imported.");
         } catch (const std::runtime_error &error) {
             QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
             PyErr_Clear();
