@@ -23,6 +23,38 @@ void TourClearKeyTable::writeAsm(QDataStream &stream, const AddressMapper &addre
     //       The tourClearKey is constrained to be max of 5 characters of only uppercase letters and digits. If we convert that to an integer using base 36,
     //       it will take up at most 3 bytes of memory. We can use the 4th byte for information on clear rank, new state, etc.
 
+
+
+    // Stuff we need to reimplement
+
+    // enum GAME_MODE_TYPE { TODO }
+    // enum GAME_RULE_TYPE { easy = 0, standard = 1, current = 2 }   NOTE: This is the other way around from MapDescriptor::RuleSet
+    // enum ZONE_TYPE { TODO }
+    // void Game::GameSequenceDataAdapter::InitMapReleased(int mapId, GAME_RULE_TYPE gameRule, BASE_USERINFO* userInfo)
+    // bool Game::GameSequenceDataAdapter::IsMapReleased(int mapId)
+    // void Game::GameSequenceDataAdapter::SetMapReleased(int mapId, bool released)
+    // bool Game::GameSequenceDataAdapter::IsMapNew(int mapId, GAME_MODE_TYPE param_2)
+    // void Game::GameSequenceDataAdapter::SetMapNew(int mapId, GAME_MODE_TYPE param_2)
+    // bool Game::GameSequenceDataAdapter::IsMapNewFirst(int mapId)
+    // void Game::GameSequenceDataAdapter::SetMapNewFirst(int mapId)
+    // bool Game::GameSequenceDataAdapter::IsMapClearFirst(int mapId)
+    // void Game::GameSequenceDataAdapter::SetMapClearFirst(int mapId)
+    // bool Game::GameSequenceDataAdapter::IsMapVictoryFirst(int mapId)
+    // void Game::GameSequenceDataAdapter::SetMapVictoryFirst(int mapId)
+    // bool Game::GameSequenceDataAdapter::IsZoneClear(ZONE_TYPE zone)
+    // bool Game::GameSequenceDataAdapter::IsMapClear(int mapId, GAME_RULE_TYPE gameRule, int userIndex)
+    // void Game::GameSequenceDataAdapter::SetMapClearRank(int mapId, int clearRank)
+    // int Game::GameSequenceDataAdapter::GetMapRank(int mapId, GAME_RULE_TYPE gameRule)
+    // bool Game::GameSequenceDataAdapter::IsNormalClear(int userIndex)
+    // bool Game::GameSequenceDataAdapter::IsEasyClear(int userIndex)
+    // bool Game::GameSequenceDataAdapter::IsMapVictory(int mapId, GAME_RULE_TYPE gameRule)
+    // bool Game::GameSequenceDataAdapter::IsZoneVictory(ZONE_TYPE zone, GAME_RULE_TYPE gameRule)
+    // void Game::GameSequenceDataAdapter::SetMapVictory(int mapId, bool victory)
+    // void Flag::SaveData::ClearUserInfo(int userIndex)
+    // Game::CanUnlockMap(int mapId)
+    // Game::SetMapUnlock(int mapId)
+    //
+    // Also all accounts of RULESET_MAP_COUNT (18), which are around 38 references
 }
 
 void TourClearKeyTable::readAsm(QDataStream &stream, QVector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {

@@ -2,9 +2,29 @@
 #include "lib/powerpcasm.h"
 #include "lib/vanilladatabase.h"
 
+quint32 UnlockKeyTable::writeUnlockKeys(const MapDescriptor &descriptor) {
+    QVector<quint32> unlockKeyList;
+    // write size of unlockkeylist
+    unlockKeyList.append(descriptor.unlockKeys.size());
+    // write the list
+    for(auto unlockKey : descriptor.unlockKeys) {
+        unlockKeyList.append(unlockKey);
+    }
+    return allocate(unlockKeyList, "UnlockKeys for " + descriptor.internalName);
+}
+
+
 quint32 UnlockKeyTable::writeTable(const QVector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
-    // TODO
+    for(auto& descriptor : descriptors) {
+        if(descriptor.unlockKeys.size() == 0) {
+            table.append(0);
+        } else if(descriptor.unlockKeys.size() == 1) {
+            table.append(descriptor.unlockKeys.first());
+        } else {
+            writeUnlockKeys(descriptor);
+        }
+    }
     return allocate(table, "UnlockKeysTable");
 }
 
