@@ -1,10 +1,47 @@
 #include "modloader.h"
 #include "defaultmodlist.h"
 #include "lib/python/pythonbindings.h"
+#include "lib/zip/zip.h"
 
 namespace ModLoader {
 
-ModListType importModpack(const QString &modpackDir) {
+ModListType importModpackFile(const QString &file) {
+    if (file.isEmpty()) { // special case: empty string yields default modpack
+        return DefaultModList::defaultModList();
+    }
+
+    QTemporaryDir tmpDir;
+
+    if (!tmpDir.isValid()) {
+        throw ModException("could not create temporary directory");
+    }
+
+    QString dir;
+
+    if (QFileInfo(file).suffix() == "zip") {
+        QString extractedFile;
+        int zipResult = zip_extract(file.toUtf8(), tmpDir.path().toUtf8(), [](const char *candidate, void *arg) {
+            QFileInfo fi(candidate);
+            QString *extractedFilePtr = (QString *)arg;
+
+            if (fi.fileName() == "modlist.txt") {
+                *extractedFilePtr = candidate;
+            }
+
+            return 0;
+        }, &extractedFile);
+        if (zipResult < 0) {
+            throw ModException("zip file could not be extracted");
+        }
+        dir = QFileInfo(extractedFile).dir().path();
+    } else {
+        dir = QFileInfo(file).dir().path();
+    }
+
+    return ModLoader::importModpackDir(dir);
+}
+
+ModListType importModpackDir(const QString &modpackDir) {
     ModListType result(DefaultModList::defaultModList());
 
     QFile modListFile(QDir(modpackDir).filePath("modlist.txt"));

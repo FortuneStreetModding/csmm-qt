@@ -5,7 +5,10 @@
 #include "lib/python/pythonbindings.h"
 
 namespace ModLoader {
-    ModListType importModpack(const QString &modpackDir);
+
+ModListType importModpackFile(const QString &file);
+ModListType importModpackDir(const QString &modpackDir);
+
 }
 
 #endif // MODLOADER_H

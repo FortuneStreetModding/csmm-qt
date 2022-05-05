@@ -13,11 +13,11 @@
 #include "lib/downloadtools.h"
 #include "lib/datafileset.h"
 #include "lib/mods/csmmmodpack.h"
-#include "lib/mods/defaultmodlist.h"
+#include "lib/mods/modloader.h"
 
 namespace maincli {
 
-void setupSubcommand(QCommandLineParser& parser, QString name, QString description) {
+static void setupSubcommand(QCommandLineParser& parser, QString name, QString description) {
     parser.clearPositionalArguments();
     parser.setApplicationDescription("\n" + description);
     QCommandLineOption openCategory(" " + name + " command --\n");
@@ -73,6 +73,7 @@ void run(QStringList arguments)
     // QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
     QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
+    QCommandLineOption modPackOption(QStringList() << "modpack", "The modpack file (.zip or modlist.txt) to load (leave blank for default).", "modpack");
     QCommandLineOption witUrlOption("wit-url", "The URL where to download WIT", "url", WIT_URL);
     QCommandLineOption wszstUrlOption("wszst-url","The URL where to download WSZST", "url", WSZST_URL);
     QCommandLineOption helpOption(QStringList() << "h" << "?" << "help", "Show the help");
@@ -145,6 +146,7 @@ void run(QStringList arguments)
         parser.addOption(forceOption);
         parser.addOption(mapIdOption);
         parser.addOption(internalNamesOption);
+        parser.addOption(modPackOption);
 
         parser.process(arguments);
         const QStringList args = parser.positionalArguments();
@@ -163,7 +165,7 @@ void run(QStringList arguments)
                 targetDir.mkpath(".");
             }
             auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
-            auto mods = DefaultModList::defaultModList();
+            auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
             CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
             modpack.load(sourceDir.path());
             auto descriptors = gameInstance.mapDescriptors();
@@ -215,6 +217,8 @@ void run(QStringList arguments)
         parser.addOption(mapZoneOption);
         parser.addOption(mapOrderOption);
         parser.addOption(mapPracticeBoardOption);
+        parser.addOption(modPackOption);
+
         parser.process(arguments);
 
         std::optional<int> mapId, mapSet, mapZone, mapOrder, mapPracticeBoard;
@@ -243,7 +247,7 @@ void run(QStringList arguments)
             QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
             if(!file.exists()) {
                 auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
-                auto mods = DefaultModList::defaultModList();
+                auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                 CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
@@ -261,6 +265,7 @@ void run(QStringList arguments)
         // --- status ---
         setupSubcommand(parser, "status", "Print out the pending changes.");
         parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "status <gameDir>");
+        parser.addOption(modPackOption);
 
         parser.process(arguments);
 
@@ -279,7 +284,7 @@ void run(QStringList arguments)
                 cout << Configuration::status(sourceDir.filePath("csmm_pending_changes.csv"));
             } else {
                 auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
-                auto mods = DefaultModList::defaultModList();
+                auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                 CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
@@ -295,6 +300,7 @@ void run(QStringList arguments)
         // --- save ---
         setupSubcommand(parser, "save", "Write the pending changes into the Fortune Street game directory.");
         parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "save <gameDir>");
+        parser.addOption(modPackOption);
 
         parser.process(arguments);
         const QStringList args = parser.positionalArguments();
@@ -315,7 +321,7 @@ void run(QStringList arguments)
                     QCoreApplication::exit(1); return;
                 }
                 auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
-                auto mods = DefaultModList::defaultModList();
+                auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                 CSMMModpack modpack(gameInstance, mods.begin(), mods.end());
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();

@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 
 #include "lib/filesystem.hpp"
-#include "lib/zip/zip.h"
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -90,38 +89,8 @@ MainWindow::MainWindow(QWidget *parent)
             return;
         }
 
-        QTemporaryDir tmpDir;
-
-        if (!tmpDir.isValid()) {
-            QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack: could not create temporary directory"));
-            return;
-        }
-
-        QString dir;
-
-        if (QFileInfo(file).suffix() == "zip") {
-            QString extractedFile;
-            int zipResult = zip_extract(file.toUtf8(), tmpDir.path().toUtf8(), [](const char *candidate, void *arg) {
-                QFileInfo fi(candidate);
-                QString *extractedFilePtr = (QString *)arg;
-
-                if (fi.fileName() == "modlist.txt") {
-                    *extractedFilePtr = candidate;
-                }
-
-                return 0;
-            }, &extractedFile);
-            if (zipResult < 0) {
-                QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack: zip file could not be extracted"));
-                return;
-            }
-            dir = QFileInfo(extractedFile).dir().path();
-        } else {
-            dir = QFileInfo(file).dir().path();
-        }
-
         try {
-            modList = ModLoader::importModpack(dir);
+            modList = ModLoader::importModpackFile(file);
         } catch (const std::runtime_error &error) {
             QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
             PyErr_Clear();
