@@ -4,6 +4,7 @@
 #include "lib/mapdescriptor.h"
 
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
 #include <QVector>
 
 class CSMMMod;
