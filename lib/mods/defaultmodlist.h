@@ -2,6 +2,7 @@
 #define DEFAULTMODLIST_H
 
 #include "lib/mods/csmmmod.h"
+#include "lib/python/pythonbindings.h"
 
 namespace DefaultModList {
 

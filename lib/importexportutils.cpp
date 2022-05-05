@@ -175,8 +175,8 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                         QString extractedBrstmFile;
                         int extractResult = zip_extract(zipMusicStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
                             auto brstmFilePtr = (QString *)arg;
-                            auto suffix = QFileInfo(candidate).suffix();
-                            if (suffix == "brstm") {
+                            auto fi = QFileInfo(candidate);
+                            if (fi.suffix() == "brstm" && !fi.completeBaseName().startsWith(".")) {
                                 *brstmFilePtr = candidate;
                             }
                             return 0;
