@@ -3,7 +3,7 @@
 
 #include "dolio.h"
 
-class AllocateDescriptorCount : public DolIO
+class AllocateDescriptorCount : public virtual DolIO
 {
 public:
     static constexpr std::string_view MODID = "allocateDescriptorCount";

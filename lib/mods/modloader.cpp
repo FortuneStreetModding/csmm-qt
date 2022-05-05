@@ -1,7 +1,6 @@
 #include "modloader.h"
 #include "defaultmodlist.h"
 #include "lib/python/pythonbindings.h"
-#include <pybind11/embed.h>
 
 namespace ModLoader {
 
@@ -47,7 +46,7 @@ ModListType importModpack(const QString &modpackDir) {
 
             // append mod instance for each user modid
             auto modModule = pybind11::module_::import(modid.toUtf8());
-            result.append(modModule.attr("mod").cast<std::shared_ptr<CSMMMod>>());
+            result.append(CSMMModHolder::fromPyObj(modModule.attr("mod")));
 
             qDebug() << "successfully imported user mod" << result.back()->modId();
         }

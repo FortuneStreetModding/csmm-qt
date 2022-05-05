@@ -4,14 +4,11 @@
 #include <QtConcurrent>
 #include "lib/gameinstance.h"
 #include "lib/uimessage.h"
+#include "lib/python/pythonbindings.h"
 
-#define NORMAL_PRIORITY 0
-#define MAP_DESCRIPTOR_COUNT_PRIORITY 500000
-#define FREE_SPACE_PRIORITY 1000000
-
-class CSMMMod;
-
-typedef QVector<std::shared_ptr<CSMMMod>> ModListType;
+constexpr int NORMAL_PRIORITY = 0;
+constexpr int MAP_DESCRIPTOR_COUNT_PRIORITY = 500000;
+constexpr int FREE_SPACE_PRIORITY = 1000000;
 
 class CSMMMod {
 public:
@@ -105,14 +102,12 @@ public:
     virtual ~UiMessageInterface() {}
 };
 
-class ModException : public QException {
+class ModException : public QException, public std::runtime_error {
 public:
-    ModException(const QString &msgVal) : message(msgVal) {}
-    const QString &getMessage() const { return message; }
+    using std::runtime_error::runtime_error;
+    ModException(const QString &str) : std::runtime_error(str.toStdString()) {}
     void raise() const override { throw *this; }
     ModException *clone() const override { return new ModException(*this); }
-private:
-    QString message;
 };
 
 #endif // CSMMMOD_H

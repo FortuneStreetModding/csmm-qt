@@ -89,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
             modList = ModLoader::importModpack(dir);
         } catch (const std::runtime_error &error) {
             QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
+            PyErr_Clear();
         } catch (...) { // TODO add catches for specific errors
             QMessageBox::critical(this, "Error importing modpack", "Error importing modpack");
         }
@@ -213,8 +214,10 @@ void MainWindow::openDir() {
             loadDescriptors(gameInstance.mapDescriptors());
             setWindowFilePath(newTempGameDir->path());
             tempGameDir = newTempGameDir;
-        } catch (const ModException &e) {
-            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.getMessage()));
+        } catch (const std::runtime_error &e) {
+            *progress = nullptr;
+            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+            PyErr_Clear();
         }
     });
 }
@@ -256,8 +259,10 @@ void MainWindow::openIsoWbfs() {
             loadDescriptors(gameInstance.mapDescriptors());
             setWindowFilePath(newTempGameDir->path());
             tempGameDir = newTempGameDir;
-        } catch (const ModException &e) {
-            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.getMessage()));
+        } catch (const std::runtime_error &e) {
+            *progress = nullptr;
+            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+            PyErr_Clear();
         }
     });
 }
@@ -363,8 +368,9 @@ void MainWindow::exportToFolder() {
             for (auto &descriptor: gameInstance.mapDescriptors()) {
                 ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
             }
-        } catch (const ModException &exception) {
-            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
+        } catch (const std::runtime_error &exception) {
+            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
+            PyErr_Clear();
             throw exception;
         }
     });
@@ -422,8 +428,9 @@ void MainWindow::exportIsoWbfs() {
             *descriptors = gameInstance.mapDescriptors();
             progress->setValue(2);
             return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
-        } catch (const ModException &exception) {
-            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
+        } catch (const std::runtime_error &exception) {
+            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
+            PyErr_Clear();
             throw exception;
         }
     }).subscribe([=]() {

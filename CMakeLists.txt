@@ -207,7 +207,6 @@ set(SOURCES
     venturecarddialog.cpp
     venturecarddialog.h
     venturecarddialog.ui
-    lib/python/pythoncasters.h
     lib/python/pythonbindings.h lib/python/pythonbindings.cpp
     lib/mods/modloader.h lib/mods/modloader.cpp
 )
