@@ -86,6 +86,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionImport_mod_pack, &QAction::triggered, this, [&]() {
         auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt;*.zip)");
 
+        if (file.isEmpty()) {
+            return;
+        }
+
         QTemporaryDir tmpDir;
 
         if (!tmpDir.isValid()) {
