@@ -5,10 +5,7 @@
 
 void EventSquareMod::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
 void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
-    // this is the virtual address for the ForceVentureCardVariable: 0x804363c4
-    // instead of allocating space for the venture card variable with the free space manager, we use a fixed virtual address
-    // so that this variable can be reused by other hacks outside of CSMM.
-    quint32 forceVentureCardVariable = addressMapper.boomStreetToStandard(0x804363c4);
+    forceVentureCardVariable = allocate(QByteArray(4, '\0'), "Force Venture Card Variable", false);
     stream.device()->seek(addressMapper.toFileAddress(forceVentureCardVariable));
     // write zeroes to it
     stream << quint32(0); // 4 bytes
@@ -464,4 +461,25 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> EventSquareMod::saveUiMe
         };
     }
     return result;
+}
+
+void EventSquareMod::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+{
+    DolIO::loadFiles(root, gameInstance, modList);
+    QFile addrFile(QDir(root).filePath(FORCE_VENTURE_CARD_ADDRESS_FILE.data()));
+    if (addrFile.open(QFile::ReadOnly)) {
+        QDataStream addrStream(&addrFile);
+        addrStream >> forceVentureCardVariable;
+    }
+}
+
+void EventSquareMod::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+{
+    DolIO::saveFiles(root, gameInstance, modList);
+    QSaveFile addrFile(QDir(root).filePath(FORCE_VENTURE_CARD_ADDRESS_FILE.data()));
+    if (addrFile.open(QFile::WriteOnly)) {
+        QDataStream addrStream(&addrFile);
+        addrStream << forceVentureCardVariable;
+        addrFile.commit();
+    }
 }

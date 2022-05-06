@@ -227,6 +227,16 @@ else()
     add_executable(csmm ${SOURCES})
 endif()
 
+target_precompile_headers(csmm PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:<QVector$<ANGLE-R>>"
+    "$<$<COMPILE_LANGUAGE:CXX>:<QString$<ANGLE-R>>"
+    "$<$<COMPILE_LANGUAGE:CXX>:<QFile$<ANGLE-R>>"
+    "$<$<COMPILE_LANGUAGE:CXX>:<QDataStream$<ANGLE-R>>"
+    "$<$<COMPILE_LANGUAGE:CXX>:<pybind11/pybind11.h$<ANGLE-R>>"
+    "$<$<COMPILE_LANGUAGE:CXX>:<vector$<ANGLE-R>>"
+    "$<$<COMPILE_LANGUAGE:CXX>:<algorithm$<ANGLE-R>>"
+)
+
 target_compile_definitions(csmm PUBLIC CSMM_VERSION="${PROJECT_VERSION}")
 
 if(APPLE)

@@ -48,6 +48,9 @@ public:
         return obj;
     }
 
+    /**
+     * @return the mod's interface of class T (e.g. ArcFileInterface, GeneralInterface, etc.)
+     */
     template<class T>
     std::shared_ptr<T> getCapability() {
         if (!obj.is_none()) {

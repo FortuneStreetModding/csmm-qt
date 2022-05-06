@@ -64,11 +64,11 @@ int FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize() const {
     return end - remainingFreeSpaceBlocks[end];
 }
 
-quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose) {
+quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose, bool reuse) {
     QString purposeMsg = purpose.isEmpty() ? "" : QString(" for %1").arg(purpose);
     QString byteArrayAsString = byteArrayToStringOrHex(bytes);
     startedAllocating = true;
-    if (reuseValues.contains(bytes)) {
+    if (reuse && reuseValues.contains(bytes)) {
         qDebug().noquote() << "Reuse " + byteArrayAsString + " at " + QString::number(reuseValues[bytes], 16) + purposeMsg;
         return reuseValues[bytes];
     }
@@ -86,8 +86,10 @@ quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStre
     stream.writeRawData(bytes, bytes.size());
     QByteArray padding(newStart - start - bytes.size(), '\0');
     stream.writeRawData(padding, padding.size());
-    reuseValues[bytes] = start;
-    qDebug().noquote() << "Allocate " + byteArrayAsString + " (" + QString::number(bytes.size()) + " bytes) at " + QString::number(reuseValues[bytes], 16) + purposeMsg;
+    if (reuse) {
+        reuseValues[bytes] = start;
+    }
+    qDebug().noquote() << "Allocate " + byteArrayAsString + " (" + QString::number(bytes.size()) + " bytes) at " + QString::number(start, 16) + purposeMsg;
     return start;
 }
 

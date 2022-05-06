@@ -10,5 +10,5 @@ void VentureCardFreeSpace::saveFiles(const QString &root, GameInstance &gameInst
     auto &freeSpaceManager = gameInstance.freeSpaceManager();
     auto &addressMapper = gameInstance.addressMapper();
     // Venture Card Table
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80410648), addressMapper.boomStreetToStandard(0x80411b9b));
+    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80410648), addressMapper.boomStreetToStandard(0x80411b9c));
 }

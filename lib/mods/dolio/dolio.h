@@ -18,10 +18,11 @@ public:
     virtual ~DolIO();
 protected:
     virtual void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) = 0;
-    quint32 allocate(const QByteArray &data, const QString &purpose);
-    quint32 allocate(const QVector<quint32> &words, const QString &purpose);
-    quint32 allocate(const QVector<quint16> &words, const QString &purpose);
-    quint32 allocate(const QString &str);
+    quint32 allocate(const QByteArray &data, const QString &purpose, bool reuse = true);
+    quint32 allocate(const QByteArray &data, const char *purpose, bool reuse = true);
+    quint32 allocate(const QVector<quint32> &words, const QString &purpose, bool reuse = true);
+    quint32 allocate(const QVector<quint16> &words, const QString &purpose, bool reuse = true);
+    quint32 allocate(const QString &str, bool reuse = true);
     QString resolveAddressToString(quint32 virtualAddress, QDataStream &stream, const AddressMapper &addressMapper);
 private:
     FreeSpaceManager *fsmPtr;

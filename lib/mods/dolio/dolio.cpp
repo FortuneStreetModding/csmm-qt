@@ -21,35 +21,39 @@ void DolIO::saveFiles(const QString &root, GameInstance &gameInstance, const Mod
     write(mainDolStream, gameInstance.addressMapper(), gameInstance.mapDescriptors(), gameInstance.freeSpaceManager());
 }
 
-quint32 DolIO::allocate(const QByteArray &data, const QString &purpose) {
-    return fsmPtr->allocateUnusedSpace(data, *streamPtr, *mapperPtr, purpose);
+quint32 DolIO::allocate(const QByteArray &data, const QString &purpose, bool reuse) {
+    return fsmPtr->allocateUnusedSpace(data, *streamPtr, *mapperPtr, purpose, reuse);
 }
 
-quint32 DolIO::allocate(const QVector<quint32> &words, const QString &purpose) {
+quint32 DolIO::allocate(const QByteArray &data, const char *purpose, bool reuse) {
+    return (this->*qOverload<const QByteArray &, const QString &, bool>(&DolIO::allocate))(data, purpose, reuse);
+}
+
+quint32 DolIO::allocate(const QVector<quint32> &words, const QString &purpose, bool reuse) {
     QByteArray data;
     QDataStream dataStream(&data, QIODevice::WriteOnly);
     for (auto word: words) {
         dataStream << word;
     }
-    return allocate(data, purpose);
+    return allocate(data, purpose, reuse);
 }
 
-quint32 DolIO::allocate(const QVector<quint16> &words, const QString &purpose) {
+quint32 DolIO::allocate(const QVector<quint16> &words, const QString &purpose, bool reuse) {
     QByteArray data;
     QDataStream dataStream(&data, QIODevice::WriteOnly);
     for (auto word: words) {
         dataStream << word;
     }
-    return allocate(data, purpose);
+    return allocate(data, purpose, reuse);
 }
 
-quint32 DolIO::allocate(const QString &str) {
+quint32 DolIO::allocate(const QString &str, bool reuse) {
     if (str.isEmpty()) {
         return 0;
     }
     QByteArray data(str.toUtf8());
     data.append('\0');
-    return allocate(data, "");
+    return allocate(data, "", reuse);
 }
 
 void DolIO::write(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, FreeSpaceManager &freeSpaceManager) {

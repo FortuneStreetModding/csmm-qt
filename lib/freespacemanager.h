@@ -11,7 +11,7 @@ public:
     int calculateTotalFreeSpace() const;
     int calculateLargestFreeSpaceBlockSize() const;
     int calculateLargestRemainingFreeSpaceBlockSize() const;
-    quint32 allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose);
+    quint32 allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose, bool reuse = true);
     void nullTheFreeSpace(QDataStream &stream, const AddressMapper &addressMapper);
     void reset();
 private:

@@ -11,11 +11,11 @@ void WifiFreeSpace::saveFiles(const QString &root, GameInstance &gameInstance, c
     auto &addressMapper = gameInstance.addressMapper();
     // -- Random Matchmaking Code --
     // WifiFreeScene
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8023d088), addressMapper.boomStreetToStandard(0x8023d307));
+    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8023d088), addressMapper.boomStreetToStandard(0x8023d308));
     // WifiFreeUI
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8023d600), addressMapper.boomStreetToStandard(0x8023d7d3));
+    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8023d600), addressMapper.boomStreetToStandard(0x8023d7d4));
     // WifiFreeLobbyScene
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80240f54), addressMapper.boomStreetToStandard(0x802434eb));
+    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80240f54), addressMapper.boomStreetToStandard(0x802434ec));
     // WifiFreeRegulationScene
-    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80243508), addressMapper.boomStreetToStandard(0x80243b4f));
+    freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x80243508), addressMapper.boomStreetToStandard(0x80243b50));
 }

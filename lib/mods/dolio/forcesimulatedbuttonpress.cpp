@@ -1,10 +1,32 @@
 #include "forcesimulatedbuttonpress.h"
 #include "lib/powerpcasm.h"
 
+void ForceSimulatedButtonPress::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+    DolIO::loadFiles(root, gameInstance, modList);
+    QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
+    if (addrFile.open(QFile::ReadOnly)) {
+        QDataStream addrStream(&addrFile);
+        addrStream >> forceSimulatedButtonPressAddr;
+    }
+}
+
+void ForceSimulatedButtonPress::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+    DolIO::saveFiles(root, gameInstance, modList);
+    QSaveFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
+    if (addrFile.open(QFile::WriteOnly)) {
+        QDataStream addrStream(&addrFile);
+        addrStream << forceSimulatedButtonPressAddr;
+        addrFile.commit();
+    }
+}
+
 void ForceSimulatedButtonPress::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) {}
+
 void ForceSimulatedButtonPress::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x802bb120);
     quint32 returnAddr = addressMapper.boomStreetToStandard(0x802bb124);
+
+    forceSimulatedButtonPressAddr = allocate(QByteArray(4, '\0'), "ForceSimulatedButtonPress", false);
 
     quint32 uploadSimulatedButtonPress = allocate(writeUploadSimulatedButtonPress(addressMapper, 0, returnAddr), "UploadSimulatedButtonPress");
     stream.device()->seek(addressMapper.toFileAddress(uploadSimulatedButtonPress));
@@ -14,8 +36,7 @@ void ForceSimulatedButtonPress::writeAsm(QDataStream &stream, const AddressMappe
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, uploadSimulatedButtonPress);
 }
 QVector<quint32> ForceSimulatedButtonPress::writeUploadSimulatedButtonPress(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 returnAddr) {
-    // 0x804363b4 (4 bytes): force simulated button press
-    auto forceSimulatedButtonPress = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x804363b4));
+    auto forceSimulatedButtonPress = PowerPcAsm::make16bitValuePair(forceSimulatedButtonPressAddr);
     auto pressedButtonsBitArray = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x8078C880));
 
     return {

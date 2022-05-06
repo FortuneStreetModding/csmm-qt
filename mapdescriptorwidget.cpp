@@ -10,6 +10,12 @@
 #include "lib/importexportutils.h"
 #include "venturecarddialog.h"
 
+template<class M, class K, class V>
+static V getOrDefault(M &&map, const K &key, const V &def) {
+    auto it = map.find(key);
+    return (it != map.end() ? it->second : def);
+}
+
 // Internal types for table items
 static constexpr int MAP_SET_TYPE = QTableWidgetItem::UserType;
 static constexpr int ZONE_TYPE = QTableWidgetItem::UserType + 1;
@@ -99,7 +105,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     });
     setCellWidget(row, colIdx++, exportYamlButton);
 
-    setItem(row, colIdx++, readOnlyItem(descriptor.names.at("en")));
+    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.names, "en", QString())));
 
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.mapSet), MAP_SET_TYPE));
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.zone), ZONE_TYPE));
@@ -159,9 +165,9 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.nameMsgId)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.descMsgId)));
 
-    setItem(row, colIdx++, readOnlyItem(descriptor.descs.at("en")));
+    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.descs, "en", QString())));
     setItem(row, colIdx++, readOnlyItem(descriptor.internalName));
-    auto &distNames = descriptor.districtNames.at("en");
+    auto distNames = getOrDefault(descriptor.districtNames, "en", std::vector<QString>());
     setItem(row, colIdx++, readOnlyItem(QStringList(distNames.begin(), distNames.end()).join("; ")));
     QStringList districtNameIdStrs;
     for (quint32 v: descriptor.districtNameIds) {
