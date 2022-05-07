@@ -3,6 +3,7 @@
 #include "vanilladatabase.h"
 #include "fslocale.h"
 #include "importexportutils.h"
+#include "getordefault.h"
 
 bool OriginPoint::operator==(const OriginPoint &other) const {
     return x == other.x && y == other.y;
@@ -42,16 +43,18 @@ QString MapDescriptor::toYaml() const {
 
     out << YAML::Key << "name" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk" || names.at(fslocale).isEmpty())
+        auto name = getOrDefault(names, fslocale, "");
+        if(fslocale == "uk" || name.isEmpty())
             continue;
-        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << names.at(fslocale).toStdString();
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << name.toStdString();
     }
     out << YAML::EndMap;
     out << YAML::Key << "desc" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk" || names.at(fslocale).isEmpty())
+        auto desc = getOrDefault(descs, fslocale, "");
+        if(fslocale == "uk" || desc.isEmpty())
             continue;
-        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << descs.at(fslocale).toStdString();
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << desc.toStdString();
     }
     out << YAML::EndMap;
     out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
@@ -82,7 +85,7 @@ QString MapDescriptor::toYaml() const {
         out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
         for (auto &musicTypeEnt: music) {
             auto &musicType = musicTypeEnt.first;
-            auto musicEntry = music.at(musicType);
+            auto &musicEntry = musicTypeEnt.second;
             out << YAML::Key << Music::musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
         }
         out << YAML::EndMap;
@@ -143,10 +146,11 @@ QString MapDescriptor::toYaml() const {
     if (!districtNames.empty()) {
         out << YAML::Key << "districtNames" << YAML::Value << YAML::BeginMap;
         for (auto &fslocale: FS_LOCALES) {
-            if (fslocale == "uk" || districtNames.at(fslocale).empty())
+            auto namesForLocale = getOrDefault(districtNames, fslocale, std::vector<QString>());
+            if (fslocale == "uk" || namesForLocale.empty())
                 continue;
             out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginSeq;
-            for (auto &distName: districtNames.at(fslocale)) {
+            for (auto &distName: namesForLocale) {
                 out << distName.toStdString();
             }
             out << YAML::EndSeq;
@@ -349,7 +353,7 @@ MapDescriptor &MapDescriptor::setFromImport(const MapDescriptor &other) {
 
 QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj) {
     // TODO add more info here?
-    debugStream << "MapDescriptor(" << obj.names.at("en") << ", firstFile=" << obj.frbFiles[0] << ")";
+    debugStream << "MapDescriptor(" << getOrDefault(obj.names, "en", "") << ", firstFile=" << obj.frbFiles[0] << ")";
     return debugStream;
 }
 

@@ -210,6 +210,7 @@ set(SOURCES
     lib/python/pythonbindings.h lib/python/pythonbindings.cpp
     lib/mods/modloader.h lib/mods/modloader.cpp
     lib/mods/csmmmod_decl.h
+    lib/getordefault.h
 )
 
 qt_add_big_resources(SOURCES csmm.qrc)

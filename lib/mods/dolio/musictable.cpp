@@ -177,15 +177,11 @@ bool MusicTable::readIsVanilla(QDataStream &stream, const AddressMapper &address
 
 
 
-void MusicTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
-{
+void MusicTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
     DolIOTable::loadFiles(root, gameInstance, modList);
 }
 
-void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
-{
-    DolIOTable::saveFiles(root, gameInstance, modList);
-
+void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
     for (auto &descriptor: gameInstance.mapDescriptors()) {
         for (auto &mapEnt: descriptor.music) {
             auto &musicEntry = mapEnt.second;
@@ -218,4 +214,6 @@ void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, cons
     } else {
         throw ModException(QString("The file %1 does not exist.").arg(brsarFilePath));
     }
+
+    DolIOTable::saveFiles(root, gameInstance, modList);
 }

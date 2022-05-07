@@ -8,13 +8,8 @@
 #include <QTextStream>
 #include "lib/datafileset.h"
 #include "lib/importexportutils.h"
+#include "lib/getordefault.h"
 #include "venturecarddialog.h"
-
-template<class M, class K, class V>
-static V getOrDefault(M &&map, const K &key, const V &def) {
-    auto it = map.find(key);
-    return (it != map.end() ? it->second : def);
-}
 
 // Internal types for table items
 static constexpr int MAP_SET_TYPE = QTableWidgetItem::UserType;
