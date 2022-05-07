@@ -211,6 +211,8 @@ set(SOURCES
     lib/mods/modloader.h lib/mods/modloader.cpp
     lib/mods/csmmmod_decl.h
     lib/getordefault.h
+    lib/mods/dolio/doliomutator.h lib/mods/dolio/doliomutator.cpp
+    lib/mods/freespace/tinydistrictsfreespace.h lib/mods/freespace/tinydistrictsfreespace.cpp
 )
 
 qt_add_big_resources(SOURCES csmm.qrc)
@@ -233,6 +235,7 @@ target_precompile_headers(csmm PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:<QString$<ANGLE-R>>"
     "$<$<COMPILE_LANGUAGE:CXX>:<QFile$<ANGLE-R>>"
     "$<$<COMPILE_LANGUAGE:CXX>:<QDataStream$<ANGLE-R>>"
+    "$<$<COMPILE_LANGUAGE:CXX>:<QDebug$<ANGLE-R>>"
     "$<$<COMPILE_LANGUAGE:CXX>:<pybind11/pybind11.h$<ANGLE-R>>"
     "$<$<COMPILE_LANGUAGE:CXX>:<vector$<ANGLE-R>>"
     "$<$<COMPILE_LANGUAGE:CXX>:<algorithm$<ANGLE-R>>"

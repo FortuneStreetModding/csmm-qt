@@ -23,11 +23,13 @@ protected:
     quint32 allocate(const QVector<quint32> &words, const QString &purpose, bool reuse = true);
     quint32 allocate(const QVector<quint16> &words, const QString &purpose, bool reuse = true);
     quint32 allocate(const QString &str, bool reuse = true);
+    const ModListType &modList();
     QString resolveAddressToString(quint32 virtualAddress, QDataStream &stream, const AddressMapper &addressMapper);
 private:
     FreeSpaceManager *fsmPtr;
     QDataStream *streamPtr;
     const AddressMapper *mapperPtr;
+    const ModListType *modListPtr;
 };
 
 #endif // DOLIO_H

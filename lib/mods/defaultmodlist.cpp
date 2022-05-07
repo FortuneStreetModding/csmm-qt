@@ -40,6 +40,7 @@
 #include "freespace/mapdatafreespace.h"
 #include "freespace/venturecardfreespace.h"
 #include "freespace/wififreespace.h"
+#include "freespace/tinydistrictsfreespace.h"
 #include "misc/defaultmiscpatches.h"
 
 namespace DefaultModList {
@@ -93,6 +94,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<VentureCardFreeSpace>());
     patches.append(CSMMModHolder::fromCppObj<InitialFreeSpace>());
     patches.append(CSMMModHolder::fromCppObj<MapDataFreeSpace>());
+    patches.append(CSMMModHolder::fromCppObj<TinyDistrictsFreeSpace>());
 
     patches.append(CSMMModHolder::fromCppObj<DefaultMiscPatches>());
 

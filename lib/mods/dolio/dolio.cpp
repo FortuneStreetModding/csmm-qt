@@ -1,24 +1,28 @@
 #include "dolio.h"
 #include "lib/datafileset.h"
 
-void DolIO::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &) {
+void DolIO::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
     auto mainDolLoc = QDir(root).filePath(MAIN_DOL);
     QFile mainDolFile(mainDolLoc);
     if (!mainDolFile.open(QFile::ReadOnly)) {
         throw ModException(QString("could not open file %1").arg(mainDolLoc));
     }
     QDataStream mainDolStream(&mainDolFile);
+    modListPtr = &modList;
     readAsm(mainDolStream, gameInstance.addressMapper(), gameInstance.mapDescriptors());
+    modListPtr = nullptr;
 }
 
-void DolIO::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &) {
+void DolIO::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
     auto mainDolLoc = QDir(root).filePath(MAIN_DOL);
     QFile mainDolFile(mainDolLoc);
     if (!mainDolFile.open(QFile::ReadWrite)) {
         throw ModException(QString("could not open file %1").arg(mainDolLoc));
     }
     QDataStream mainDolStream(&mainDolFile);
+    modListPtr = &modList;
     write(mainDolStream, gameInstance.addressMapper(), gameInstance.mapDescriptors(), gameInstance.freeSpaceManager());
+    modListPtr = nullptr;
 }
 
 quint32 DolIO::allocate(const QByteArray &data, const QString &purpose, bool reuse) {
@@ -54,6 +58,10 @@ quint32 DolIO::allocate(const QString &str, bool reuse) {
     QByteArray data(str.toUtf8());
     data.append('\0');
     return allocate(data, "", reuse);
+}
+
+const ModListType &DolIO::modList() {
+    return *modListPtr;
 }
 
 void DolIO::write(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, FreeSpaceManager &freeSpaceManager) {

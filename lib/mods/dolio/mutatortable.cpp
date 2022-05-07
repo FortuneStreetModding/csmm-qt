@@ -27,16 +27,20 @@ quint32 MutatorTable::writeTable(const std::vector<MapDescriptor> &descriptors) 
 void MutatorTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &descriptors) {
     quint32 tableAddr = writeTable(descriptors);
 
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80412c88));
+    //qDebug() << tableAddr;
+
+    QByteArray buf;
+    QDataStream subStream(&buf, QFile::WriteOnly);
+
     // store the tableAddr so that csmm can retrieve it
-    stream << tableAddr;
-    // call 0x80412c8c for the subroutine
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80412c8c));
+    subStream << tableAddr;
+    // call mutatorTableStoragreAddr+4 (formerly 0x80412c8c) for the subroutine
     auto routine = writeGetMutatorDataSubroutine(addressMapper, tableAddr);
-    qDebug().noquote() << "Allocate (" + QString::number(routine.size()*4) + " bytes) at " + QString::number(addressMapper.boomStreetToStandard(0x80412c8c), 16) + " for GetMutatorDataSubroutine";
     for (auto word: routine) {
-        stream << word;
+        subStream << word;
     }
+
+    mutatorTableStorageAddr = allocate(buf, "Mutator table pointer and GetMutatorDataSubroutine");
 }
 
 QVector<quint32> MutatorTable::writeGetMutatorDataSubroutine(const AddressMapper &addressMapper, quint32 tableAddr) {
@@ -83,6 +87,10 @@ QVector<quint32> MutatorTable::writeGetMutatorDataSubroutine(const AddressMapper
     return asm_;
 }
 
+quint32 MutatorTable::getMutatorTableStorageAddr() const {
+    return mutatorTableStorageAddr;
+}
+
 void MutatorTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (!isVanilla) {
         for (auto &descriptor: mapDescriptors) {
@@ -105,8 +113,30 @@ void MutatorTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapD
     }
 }
 
-quint32 MutatorTable::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80412c88));
+void MutatorTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList){
+    QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
+    if (addrFile.open(QFile::ReadOnly)) {
+        QDataStream addrStream(&addrFile);
+        addrStream >> mutatorTableStorageAddr;
+    }
+    DolIOTable::loadFiles(root, gameInstance, modList);
+}
+
+void MutatorTable::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+    DolIOTable::saveFiles(root, gameInstance, modList);
+    QSaveFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
+    if (addrFile.open(QFile::WriteOnly)) {
+        QDataStream addrStream(&addrFile);
+        addrStream << mutatorTableStorageAddr;
+        addrFile.commit();
+    }
+}
+
+quint32 MutatorTable::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool vanilla) {
+    if (vanilla) {
+        return 0;
+    }
+    stream.device()->seek(addressMapper.boomToFileAddress(mutatorTableStorageAddr));
     quint32 addr;
     stream >> addr;
     return addr;
@@ -117,8 +147,5 @@ qint16 MutatorTable::readTableRowCount(QDataStream &, const AddressMapper &, boo
 }
 
 bool MutatorTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80412c88));
-    quint32 data; stream >> data;
-    // 00000100
-    return data == 0x00000100;
+    return mutatorTableStorageAddr == 0;
 }

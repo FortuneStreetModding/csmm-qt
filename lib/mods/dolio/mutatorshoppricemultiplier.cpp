@@ -3,12 +3,14 @@
 #include "lib/mutator/mutator.h"
 
 void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
+    quint32 getMutatorDataSubroutine = mutatorTableStorageAddr(modList()) + 4;
+
     // --- Base Shop Price Multiplier ---
     {
         quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8008ee8c);
-        quint32 procShopPriceMultiplier = allocate(writeBaseShopPriceMultiplier(addressMapper, 0), "procShopPriceMultiplier");
+        quint32 procShopPriceMultiplier = allocate(writeBaseShopPriceMultiplier(addressMapper, 0, getMutatorDataSubroutine), "procShopPriceMultiplier");
         stream.device()->seek(addressMapper.toFileAddress(procShopPriceMultiplier));
-        auto routineCode = writeBaseShopPriceMultiplier(addressMapper, procShopPriceMultiplier);
+        auto routineCode = writeBaseShopPriceMultiplier(addressMapper, procShopPriceMultiplier, getMutatorDataSubroutine);
         for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
         stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
         // b LAB_8008eea0             ->  b procShopPriceMultiplier
@@ -18,9 +20,9 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
     // --- 3 Star Hotel Base Shop Price Multiplier ---
     {
         quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8008f1f8);
-        quint32 proc3StarHotelPriceMultiplier = allocate(write3StarHotelPriceMultiplier(addressMapper, 0), "proc3StarHotelPriceMultiplier");
+        quint32 proc3StarHotelPriceMultiplier = allocate(write3StarHotelPriceMultiplier(addressMapper, 0, getMutatorDataSubroutine), "proc3StarHotelPriceMultiplier");
         stream.device()->seek(addressMapper.toFileAddress(proc3StarHotelPriceMultiplier));
-        auto routineCode = write3StarHotelPriceMultiplier(addressMapper, proc3StarHotelPriceMultiplier);
+        auto routineCode = write3StarHotelPriceMultiplier(addressMapper, proc3StarHotelPriceMultiplier, getMutatorDataSubroutine);
         for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
         stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
         // bl Gm_Place_CalcRank        ->  b proc3StarHotelPriceMultiplier
@@ -30,9 +32,9 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
     // --- Calc Rank Multiplier ---
     {
         quint32 hijackAddr = addressMapper.boomStreetToStandard(0x8008eb14);
-        quint32 procRankPriceMultiplier = allocate(writeRankPriceMultiplier(addressMapper, 0), "procRankPriceMultiplier");
+        quint32 procRankPriceMultiplier = allocate(writeRankPriceMultiplier(addressMapper, 0, getMutatorDataSubroutine), "procRankPriceMultiplier");
         stream.device()->seek(addressMapper.toFileAddress(procRankPriceMultiplier));
-        auto routineCode = writeRankPriceMultiplier(addressMapper, procRankPriceMultiplier);
+        auto routineCode = writeRankPriceMultiplier(addressMapper, procRankPriceMultiplier, getMutatorDataSubroutine);
         for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
         stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
         // lis r3, 0x8045        ->  b procRankPriceMultiplier
@@ -40,13 +42,12 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
     }
 }
 
-QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
     // precondition: r29 - Place*
     //                r0 - shop price
     // postcondition: r0 - dont care
     //                r3 - dont care
     //                r4 - dont care
-    auto getMutatorDataSubroutine = addressMapper.boomStreetToStandard(0x80412c8c);
     auto returnAddr = addressMapper.boomStreetToStandard(0x8008eea0);
 
     QVector<quint32> asm_;
@@ -66,7 +67,7 @@ QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const 
     return asm_;
 }
 
-QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
     // precondition:  r4 <- shop price = 200?
     //               r29 <- Place*
     // postcondition: r0 <- dont care
@@ -78,7 +79,6 @@ QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(cons
     // exitcondition: bl Gm_Place_CalcRank
 
     auto Gm_Place_CalcRank = addressMapper.boomStreetToStandard(0x8008ea9c);
-    auto getMutatorDataSubroutine = addressMapper.boomStreetToStandard(0x80412c8c);
     auto returnAddr = addressMapper.boomStreetToStandard(0x8008f1fc);
 
 
@@ -103,7 +103,7 @@ QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(cons
     return asm_;
 }
 
-QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress) {
+QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
     // precondition:  r4 <- shop price
     // postcondition: r0 <- (r3)
     //                r3 <- 80453b38
@@ -112,7 +112,6 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     //                r6 <- dont care
     //                r7 <- dont care
 
-    auto getMutatorDataSubroutine = addressMapper.boomStreetToStandard(0x80412c8c);
     auto returnAddr = addressMapper.boomStreetToStandard(0x8008eb1c);
     auto tableAddr = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x80453b38));
 
