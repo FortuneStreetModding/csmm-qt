@@ -3,8 +3,6 @@
 
 #include "doliotable.h"
 
-// TODO instead of writing subroutine to fixed addr, write the address of the subroutine in separate file
-// so that csmm is more modularized
 class MutatorTable : public virtual DolIOTable
 {
 public:
