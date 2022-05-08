@@ -52,6 +52,34 @@ static pybind11::class_<std::array<T, N>> bindStdArray(pybind11::handle h, const
 
 namespace {
 
+class PyQIODevice : public QIODevice {
+public:
+    PyQIODevice(pybind11::object obj) : obj(obj) {}
+    bool isSequential() const override {
+        return obj.attr("seekable")().cast<bool>();
+    }
+    bool seek(qint64 pos) override {
+        obj.attr("seek")(pos);
+        return true;
+    }
+protected:
+    qint64 readData(char *data, qint64 maxlen) override {
+        pybind11::bytes readData = obj.attr("read")(maxlen);
+        char *dataToCopyFrom;
+        pybind11::ssize_t size;
+        if (PyBytes_AsStringAndSize(readData.ptr(), &dataToCopyFrom, &size) < 0) {
+            throw pybind11::error_already_set();
+        }
+        memcpy(data, dataToCopyFrom, size);
+        return size;
+    }
+    qint64 writeData(const char *data, qint64 len) override {
+        return obj.attr("write")(pybind11::bytes(data, len)).cast<qint64>();
+    }
+private:
+    pybind11::object obj;
+};
+
 class PyCSMMMod : public CSMMMod {
 public:
     using CSMMMod::CSMMMod;
@@ -235,7 +263,11 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def("calculateTotalFreeSpace", &FreeSpaceManager::calculateTotalFreeSpace)
             .def("calculateLargestFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestFreeSpaceBlockSize)
             .def("calculateLargestRemainingFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize)
-            //.def("allocateUnusedSpace", &FreeSpaceManager::allocateUnusedSpace) // TODO uncomment when QByteArray is bound
+            .def("allocateUnusedSpace", [](FreeSpaceManager &fsm, const QByteArray &bytes, pybind11::object fileObj, const AddressMapper &fileMapper, const QString &purpose, bool reuse) {
+                PyQIODevice device(fileObj);
+                QDataStream stream(&device);
+                fsm.allocateUnusedSpace(bytes, stream, fileMapper, purpose, reuse);
+            })
             .def("calculateTotalRemainingFreeSpace", &FreeSpaceManager::calculateTotalRemainingFreeSpace)
             .def("reset", &FreeSpaceManager::reset);
 

@@ -221,6 +221,37 @@ private:
 template<>
 struct type_caster<QString> : qstring_caster {};
 
+struct qbytearray_caster {
+    bool load(handle src, bool) {
+        if (!src) {
+            return false;
+        }
+        if (PYBIND11_BYTES_CHECK(src.ptr())) {
+            const char *bytes = PYBIND11_BYTES_AS_STRING(src.ptr());
+            if (!bytes) {
+                pybind11_fail("Unexpected PYBIND11_BYTES_AS_STRING() failure.");
+            }
+            value = QByteArray(bytes, PYBIND11_BYTES_SIZE(src.ptr()));
+            return true;
+        }
+        if (PyByteArray_Check(src.ptr())) {
+            const char *bytearray = PyByteArray_AsString(src.ptr());
+            if (!bytearray) {
+                pybind11_fail("Unexpected PyByteArray_AsString() failure.");
+            }
+            value = QByteArray(bytearray, PyByteArray_Size(src.ptr()));
+            return true;
+        }
+        return false;
+    }
+
+    static handle cast(const QByteArray &src, return_value_policy /* policy */, handle /* parent */) {
+        return bytes(src.constData(), src.size()).release();
+    }
+
+    PYBIND11_TYPE_CASTER(QByteArray, const_name(PYBIND11_BYTES_NAME));
+};
+
 }
 
 PYBIND11_MAKE_OPAQUE(std::array<bool, 128>);
