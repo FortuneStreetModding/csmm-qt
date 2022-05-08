@@ -178,6 +178,13 @@ void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
     dirty = true;
 }
 
+void MapDescriptorWidget::duplicateSelectedMapDescriptors() {
+    auto selectedRows = selectionModel()->selectedRows();
+    for (auto &selectedRow: selectedRows) {
+        appendMapDescriptor(*descriptors[selectedRow.row()]); // TODO handle mutators with care when duplicating
+    }
+}
+
 void MapDescriptorWidget::removeSelectedMapDescriptors() {
     auto selectedRows = selectionModel()->selectedRows();
     std::sort(selectedRows.begin(), selectedRows.end(), [](const QModelIndex &A, const QModelIndex &B) { return A.row() > B.row(); });

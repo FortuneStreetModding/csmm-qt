@@ -42,6 +42,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionLoad_map_list_csv, &QAction::triggered, this, &MainWindow::loadMapList);
     connect(ui->actionItast_csmm_brsar, &QAction::triggered, this, &MainWindow::saveCleanItastCsmmBrsar);
     connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
+    connect(ui->duplicateMap, &QPushButton::clicked, this, [&](bool) {
+        ui->tableWidget->duplicateSelectedMapDescriptors();
+    });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
         if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
             ui->tableWidget->removeSelectedMapDescriptors();
@@ -82,7 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
 
         fileObj.commit();
     });
-    connect(ui->actionImport_mod_pack, &QAction::triggered, this, [&]() {
+    connect(ui->importModPack, &QPushButton::clicked, this, [&](bool) {
         auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt;*.zip)");
 
         if (file.isEmpty()) {
