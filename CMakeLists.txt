@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.3)
 
 add_compile_definitions(QT_NO_KEYWORDS)
 
@@ -230,6 +230,8 @@ else()
     add_executable(csmm ${SOURCES})
 endif()
 
+set_target_properties(csmm PROPERTIES CXX_VISIBILITY_PRESET hidden)
+
 target_precompile_headers(csmm PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:<QVector$<ANGLE-R>>"
     "$<$<COMPILE_LANGUAGE:CXX>:<QString$<ANGLE-R>>"
@@ -270,6 +272,7 @@ endif()
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(lib/pybind11)
 target_link_libraries(csmm PRIVATE pybind11::embed)
+target_link_libraries(csmm PRIVATE pybind11::windows_extras)
 
 target_include_directories(csmm PRIVATE lib/libbecquerel)
 add_subdirectory(lib/libbecquerel)
