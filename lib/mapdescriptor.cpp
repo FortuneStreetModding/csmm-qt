@@ -345,8 +345,6 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             auto authorName = QString::fromStdString(authorNode["name"].as<std::string>());
             authors.append(authorName);
         }
-    } else {
-        districtNames = VanillaDatabase::getVanillaDistrictNames();
     }
 
     return true;
