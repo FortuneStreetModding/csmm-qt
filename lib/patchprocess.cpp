@@ -528,7 +528,14 @@ static void brstmInject(const QDir &output, QVector<MapDescriptor> &descriptors,
             QDataStream stream(&brsarFile);
             if(Brsar::containsCsmmEntries(stream)) {
                 stream.device()->seek(0);
-                Brsar::patch(stream, descriptors);
+                int brsarSlots = Brsar::patch(stream, descriptors);
+                if(brsarSlots == -1) {
+                    throw Exception(QString("An error happened during patching the brsar file %1. The brsar file seems to be corrupt.").arg(brsarFilePath));
+                } else if(brsarSlots == -2) {
+                    throw Exception(QString("An error happened during patching the brsar file %1. All music %2 slots have been used up.").arg(brsarFilePath).arg(1000));
+                } else {
+                    qDebug() << QString("Used %1 music slots out of %2").arg(brsarSlots).arg(1000);
+                }
             } else {
                 throw Exception(QString("The brsar file %1 does not contain CSMM entries. You must either start with a vanilla fortune street or use Tools->Save Clean Itast.csmm.brsar").arg(brsarFilePath));
             }

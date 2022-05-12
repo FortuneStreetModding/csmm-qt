@@ -291,12 +291,12 @@ bool containsCsmmEntries(QDataStream &stream) {
     return false;
 }
 
-void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
+int patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
     Brsar::File brsar;
     stream >> brsar;
-    // TODO error handling
+
     if(stream.status() == QDataStream::ReadCorruptData)
-        return;
+        return -1;
 
     // find boundary indices
     int brsarIndex_min = 0, brsarIndex_max = 0;
@@ -310,13 +310,23 @@ void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
         }
     }
 
+    QMap<QString, quint32> mapBrstmBaseFilenameToBrsarIndex;
     int brsarIndex = brsarIndex_min;
     for (int i=0; i<descriptors.length(); i++) {
         auto &descriptor = descriptors[i];
         auto keys = descriptor.music.keys();
         for (auto &musicType: keys) {
-            if(brsarIndex<brsarIndex_max) {
-                auto &musicEntry = descriptor.music[musicType];
+            auto &musicEntry = descriptor.music[musicType];
+            if(mapBrstmBaseFilenameToBrsarIndex.contains(musicEntry.brstmBaseFilename)) {
+                // reuse the brsar index and set it to the map descriptor
+                musicEntry.brsarIndex = mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename];
+            } else {
+                if(brsarIndex > brsarIndex_max) {
+                    return -2;
+                }
+                // map the brstm filename to the current brsar index
+                mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename] = brsarIndex;
+                // determine music type (if its ME or BGM)
                 bool isBgm = Music::musicTypeIsBgm(musicType);
                 quint32 playerId;
                 quint8 playerPriority;
@@ -341,12 +351,13 @@ void patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
                 QByteArray data(QString("stream/%1.brstm").arg(musicEntry.brstmBaseFilename).toUtf8());
                 data = data.leftJustified(7 + 48 + 6, '\0', true);
                 stream.writeRawData(data, data.size());
-                // update the brsar index
+                // set the brsar index of the map descriptor
                 musicEntry.brsarIndex = brsarIndex;
                 brsarIndex++;
             }
         }
     }
+    return brsarIndex - brsarIndex_min;
 }
 
 }
