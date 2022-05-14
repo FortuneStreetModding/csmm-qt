@@ -21,13 +21,13 @@
 
 #ifdef Q_OS_WIN
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-cygwin32.zip"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-cygwin32.zip"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.27a-r8529-cygwin32.zip"
 #elif defined(Q_OS_MACOS)
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-mac.tar.gz"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-mac.tar.gz"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.27a-r8529-mac.tar.gz"
 #else
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-x86_64.tar.gz"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-x86_64.tar.gz"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.27a-r8529-x86_64.tar.gz"
 #endif
 
 namespace DownloadTools
