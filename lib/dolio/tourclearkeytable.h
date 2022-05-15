@@ -12,6 +12,10 @@ protected:
     bool readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) override;
     qint16 readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
     quint32 readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
+private:
+    QVector<quint32> writeRoutine_InitializeSaveGameData(const AddressMapper &addressMapper, quint32 routineStartAddress);
+    QVector<quint32> writeRoutine_GetGainedMapClearKeyAddress(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 tableAddr);
+    QVector<quint32> writeRoutine_GetAmountOfSlots(const AddressMapper &addressMapper, quint32 routineStartAddress);
 };
 
 #endif // TOURCLEARKEYTABLE_H

@@ -51,6 +51,9 @@ quint32 add(quint8 register1, quint8 register2, quint8 register3) {
 quint32 ori(quint8 register1, quint8 register2, qint16 value) {
     return ori_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
+quint32 oris(quint8 register1, quint8 register2, qint16 value) {
+    return oris_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
+}
 quint32 or_(quint8 register1, quint8 register2, quint8 register3) {
     return or_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 21) + ((quint32)register3 << 11);
 }
@@ -113,6 +116,9 @@ quint32 ble(qint32 offset) {
 }
 quint32 beq(quint32 currentPos, quint32 targetPos) {
     return beq_opcode + ((targetPos - currentPos) & 0x0000FFFF);
+}
+quint32 beq(quint32 startPos, qint32 offset, quint32 targetPos) {
+    return beq(startPos + offset * 4, targetPos);
 }
 quint32 beq(qint32 currentPos, qint32 targetPos) {
     return beq(targetPos - currentPos);

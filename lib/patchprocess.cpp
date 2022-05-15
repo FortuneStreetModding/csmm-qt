@@ -138,9 +138,8 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
         }
     }
 
-    // make new msg ids
-    quint32 msgId = 25000;
     // add msg id for event square
+    quint32 msgId = 25000;
     uiMessages["en"][msgId] = "Event square";
     uiMessages["uk"][msgId] = uiMessages["en"][msgId];
     uiMessages["de"][msgId] = "Ereignisfeld";
@@ -148,8 +147,8 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     uiMessages["it"][msgId] = "Casella Avvenimento";
     uiMessages["su"][msgId] = "Casilla del Acontecimiento";
     uiMessages["jp"][msgId] = "イベントマス";
-    msgId = 25001;
     // add msg id for free parking square
+    msgId = 25001;
     uiMessages["en"][msgId] = "Free Parking";
     uiMessages["uk"][msgId] = uiMessages["en"][msgId];
     uiMessages["de"][msgId] = "Frei Parken";
@@ -157,8 +156,8 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     uiMessages["it"][msgId] = "Posteggio gratuito";
     uiMessages["su"][msgId] = "Parque Gratuito";
     uiMessages["jp"][msgId] = "無料駐車場";
-    msgId = 25002;
     // add msg id for free parking square description
+    msgId = 25002;
     uiMessages["en"][msgId] = "This is just a \"free\" resting place.";
     uiMessages["uk"][msgId] = uiMessages["en"][msgId];
     uiMessages["de"][msgId] = "Hier passiert gar nichts.";
@@ -166,6 +165,15 @@ static void writeLocalizationFiles(QVector<MapDescriptor> &mapDescriptors, const
     uiMessages["it"][msgId] = "Rilassatevi! Qui non succede assolutamente nulla.";
     uiMessages["su"][msgId] = "Se trata simplemente de un lugar de descanso \"gratis\".";
     uiMessages["jp"][msgId] = "このマスに止まると<n>何も起こりません。";
+    // add msg id for creating a CSMM save game slot
+    msgId = 25003;
+    uiMessages["en"][msgId] = "This mod requires the 10th save game slot to be empty to function properly. Either use a fresh save file, or delete the 10th save game slot.";
+    uiMessages["uk"][msgId] = uiMessages["en"][msgId];
+    uiMessages["de"][msgId] = "Dieser Mod erfordert, dass der 10. Spielspeicherplatz leer ist, um richtig zu funktionieren. Verwenden Sie entweder eine neue Speicherdatei oder löschen Sie den 10. Spielspeicherplatz.";
+    uiMessages["fr"][msgId] = "Ce mod nécessite que le 10ème emplacement de jeu de sauvegarde soit vide pour fonctionner correctement. Utilisez un nouveau fichier de sauvegarde ou supprimez le 10e emplacement de jeu de sauvegarde.";
+    uiMessages["it"][msgId] = "Questa mod richiede che il decimo slot di salvataggio sia vuoto per funzionare correttamente. Usa un nuovo file di salvataggio o elimina il decimo slot di salvataggio.";
+    uiMessages["su"][msgId] = "Este mod requiere que la décima ranura de partida guardada esté vacía para funcionar correctamente. Utilice un archivo guardado nuevo o elimine el décimo espacio de juego guardado.";
+    uiMessages["jp"][msgId] = "この変更を行うには、正しく機能するために10番目の保存ゲームスロットを空にする必要があります。 新しい保存ファイルを使用するか、10番目の保存ゲームスロットを削除してください。";
     msgId++;
 
     // write map descriptor names and descriptions
