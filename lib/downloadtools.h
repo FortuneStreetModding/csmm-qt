@@ -49,7 +49,6 @@ namespace DownloadTools
 
     inline bool requiredFilesAvailable() {
         QDir appDir = getToolsLocation();
-        appDir.mkpath(".");
         QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
         QFileInfo witCheck(wit), wszstCheck(wszst), wimgtCheck(wimgt);
         return witCheck.exists() && witCheck.isFile() &&
@@ -60,6 +59,7 @@ namespace DownloadTools
     template<class ErrorCallback>
     inline QFuture<void> downloadAllRequiredFiles(QNetworkAccessManager* manager, ErrorCallback func, QString witUrl, QString wszstUrl) {
         QDir appDir = getToolsLocation();
+        appDir.mkpath(".");
         auto downloadWit = downloadRequiredFiles(manager, witUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
             if (filename == WIT_NAME || filename.endsWith(".dll")) {
