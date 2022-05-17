@@ -456,7 +456,7 @@ QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList
 
 QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs) {
     QMap<int, int> result;
-    QMap<int, int> numMapsPerZone, numMapsPerZoneOtherSet;
+    QMap<int, int> numMapsPerZone;
     for (int i=0; i<descriptors.size(); ++i) {
         if (descriptors[i].mapSet == mapSet) {
             if (descriptors[i].zone >= 0 && descriptors[i].zone <= 2) {
@@ -465,14 +465,9 @@ QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet
             } else if (descriptors[i].zone != -1) {
                 errorMsgs << QString("[board %1] A board can only be in zones -1, 0, 1, or 2").arg(i);
             }
-        } else {
-            ++numMapsPerZoneOtherSet[descriptors[i].zone];
         }
     }
     for (int zoneVal: {0, 1, 2}) {
-        if (numMapsPerZone[zoneVal] != numMapsPerZoneOtherSet[zoneVal]) {
-            errorMsgs << QString("The number of boards in zone %1 must be the same in map sets 0 and 1").arg(zoneVal);
-        }
         if (numMapsPerZone[zoneVal] < 6) {
             errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at least 6").arg(mapSet).arg(zoneVal);
         }
