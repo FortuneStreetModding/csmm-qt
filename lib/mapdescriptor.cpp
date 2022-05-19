@@ -404,6 +404,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
 
     if (yaml["extraData"]) extraData = nodeToCustomData(yaml["extraData"]);
 
+    authors.clear();
     if (yaml["authors"]) {
         auto authorNodes = yaml["authors"];
         for (auto it=authorNodes.begin(); it!=authorNodes.end(); ++it) {
@@ -411,8 +412,6 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             auto authorName = QString::fromStdString(authorNode["name"].as<std::string>());
             authors.push_back(authorName);
         }
-    } else {
-        authors.clear();
     }
 
     return true;
