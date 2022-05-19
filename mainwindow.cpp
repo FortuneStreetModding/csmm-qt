@@ -502,3 +502,4 @@ void MainWindow::validateMaps() {
         (new ValidationErrorDialog(errorMsgs, this))->exec();
     }
 }
+

@@ -127,6 +127,7 @@ void run(QStringList arguments)
                 if(targetDir.exists()) {
                     if(parser.isSet(forceOption)) {
                         cout << "Overwriting " << target << "...\n";
+
                     } else {
                         cout << "Cannot extract as " << target << " already exists. Use force option to overwrite.\n";
                         QCoreApplication::exit(1); return;

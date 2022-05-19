@@ -90,23 +90,63 @@ bool MapSetZoneOrder::readIsVanilla(QDataStream &stream, const AddressMapper &ad
 QVector<quint32> MapSetZoneOrder::writeSubroutineGetNumMapsInZone(const std::vector<MapDescriptor> &mapDescriptors) {
     // precondition:  r3  _ZONE_TYPE
     // postcondition: r3  num maps
-    QVector<quint32> asm_;
-    for (short i = 0; i < 6; i++) {
-        asm_.append(PowerPcAsm::cmpwi(3, i));
-        asm_.append(PowerPcAsm::bne(3));
-        short count = std::count_if(mapDescriptors.begin(), mapDescriptors.end(), [&](const MapDescriptor &descriptor) {
-            int zone = descriptor.zone;
-            if (zone == 0) {
-                zone = 1;
-            } else if (zone == 1) {
-                zone = 0;
-            }
-            return zone == i && descriptor.mapSet == 0;
-        });
-        asm_.append(PowerPcAsm::li(3, count));
-        asm_.append(PowerPcAsm::blr());
+    QVector<quint32> asm_, asm_l2;
+
+    // load current mapSet into r4
+    asm_.append(PowerPcAsm::lwz(4, 0xa7fc, 13));    // GameInfo (0x8081747c) -> r4
+    asm_.append(PowerPcAsm::addi(4, 4, 0x214));     // GameInfo->GameSelectInfo -> r4
+    asm_.append(PowerPcAsm::lbz(4, 0x226, 4));      // GameInfo->GameSelectInfo->BasicRules -> r4
+
+    QSet<qint8> mapSets;
+    for (auto &mapDescriptor: mapDescriptors) {
+        if (mapDescriptor.mapSet != -1) {
+            mapSets.insert(mapDescriptor.mapSet);
+        }
     }
-    asm_.append(PowerPcAsm::blr());
+    QList<qint8> mapSetsSorted = mapSets.values();
+    std::sort(mapSetsSorted.begin(), mapSetsSorted.end());
+    qint8 lastMapSet = mapSetsSorted.last();
+
+    for (qint8 mapSet: qAsConst(mapSetsSorted)) {
+        QSet<qint8> zones;
+        for (auto &mapDescriptor: mapDescriptors) {
+            if (mapDescriptor.mapSet == mapSet && mapDescriptor.zone != -1) {
+                zones.insert(mapDescriptor.zone);
+            }
+        }
+        QList<qint8> zonesSorted = zones.values();
+        std::sort(zonesSorted.begin(), zonesSorted.end());
+
+        asm_l2.clear();
+        for (quint8 zone: qAsConst(zonesSorted)) {
+            short count = std::count_if(mapDescriptors.begin(), mapDescriptors.end(), [&](const MapDescriptor &descriptor) {
+                int d_zone = descriptor.zone;
+                if (d_zone == 0) {
+                    d_zone = 1;
+                } else if (d_zone == 1) {
+                    d_zone = 0;
+                }
+                int d_mapSet = descriptor.mapSet;
+                if (d_mapSet == 0) {
+                    d_mapSet = 1;
+                } else if (d_mapSet == 1) {
+                    d_mapSet = 0;
+                }
+                return zone == d_zone && mapSet == d_mapSet;
+            });
+            asm_l2.append(PowerPcAsm::cmpwi(3, zone));
+            asm_l2.append(PowerPcAsm::bne(3));
+            asm_l2.append(PowerPcAsm::li(3, count));
+            asm_l2.append(PowerPcAsm::blr());
+        }
+
+        if(mapSet != lastMapSet) {
+            asm_.append(PowerPcAsm::cmpwi(4, mapSet));
+            asm_.append(PowerPcAsm::bne(asm_l2.size() + 1));
+        }
+        asm_.append(asm_l2);
+    }
+
     return asm_;
 }
 

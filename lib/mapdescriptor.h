@@ -94,6 +94,7 @@ struct MapDescriptor {
     std::vector<quint32> districtNameIds;
     std::map<QString, QSharedPointer<Mutator>> mutators;
     pybind11::dict extraData;
+    std::vector<QString> authors;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 

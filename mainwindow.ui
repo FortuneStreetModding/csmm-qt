@@ -251,6 +251,14 @@
     <string>Export default modlist.txt</string>
    </property>
   </action>
+  <action name="actionAppend_Author_to_Map_Description">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Append Author to Map Description</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

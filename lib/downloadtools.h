@@ -21,13 +21,13 @@
 
 #ifdef Q_OS_WIN
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-cygwin32.zip"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-cygwin32.zip"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.27a-r8529-cygwin32.zip"
 #elif defined(Q_OS_MACOS)
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-mac.tar.gz"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-mac.tar.gz"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.27a-r8529-mac.tar.gz"
 #else
 #define WIT_URL "https://wit.wiimm.de/download/wit-v3.04a-r8427-x86_64.tar.gz"
-#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.22a-r8323-x86_64.tar.gz"
+#define WSZST_URL "https://szs.wiimm.de/download/szs-v2.27a-r8529-x86_64.tar.gz"
 #endif
 
 namespace DownloadTools
@@ -48,7 +48,6 @@ namespace DownloadTools
 
     inline bool requiredFilesAvailable() {
         QDir appDir = getToolsLocation();
-        appDir.mkpath(".");
         QString wit = appDir.filePath(WIT_NAME), wszst = appDir.filePath(WSZST_NAME), wimgt = appDir.filePath(WIMGT_NAME);
         QFileInfo witCheck(wit), wszstCheck(wszst), wimgtCheck(wimgt);
         return witCheck.exists() && witCheck.isFile() &&
@@ -59,6 +58,7 @@ namespace DownloadTools
     template<class ErrorCallback>
     inline QFuture<void> downloadAllRequiredFiles(QNetworkAccessManager* manager, ErrorCallback func, QString witUrl, QString wszstUrl) {
         QDir appDir = getToolsLocation();
+        appDir.mkpath(".");
         auto downloadWit = downloadRequiredFiles(manager, witUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
             if (filename == WIT_NAME || filename.endsWith(".dll")) {

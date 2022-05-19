@@ -3,6 +3,8 @@
 #include "lib/fslocale.h"
 #include "lib/datafileset.h"
 
+// TODO add configuration for adding author to desription
+
 quint32 MapDescriptionTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.descMsgId);

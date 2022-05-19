@@ -273,7 +273,8 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && mapDescriptorFilePath == other.mapDescriptorFilePath
             && districtNames == other.districtNames
             && districtNameIds == other.districtNameIds
-            && extraData.equal(other.extraData);
+            && extraData.equal(other.extraData)
+            && std::equal(std::begin(authors), std::end(authors), std::begin(other.authors));
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
@@ -403,6 +404,17 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
 
     if (yaml["extraData"]) extraData = nodeToCustomData(yaml["extraData"]);
 
+    if (yaml["authors"]) {
+        auto authorNodes = yaml["authors"];
+        for (auto it=authorNodes.begin(); it!=authorNodes.end(); ++it) {
+            const YAML::Node& authorNode = *it;
+            auto authorName = QString::fromStdString(authorNode["name"].as<std::string>());
+            authors.push_back(authorName);
+        }
+    } else {
+        authors.clear();
+    }
+
     return true;
 }
 
@@ -515,7 +527,7 @@ QMap<int, int> getMapSets(const std::vector<MapDescriptor> &descriptors, QString
 
 QMap<int, int> getMapZones(const std::vector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs) {
     QMap<int, int> result;
-    QMap<int, int> numMapsPerZone, numMapsPerZoneOtherSet;
+    QMap<int, int> numMapsPerZone;
     for (int i=0; i<descriptors.size(); ++i) {
         if (descriptors[i].mapSet == mapSet) {
             if (descriptors[i].zone >= 0 && descriptors[i].zone <= 2) {
@@ -524,14 +536,9 @@ QMap<int, int> getMapZones(const std::vector<MapDescriptor> &descriptors, int ma
             } else if (descriptors[i].zone != -1) {
                 errorMsgs << QString("[board %1] A board can only be in zones -1, 0, 1, or 2").arg(i);
             }
-        } else {
-            ++numMapsPerZoneOtherSet[descriptors[i].zone];
         }
     }
     for (int zoneVal: {0, 1, 2}) {
-        if (numMapsPerZone[zoneVal] != numMapsPerZoneOtherSet[zoneVal]) {
-            errorMsgs << QString("The number of boards in zone %1 must be the same in map sets 0 and 1").arg(zoneVal);
-        }
         if (numMapsPerZone[zoneVal] < 6) {
             errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at least 6").arg(mapSet).arg(zoneVal);
         }
