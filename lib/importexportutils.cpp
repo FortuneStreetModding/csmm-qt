@@ -8,8 +8,8 @@
 #include "lib/datafileset.h"
 #include "zip/zip.h"
 #include "bsdiff/bspatchlib.h"
-#include "lib/unicodefilenameutils.h"
 #include "lib/uimessage.h"
+#include <filesystem>
 
 namespace ImportExportUtils {
 
@@ -118,7 +118,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             throw Exception("Zip file has no map descriptor");
         }
 
-        ufutils::unicode_ifstream yamlStream(extractedYamlFile);
+        std::ifstream yamlStream(std::filesystem::path(extractedYamlFile.toStdU16String()));
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
             QFileInfo yamlFileZipInfo(yamlFileSrc);
@@ -197,7 +197,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
         }
     } else {
-        ufutils::unicode_ifstream yamlStream(yamlFileSrc);
+        std::ifstream yamlStream(std::filesystem::path(yamlFileSrc.toStdU16String()));
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
             // import frb files

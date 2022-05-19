@@ -1,6 +1,7 @@
 #include "resultscenes.h"
 #include <brlyt.h>
-#include "unicodefilenameutils.h"
+#include <fstream>
+#include <filesystem>
 
 namespace ResultScenes {
 
@@ -8,7 +9,7 @@ bool widenResultTitle(const QString &brlytFile) {
     bq::brlyt::Brlyt brlyt;
 
     {
-        ufutils::unicode_ifstream stream(brlytFile);
+        std::ifstream stream(std::filesystem::path(brlytFile.toStdU16String()), std::ios::binary);
         brlyt.read(stream);
         if (!stream) {
             return false;
@@ -33,7 +34,7 @@ bool widenResultTitle(const QString &brlytFile) {
 
     traverse(brlyt.rootPane);
 
-    ufutils::unicode_ofstream stream(brlytFile);
+    std::ofstream stream(std::filesystem::path(brlytFile.toStdU16String()), std::ios::binary);
     brlyt.write(stream);
     return !stream.fail();
 }

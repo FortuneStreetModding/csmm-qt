@@ -246,7 +246,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("internalName", &MapDescriptor::internalName)
             .def_readwrite("mapDescriptorFilePath", &MapDescriptor::mapDescriptorFilePath)
             .def_readwrite("districtNames", &MapDescriptor::districtNames)
-            .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds);
+            .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds)
+            .def_readwrite("extraData", &MapDescriptor::extraData);
 
     pybind11::class_<AddressMapper>(m, "AddressMapper")
             .def("canConvertToFileAddress", &AddressMapper::canConvertToFileAddress)

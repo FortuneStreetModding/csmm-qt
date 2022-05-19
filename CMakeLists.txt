@@ -60,7 +60,6 @@ set(SOURCES
     lib/downloadtools.h
     lib/exewrapper.cpp
     lib/exewrapper.h
-    lib/filesystem.hpp
     lib/fortunestreetdata.cpp
     lib/fortunestreetdata.h
     lib/freespacemanager.cpp
@@ -187,7 +186,6 @@ set(SOURCES
     lib/uimenu1900a.h
     lib/uimessage.cpp
     lib/uimessage.h
-    lib/unicodefilenameutils.h
     lib/vanilladatabase.cpp
     lib/vanilladatabase.h
     lib/zip/miniz.h

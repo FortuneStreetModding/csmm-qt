@@ -10,6 +10,7 @@
 #include "fortunestreetdata.h"
 #include "music.h"
 #include "mutator/mutator.h"
+#include "lib/python/pythonbindings.h"
 
 enum RuleSet : quint32 {
     Standard = 0,
@@ -92,6 +93,7 @@ struct MapDescriptor {
     std::map<QString, std::vector<QString>> districtNames;
     std::vector<quint32> districtNameIds;
     std::map<QString, QSharedPointer<Mutator>> mutators;
+    pybind11::dict extraData;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 

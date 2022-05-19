@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "lib/filesystem.hpp"
+#include <filesystem>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -146,9 +146,7 @@ void MainWindow::loadMapList() {
         ui->tableWidget->dirty = true;
         ui->statusbar->showMessage("Map list load completed");
         ui->statusbar->repaint();
-    } catch (const ImportExportUtils::Exception &exception) {
-        QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
-    } catch (const YAML::Exception &exception) {
+    } catch (const std::runtime_error &exception) {
         QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
     }
 }
@@ -198,7 +196,8 @@ void MainWindow::openDir() {
 
     auto copyTask = QtConcurrent::run([=]() {
         std::error_code error;
-        ghc::filesystem::copy(dirname.toStdU16String(), newTempGameDir->path().toStdU16String(), ghc::filesystem::copy_options::recursive, error);
+        qDebug() << dirname << newTempGameDir->path();
+        std::filesystem::copy(dirname.toStdU16String(), newTempGameDir->path().toStdU16String(), std::filesystem::copy_options::recursive, error);
         return error;
     });
 
@@ -225,7 +224,7 @@ void MainWindow::openDir() {
             auto errorCode = await(copyTask);
             (*progress)->setValue(2);
             if (errorCode) {
-                QMessageBox::critical(this, "Error loading game", QString("Error copying files to temporary working directory"));
+                QMessageBox::critical(this, "Error loading game", QString::fromStdString("Error copying files to temporary working directory: " + errorCode.message()));
                 return;
             }
             loadDescriptors(gameInstance.mapDescriptors());
@@ -335,7 +334,7 @@ void MainWindow::exportToFolder() {
             // need to use utf 16 b/c windows behaves strangely w/ utf 8
             auto copyTask = QtConcurrent::run([=] {
                 std::error_code error;
-                ghc::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
+                std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
                 return !error;
             });
             auto fut = AsyncFuture::observe(copyTask).subscribe([=](bool result) {
@@ -360,7 +359,7 @@ void MainWindow::exportToFolder() {
 
     auto copyTask = QtConcurrent::run([=] {
         std::error_code error;
-        ghc::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
+        std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
         return !error;
     });
     auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
@@ -425,7 +424,7 @@ void MainWindow::exportIsoWbfs() {
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] {
         std::error_code error;
-        ghc::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
+        std::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
         return !error;
     });
     auto fut = AsyncFuture::observe(copyTask)

@@ -353,10 +353,7 @@ void run(QStringList arguments)
 
                         cout << "\n";
                         cout << "Pending changes have been saved\n";
-                    } catch (const ImportExportUtils::Exception &exception) {
-                        cout << QString("Error loading the map: %1").arg(exception.getMessage());
-                        QCoreApplication::exit(1);
-                    } catch (const YAML::Exception &exception) {
+                    } catch (const std::runtime_error &exception) {
                         cout << QString("Error loading the map: %1").arg(exception.what());
                         QCoreApplication::exit(1);
                     }

@@ -25,14 +25,13 @@ namespace ExeWrapper {
     QFuture<void> patchWiimmfi(const QString &wbfsFile);
     QFuture<QString> getId6(const QString &inputFile);
 
-    class Exception : public QException {
+    class Exception : public QException, public std::runtime_error {
     public:
-        Exception(const QString &msgVal);
-        const QString &getMessage() const;
-        void raise() const override;
-        Exception *clone() const override;
-    private:
-        QString message;
+        const char *what() const override { return std::runtime_error::what(); }
+        using std::runtime_error::runtime_error;
+        Exception(const QString &str) : std::runtime_error(str.toStdString()) {}
+        void raise() const override { throw *this; }
+        Exception *clone() const override { return new Exception(*this); }
     };
 }
 

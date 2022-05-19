@@ -34,6 +34,60 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
+static YAML::Node customDataToNode(pybind11::object obj) {
+    using namespace pybind11;
+    YAML::Node res;
+    if (isinstance<dict>(obj)) {
+        dict dct(obj);
+        for (auto &entry: dct) {
+            res[reinterpret_borrow<object>(entry.first).cast<std::string>()] = customDataToNode(reinterpret_borrow<object>(entry.second));
+        }
+    } else if (isinstance<str>(obj)) {
+        res = obj.cast<std::string>();
+    } else if (isinstance<sequence>(obj)) {
+        sequence seq(obj);
+        for (auto elem: seq) {
+            res.push_back(customDataToNode(elem));
+        }
+    } else if (isinstance<none>(obj)) {
+        // do nothing
+    } else if (isinstance<bool_>(obj)) {
+        res = obj.cast<bool>();
+    } else if (isinstance<int_>(obj) || isinstance<float_>(obj)) {
+        res = obj.cast<double>();
+    } else {
+        throw std::runtime_error("object " + str(obj).cast<std::string>() + " is invalid for yaml!");
+    }
+    return res;
+}
+
+static pybind11::object nodeToCustomData(const YAML::Node &node) {
+    switch (node.Type()) {
+    case YAML::NodeType::Undefined:
+    case YAML::NodeType::Null:
+        return pybind11::none();
+    case YAML::NodeType::Scalar:
+        // TODO try to detect ints/floats?
+        return pybind11::str(node.Scalar());
+    case YAML::NodeType::Sequence:
+    {
+        pybind11::list lst;
+        for (auto &ent: node) {
+            lst.append(nodeToCustomData(ent));
+        }
+        return lst;
+    }
+    case YAML::NodeType::Map:
+    {
+        pybind11::dict dct;
+        for (auto &ent: node) {
+            dct[pybind11::str(ent.first.Scalar())] = nodeToCustomData(ent.second);
+        }
+        return dct;
+    }
+    }
+}
+
 QString MapDescriptor::toYaml() const {
     YAML::Emitter out;
 
@@ -158,6 +212,11 @@ QString MapDescriptor::toYaml() const {
         out << YAML::EndMap;
     }
 
+    if (pybind11::len(extraData) > 0) {
+        qDebug() << pybind11::str(extraData).cast<QString>();
+        out << YAML::Key << "extraData" << YAML::Value << customDataToNode(extraData);
+    }
+
     out << YAML::EndMap;
 
     out << YAML::EndDoc;
@@ -213,7 +272,8 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && internalName == other.internalName
             && mapDescriptorFilePath == other.mapDescriptorFilePath
             && districtNames == other.districtNames
-            && districtNameIds == other.districtNameIds;
+            && districtNameIds == other.districtNameIds
+            && extraData.equal(other.extraData);
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
@@ -340,6 +400,8 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     } else {
         districtNames = VanillaDatabase::getVanillaDistrictNames().toStdMap();
     }
+
+    if (yaml["extraData"]) extraData = nodeToCustomData(yaml["extraData"]);
 
     return true;
 }

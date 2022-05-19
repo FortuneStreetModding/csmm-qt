@@ -1,6 +1,7 @@
 #include "uigame013.h"
 #include <brlyt.h>
-#include "unicodefilenameutils.h"
+#include <fstream>
+#include <filesystem>
 
 namespace Ui_game_013 {
 
@@ -8,7 +9,7 @@ bool widenDistrictName(const QString &brlytFile) {
     bq::brlyt::Brlyt brlyt;
 
     {
-        ufutils::unicode_ifstream stream(brlytFile);
+        std::ifstream stream(std::filesystem::path(brlytFile.toStdU16String()), std::ios::binary);
         brlyt.read(stream);
         if (!stream) {
             return false;
@@ -31,7 +32,7 @@ bool widenDistrictName(const QString &brlytFile) {
 
     traverse(brlyt.rootPane);
 
-    ufutils::unicode_ofstream stream(brlytFile);
+    std::ofstream stream(std::filesystem::path(brlytFile.toStdU16String()), std::ios::binary);
     brlyt.write(stream);
     return !stream.fail();
 }

@@ -167,11 +167,14 @@ public:
                     it.value()(root, gameInstance, modList, messageFiles[it.key()]);
                 }
             }
+
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {
+                qDebug() << "allocating ui messages";
                 uiMessageInterface->allocateUiMessages(root, gameInstance, modList);
             }
             if (messageSavers.contains(mod->modId())) {
+                qDebug() << "saving ui messages";
                 auto &savers = messageSavers[mod->modId()];
                 for (auto it=savers.begin(); it!=savers.end(); ++it) {
                     it.value()(root, gameInstance, modList, messageFiles[it.key()]);
@@ -179,9 +182,11 @@ public:
             }
             auto generalFileInterface = mod.getCapability<GeneralInterface>();
             if (generalFileInterface) {
+                qDebug() << "processing general file interface";
                 generalFileInterface->saveFiles(root, gameInstance, modList);
             }
             if (arcModifiers.contains(mod->modId())) {
+                qDebug() << "saving arc files";
                 auto &modifiers = arcModifiers[mod->modId()];
                 for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
                     it.value()(root, gameInstance, modList, arcFilesDir.filePath(it.key()));
@@ -203,7 +208,7 @@ public:
         }
     }
 private:
-    GameInstance &gameInstance;
+    std::reference_wrapper<GameInstance> gameInstance;
     ModListType modList;
 };
 

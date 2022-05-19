@@ -83,9 +83,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
             descriptorPtr->mapDescriptorFilePath = openYaml;
             dirty = true;
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
-        } catch (const ImportExportUtils::Exception &exception) {
-            QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
-        } catch (const YAML::Exception &exception) {
+        } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
         }
     });
@@ -96,7 +94,11 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         auto gameDirectory = getGameDirectory();
         auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)");
         if (saveYamlTo.isEmpty()) return;
-        ImportExportUtils::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
+        try {
+            ImportExportUtils::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
+        } catch (const std::runtime_error &exception) {
+            QMessageBox::critical(this, "Export .yaml", QString("Error exporting the map: %1").arg(exception.what()));
+        }
     });
     setCellWidget(row, colIdx++, exportYamlButton);
 

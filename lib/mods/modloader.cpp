@@ -34,25 +34,31 @@ static ModListType importModpackDir(const QString &modpackDir) {
 
     // temporarily add modpack folder to python module search path
     auto sys = pybind11::module_::import("sys");
-    auto sysPath = sys.attr("path");
-    sysPath.attr("insert")(0, modpackDir.toUtf8().data());
+    auto copy = pybind11::module_::import("copy");
+    pybind11::list sysPathCopy(copy.attr("copy")(sys.attr("path")));
+    using namespace pybind11::literals;
+    sys.attr("path").attr("insert")(0, modpackDir.toUtf8().data());
 
     try {
         for (auto &modid: qAsConst(modids)) {
             qDebug() << "trying to import user mod" << modid;
 
             // append mod instance for each user modid
+            bool wasModuleThereBefore = sys.attr("modules").contains(modid);
             auto modModule = pybind11::module_::import(modid.toUtf8());
+            if (wasModuleThereBefore) modModule.reload();
             result.append(CSMMModHolder::fromPyObj(modModule.attr("mod")));
 
             qDebug() << "successfully imported user mod" << result.back()->modId();
         }
     } catch (const pybind11::error_already_set &error) {
-        sysPath.attr("pop")(0); // revert python module search path
+        sys.attr("path") = sysPathCopy;
         throw error;
     }
 
-    sysPath.attr("pop")(0);
+    //pybind11::print(sysPathCopy, "file"_a=sys.attr("stderr"));
+
+    sys.attr("path") = sysPathCopy;
 
     for (auto &mod: result) {
         mod->setModpackDir(modpackDir);

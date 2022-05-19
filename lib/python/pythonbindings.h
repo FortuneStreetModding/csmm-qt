@@ -1,8 +1,6 @@
 #ifndef PYTHONBINDINGS_H
 #define PYTHONBINDINGS_H
 
-#include "lib/mapdescriptor.h"
-
 #include <pybind11/stl.h>
 #include <pybind11/functional.h>
 #include <QVector>
@@ -56,7 +54,7 @@ public:
         if (!obj.is_none()) {
             try {
                 return obj.cast<std::shared_ptr<T>>();
-            } catch (const pybind11::cast_error &error) {
+            } catch (const pybind11::cast_error &) {
                 return nullptr;
             }
         }
@@ -253,6 +251,12 @@ struct qbytearray_caster {
 };
 
 }
+
+struct OriginPoint;
+enum MusicType : quint32;
+enum Character : quint32;
+struct MusicEntry;
+struct MapDescriptor;
 
 PYBIND11_MAKE_OPAQUE(std::array<bool, 128>);
 PYBIND11_MAKE_OPAQUE(std::array<QString, 4>);
