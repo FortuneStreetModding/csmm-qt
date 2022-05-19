@@ -69,6 +69,11 @@ int FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize() const {
 quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose, bool reuse) {
     QString purposeMsg = purpose.isEmpty() ? "" : QString(" for %1").arg(purpose);
     QString byteArrayAsString = byteArrayToStringOrHex(bytes);
+    if (!startedAllocating) {
+        for (auto it=remainingFreeSpaceBlocks.begin(); it!=remainingFreeSpaceBlocks.end(); ++it) {
+            qDebug() << QString::number(it.value(), 16) << " to " << QString::number(it.key(), 16);
+        }
+    }
     startedAllocating = true;
     if (reuse && reuseValues.contains(bytes)) {
         qDebug().noquote() << "Reuse " + byteArrayAsString + " at " + QString::number(reuseValues[bytes], 16) + purposeMsg;

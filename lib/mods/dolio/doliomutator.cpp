@@ -5,6 +5,10 @@ QSet<QString> DolIOMutator::depends() const {
     return { MutatorTable::MODID.data() };
 }
 
+QSet<QString> DolIOMutator::after() const {
+    return { MutatorTable::MODID.data() };
+}
+
 CSMMModHolder DolIOMutator::mutatorTableMod(const ModListType &modList) {
     auto it = std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == MutatorTable::MODID.data(); });
     return it != modList.end() ? *it : CSMMModHolder();

@@ -2,6 +2,9 @@
 #include "lib/powerpcasm.h"
 #include "lib/fslocale.h"
 #include "lib/datafileset.h"
+#include <fstream>
+#include <filesystem>
+#include <yaml-cpp/yaml.h>
 
 // TODO add configuration for adding author to desription
 
@@ -108,8 +111,20 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::sav
     for (auto &locale: FS_LOCALES) {
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage &messages) {
             QString theLocale = locale == "uk" ? "en" : locale;
+            bool addAuthorToDesc = true;
+            if (!modpackDir().isEmpty()) {
+                auto cfg = QDir(modpackDir()).filePath("mapDescriptionTable.yaml");
+                if (QFileInfo::exists(cfg)) {
+                    std::ifstream cfgStream(std::filesystem::path(cfg.toStdU16String()));
+                    auto node = YAML::Load(cfgStream);
+                    auto addAuthorToDescNode = node["addAuthor"];
+                    addAuthorToDesc = !addAuthorToDescNode.IsDefined() || addAuthorToDescNode.as<bool>();
+                }
+            }
             for (auto &descriptor: instance.mapDescriptors()) {
-                messages[descriptor.descMsgId] = descriptor.descs[theLocale];
+                messages[descriptor.descMsgId] = descriptor.descs[theLocale] + (addAuthorToDesc && !descriptor.authors.empty()
+                                                                                ? " [" + QStringList(descriptor.authors.begin(), descriptor.authors.end()).join(", ") + "]"
+                                                                                : "");
             }
         };
     }
