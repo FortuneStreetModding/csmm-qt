@@ -50,8 +50,9 @@ void run(QStringList arguments)
 
     if (arguments.size() > 1 && arguments[1] == "python") {
         wchar_t **args = new wchar_t *[arguments.size()]();
-        args[0] = new wchar_t[arguments[0].size() + 1]();
-        arguments[0].toWCharArray(args[0]);
+        auto programName = (arguments[0] + " python");
+        args[0] = new wchar_t[programName.size() + 1]();
+        programName.toWCharArray(args[0]);
         for (int i=2; i<arguments.size(); ++i) {
             args[i-1] = new wchar_t[arguments[i].size() + 1]();
             arguments[i].toWCharArray(args[i-1]);

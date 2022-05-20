@@ -145,50 +145,82 @@ public:
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
-    pybind11::enum_<RuleSet>(m, "RuleSet")
+    pybind11::enum_<RuleSet>(m, "RuleSet", R"pycsmmdoc(
+    Enum representing whether the board is easy or standard mode.
+)pycsmmdoc")
             .value("Easy", Easy)
             .value("Standard", Standard);
 
-    pybind11::enum_<BoardTheme>(m, "BoardTheme")
+    pybind11::enum_<BoardTheme>(m, "BoardTheme", R"pycsmmdoc(
+    Enum representing the board's franchise theme.
+)pycsmmdoc")
             .value("DragonQuest", DragonQuest)
             .value("Mario", Mario);
 
-    pybind11::enum_<BgmId> bgmIdEnum(m, "BgmId");
+    pybind11::enum_<BgmId> bgmIdEnum(m, "BgmId", R"pycsmmdoc(
+    Enum representing the background music id.
+)pycsmmdoc");
     auto &bgmIdMap = Bgm::bgmIdMapping();
     for (auto it=bgmIdMap.begin(); it!=bgmIdMap.end(); ++it) {
         bgmIdEnum.value(it.key().toUtf8(), it.value());
     }
 
-    pybind11::enum_<MusicType> musicTypeEnum(m, "MusicType");
+    pybind11::enum_<MusicType> musicTypeEnum(m, "MusicType",  R"pycsmmdoc(
+    Enum representing the usage of the music.
+)pycsmmdoc");
     auto &musicTypeMap = Music::stringToMusicTypeMapping();
     for (auto it=musicTypeMap.begin(); it!=musicTypeMap.end(); ++it) {
         musicTypeEnum.value(it.key().toUtf8(), it.value());
     }
 
-    pybind11::enum_<Character> characterEnum(m, "Character");
+    pybind11::enum_<Character> characterEnum(m, "Character", R"pycsmmdoc(
+    Enum representing the character.
+)pycsmmdoc");
     auto &charactersMap = stringToTourCharactersMapping();
     for (auto it = charactersMap.begin(); it != charactersMap.end(); ++it) {
         characterEnum.value(it.key().toUtf8(), it.value());
     }
 
-    pybind11::enum_<LoopingMode>(m, "LoopingMode")
+    pybind11::enum_<LoopingMode>(m, "LoopingMode", R"pycsmmdoc(
+    Enum representing how the board loops.
+)pycsmmdoc")
             .value("None", None)
             .value("Vertical", Vertical)
             .value("Both", Both);
 
-    pybind11::class_<OriginPoint>(m, "OriginPoint")
-            .def(pybind11::init([](float x, float y) { return OriginPoint{x, y}; }), pybind11::arg("x"),  pybind11::arg("y"))
-            .def_readwrite("x", &OriginPoint::x)
-            .def_readwrite("y", &OriginPoint::y);
+    pybind11::class_<OriginPoint>(m, "OriginPoint", R"pycsmmdoc(
+    An ordered pair (x,y) representing switch rotation origin point.
+)pycsmmdoc")
+            .def(pybind11::init([](float x, float y) { return OriginPoint{x, y}; }), pybind11::arg("x"),  pybind11::arg("y"), R"pycsmmdoc(
+    Constructor.
+)pycsmmdoc")
+            .def_readwrite("x", &OriginPoint::x, R"pycsmmdoc(
+    The x-value.
+)pycsmmdoc")
+            .def_readwrite("y", &OriginPoint::y, R"pycsmmdoc(
+    The y-value.
+)pycsmmdoc");
 
-    pybind11::class_<MusicEntry>(m, "MusicEntry")
+    pybind11::class_<MusicEntry>(m, "MusicEntry", R"pycsmmdoc(
+    Represents a music entry in the music BRSAR file.
+)pycsmmdoc")
             .def(pybind11::init([](const QString &brstmBaseFilename, quint8 volume, qint32 brsarIndex, quint32 brstmFileSize) {
                 return MusicEntry{brstmBaseFilename, volume, brsarIndex, brstmFileSize};
-            }), pybind11::arg("brstmBaseFilename"), pybind11::arg("volume"), pybind11::arg("brsarIndex"), pybind11::arg("brstmFileSize"))
-            .def_readwrite("brstmBaseFilename", &MusicEntry::brstmBaseFilename)
-            .def_readwrite("volume", &MusicEntry::volume)
-            .def_readwrite("brsarIndex", &MusicEntry::brsarIndex)
-            .def_readwrite("brstmFileSize", &MusicEntry::brstmFileSize);
+            }), pybind11::arg("brstmBaseFilename"), pybind11::arg("volume"), pybind11::arg("brsarIndex"), pybind11::arg("brstmFileSize"), R"pycsmmdoc(
+    Constructor.
+)pycsmmdoc")
+            .def_readwrite("brstmBaseFilename", &MusicEntry::brstmBaseFilename, R"pycsmmdoc(
+    The base filename of the music file.
+)pycsmmdoc")
+            .def_readwrite("volume", &MusicEntry::volume, R"pycsmmdoc(
+    The volume from 0 to 100.
+)pycsmmdoc")
+            .def_readwrite("brsarIndex", &MusicEntry::brsarIndex, R"pycsmmdoc(
+    The relative location of the music entry in the BRSAR file.
+)pycsmmdoc")
+            .def_readwrite("brstmFileSize", &MusicEntry::brstmFileSize, R"pycsmmdoc(
+    The size of the BRSTM music file.
+)pycsmmdoc");
 
     bindStdArray<bool, 128>(m, "VentureCardTable");
 
@@ -269,7 +301,6 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
                 QDataStream stream(&device);
                 fsm.allocateUnusedSpace(bytes, stream, fileMapper, purpose, reuse);
             })
-            .def("calculateTotalRemainingFreeSpace", &FreeSpaceManager::calculateTotalRemainingFreeSpace)
             .def("reset", &FreeSpaceManager::reset);
 
     pybind11::class_<GameInstance>(m, "GameInstance")
