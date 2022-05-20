@@ -173,9 +173,6 @@ set(SOURCES
     lib/orderedmap.h
     lib/powerpcasm.cpp
     lib/powerpcasm.h
-    lib/pugixml/pugiconfig.hpp
-    lib/pugixml/pugixml.cpp
-    lib/pugixml/pugixml.hpp
     lib/resultscenes.cpp
     lib/resultscenes.h
     lib/uigame013.cpp
