@@ -16,5 +16,5 @@ Indices and tables
     :imported-members:
     :members:
     :undoc-members:
-    :special-members: __init__
+    :special-members: __init__, __getitem__
     :inherited-members:

@@ -42,8 +42,18 @@ static void bindConstContainerOps(pybind11::class_<Cont> &cls, const std::string
 
 template<class T, size_t N, class ...Args>
 static pybind11::class_<std::array<T, N>> bindStdArray(pybind11::handle h, const std::string &name, Args &&...args) {
-    pybind11::class_<std::array<T, N>> cls(h, name.c_str(), std::forward(args)...);
+    pybind11::class_<std::array<T, N>> cls(h, name.c_str(), std::forward<Args>(args)...);
     cls.def(pybind11::init<>());
+    cls.def(pybind11::init([](const pybind11::iterable &it) {
+        std::array<T, N> res;
+        size_t i = 0;
+        for (auto &val: it) {
+            if (i >= N) throw pybind11::value_error("iterable too large");
+            res[i++] = val.cast<T>();
+        }
+        if (i < N) throw pybind11::value_error("iterable too small");
+        return res;
+    }));
     pybind11::detail::vector_if_copy_constructible<std::array<T, N>, decltype(cls)>(cls);
     pybind11::detail::vector_accessor<std::array<T, N>, decltype(cls)>(cls);
     bindConstContainerOps(cls, name);
@@ -222,27 +232,49 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     The size of the BRSTM music file.
 )pycsmmdoc");
 
-    bindStdArray<bool, 128>(m, "VentureCardTable");
+    bindStdArray<bool, 128>(m, "VentureCardTable", R"pycsmmdoc(
+    A boolean array-like type such that venture card x is enabled iff VentureCardTable[x] is enabled.
+)pycsmmdoc");
 
-    bindStdArray<QString, 4>(m, "FrbFiles");
+    bindStdArray<QString, 4>(m, "FrbFiles", R"pycsmmdoc(
+    An array-like type containing the frb file names.
+)pycsmmdoc");
 
-    pybind11::bind_vector<std::vector<OriginPoint>>(m, "OriginPoints");
+    pybind11::bind_vector<std::vector<OriginPoint>>(m, "OriginPoints", R"pycsmmdoc(
+    A list-like type of switch rotation origins.
+)pycsmmdoc");
 
-    pybind11::bind_map<std::map<MusicType, MusicEntry>>(m, "MusicEntryTable");
+    pybind11::bind_map<std::map<MusicType, MusicEntry>>(m, "MusicEntryTable", R"pycsmmdoc(
+    A dict-like type mapping MusicTypes to MusicEntries.
+)pycsmmdoc");
 
-    bindStdArray<Character, 3>(m, "TourCharacters");
+    bindStdArray<Character, 3>(m, "TourCharacters", R"pycsmmdoc(
+    An array-like type containing the three tour opponents.
+)pycsmmdoc");
 
-    pybind11::bind_map<std::map<QString, QString>>(m, "LanguageTable");
+    pybind11::bind_map<std::map<QString, QString>>(m, "LanguageTable", R"pycsmmdoc(
+    Maps the language code to the localized name, string, etc.
+)pycsmmdoc");
 
-    pybind11::bind_vector<std::vector<QString>>(m, "StringList");
+    pybind11::bind_vector<std::vector<QString>>(m, "StringList", R"pycsmmdoc(
+    A list-like type of strings.
+)pycsmmdoc");
 
-    pybind11::bind_map<std::map<QString, std::vector<QString>>>(m, "ListLanguageTable");
+    pybind11::bind_map<std::map<QString, std::vector<QString>>>(m, "ListLanguageTable", R"pycsmmdoc(
+    Maps the language code to a localized list of localized names, strings, etc.
+)pycsmmdoc");
 
-    pybind11::bind_vector<std::vector<quint32>>(m, "LanguageIdList");
+    pybind11::bind_vector<std::vector<quint32>>(m, "LanguageIdList", R"pycsmmdoc(
+    A list-like type of localization IDs.
+)pycsmmdoc");
 
-    pybind11::bind_vector<std::vector<MapDescriptor>>(m, "MapDescriptorList");
+    pybind11::bind_vector<std::vector<MapDescriptor>>(m, "MapDescriptorList", R"pycsmmdoc(
+    A list-like type of map descriptors.
+)pycsmmdoc");
 
-    pybind11::class_<MapDescriptor>(m, "MapDescriptor")
+    pybind11::class_<MapDescriptor>(m, "MapDescriptor", R"pycsmmdoc(
+    Stores relevant information for a Fortune Street board.
+)pycsmmdoc")
             .def(pybind11::init<>())
             .def_readwrite("mapSet", &MapDescriptor::mapSet)
             .def_readwrite("zone", &MapDescriptor::zone)
