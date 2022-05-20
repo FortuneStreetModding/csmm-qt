@@ -80,7 +80,7 @@ public:
 class ModException : public QException, public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
-    const char *what() const override { return std::runtime_error::what(); }
+    const char *what() const noexcept override { return std::runtime_error::what(); }
     ModException(const QString &str) : std::runtime_error(str.toStdString()) {}
     void raise() const override { throw *this; }
     ModException *clone() const override { return new ModException(*this); }
