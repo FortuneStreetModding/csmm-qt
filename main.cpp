@@ -14,8 +14,6 @@
 
 int main(int argc, char *argv[])
 {
-    pybind11::scoped_interpreter guard{}; // start the python interpreter
-
     bool consoleMode = argc > 1;
     // consoleMode = true;
     if(consoleMode) {
@@ -31,6 +29,8 @@ int main(int argc, char *argv[])
         QTimer::singleShot( 0, &app, &QCoreApplication::quit );
         return app.exec();
     } else {
+        pybind11::scoped_interpreter guard{}; // start the python interpreter
+
         QApplication app(argc, argv);
     #if defined( Q_OS_WIN )
         // hide console window under Windows but only if the first argument is the full path to the executable

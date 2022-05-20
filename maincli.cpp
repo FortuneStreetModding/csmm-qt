@@ -14,6 +14,7 @@
 #include "lib/datafileset.h"
 #include "lib/mods/csmmmodpack.h"
 #include "lib/mods/modloader.h"
+#include <pybind11/embed.h>
 
 namespace maincli {
 
@@ -26,7 +27,6 @@ static void setupSubcommand(QCommandLineParser& parser, QString name, QString de
 
 void run(QStringList arguments)
 {
-    QCommandLineParser parser;
     QString description(QString(R"(
     ****************************************************************
     *                                                              *
@@ -47,7 +47,27 @@ void run(QStringList arguments)
     File -> (Re-)Download External Tools
 
 )").arg(CSMM_VERSION));
-    parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsOptions);
+
+    if (arguments.size() > 1 && arguments[1] == "python") {
+        wchar_t **args = new wchar_t *[arguments.size()]();
+        args[0] = new wchar_t[arguments[0].size() + 1]();
+        arguments[0].toWCharArray(args[0]);
+        for (int i=2; i<arguments.size(); ++i) {
+            args[i-1] = new wchar_t[arguments[i].size() + 1]();
+            arguments[i].toWCharArray(args[i-1]);
+        }
+
+        int result = Py_Main(arguments.size() - 1, args);
+
+        for (int i=0; i<arguments.size() - 1; ++i) {
+            delete [] args[i];
+        }
+        delete [] args;
+
+        exit(result);
+    }
+
+    QCommandLineParser parser;
 
     QString commandsDescription = QString(R"(
   extract         Extract a Fortune Street game disc image to a directory.
@@ -58,7 +78,10 @@ void run(QStringList arguments)
   save            Save the pending changes in a Fortune Street game directory.
   pack            Pack a Fortune Street game directory to a disc image (pending changes must be saved prior).
   download-tools  Downloads the external tools that CSMM requires.
+  python          Run CSMM's embedded Python interpreter
 )").remove(0,1);
+
+    parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsOptions);
 
     parser.addPositionalArgument(QString(), QString(), "command");
 
@@ -92,6 +115,8 @@ void run(QStringList arguments)
     QTextStream& cout = *coutp;
 
     try {
+        pybind11::scoped_interpreter guard{}; // start the python interpreter
+
         const QStringList args = parser.positionalArguments();
         const QString command = args.isEmpty() ? QString() : args.first();
 
