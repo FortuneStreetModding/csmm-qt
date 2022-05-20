@@ -233,7 +233,7 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
 )pycsmmdoc");
 
     bindStdArray<bool, 128>(m, "VentureCardTable", R"pycsmmdoc(
-    A boolean array-like type such that venture card x is enabled iff VentureCardTable[x] is enabled.
+    A boolean array-like type such that venture card x is enabled iff VentureCardTable[x-1] is enabled.
 )pycsmmdoc");
 
     bindStdArray<QString, 4>(m, "FrbFiles", R"pycsmmdoc(
@@ -276,42 +276,114 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     Stores relevant information for a Fortune Street board.
 )pycsmmdoc")
             .def(pybind11::init<>())
-            .def_readwrite("mapSet", &MapDescriptor::mapSet)
-            .def_readwrite("zone", &MapDescriptor::zone)
-            .def_readwrite("order", &MapDescriptor::order)
-            .def_readwrite("isPracticeBoard", &MapDescriptor::isPracticeBoard)
-            .def_readwrite("unlockId", &MapDescriptor::unlockId)
-            .def_readwrite("ruleSet", &MapDescriptor::ruleSet)
-            .def_readwrite("initialCash", &MapDescriptor::initialCash)
-            .def_readwrite("targetAmount", &MapDescriptor::targetAmount)
-            .def_readwrite("baseSalary", &MapDescriptor::baseSalary)
-            .def_readwrite("salaryIncrement", &MapDescriptor::salaryIncrement)
-            .def_readwrite("maxDiceRoll", &MapDescriptor::maxDiceRoll)
-            .def_readwrite("ventureCards", &MapDescriptor::ventureCards)
-            .def_readwrite("frbFiles", &MapDescriptor::frbFiles)
-            .def_readwrite("switchRotationOrigins", &MapDescriptor::switchRotationOrigins)
-            .def_readwrite("theme", &MapDescriptor::theme)
-            .def_readwrite("background", &MapDescriptor::background)
-            .def_readwrite("bgmId", &MapDescriptor::bgmId)
-            .def_readwrite("mapIcon", &MapDescriptor::mapIcon)
-            .def_readwrite("music", &MapDescriptor::music)
-            .def_readwrite("loopingMode", &MapDescriptor::loopingMode)
-            .def_readwrite("loopingModeRadius", &MapDescriptor::loopingModeRadius)
-            .def_readwrite("loopingModeHorizontalPadding", &MapDescriptor::loopingModeHorizontalPadding)
-            .def_readwrite("loopingModeVerticalSquareCount", &MapDescriptor::loopingModeVerticalSquareCount)
-            .def_readwrite("tourBankruptcyLimit", &MapDescriptor::tourBankruptcyLimit)
-            .def_readwrite("tourInitialCash", &MapDescriptor::tourInitialCash)
-            .def_readwrite("tourCharacters", &MapDescriptor::tourCharacters)
-            .def_readwrite("tourClearRank", &MapDescriptor::tourClearRank)
-            .def_readwrite("nameMsgId", &MapDescriptor::nameMsgId)
-            .def_readwrite("descMsgId", &MapDescriptor::descMsgId)
-            .def_readwrite("names", &MapDescriptor::names)
-            .def_readwrite("descs", &MapDescriptor::descs)
-            .def_readwrite("internalName", &MapDescriptor::internalName)
-            .def_readwrite("mapDescriptorFilePath", &MapDescriptor::mapDescriptorFilePath)
-            .def_readwrite("districtNames", &MapDescriptor::districtNames)
-            .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds)
-            .def_readwrite("extraData", &MapDescriptor::extraData);
+            .def_readwrite("mapSet", &MapDescriptor::mapSet, R"pycsmmdoc(
+    The map set (in vanilla, 1 is standard and 0 is easy).
+)pycsmmdoc")
+            .def_readwrite("zone", &MapDescriptor::zone, R"pycsmmdoc(
+    The map zone (0 for DQuest, 1 for Mario, 2 for Special)
+)pycsmmdoc")
+            .def_readwrite("order", &MapDescriptor::order, R"pycsmmdoc(
+    The map order relative to other maps in the same mapSet and zone.
+)pycsmmdoc")
+            .def_readwrite("isPracticeBoard", &MapDescriptor::isPracticeBoard, R"pycsmmdoc(
+    Whether the board is a practice board.
+)pycsmmdoc")
+            .def_readwrite("unlockId", &MapDescriptor::unlockId, R"pycsmmdoc(
+    An ID used to determine how the board is unlocked in Tour Mode.
+)pycsmmdoc")
+            .def_readwrite("ruleSet", &MapDescriptor::ruleSet, R"pycsmmdoc(
+    The board's rule set (Easy or Standard).
+)pycsmmdoc")
+            .def_readwrite("initialCash", &MapDescriptor::initialCash, R"pycsmmdoc(
+    The starting ready cash.
+)pycsmmdoc")
+            .def_readwrite("targetAmount", &MapDescriptor::targetAmount, R"pycsmmdoc(
+    The target amount.
+)pycsmmdoc")
+            .def_readwrite("baseSalary", &MapDescriptor::baseSalary, R"pycsmmdoc(
+    The base salary.
+)pycsmmdoc")
+            .def_readwrite("salaryIncrement", &MapDescriptor::salaryIncrement, R"pycsmmdoc(
+    The increase in salary for each level.
+)pycsmmdoc")
+            .def_readwrite("maxDiceRoll", &MapDescriptor::maxDiceRoll, R"pycsmmdoc(
+    The maximum die roll for this board.
+)pycsmmdoc")
+            .def_readwrite("ventureCards", &MapDescriptor::ventureCards, R"pycsmmdoc(
+    A boolean array of venture cards and whether each is enabled.
+)pycsmmdoc")
+            .def_readwrite("frbFiles", &MapDescriptor::frbFiles, R"pycsmmdoc(
+    The Fortune Street board file names.
+)pycsmmdoc")
+            .def_readwrite("switchRotationOrigins", &MapDescriptor::switchRotationOrigins, R"pycsmmdoc(
+    A list of points (if applicable) about which the board rotates on a switch.
+)pycsmmdoc")
+            .def_readwrite("theme", &MapDescriptor::theme, R"pycsmmdoc(
+    The board theme (Dragon Quest/Mario).
+)pycsmmdoc")
+            .def_readwrite("background", &MapDescriptor::background, R"pycsmmdoc(
+    The background name.
+)pycsmmdoc")
+            .def_readwrite("bgmId", &MapDescriptor::bgmId, R"pycsmmdoc(
+    The background music ID.
+)pycsmmdoc")
+            .def_readwrite("mapIcon", &MapDescriptor::mapIcon, R"pycsmmdoc(
+    The map icon name.
+)pycsmmdoc")
+            .def_readwrite("music", &MapDescriptor::music, R"pycsmmdoc(
+    A mapping associating the types of music (venture, stock, etc.) to entries in the music BRSAR.
+)pycsmmdoc")
+            .def_readwrite("loopingMode", &MapDescriptor::loopingMode, R"pycsmmdoc(
+    How the board loops, if applicable.
+)pycsmmdoc")
+            .def_readwrite("loopingModeRadius", &MapDescriptor::loopingModeRadius, R"pycsmmdoc(
+    Radius of the cylinder that the board loops around.
+)pycsmmdoc")
+            .def_readwrite("loopingModeHorizontalPadding", &MapDescriptor::loopingModeHorizontalPadding, R"pycsmmdoc(
+    Might have something to do with the buggy Both looping mode, probably need to ask Def about it.
+)pycsmmdoc")
+            .def_readwrite("loopingModeVerticalSquareCount", &MapDescriptor::loopingModeVerticalSquareCount, R"pycsmmdoc(
+    The circumference of the vertical loop, in squares.
+)pycsmmdoc")
+            .def_readwrite("tourBankruptcyLimit", &MapDescriptor::tourBankruptcyLimit, R"pycsmmdoc(
+    The bankruptcy limit for this board in Tour mode.
+)pycsmmdoc")
+            .def_readwrite("tourInitialCash", &MapDescriptor::tourInitialCash, R"pycsmmdoc(
+    The starting ready cash in Tour mode for this board.
+)pycsmmdoc")
+            .def_readwrite("tourCharacters", &MapDescriptor::tourCharacters, R"pycsmmdoc(
+    The opponents in Tour mode for this board.
+)pycsmmdoc")
+            .def_readwrite("tourClearRank", &MapDescriptor::tourClearRank, R"pycsmmdoc(
+    The rank needed to clear the board on Tour mode.
+)pycsmmdoc")
+            .def_readwrite("nameMsgId", &MapDescriptor::nameMsgId, R"pycsmmdoc(
+    The localization ID for the board name.
+)pycsmmdoc")
+            .def_readwrite("descMsgId", &MapDescriptor::descMsgId, R"pycsmmdoc(
+    The localization ID for the board description.
+)pycsmmdoc")
+            .def_readwrite("names", &MapDescriptor::names, R"pycsmmdoc(
+    A mapping from language code to board name.
+)pycsmmdoc")
+            .def_readwrite("descs", &MapDescriptor::descs, R"pycsmmdoc(
+    A mapping from language code to board description.
+)pycsmmdoc")
+            .def_readwrite("internalName", &MapDescriptor::internalName, R"pycsmmdoc(
+    The board's internal name.
+)pycsmmdoc")
+            .def_readwrite("mapDescriptorFilePath", &MapDescriptor::mapDescriptorFilePath, R"pycsmmdoc(
+    The file path of the yaml file associated with this descriptor.
+)pycsmmdoc")
+            .def_readwrite("districtNames", &MapDescriptor::districtNames, R"pycsmmdoc(
+    A mapping from language code to a list of district names in order.
+)pycsmmdoc")
+            .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds, R"pycsmmdoc(
+    A list of localization IDs for the boards' district names.
+)pycsmmdoc")
+            .def_readwrite("extraData", &MapDescriptor::extraData, R"pycsmmdoc(
+    Additional data in the map descriptor yaml, stored in the extraData key in the yaml.
+)pycsmmdoc");
 
     pybind11::class_<AddressMapper>(m, "AddressMapper")
             .def("canConvertToFileAddress", &AddressMapper::canConvertToFileAddress)
