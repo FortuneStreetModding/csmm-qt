@@ -492,19 +492,62 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     being used.
 )pycsmmdoc");
 
-    pybind11::class_<ArcFileInterface, PyArcFileInterface, std::shared_ptr<ArcFileInterface>>(m, "ArcFileInterface")
-            .def(pybind11::init<>())
-            .def("modifyArcFile", &ArcFileInterface::modifyArcFile);
+    pybind11::class_<ArcFileInterface, PyArcFileInterface, std::shared_ptr<ArcFileInterface>>(m, "ArcFileInterface", R"pycsmmdoc(
+    Mod interface for working with .arc files.
+)pycsmmdoc")
+            .def(pybind11::init<>(), R"pycsmmdoc(
+    Constructor. Due to how multiple inheritance works with pybind11, you'll have to invoke this constructor
+    explicitly in your mod.
+)pycsmmdoc")
+            .def("modifyArcFile", &ArcFileInterface::modifyArcFile, R"pycsmmdoc(
+    Returns a mapping from .arc file (relative to the root of the Fortune Street game folder) to callback.
+    Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
+    the list of mods, and the directory that the .arc file was extracted to for modification. Each callback
+    should modify the .arc file as it desires.
+)pycsmmdoc");
 
-    pybind11::class_<GeneralInterface, PyGeneralInterface, std::shared_ptr<GeneralInterface>>(m, "GeneralInterface")
-            .def(pybind11::init<>())
-            .def("loadFiles", &GeneralInterface::loadFiles)
-            .def("saveFiles", &GeneralInterface::saveFiles);
+    pybind11::class_<GeneralInterface, PyGeneralInterface, std::shared_ptr<GeneralInterface>>(m, "GeneralInterface", R"pycsmmdoc(
+    Mod interface for general operations on the game folder (e.g. modifying main.dol, adding free space, etc.).
+)pycsmmdoc")
+            .def(pybind11::init<>(), R"pycsmmdoc(
+    Constructor. Due to how multiple inheritance works with pybind11, you'll have to invoke this constructor
+    explicitly in your mod.
+)pycsmmdoc")
+            .def("loadFiles", &GeneralInterface::loadFiles, R"pycsmmdoc(
+    Reads the game files as applicable to the mod.
+)pycsmmdoc", pybind11::arg("root"), pybind11::arg("gameInstance"), pybind11::arg("modList"))
+            .def("saveFiles", &GeneralInterface::saveFiles, R"pycsmmdoc(
+    Writes to the game files as applicable to the mod.
+)pycsmmdoc", pybind11::arg("root"), pybind11::arg("gameInstance"), pybind11::arg("modList"));
 
-    pybind11::class_<UiMessageInterface, PyUiMessageInterface, std::shared_ptr<UiMessageInterface>>(m, "UiMessageInterface")
-            .def(pybind11::init<>())
-            .def("loadUiMessages", &UiMessageInterface::loadUiMessages)
-            .def("saveUiMessages", &UiMessageInterface::saveUiMessages)
-            .def("freeUiMessages", &UiMessageInterface::freeUiMessages)
-            .def("allocateUiMessages", &UiMessageInterface::allocateUiMessages);
+    pybind11::class_<UiMessageInterface, PyUiMessageInterface, std::shared_ptr<UiMessageInterface>>(m, "UiMessageInterface", R"pycsmmdoc(
+    Mod interface for modifying the game localization files.
+)pycsmmdoc")
+            .def(pybind11::init<>(), R"pycsmmdoc(
+    Constructor. Due to how multiple inheritance works with pybind11, you'll have to invoke this constructor
+    explicitly in your mod.
+)pycsmmdoc")
+            .def("loadUiMessages", &UiMessageInterface::loadUiMessages, R"pycsmmdoc(
+    Returns a mapping from localization file (relative to the root of the Fortune Street game folder) to callback.
+    Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
+    the list of mods, and the mapping from localization ID to string that was parsed from the localization file.
+    Each callback should load the localization messages as it pleases.
+)pycsmmdoc")
+            .def("saveUiMessages", &UiMessageInterface::saveUiMessages, R"pycsmmdoc(
+    Returns a mapping from localization file (relative to the root of the Fortune Street game folder) to callback.
+    Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
+    the list of mods, and the mapping from localization ID to string that was parsed from the localization file.
+    Each callback should save any new localization messages as it pleases by modifying the provided localization ID
+    to string mapping.
+)pycsmmdoc")
+            .def("freeUiMessages", &UiMessageInterface::freeUiMessages, R"pycsmmdoc(
+    Returns a mapping from localization file (relative to the root of the Fortune Street game folder) to callback.
+    Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
+    the list of mods, and the mapping from localization ID to string that was parsed from the localization file.
+    Each callback should free any relevant old localization IDs as it pleases by modifying the provided localization ID
+    to string mapping.
+)pycsmmdoc")
+            .def("allocateUiMessages", &UiMessageInterface::allocateUiMessages, R"pycsmmdoc(
+    Allocates any new localization IDs that this mod needs.
+)pycsmmdoc", pybind11::arg("root"), pybind11::arg("gameInstance"), pybind11::arg("modList"));
 }
