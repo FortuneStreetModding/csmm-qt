@@ -221,9 +221,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     pybind11::class_<MusicEntry>(m, "MusicEntry", R"pycsmmdoc(
     Represents a music entry in the music BRSAR file.
 )pycsmmdoc")
-            .def(pybind11::init([](const QString &brstmBaseFilename, quint8 volume, qint32 brsarIndex, quint32 brstmFileSize) {
-                return MusicEntry{brstmBaseFilename, volume, brsarIndex, brstmFileSize};
-            }), pybind11::arg("brstmBaseFilename"), pybind11::arg("volume"), pybind11::arg("brsarIndex"), pybind11::arg("brstmFileSize"), R"pycsmmdoc(
+            .def(pybind11::init<const QString &, quint8, qint32, quint32>(),
+                 pybind11::arg("brstmBaseFilename"), pybind11::arg("volume"), pybind11::arg("brsarIndex"), pybind11::arg("brstmFileSize"), R"pycsmmdoc(
     Constructor.
 )pycsmmdoc")
             .def_readwrite("brstmBaseFilename", &MusicEntry::brstmBaseFilename, R"pycsmmdoc(
