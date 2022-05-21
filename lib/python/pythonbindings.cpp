@@ -448,21 +448,49 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     Resets the free space manager.
 )pycsmmdoc");
 
-    pybind11::class_<GameInstance>(m, "GameInstance")
+    pybind11::class_<GameInstance>(m, "GameInstance", R"pycsmmdoc(
+    Class representing information about/operations on the current Fortune Street directory/ISO.
+)pycsmmdoc")
             .def_property("mapDescriptors",
                           qNonConstOverload<>(&GameInstance::mapDescriptors),
-                          [](GameInstance &instance, const std::vector<MapDescriptor> &descs) { instance.mapDescriptors() = descs; })
-            .def("addressMapper", &GameInstance::addressMapper)
-            .def("freeSpaceManager", qNonConstOverload<>(&GameInstance::freeSpaceManager))
-            .def("nextUiMessageId", &GameInstance::nextUiMessageId);
+                          [](GameInstance &instance, const std::vector<MapDescriptor> &descs) { instance.mapDescriptors() = descs; }, R"pycsmmdoc(
+    The list of map descriptors.
+)pycsmmdoc")
+            .def("addressMapper", &GameInstance::addressMapper, R"pycsmmdoc(
+    Retrieves the address mapper.
+)pycsmmdoc")
+            .def("freeSpaceManager", qNonConstOverload<>(&GameInstance::freeSpaceManager), R"pycsmmdoc(
+    Retrieves the free space manager.
+)pycsmmdoc")
+            .def("nextUiMessageId", &GameInstance::nextUiMessageId, R"pycsmmdoc(
+    Fetches and updates the next available localization ID.
+)pycsmmdoc");
 
-    pybind11::class_<CSMMMod, PyCSMMMod, std::shared_ptr<CSMMMod>>(m, "CSMMMod")
-            .def(pybind11::init<>())
-            .def("modId", &CSMMMod::modId)
-            .def("priority", &CSMMMod::priority)
-            .def("depends", &CSMMMod::depends)
-            .def("after", &CSMMMod::after)
-            .def("modpackDir", &CSMMMod::modpackDir);
+    pybind11::class_<CSMMMod, PyCSMMMod, std::shared_ptr<CSMMMod>>(m, "CSMMMod", R"pycsmmdoc(
+    The base class for all CSMM mods. Mods will be loaded from .py files with a variable called "mod"
+    at module scope of this type.
+)pycsmmdoc")
+            .def(pybind11::init<>(), R"pycsmmdoc(
+    Constructor. Due to how multiple inheritance works with pybind11, you'll have to invoke this constructor
+    explicitly in your mod.
+)pycsmmdoc")
+            .def("modId", &CSMMMod::modId, R"pycsmmdoc(
+    The mod id, should be the same name as the .py file.
+)pycsmmdoc")
+            .def("priority", &CSMMMod::priority, R"pycsmmdoc(
+    The mod's priority; higher priorities load before lower priorities.
+)pycsmmdoc")
+            .def("depends", &CSMMMod::depends, R"pycsmmdoc(
+    A set of mod ids of mods that this mod depends on. WARNING: this has no bearing on the mod loading order;
+    you'll need to override the after method to control that.
+)pycsmmdoc")
+            .def("after", &CSMMMod::after, R"pycsmmdoc(
+    A set of mod ids of mods that this mod must load after; this does NOT necessarily make said mods required.
+)pycsmmdoc")
+            .def("modpackDir", &CSMMMod::modpackDir, R"pycsmmdoc(
+    The modpack directory, useful for loading config files. Will be an empty string if the default modpack is
+    being used.
+)pycsmmdoc");
 
     pybind11::class_<ArcFileInterface, PyArcFileInterface, std::shared_ptr<ArcFileInterface>>(m, "ArcFileInterface")
             .def(pybind11::init<>())
