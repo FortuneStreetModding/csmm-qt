@@ -1,4 +1,4 @@
-name: QMake Build
+name: CMake Build
 
 on:
   release:
@@ -39,6 +39,14 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
+    
+    - name: Build docs
+      working-directory: ${{github.workspace}}/docs
+      run: |
+        export SPHINXBUILD=${{github.workspace}}/csmm.app/Contents/MacOS/csmm python -m sphinx
+        make html
+        cd _build
+        zip "csmm-$VERSION_NAME-pydocs.zip" html
 
     - name: Deploy
       working-directory: ${{github.workspace}}
@@ -52,7 +60,9 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-macos.dmg
+        files: |
+          ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-macos.dmg
+          ${{github.workspace}}/docs/_build/csmm-${{github.event.release.tag_name}}-pydocs.zip
   windows:
     runs-on: windows-latest
     steps:
