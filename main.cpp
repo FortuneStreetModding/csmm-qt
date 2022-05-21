@@ -3,6 +3,9 @@
 #include "darkdetect.h"
 #include <QApplication>
 
+#include "lib/python/pythonbindings.h"
+#include <pybind11/embed.h>
+
 #if defined( Q_OS_WIN )
 #include <windows.h>
 #endif
@@ -16,7 +19,7 @@ int main(int argc, char *argv[])
     if(consoleMode) {
         QCoreApplication app(argc, argv);
         QCoreApplication::setApplicationName("csmm");
-        QCoreApplication::setApplicationVersion(QString("%1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
+        QCoreApplication::setApplicationVersion(QString("%1").arg(CSMM_VERSION));
 
         QStringList arguments = QCoreApplication::arguments();
         // arguments.clear();
@@ -26,6 +29,8 @@ int main(int argc, char *argv[])
         QTimer::singleShot( 0, &app, &QCoreApplication::quit );
         return app.exec();
     } else {
+        pybind11::scoped_interpreter guard{}; // start the python interpreter
+
         QApplication app(argc, argv);
     #if defined( Q_OS_WIN )
         // hide console window under Windows but only if the first argument is the full path to the executable
@@ -36,7 +41,7 @@ int main(int argc, char *argv[])
     #endif
         initDarkThemeSettings();
         MainWindow *w = new MainWindow;
-        w->setWindowTitle(QString("CSMM %1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
+        w->setWindowTitle(QString("CSMM %1").arg(CSMM_VERSION));
         w->show();
         int e = app.exec();
         exit( e ); // needed to exit the hidden console

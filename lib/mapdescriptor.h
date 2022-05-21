@@ -6,10 +6,12 @@
 #include <QSet>
 #include <QString>
 #include <QVector>
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 #include "fortunestreetdata.h"
+#include "lib/python/pyobjcopywrapper.h"
 #include "music.h"
 #include "mutator/mutator.h"
+#include "lib/python/pythonbindings.h"
 
 enum RuleSet : quint32 {
     Standard = 0,
@@ -53,6 +55,7 @@ enum Character : quint32 {
 };
 QString tourCharacterToString(Character character);
 Character stringToTourCharacter(const QString &str);
+const QMap<QString, Character> &stringToTourCharactersMapping();
 
 struct MapDescriptor {
     qint8 mapSet = -1;
@@ -68,12 +71,12 @@ struct MapDescriptor {
     quint32 maxDiceRoll = 0;
     std::array<bool, 128> ventureCards = {false};
     std::array<QString, 4> frbFiles;
-    QVector<OriginPoint> switchRotationOrigins;
+    std::vector<OriginPoint> switchRotationOrigins;
     BoardTheme theme = Mario;
     QString background;
     BgmId bgmId = BGM_MAP_CIRCUIT;
     QString mapIcon;
-    QMap<MusicType, MusicEntry> music;
+    std::map<MusicType, MusicEntry> music;
     LoopingMode loopingMode = None;
     float loopingModeRadius = 0;
     float loopingModeHorizontalPadding = 0;
@@ -84,14 +87,15 @@ struct MapDescriptor {
     quint32 tourClearRank = 2;
     quint32 nameMsgId = 0;
     quint32 descMsgId = 0;
-    QMap<QString, QString> names;
-    QMap<QString, QString> descs;
+    std::map<QString, QString> names;
+    std::map<QString, QString> descs;
     QString internalName;
     QString mapDescriptorFilePath;
-    QMap<QString, QStringList> districtNames;
-    QVector<quint32> districtNameIds;
-    QMap<QString, QSharedPointer<Mutator>> mutators;
-    QStringList authors;
+    std::map<QString, std::vector<QString>> districtNames;
+    std::vector<quint32> districtNameIds;
+    std::map<QString, QSharedPointer<Mutator>> mutators;
+    PyObjCopyWrapper<pybind11::dict> extraData;
+    std::vector<QString> authors;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 
@@ -107,9 +111,9 @@ struct MapDescriptor {
 };
 
 // VALIDATION FUNCTIONS
-void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs);
-QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList &errorMsgs);
-QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs);
-QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs);
+void getPracticeBoards(const std::vector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs);
+QMap<int, int> getMapSets(const std::vector<MapDescriptor> &descriptors, QStringList &errorMsgs);
+QMap<int, int> getMapZones(const std::vector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs);
+QMap<int, int> getMapOrderings(const std::vector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs);
 
 #endif // MAPDESCRIPTOR_H

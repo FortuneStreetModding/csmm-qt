@@ -16,26 +16,68 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="MapDescriptorWidget" name="tableWidget"/>
+     <layout class="QHBoxLayout" name="mainArea">
+      <item>
+       <widget class="MapDescriptorWidget" name="tableWidget"/>
+      </item>
+      <item>
+       <widget class="QListWidget" name="modListWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QWidget" name="mapToolbar" native="true">
+     <widget class="QWidget" name="toolbar" native="true">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QPushButton" name="addMap">
-         <property name="text">
-          <string>Add Map</string>
+        <widget class="QWidget" name="mapToolbar" native="true">
+         <property name="enabled">
+          <bool>false</bool>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="removeMap">
-         <property name="text">
-          <string>Remove Map(s)</string>
-         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="addMap">
+            <property name="text">
+             <string>Add Map</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="duplicateMap">
+            <property name="text">
+             <string>Duplicate Map(s)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="removeMap">
+            <property name="text">
+             <string>Remove Map(s)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -50,6 +92,13 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="importModPack">
+         <property name="text">
+          <string>Import Mod Pack</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -79,11 +128,7 @@
     <property name="title">
      <string>Optional Patches</string>
     </property>
-    <addaction name="actionPatch_Wiimmfi"/>
     <addaction name="actionPatch_SaveId"/>
-    <addaction name="actionDisplay_Map_Name_On_Results_Screen"/>
-    <addaction name="actionUpdate_Minimap_Icons"/>
-    <addaction name="actionAppend_Author_to_Map_Description"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -104,6 +149,8 @@
     <addaction name="actionSave_map_list_csv"/>
     <addaction name="separator"/>
     <addaction name="actionValidate"/>
+    <addaction name="separator"/>
+    <addaction name="actionExport_default_modlists_txt"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -133,17 +180,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+E</string>
-   </property>
-  </action>
-  <action name="actionPatch_Wiimmfi">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Patch Wiimmfi</string>
    </property>
   </action>
   <action name="actionImport_WBFS_ISO">
@@ -210,26 +246,9 @@
     <string>Save map list (*.csv)</string>
    </property>
   </action>
-  <action name="actionDisplay_Map_Name_On_Results_Screen">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
+  <action name="actionExport_default_modlists_txt">
    <property name="text">
-    <string>Display Map Name On Results Screen</string>
-   </property>
-  </action>
-  <action name="actionUpdate_Minimap_Icons">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Update Minimap Icons</string>
+    <string>Export default modlist.txt</string>
    </property>
   </action>
   <action name="actionAppend_Author_to_Map_Description">

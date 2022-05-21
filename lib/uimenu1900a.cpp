@@ -4,7 +4,8 @@
 #include <QFileInfo>
 #include <QSet>
 #include <QDebug>
-#include "unicodefilenameutils.h"
+#include <fstream>
+#include <filesystem>
 
 namespace Ui_menu_19_00a {
 
@@ -34,10 +35,12 @@ QString constructMapIconTplName(const QString &mapIcon) {
 bool injectMapIconsLayout(const QString &brlytFile, const QMap<QString, QString> &mapIconToTplName) {
     if (!checkMapIconsForValidity(mapIconToTplName)) return false;
 
+    //qDebug() << brlytFile << QFileInfo::exists(brlytFile);
+
     bq::brlyt::Brlyt brlyt;
 
     {
-        ufutils::unicode_ifstream stream(brlytFile);
+        std::ifstream stream(std::filesystem::path(brlytFile.toStdU16String()), std::ios::binary);
         brlyt.read(stream);
         if (!stream) {
             return false;
@@ -123,7 +126,7 @@ bool injectMapIconsLayout(const QString &brlytFile, const QMap<QString, QString>
 
     // WRITE FILE
 
-    ufutils::unicode_ofstream stream(brlytFile);
+    std::ofstream stream(std::filesystem::path(brlytFile.toStdU16String()), std::ios::binary);
     brlyt.write(stream);
     return !stream.fail();
 }
@@ -133,8 +136,10 @@ bool injectMapIconsAnimation(const QString &brlanFile, const QMap<QString, QStri
 
     bq::brlan::Brlan brlan;
 
+    //qDebug() << brlanFile;
+
     {
-        ufutils::unicode_ifstream stream(brlanFile);
+        std::ifstream stream(std::filesystem::path(brlanFile.toStdU16String()), std::ios::binary);
         brlan.read(stream);
         if (!stream) {
             return false;
@@ -167,7 +172,7 @@ bool injectMapIconsAnimation(const QString &brlanFile, const QMap<QString, QStri
         entries.push_back(newEntry);
     }
 
-    ufutils::unicode_ofstream stream(brlanFile);
+    std::ofstream stream(std::filesystem::path(brlanFile.toStdU16String()), std::ios::binary);
     brlan.write(stream);
     return !stream.fail();
 }

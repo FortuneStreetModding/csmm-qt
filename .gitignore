@@ -23,7 +23,7 @@ tags
 .DS_Store
 .directory
 *.debug
-Makefile*
+/Makefile*
 *.prl
 *.app
 moc_*.cpp
@@ -31,12 +31,13 @@ ui_*.h
 qrc_*.cpp
 Thumbs.db
 *.res
-*.rc
+# *.rc
 /.qmake.cache
 /.qmake.stash
 
 # qtcreator generated files
 *.pro.user*
+*.txt.user*
 
 # xemacs temporary files
 *.flc
@@ -70,3 +71,5 @@ Thumbs.db
 # --------
 *.dll
 *.exe
+
+docs/_build/*

@@ -2,7 +2,7 @@
 
 #include <QTextStream>
 
-#include "patchprocess.h"
+#include "importexportutils.h"
 
 namespace Configuration {
 
@@ -69,12 +69,12 @@ ConfigFile parse(QString fileName) {
     return configFile;
 }
 
-ConfigFile parse(const QVector<MapDescriptor> &descriptors, QString fileName) {
+ConfigFile parse(const std::vector<MapDescriptor> &descriptors, QString fileName) {
     ConfigFile configFile;
     QVector<ConfigEntry> configEntries;
     QFileInfo fileInfo(fileName);
     QDir dir(fileInfo.dir());
-    for(int i=0;i<descriptors.count();i++) {
+    for(int i=0;i<descriptors.size();i++) {
         auto md = descriptors.at(i);
         ConfigEntry entry;
         entry.mapId = i;
@@ -130,7 +130,7 @@ int ConfigFile::maxOrder(int mapSet, int zone) {
     return maxOrder;
 }
 
-void save(QString fileName, const QVector<MapDescriptor> &descriptors)
+void save(QString fileName, const std::vector<MapDescriptor> &descriptors)
 {
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -197,17 +197,17 @@ QString import(QString fileName, std::optional<QFileInfo>& mapDescriptorFile, st
 
 
 // loads the configuration file and loads the yaml files defined in the configuration file into the given tmpDir and the given descriptors object
-void load(QString fileName, QVector<MapDescriptor> &descriptors, const QDir& tmpDir)
+void load(QString fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir)
 {
     ConfigFile configFile = parse(fileName);
     QFileInfo fileInfo(fileName);
     QDir dir(fileInfo.dir());
-    while(descriptors.count() < configFile.maxId() + 1) {
+    while(descriptors.size() < configFile.maxId() + 1) {
         auto md = MapDescriptor();
-        descriptors.append(md);
+        descriptors.push_back(md);
     }
-    while(descriptors.count() > configFile.maxId() + 1) {
-        descriptors.removeLast();
+    while(descriptors.size() > configFile.maxId() + 1) {
+        descriptors.pop_back();
     }
     for(ConfigEntry& entry : configFile.entries) {
         descriptors[entry.mapId].mapSet = entry.mapSet;
@@ -215,7 +215,7 @@ void load(QString fileName, QVector<MapDescriptor> &descriptors, const QDir& tmp
         descriptors[entry.mapId].order = entry.mapOrder;
         descriptors[entry.mapId].isPracticeBoard = entry.practiceBoard;
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
-            PatchProcess::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId], tmpDir);
+            ImportExportUtils::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId], tmpDir);
         }
     }
 }
@@ -225,7 +225,7 @@ QString status(QString fileName)
     return parse(fileName).to_string();
 }
 
-QString status(const QVector<MapDescriptor> &descriptors, QString filePath)
+QString status(const std::vector<MapDescriptor> &descriptors, QString filePath)
 {
     return parse(descriptors, filePath).to_string();
 }

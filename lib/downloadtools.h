@@ -37,14 +37,13 @@ namespace DownloadTools
         return QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
     }
 
-    class DownloadException : public QException {
+    class DownloadException : public QException, public std::runtime_error {
     public:
-        DownloadException(const QString &msgStr) : message(msgStr) {}
-        const QString &getMessage() const { return message; }
+        using std::runtime_error::runtime_error;
+        const char *what() const noexcept override { return std::runtime_error::what(); }
+        DownloadException(const QString &str) : std::runtime_error(str.toStdString()) {}
         void raise() const override { throw *this; }
         DownloadException *clone() const override { return new DownloadException(*this); }
-    private:
-        QString message;
     };
 
     inline bool requiredFilesAvailable() {
@@ -82,7 +81,7 @@ namespace DownloadTools
                 _downloadWit.waitForFinished();
                 _downloadWszst.waitForFinished();
             } catch (const DownloadException &ex) {
-                func(ex.getMessage());
+                func(ex.what());
             }
         }).future();
     }

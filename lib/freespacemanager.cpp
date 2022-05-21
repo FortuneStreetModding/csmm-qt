@@ -24,7 +24,7 @@ quint32 FreeSpaceManager::findSuitableFreeSpaceBlock(int requiredSize) const {
         }
     }
     if (smallestFreeSpaceBlockEnd == std::numeric_limits<quint32>::max()) {
-        // TODO notify of lack of free space
+        throw Exception(QString("requested %1 bytes but not enough free space").arg(requiredSize));
     }
     return smallestFreeSpaceBlockEnd;
 }
@@ -50,7 +50,9 @@ quint32 FreeSpaceManager::findLargestFreeSpaceBlock(const QMap<quint32, quint32>
             largestBlockEnd = it.key();
         }
     }
-    // TODO check largest block end == std::numeric_limits<quint32>::max()?
+    if (largestBlockEnd == std::numeric_limits<quint32>::max()) {
+        throw Exception("no blocks found"); // should never happen
+    }
     return largestBlockEnd;
 }
 
@@ -64,11 +66,16 @@ int FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize() const {
     return end - remainingFreeSpaceBlocks[end];
 }
 
-quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose) {
+quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose, bool reuse) {
     QString purposeMsg = purpose.isEmpty() ? "" : QString(" for %1").arg(purpose);
     QString byteArrayAsString = byteArrayToStringOrHex(bytes);
+    /*if (!startedAllocating) {
+        for (auto it=remainingFreeSpaceBlocks.begin(); it!=remainingFreeSpaceBlocks.end(); ++it) {
+            qDebug() << QString::number(it.value(), 16) << " to " << QString::number(it.key(), 16);
+        }
+    }*/
     startedAllocating = true;
-    if (reuseValues.contains(bytes)) {
+    if (reuse && reuseValues.contains(bytes)) {
         qDebug().noquote() << "Reuse " + byteArrayAsString + " at " + QString::number(reuseValues[bytes], 16) + purposeMsg;
         return reuseValues[bytes];
     }
@@ -86,8 +93,10 @@ quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStre
     stream.writeRawData(bytes, bytes.size());
     QByteArray padding(newStart - start - bytes.size(), '\0');
     stream.writeRawData(padding, padding.size());
-    reuseValues[bytes] = start;
-    qDebug().noquote() << "Allocate " + byteArrayAsString + " (" + QString::number(bytes.size()) + " bytes) at " + QString::number(reuseValues[bytes], 16) + purposeMsg;
+    if (reuse) {
+        reuseValues[bytes] = start;
+    }
+    qDebug().noquote() << "Allocate " + byteArrayAsString + " (" + QString::number(bytes.size()) + " bytes) at " + QString::number(start, 16) + purposeMsg;
     return start;
 }
 

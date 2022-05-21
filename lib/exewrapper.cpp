@@ -163,9 +163,4 @@ QFuture<QString> getId6(const QString &inputFile) {
     }).future();
 }
 
-Exception::Exception(const QString &msgVal) : message(msgVal) {}
-const QString &Exception::getMessage() const { return message; }
-void Exception::raise() const { throw *this; }
-Exception *Exception::clone() const { return new Exception(*this); }
-
 }

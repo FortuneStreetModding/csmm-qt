@@ -13,16 +13,15 @@ public:
     explicit MapDescriptorWidget(QWidget *parent = nullptr);
     void loadRowWithMapDescriptor(int row, const MapDescriptor &descriptor);
     void appendMapDescriptor(const MapDescriptor &descriptor);
+    void duplicateSelectedMapDescriptors();
     void removeSelectedMapDescriptors();
     void clearDescriptors();
     const QVector<QSharedPointer<MapDescriptor>> &getDescriptors();
     void setGameDirectoryFunction(const std::function<QString()> &fn);
-    const QTemporaryDir &getTmpResourcesDir();
     bool dirty = false;
 private:
     QVector<QSharedPointer<MapDescriptor>> descriptors;
     std::function<QString()> getGameDirectory;
-    QTemporaryDir tmpDir;
 };
 
 #endif // MAPDESCRIPTORWIDGET_H

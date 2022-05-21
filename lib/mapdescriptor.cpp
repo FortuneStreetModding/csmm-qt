@@ -2,7 +2,8 @@
 #include <QDebug>
 #include "vanilladatabase.h"
 #include "fslocale.h"
-#include "patchprocess.h"
+#include "importexportutils.h"
+#include "getordefault.h"
 
 bool OriginPoint::operator==(const OriginPoint &other) const {
     return x == other.x && y == other.y;
@@ -33,6 +34,62 @@ QSet<SquareType> MapDescriptor::readFrbFileInfo(const QDir &paramDir) {
     return usedSquareTypes;
 }
 
+static YAML::Node customDataToNode(pybind11::object obj) {
+    using namespace pybind11;
+    YAML::Node res;
+    if (isinstance<dict>(obj)) {
+        dict dct(obj);
+        for (auto &entry: dct) {
+            res[reinterpret_borrow<object>(entry.first).cast<std::string>()] = customDataToNode(reinterpret_borrow<object>(entry.second));
+        }
+    } else if (isinstance<str>(obj)) {
+        res = obj.cast<std::string>();
+    } else if (isinstance<sequence>(obj)) {
+        sequence seq(obj);
+        for (auto elem: seq) {
+            res.push_back(customDataToNode(elem));
+        }
+    } else if (isinstance<none>(obj)) {
+        // do nothing
+    } else if (isinstance<bool_>(obj)) {
+        res = obj.cast<bool>();
+    } else if (isinstance<int_>(obj) || isinstance<float_>(obj)) {
+        res = obj.cast<double>();
+    } else {
+        throw std::runtime_error("object " + str(obj).cast<std::string>() + " is invalid for yaml!");
+    }
+    return res;
+}
+
+static pybind11::object nodeToCustomData(const YAML::Node &node) {
+    switch (node.Type()) {
+    case YAML::NodeType::Undefined:
+    case YAML::NodeType::Null:
+        return pybind11::none();
+    case YAML::NodeType::Scalar:
+        // TODO try to detect ints/floats?
+        return pybind11::str(node.Scalar());
+    case YAML::NodeType::Sequence:
+    {
+        pybind11::list lst;
+        for (auto &ent: node) {
+            lst.append(nodeToCustomData(ent));
+        }
+        return lst;
+    }
+    case YAML::NodeType::Map:
+    {
+        pybind11::dict dct;
+        for (auto &ent: node) {
+            dct[pybind11::str(ent.first.Scalar())] = nodeToCustomData(ent.second);
+        }
+        return dct;
+    }
+    default:
+        throw std::runtime_error("malformed yaml node for extra data");
+    }
+}
+
 QString MapDescriptor::toYaml() const {
     YAML::Emitter out;
 
@@ -42,16 +99,18 @@ QString MapDescriptor::toYaml() const {
 
     out << YAML::Key << "name" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk" || names[fslocale].isEmpty())
+        auto name = getOrDefault(names, fslocale, "");
+        if(fslocale == "uk" || name.isEmpty())
             continue;
-        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << names[fslocale].toStdString();
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << name.toStdString();
     }
     out << YAML::EndMap;
     out << YAML::Key << "desc" << YAML::Value << YAML::BeginMap;
     for (auto &fslocale: FS_LOCALES) {
-        if(fslocale == "uk" || names[fslocale].isEmpty())
+        auto desc = getOrDefault(descs, fslocale, "");
+        if(fslocale == "uk" || desc.isEmpty())
             continue;
-        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << descs[fslocale].toStdString();
+        out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << desc.toStdString();
     }
     out << YAML::EndMap;
     out << YAML::Key << "ruleSet" << YAML::Value << (ruleSet == Easy ? "Easy" : "Standard");
@@ -73,16 +132,16 @@ QString MapDescriptor::toYaml() const {
     if(!VanillaDatabase::hasDefaultBgmId(background) || VanillaDatabase::getDefaultBgmId(background) != bgmId) {
         if(music.empty()) {
             out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
-        } else if(!music.contains(MusicType::map)) {
+        } else if(!music.count(MusicType::map)) {
             out << YAML::Key << "bgmId" << YAML::Value << Bgm::bgmIdToString(bgmId).toStdString();
         }
     }
 
     if(!music.empty()) {
         out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
-        auto keys = music.keys();
-        for (auto &musicType: keys) {
-            auto musicEntry = music[musicType];
+        for (auto &musicTypeEnt: music) {
+            auto &musicType = musicTypeEnt.first;
+            auto &musicEntry = musicTypeEnt.second;
             out << YAML::Key << Music::musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
         }
         out << YAML::EndMap;
@@ -126,8 +185,8 @@ QString MapDescriptor::toYaml() const {
     if(!mutators.empty()) {
         out << YAML::Key << "mutators" << YAML::Value << YAML::BeginMap;
         for (auto &mutator: mutators) {
-            out << YAML::Key << mutatorTypeToString(mutator->type).toStdString() << YAML::Value;
-            mutator->toYaml(out);
+            out << YAML::Key << mutatorTypeToString(mutator.second->type).toStdString() << YAML::Value;
+            mutator.second->toYaml(out);
         }
         out << YAML::EndMap;
     }
@@ -143,15 +202,20 @@ QString MapDescriptor::toYaml() const {
     if (!districtNames.empty()) {
         out << YAML::Key << "districtNames" << YAML::Value << YAML::BeginMap;
         for (auto &fslocale: FS_LOCALES) {
-            if (fslocale == "uk" || districtNames[fslocale].isEmpty())
+            auto namesForLocale = getOrDefault(districtNames, fslocale, std::vector<QString>());
+            if (fslocale == "uk" || namesForLocale.empty())
                 continue;
             out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginSeq;
-            for (auto &distName: districtNames[fslocale]) {
+            for (auto &distName: namesForLocale) {
                 out << distName.toStdString();
             }
             out << YAML::EndSeq;
         }
         out << YAML::EndMap;
+    }
+
+    if (pybind11::len(extraData.get()) > 0) {
+        out << YAML::Key << "extraData" << YAML::Value << customDataToNode(extraData.get());
     }
 
     out << YAML::EndMap;
@@ -164,13 +228,13 @@ QString MapDescriptor::toYaml() const {
 bool MapDescriptor::operator==(const MapDescriptor &other) const {
     if(mutators.size()!=other.mutators.size())
         return false;
-    auto keys = mutators.keys();
-    for (auto &mutatorName: keys) {
-        if(!other.mutators.contains(mutatorName)) {
+    for (auto &mutatorEnt: mutators) {
+        auto &mutatorName = mutatorEnt.first;
+        if(!other.mutators.count(mutatorName)) {
             return false;
         }
-        auto mutator = mutators[mutatorName];
-        auto otherMutator = other.mutators[mutatorName];
+        auto mutator = mutators.at(mutatorName);
+        auto otherMutator = other.mutators.at(mutatorName);
         if(*mutator != *otherMutator)
             return false;
     }
@@ -210,6 +274,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && mapDescriptorFilePath == other.mapDescriptorFilePath
             && districtNames == other.districtNames
             && districtNameIds == other.districtNameIds
+            && extraData.get().equal(other.extraData.get())
             && std::equal(std::begin(authors), std::end(authors), std::begin(other.authors));
 }
 
@@ -220,8 +285,8 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     for (auto it=yaml["desc"].begin(); it!=yaml["desc"].end(); ++it) {
         descs[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
     }
-    names.remove("uk");
-    descs.remove("uk");
+    names.erase("uk");
+    descs.erase("uk");
 
     ruleSet = yaml["ruleSet"].as<std::string>() == "Easy" ? Easy : Standard;
     theme = yaml["theme"].as<std::string>() == "Mario" ? Mario : DragonQuest;
@@ -241,7 +306,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     }
     switchRotationOrigins.clear();
     for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
-        switchRotationOrigins.append({originPoint["x"].as<float>(), originPoint["y"].as<float>(),});
+        switchRotationOrigins.push_back({originPoint["x"].as<float>(), originPoint["y"].as<float>()});
     }
     if(yaml["looping"]) {
         auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
@@ -275,7 +340,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
         // Check for too long map icon file name, because http://wiki.tockdom.com/wiki/BRLYT_(File_Format) says that the pane name can only have 0x10 bytes.
         if(mapIcon.length() > 13)
-            throw PatchProcess::Exception(QString("The filename of the map icon %1 is too long. It must be max 13 characters, but is %2 characters.").arg(mapIcon).arg(mapIcon.length()));
+            throw ImportExportUtils::Exception(QString("The filename of the map icon %1 is too long. It must be max 13 characters, but is %2 characters.").arg(mapIcon).arg(mapIcon.length()));
     }
 
     if(VanillaDatabase::hasDefaultBgmId(background))
@@ -294,7 +359,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             }
             QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
             if(brstmBaseFilename.length() > 48) {
-                throw PatchProcess::Exception(QString("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.").arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
+                throw ImportExportUtils::Exception(QString("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.").arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
             }
             MusicEntry entry;
             entry.brstmBaseFilename = brstmBaseFilename;
@@ -314,7 +379,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     if(yaml["mutators"]) {
         for (auto it=yaml["mutators"].begin(); it!=yaml["mutators"].end(); ++it) {
             auto mutatorStr = QString::fromStdString(it->first.as<std::string>());
-            mutators.insert(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
+            mutators.emplace(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
         }
     }
     if(yaml["ventureCards"]) {
@@ -335,15 +400,18 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             }
         }
     } else {
-        districtNames = VanillaDatabase::getVanillaDistrictNames();
+        districtNames = VanillaDatabase::getVanillaDistrictNames().toStdMap();
     }
 
+    if (yaml["extraData"]) extraData = pybind11::dict(nodeToCustomData(yaml["extraData"]));
+
+    authors.clear();
     if (yaml["authors"]) {
         auto authorNodes = yaml["authors"];
         for (auto it=authorNodes.begin(); it!=authorNodes.end(); ++it) {
             const YAML::Node& authorNode = *it;
             auto authorName = QString::fromStdString(authorNode["name"].as<std::string>());
-            authors.append(authorName);
+            authors.push_back(authorName);
         }
     }
 
@@ -359,7 +427,7 @@ MapDescriptor &MapDescriptor::setFromImport(const MapDescriptor &other) {
 
 QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj) {
     // TODO add more info here?
-    debugStream << "MapDescriptor(" << obj.names["en"] << ", firstFile=" << obj.frbFiles[0] << ")";
+    debugStream << "MapDescriptor(" << getOrDefault(obj.names, "en", "") << ", firstFile=" << obj.frbFiles[0] << ")";
     return debugStream;
 }
 
@@ -402,8 +470,11 @@ QString tourCharacterToString(Character character) {
 Character stringToTourCharacter(const QString &str) {
     return stringToTourCharacters.value(str);
 }
+const QMap<QString, Character> &stringToTourCharactersMapping() {
+    return stringToTourCharacters;
+}
 
-void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
+void getPracticeBoards(const std::vector<MapDescriptor> &descriptors, short &easyPracticeBoard, short &standardPracticeBoard, QStringList &errorMsgs) {
     // TODO improve error stuff
     easyPracticeBoard = -1;
     standardPracticeBoard = -1;
@@ -434,7 +505,7 @@ void getPracticeBoards(const QVector<MapDescriptor> &descriptors, short &easyPra
     }
 }
 
-QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList &errorMsgs) {
+QMap<int, int> getMapSets(const std::vector<MapDescriptor> &descriptors, QStringList &errorMsgs) {
     QMap<int, int> result;
     for (int i=0; i<descriptors.size(); ++i) {
         if (descriptors[i].mapSet == 0 || descriptors[i].mapSet == 1) {
@@ -454,7 +525,7 @@ QMap<int, int> getMapSets(const QVector<MapDescriptor> &descriptors, QStringList
     return result;
 }
 
-QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs) {
+QMap<int, int> getMapZones(const std::vector<MapDescriptor> &descriptors, int mapSet, QStringList &errorMsgs) {
     QMap<int, int> result;
     QMap<int, int> numMapsPerZone;
     for (int i=0; i<descriptors.size(); ++i) {
@@ -476,7 +547,7 @@ QMap<int, int> getMapZones(const QVector<MapDescriptor> &descriptors, int mapSet
     return result;
 }
 
-QMap<int, int> getMapOrderings(const QVector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs) {
+QMap<int, int> getMapOrderings(const std::vector<MapDescriptor> &descriptors, int mapSet, int zone, QStringList &errorMsgs) {
     QMap<int, int> result;
 
     for (int i=0; i<descriptors.size(); ++i) {

@@ -341,15 +341,15 @@ const QMap<QString, QString> &localeToDistrictWord() {
     return LOCALE_TO_DISTRICT_WORD;
 }
 
-const QMap<QString, QStringList> &getVanillaDistrictNames() {
-    static QMap<QString, QStringList> cachedResult;
+const QMap<QString, std::vector<QString>> &getVanillaDistrictNames() {
+    static QMap<QString, std::vector<QString>> cachedResult;
     if (cachedResult.empty()) {
         for (auto locale: FS_LOCALES) {
             int startingChar = locale == "jp" ? 65313 : 'A';
             auto districtWord = LOCALE_TO_DISTRICT_WORD[locale];
             districtWord.replace("\\s", " ");
             for (int i=0; i<16; ++i) {
-                cachedResult[locale].append(districtWord + (startingChar + i));
+                cachedResult[locale].push_back(districtWord + (startingChar + i));
             }
         }
     }

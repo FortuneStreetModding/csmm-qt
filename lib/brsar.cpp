@@ -291,7 +291,7 @@ bool containsCsmmEntries(QDataStream &stream) {
     return false;
 }
 
-int patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
+int patch(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
     Brsar::File brsar;
     stream >> brsar;
 
@@ -312,11 +312,12 @@ int patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
 
     QMap<QString, quint32> mapBrstmBaseFilenameToBrsarIndex;
     int brsarIndex = brsarIndex_min;
-    for (int i=0; i<descriptors.length(); i++) {
+    for (int i=0; i<descriptors.size(); i++) {
         auto &descriptor = descriptors[i];
-        auto keys = descriptor.music.keys();
-        for (auto &musicType: keys) {
-            auto &musicEntry = descriptor.music[musicType];
+
+        for (auto &musicTypeEnt: descriptor.music) {
+            auto &musicType = musicTypeEnt.first;
+            auto &musicEntry = musicTypeEnt.second;
             if(mapBrstmBaseFilenameToBrsarIndex.contains(musicEntry.brstmBaseFilename)) {
                 // reuse the brsar index and set it to the map descriptor
                 musicEntry.brsarIndex = mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename];
@@ -327,6 +328,7 @@ int patch(QDataStream &stream, QVector<MapDescriptor> &descriptors) {
                 // map the brstm filename to the current brsar index
                 mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename] = brsarIndex;
                 // determine music type (if its ME or BGM)
+
                 bool isBgm = Music::musicTypeIsBgm(musicType);
                 quint32 playerId;
                 quint8 playerPriority;

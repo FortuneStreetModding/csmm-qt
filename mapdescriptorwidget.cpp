@@ -7,7 +7,8 @@
 #include <QPushButton>
 #include <QTextStream>
 #include "lib/datafileset.h"
-#include "lib/patchprocess.h"
+#include "lib/importexportutils.h"
+#include "lib/getordefault.h"
 #include "venturecarddialog.h"
 
 // Internal types for table items
@@ -77,14 +78,12 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            PatchProcess::importYaml(openYaml, newDescriptor, tmpDir.path());
+            ImportExportUtils::importYaml(openYaml, newDescriptor, getGameDirectory());
             descriptorPtr->setFromImport(newDescriptor);
             descriptorPtr->mapDescriptorFilePath = openYaml;
             dirty = true;
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
-        } catch (const PatchProcess::Exception &exception) {
-            QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
-        } catch (const YAML::Exception &exception) {
+        } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
         }
     });
@@ -95,11 +94,15 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         auto gameDirectory = getGameDirectory();
         auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)");
         if (saveYamlTo.isEmpty()) return;
-        PatchProcess::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
+        try {
+            ImportExportUtils::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
+        } catch (const std::runtime_error &exception) {
+            QMessageBox::critical(this, "Export .yaml", QString("Error exporting the map: %1").arg(exception.what()));
+        }
     });
     setCellWidget(row, colIdx++, exportYamlButton);
 
-    setItem(row, colIdx++, readOnlyItem(descriptor.names["en"]));
+    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.names, "en", QString())));
 
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.mapSet), MAP_SET_TYPE));
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.zone), ZONE_TYPE));
@@ -159,9 +162,10 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.nameMsgId)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.descMsgId)));
 
-    setItem(row, colIdx++, readOnlyItem(descriptor.descs["en"]));
+    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.descs, "en", QString())));
     setItem(row, colIdx++, readOnlyItem(descriptor.internalName));
-    setItem(row, colIdx++, readOnlyItem(descriptor.districtNames["en"].join("; ")));
+    auto distNames = getOrDefault(descriptor.districtNames, "en", std::vector<QString>());
+    setItem(row, colIdx++, readOnlyItem(QStringList(distNames.begin(), distNames.end()).join("; ")));
     QStringList districtNameIdStrs;
     for (quint32 v: descriptor.districtNameIds) {
         districtNameIdStrs.push_back(QString::number(v));
@@ -174,6 +178,13 @@ void MapDescriptorWidget::appendMapDescriptor(const MapDescriptor &descriptor) {
     insertRow(descriptors.size()-1);
     loadRowWithMapDescriptor(descriptors.size()-1, descriptor);
     dirty = true;
+}
+
+void MapDescriptorWidget::duplicateSelectedMapDescriptors() {
+    auto selectedRows = selectionModel()->selectedRows();
+    for (auto &selectedRow: selectedRows) {
+        appendMapDescriptor(*descriptors[selectedRow.row()]); // TODO handle mutators with care when duplicating
+    }
 }
 
 void MapDescriptorWidget::removeSelectedMapDescriptors() {
@@ -199,8 +210,4 @@ const QVector<QSharedPointer<MapDescriptor>> &MapDescriptorWidget::getDescriptor
 
 void MapDescriptorWidget::setGameDirectoryFunction(const std::function<QString()> &fn) {
     getGameDirectory = fn;
-}
-
-const QTemporaryDir &MapDescriptorWidget::getTmpResourcesDir() {
-    return tmpDir;
 }

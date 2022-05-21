@@ -1,6 +1,7 @@
 #ifndef MUTATOR_H
 #define MUTATOR_H
 
+#include <QException>
 #include <QSharedPointer>
 #include "yaml-cpp/yaml.h"
 #include "lib/addressmapping.h"
@@ -26,6 +27,15 @@ struct Mutator {
     bool operator!=(const Mutator &other) const { return !(operator==(other)); };
 protected:
     virtual void toBytes(QVector<quint32>& bytes) const = 0;
+};
+
+class MutatorException : public QException, public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+    const char *what() const noexcept override { return std::runtime_error::what(); }
+    MutatorException(const QString &str) : std::runtime_error(str.toStdString()) {}
+    void raise() const override { throw *this; }
+    MutatorException *clone() const override { return new MutatorException(*this); }
 };
 
 #endif // MUTATOR_H

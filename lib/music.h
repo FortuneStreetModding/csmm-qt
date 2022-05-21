@@ -89,6 +89,9 @@ namespace Bgm {
     inline BgmId stringToBgmId(const QString &str) {
         return stringToBgmIds.value(str);
     }
+    inline const QMap<QString, BgmId> &bgmIdMapping() {
+        return stringToBgmIds;
+    }
 }
 
 enum MusicType: quint32 {
@@ -159,6 +162,9 @@ namespace Music {
     }
     inline bool isMusicType(const QString &str) {
         return stringToMusicTypes.contains(str);
+    }
+    inline const QMap<QString, MusicType> &stringToMusicTypeMapping() {
+        return stringToMusicTypes;
     }
     inline bool musicTypeIsBgm(MusicType musicType) {
         switch(musicType) {

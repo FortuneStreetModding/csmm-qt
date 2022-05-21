@@ -7,16 +7,15 @@ Custom Street Map Manager cross-platform port
 
 - Qt 5.15.2
 - mingw810_64 (Windows)
+- cmake
 
 ## Building on Windows (MinGW)
 
-For the yaml-cpp dependency, you don't need Cygwin to build. Make a new directory inside `lib/yaml-cpp` called `build`, `cd` to it, and run `cmake .. -G "MinGW Makefiles"` followed by `mingw32-make`.
+Make sure that openssl is installed on your computer. When deploying, you'll need to distribute the libssl and libcrypto dlls that come with openssl.
 
-To build libbecquerel, make a new directory inside `lib/libbecquerel` called `build`, `cd` to it, and run `cmake .. -G "MinGW Makefiles"` followed by `mingw32-make`.
+Windows uses the yaml-cpp and libbecquerel submodules in the repo, so there's no need to install these separately.
 
-Lastly, make sure that openssl is installed on your computer. When deploying, you'll need to distribute the libssl and libcrypto dlls that come with openssl.
-
-The csmm-qt project can then be built the usual way.
+The project can then be built with CMake.
 
 ## Building on MacOS/Linux
 
@@ -24,4 +23,6 @@ For these OSes, this project depends on libarchive, yaml-cpp, and libbecquerel.
 
 libarchive and yaml-cpp can be installed via your favorite package manager.
 
-To build libbecquerel, make a new directory inside `lib/libbecquerel` called `build`, `cd` to it, and run `cmake ..` followed by `make`.
+These OSes use the libbecquerel submodule in the repo, so there's no need to install that separately.
+
+The project can then be built with CMake.

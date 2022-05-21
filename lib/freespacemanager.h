@@ -2,6 +2,7 @@
 #define FREESPACEMANAGER_H
 
 #include <QMap>
+#include <QException>
 #include "addressmapping.h"
 
 class FreeSpaceManager {
@@ -11,9 +12,18 @@ public:
     int calculateTotalFreeSpace() const;
     int calculateLargestFreeSpaceBlockSize() const;
     int calculateLargestRemainingFreeSpaceBlockSize() const;
-    quint32 allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose);
+    quint32 allocateUnusedSpace(const QByteArray &bytes, QDataStream &stream, const AddressMapper &fileMapper, const QString &purpose, bool reuse = true);
     void nullTheFreeSpace(QDataStream &stream, const AddressMapper &addressMapper);
     void reset();
+
+    class Exception : public QException, public std::runtime_error {
+    public:
+        using std::runtime_error::runtime_error;
+        const char *what() const noexcept override { return std::runtime_error::what(); }
+        Exception(const QString &str) : std::runtime_error(str.toStdString()) {}
+        void raise() const override { throw *this; }
+        Exception *clone() const override { return new Exception(*this); }
+    };
 private:
     QMap<quint32, quint32> remainingFreeSpaceBlocks;
     QMap<quint32, quint32> totalFreeSpaceBlocks;

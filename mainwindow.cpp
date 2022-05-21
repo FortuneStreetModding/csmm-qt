@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "lib/filesystem.hpp"
+#include <filesystem>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -10,22 +10,24 @@
 #include <QInputDialog>
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
-#include "lib/patchprocess.h"
+#include "lib/importexportutils.h"
 #include "downloadclidialog.h"
 #include "validationerrordialog.h"
 #include "lib/configuration.h"
 #include "lib/downloadtools.h"
 #include "lib/datafileset.h"
+#include "lib/mods/defaultmodlist.h"
+#include "lib/mods/modloader.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), manager(new QNetworkAccessManager(this))
+    , ui(new Ui::MainWindow), manager(new QNetworkAccessManager(this)), modList(DefaultModList::defaultModList())
 {
     setAttribute(Qt::WA_DeleteOnClose);
 
     ui->setupUi(this);
     ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
-    connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
+    connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openDir);
     connect(ui->actionImport_WBFS_ISO, &QAction::triggered, this, &MainWindow::openIsoWbfs);
     connect(ui->actionExport_to_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
     connect(ui->actionExport_to_WBFS_ISO, &QAction::triggered, this, &MainWindow::exportIsoWbfs);
@@ -40,6 +42,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionLoad_map_list_csv, &QAction::triggered, this, &MainWindow::loadMapList);
     connect(ui->actionItast_csmm_brsar, &QAction::triggered, this, &MainWindow::saveCleanItastCsmmBrsar);
     connect(ui->addMap, &QPushButton::clicked, this, [&](bool) { ui->tableWidget->appendMapDescriptor(MapDescriptor()); });
+    connect(ui->duplicateMap, &QPushButton::clicked, this, [&](bool) {
+        ui->tableWidget->duplicateSelectedMapDescriptors();
+    });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
         if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
             ui->tableWidget->removeSelectedMapDescriptors();
@@ -60,6 +65,43 @@ MainWindow::MainWindow(QWidget *parent)
         }
         ui->actionPatch_SaveId->setChecked(getSaveId() != "01");
     });
+    connect(ui->actionExport_default_modlists_txt, &QAction::triggered, this, [&]() {
+        auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)");
+
+        QSaveFile fileObj(saveFile);
+
+        if (!fileObj.open(QFile::WriteOnly)) {
+            QMessageBox::critical(this, "Error exporting modlist.txt", "Error opening file for saving");
+        }
+
+        auto defaultModList = DefaultModList::defaultModList();
+
+        QTextStream stream(&fileObj);
+        stream.setCodec("UTF-8");
+
+        for (auto &mod: defaultModList) {
+            stream << mod->modId() << "\n";
+        }
+
+        fileObj.commit();
+    });
+    connect(ui->importModPack, &QPushButton::clicked, this, [&](bool) {
+        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt;*.zip)");
+
+        if (file.isEmpty()) {
+            return;
+        }
+
+        try {
+            std::tie(modList, tempModpackDir) = ModLoader::importModpackFile(file);
+            updateModListWidget();
+            QMessageBox::information(this, "Import mod pack", "Modpack successfully imported.");
+        } catch (const std::runtime_error &error) {
+            QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
+            PyErr_Clear();
+        }
+    });
+    updateModListWidget();
 }
 
 QString MainWindow::getSaveId() {
@@ -80,7 +122,7 @@ void MainWindow::saveMapList() {
     if(saveFileInfo.exists()) {
         QFile::remove(saveFile);
     }
-    QVector<MapDescriptor> descriptors;
+    std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
     Configuration::save(saveFile, descriptors);
@@ -93,30 +135,37 @@ void MainWindow::loadMapList() {
     if(!openFileInfo.exists()) {
         QMessageBox::critical(this, "Open Map List", QString("Error loading the map list: %1").arg(openFile));
     }
-    QVector<MapDescriptor> descriptors;
+    std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
     ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
     ui->statusbar->repaint();
     try {
-        Configuration::load(openFile, descriptors, ui->tableWidget->getTmpResourcesDir().path());
+        Configuration::load(openFile, descriptors, tempGameDir->path());
         loadDescriptors(descriptors);
         ui->tableWidget->dirty = true;
         ui->statusbar->showMessage("Map list load completed");
         ui->statusbar->repaint();
-    } catch (const PatchProcess::Exception &exception) {
-        QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.getMessage()));
-    } catch (const YAML::Exception &exception) {
+    } catch (const std::runtime_error &exception) {
         QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
     }
+}
+
+void MainWindow::updateModListWidget() {
+    ui->modListWidget->clear();
+    QStringList modStrs;
+    for (auto &mod: modList) {
+        modStrs.append(mod->modId());
+    }
+    ui->modListWidget->addItems(modStrs);
 }
 
 void MainWindow::saveCleanItastCsmmBrsar() {
     auto openFile = QFileDialog::getOpenFileName(this, "Open vanilla Itast.brsar", "Itast.brsar", "Vanilla Fortune Street Binary Sound Archive (*.brsar)");
     if (openFile.isEmpty()) return;
-    QFileInfo openFileInfo(openFile);
+    //QFileInfo openFileInfo(openFile);
 
-    if (PatchProcess::fileSha1(openFile) != PatchProcess::getSha1OfVanillaFileName(SOUND_FOLDER + "/Itast.brsar")) {
+    if (ImportExportUtils::fileSha1(openFile) != ImportExportUtils::getSha1OfVanillaFileName(SOUND_FOLDER + "/Itast.brsar")) {
         QMessageBox::information(this, "Wrong Itast.brsar", QString("The provided file %1 is not a vanilla Itast.brsar").arg(openFile));
         return;
     }
@@ -124,39 +173,68 @@ void MainWindow::saveCleanItastCsmmBrsar() {
     auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)");
     if (saveFile.isEmpty()) return;
 
-    QString errors = PatchProcess::applyBspatch(openFile, saveFile, ":/" + SOUND_FOLDER + "/Itast.brsar.bsdiff");
+    QString errors = ImportExportUtils::applyBspatch(openFile, saveFile, ":/" + SOUND_FOLDER + "/Itast.brsar.bsdiff");
     if(!errors.isEmpty()) {
-        QMessageBox::critical(this, "Open", QString("Errors occurred when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(openFile).arg(errors));
+        QMessageBox::critical(this, "Open", QString("Errors occurred when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(openFile, errors));
     }
 
     QMessageBox::information(this, "Save", QString("Saved to %1").arg(saveFile));
 }
 
-void MainWindow::openFile() {
+void MainWindow::openDir() {
+    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
+    if (!newTempGameDir->isValid()) {
+        QMessageBox::critical(this, "Open Game Directory", "The temporary directory used for copying the game directory could not be created");
+        return;
+    }
     QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory");
     if (dirname.isEmpty()) {
         return;
     }
+
+    auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
+
+    auto copyTask = QtConcurrent::run([=]() {
+        std::error_code error;
+        qDebug() << dirname << newTempGameDir->path();
+        std::filesystem::copy(dirname.toStdU16String(), newTempGameDir->path().toStdU16String(), std::filesystem::copy_options::recursive, error);
+        return error;
+    });
+
     AsyncFuture::observe(checkForRequiredFiles())
             .subscribe([=]() {
-        if (!PatchProcess::isMainDolVanilla(QDir(dirname))) {
+        if (!ImportExportUtils::isMainDolVanilla(QDir(dirname))) {
             auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
                                  "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
                                  QMessageBox::Yes | QMessageBox::No);
             if (btn != QMessageBox::Yes) {
-                auto def = AsyncFuture::deferred<QVector<MapDescriptor>>();
-                def.cancel();
-                return def.future();
+                return;
             }
         }
-        return PatchProcess::openDir(QDir(dirname));
-    }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
-        if (descriptors.isEmpty()) {
-            QMessageBox::critical(this, "Open", "Bad Fortune Street directory");
-            return;
+
+        try {
+            *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2, this);
+            (*progress)->setWindowModality(Qt::WindowModal);
+            (*progress)->setValue(0);
+
+            auto gameInstance = GameInstance::fromGameDirectory(dirname);
+            CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
+            modpack.load(dirname);
+            (*progress)->setValue(1);
+            auto errorCode = await(copyTask);
+            (*progress)->setValue(2);
+            if (errorCode) {
+                QMessageBox::critical(this, "Error loading game", QString::fromStdString("Error copying files to temporary working directory: " + errorCode.message()));
+                return;
+            }
+            loadDescriptors(gameInstance.mapDescriptors());
+            setWindowFilePath(newTempGameDir->path());
+            tempGameDir = newTempGameDir;
+        } catch (const std::runtime_error &e) {
+            *progress = nullptr;
+            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+            PyErr_Clear();
         }
-        loadDescriptors(descriptors);
-        setWindowFilePath(dirname);
     });
 }
 
@@ -179,30 +257,33 @@ void MainWindow::openIsoWbfs() {
         return ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path());
     }).subscribe([=]() {
         (*progress)->setValue(1);
-        if (!PatchProcess::isMainDolVanilla(newTempGameDir->path())) {
+        if (!ImportExportUtils::isMainDolVanilla(newTempGameDir->path())) {
             auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
                                  "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
                                  QMessageBox::Yes | QMessageBox::No);
             if (btn != QMessageBox::Yes) {
-                auto def = AsyncFuture::deferred<QVector<MapDescriptor>>();
-                def.cancel();
-                return def.future();
+                return;
             }
         }
-        return PatchProcess::openDir(newTempGameDir->path());
-    }).subscribe([=](const QVector<MapDescriptor> &descriptors) {
-        if (descriptors.isEmpty()) {
-            QMessageBox::critical(this, "Import", "Error loading WBFS/ISO file contents");
-            return;
+        auto dirname = newTempGameDir->path();
+
+        try {
+            auto gameInstance = GameInstance::fromGameDirectory(dirname);
+            CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
+            modpack.load(dirname);
+            (*progress)->setValue(2);
+            loadDescriptors(gameInstance.mapDescriptors());
+            setWindowFilePath(newTempGameDir->path());
+            tempGameDir = newTempGameDir;
+        } catch (const std::runtime_error &e) {
+            *progress = nullptr;
+            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+            PyErr_Clear();
         }
-        (*progress)->setValue(2);
-        loadDescriptors(descriptors);
-        setWindowFilePath(newTempGameDir->path());
-        tempGameDir = newTempGameDir;
     });
 }
 
-void MainWindow::loadDescriptors(const QVector<MapDescriptor> &descriptors) {
+void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) {
     ui->tableWidget->clearDescriptors();
     for (auto &descriptor: descriptors) {
         ui->tableWidget->appendMapDescriptor(descriptor);
@@ -253,7 +334,7 @@ void MainWindow::exportToFolder() {
             // need to use utf 16 b/c windows behaves strangely w/ utf 8
             auto copyTask = QtConcurrent::run([=] {
                 std::error_code error;
-                ghc::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
+                std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
                 return !error;
             });
             auto fut = AsyncFuture::observe(copyTask).subscribe([=](bool result) {
@@ -268,7 +349,7 @@ void MainWindow::exportToFolder() {
         }
     }
 
-    if (ui->actionPatch_Wiimmfi->isChecked()) {
+    if (true) { // TODO check if wifiFix is a modid
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
 
@@ -276,38 +357,37 @@ void MainWindow::exportToFolder() {
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
-    QSet<OptionalPatch> optionalPatches = getOptionalPatches(false);
     auto copyTask = QtConcurrent::run([=] {
         std::error_code error;
-        ghc::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
+        std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
         return !error;
     });
-    auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
+    auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
     auto fut = AsyncFuture::observe(copyTask)
             .subscribe([=](bool result) {
         if (!result) {
             QMessageBox::critical(this, "Save", "Could not copy game data to temporary directory for modifying");
-            auto def = AsyncFuture::deferred<void>();
-            def.cancel();
-            return def.future();
+            return;
         }
         progress->setValue(1);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(saveDir, *descriptors, optionalPatches, ui->tableWidget->getTmpResourcesDir().path());
-        } catch (const PatchProcess::Exception &exception) {
-            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
-            throw exception;
-        }
-    }).subscribe([=]() {
-        progress->setValue(2);
-        QMessageBox::information(this, "Save", "Saved successfuly.");
+            auto gameInstance = GameInstance::fromGameDirectory(saveDir, *descriptors);
+            CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
+            modpack.save(saveDir);
+            progress->setValue(2);
+            QMessageBox::information(this, "Save", "Saved successfuly.");
 
-        // reload map descriptors
-        int idx = 0;
-        for (auto &descriptor: *descriptors) {
-            ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
+            // reload map descriptors
+            int idx = 0;
+            for (auto &descriptor: gameInstance.mapDescriptors()) {
+                ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
+            }
+        } catch (const std::runtime_error &exception) {
+            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
+            PyErr_Clear();
+            throw exception;
         }
     });
 }
@@ -335,17 +415,16 @@ void MainWindow::exportIsoWbfs() {
         }
     }
 
-    auto descriptors = QSharedPointer<QVector<MapDescriptor>>::create();
+    auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
 
     auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 4, this);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
-    QSet<OptionalPatch> optionalPatches = getOptionalPatches(true);
     QString intermediatePath = intermediateResults->path();
     auto copyTask = QtConcurrent::run([=] {
         std::error_code error;
-        ghc::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), ghc::filesystem::copy_options::recursive, error);
+        std::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
         return !error;
     });
     auto fut = AsyncFuture::observe(copyTask)
@@ -359,18 +438,22 @@ void MainWindow::exportIsoWbfs() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            return PatchProcess::saveDir(intermediatePath, *descriptors, optionalPatches, ui->tableWidget->getTmpResourcesDir().path());
-        } catch (const PatchProcess::Exception &exception) {
-            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.getMessage()));
+            auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, *descriptors);
+            CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
+            modpack.save(intermediatePath);
+            *descriptors = gameInstance.mapDescriptors();
+            progress->setValue(2);
+            return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
+        } catch (const std::runtime_error &exception) {
+            QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
+            PyErr_Clear();
             throw exception;
         }
     }).subscribe([=]() {
-        progress->setValue(2);
-        return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
-    }).subscribe([=]() {
         progress->setValue(3);
-        if (optionalPatches.contains(Wiimmfi))
+        if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
             return ExeWrapper::patchWiimmfi(saveFile);
+        }
         auto def = AsyncFuture::deferred<void>();
         def.complete();
         return def.future();
@@ -390,7 +473,7 @@ void MainWindow::exportIsoWbfs() {
 
 void MainWindow::validateMaps() {
     QStringList errorMsgs;
-    QVector<MapDescriptor> descriptors;
+    std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
 
@@ -420,15 +503,3 @@ void MainWindow::validateMaps() {
     }
 }
 
-QSet<OptionalPatch> MainWindow::getOptionalPatches(bool packed) {
-    QSet<OptionalPatch> optionalPatches;
-    if(ui->actionDisplay_Map_Name_On_Results_Screen->isChecked())
-        optionalPatches.insert(ResultBoardName);
-    if(packed && ui->actionPatch_Wiimmfi->isChecked())
-        optionalPatches.insert(Wiimmfi);
-    if (ui->actionUpdate_Minimap_Icons->isChecked())
-        optionalPatches.insert(UpdateMinimapIcons);
-    if (ui->actionAppend_Author_to_Map_Description->isChecked())
-        optionalPatches.insert(AddAuthorToDescription);
-    return optionalPatches;
-}
