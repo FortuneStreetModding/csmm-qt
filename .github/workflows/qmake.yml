@@ -33,11 +33,11 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake .
+      run: cmake . -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}
-      run: make
+      run: ninja
 
     - name: Deploy
       working-directory: ${{github.workspace}}
@@ -69,11 +69,11 @@ jobs:
     - name: Configure CMake
       working-directory: ${{github.workspace}}
       shell: bash
-      run: cmake . -G "MinGW Makefiles"
+      run: cmake . -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}
-      run: mingw32-make
+      run: ninja
 
     - name: Rename
       working-directory: ${{github.workspace}}
@@ -91,9 +91,6 @@ jobs:
       run: |
         Copy-Item -Path "C:\Program Files\OpenSSL\bin\libcrypto-1_1-x64.dll"   -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
         Copy-Item -Path "C:\Program Files\OpenSSL\bin\libssl-1_1-x64.dll"      -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
-        Copy-Item -Path "C:\Program Files\Git\mingw64\bin\libgcc_s_seh-1.dll"  -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
-        Copy-Item -Path "C:\Program Files\Git\mingw64\bin\libstdc++-6.dll"     -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
-        Copy-Item -Path "C:\Program Files\Git\mingw64\bin\libwinpthread-1.dll" -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
     - name: Archive
       uses: thedoctor0/zip-release@master
       with:
