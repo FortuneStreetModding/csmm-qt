@@ -402,9 +402,9 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> EventSquareMod::freeUiMe
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage &messages) {
-            messages.remove(eventSquareId);
-            messages.remove(freeParkingId);
-            messages.remove(freeParkingDescId);
+            messages.erase(eventSquareId);
+            messages.erase(freeParkingId);
+            messages.erase(freeParkingDescId);
         };
     }
     return result;

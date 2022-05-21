@@ -58,7 +58,7 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> StageNameIDTable::loadUi
         if (locale == "uk") continue;
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage &messages) {
             for (auto &descriptor: instance.mapDescriptors()) {
-                descriptor.names[locale] = messages[descriptor.nameMsgId];
+                descriptor.names[locale] = messages.at(descriptor.nameMsgId);
             }
         };
     }
@@ -70,7 +70,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> StageNameIDTable::freeUi
     for (auto &locale: FS_LOCALES) {
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage &messages) {
             for (auto &descriptor: gameInstance.mapDescriptors()) {
-                messages.remove(descriptor.nameMsgId);
+                messages.erase(descriptor.nameMsgId);
             }
         };
     }

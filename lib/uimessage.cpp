@@ -18,14 +18,6 @@ void messageToFile(QFile *file, const UiMessage &message) {
     QTextStream stream(file);
     stream.setCodec("UTF-8");
     for (auto it=message.begin(); it!=message.end(); ++it) {
-        stream << QString("%1,\"%2\"\n").arg(it.key()).arg(it.value());
+        stream << QString("%1,\"%2\"\n").arg(it->first).arg(it->second);
     }
-}
-
-quint32 freeKey(const UiMessage &message) {
-    quint32 i=0;
-    while (message.contains(i)) {
-        ++i;
-    }
-    return i;
 }

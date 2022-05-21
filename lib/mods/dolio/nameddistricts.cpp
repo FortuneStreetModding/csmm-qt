@@ -87,7 +87,7 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> NamedDistricts::loadUiMe
             for (auto &descriptor: instance.mapDescriptors()) {
                 descriptor.districtNames[locale].clear();
                 for (int distNameId: qAsConst(descriptor.districtNameIds)) {
-                    auto distName = messages.value(distNameId);
+                    auto distName = messages.at(distNameId);
                     // add district word in front of vanilla district names
                     if (5454 <= distNameId && distNameId <= 5760) {
                         auto distWord = VanillaDatabase::localeToDistrictWord()[locale];
@@ -108,7 +108,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::freeUiMe
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage &messages) {
             for (auto &descriptor: gameInstance.mapDescriptors()) {
                 for (int id: qAsConst(descriptor.districtNameIds)) {
-                    messages.remove(id);
+                    messages.erase(id);
                 }
             }
         };
@@ -135,14 +135,14 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMe
 
                 for (auto it=messages.begin(); it!=messages.end(); ++it) {
                     // text replace District <area> -> <area>
-                    it.value().replace(districtReplaceRegex, "<area>");
+                    it->second.replace(districtReplaceRegex, "<area>");
                     if (locale == "it") {
-                        it.value().replace("Quartiere<outline_off><n><outline_0><area>", "<area>", Qt::CaseInsensitive);
+                        it->second.replace("Quartiere<outline_off><n><outline_0><area>", "<area>", Qt::CaseInsensitive);
                     }
 
                     // strip "District" from shop squares in view board
-                    if (it.key() == 2781) {
-                        it.value() = "";
+                    if (it->first == 2781) {
+                        it->second = "";
                     }
 
                     // TODO find out what 2963 does if anything at all

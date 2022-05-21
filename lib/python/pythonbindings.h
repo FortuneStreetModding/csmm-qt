@@ -5,6 +5,7 @@
 #include <pybind11/functional.h>
 #include <QVector>
 #include "lib/mods/csmmmod_decl.h"
+#include "lib/uimessage.h"
 
 /**
  * Wrapper class for CSMM mods.
@@ -268,5 +269,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<QString>);
 PYBIND11_MAKE_OPAQUE(std::map<QString, std::vector<QString>>);
 PYBIND11_MAKE_OPAQUE(std::vector<quint32>);
 PYBIND11_MAKE_OPAQUE(std::vector<MapDescriptor>);
+PYBIND11_MAKE_OPAQUE(UiMessage);
 
 #endif // PYTHONBINDINGS_H

@@ -279,6 +279,10 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     A list-like type of map descriptors.
 )pycsmmdoc");
 
+    pybind11::bind_map<UiMessage>(m, "UiMessageMapping", R"pycsmmdoc(
+    A mapping from localization ID to the localized string.
+)pycsmmdoc");
+
     pybind11::class_<MapDescriptor>(m, "MapDescriptor", R"pycsmmdoc(
     Stores relevant information for a Fortune Street board.
 )pycsmmdoc")

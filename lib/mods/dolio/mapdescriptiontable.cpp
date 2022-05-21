@@ -81,7 +81,7 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> MapDescriptionTable::loa
         if (locale == "uk") continue;
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage &messages) {
             for (auto &descriptor: instance.mapDescriptors()) {
-                descriptor.descs[locale] = messages[descriptor.descMsgId];
+                descriptor.descs[locale] = messages.at(descriptor.descMsgId);
             }
         };
     }
@@ -93,7 +93,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::fre
     for (auto &locale: FS_LOCALES) {
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage &messages) {
             for (auto &descriptor: gameInstance.mapDescriptors()) {
-                messages.remove(descriptor.descMsgId);
+                messages.erase(descriptor.descMsgId);
             }
         };
     }

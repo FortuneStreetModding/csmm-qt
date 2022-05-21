@@ -27,9 +27,9 @@ private:
     QVector<quint32> writeMinimapTileIdHandler(const AddressMapper &addressMapper, quint32 routineStartAddress);
     QVector<quint32> writeProcStopEventSquareRoutine(const AddressMapper &addressMapper, quint32 forceVentureCardVariable, quint32 routineStartAddress);
     QVector<quint32> writeSubroutineForceFetchFakeVentureCard(quint32 fakeVentureCard);
-    quint32 eventSquareId;
-    quint32 freeParkingId;
-    quint32 freeParkingDescId;
+    quint32 eventSquareId = -1;
+    quint32 freeParkingId = -1;
+    quint32 freeParkingDescId = -1;
     quint32 forceVentureCardVariable;
 };
 

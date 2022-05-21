@@ -36,19 +36,19 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> WifiFix::saveUiMessages(
             for (auto it=messages.begin(); it!=messages.end(); ++it) {
                 // text replace Nintendo WFC -> Wiimmfi
                 if (locale == "de") {
-                    it.value().replace(REG_WIFI_DE, "Wiimmfi");
+                    it->second.replace(REG_WIFI_DE, "Wiimmfi");
                 }
                 if (locale == "fr") {
-                    it.value().replace(REG_WIFI_FR, "Wiimmfi");
+                    it->second.replace(REG_WIFI_FR, "Wiimmfi");
                 }
                 if (locale == "su") {
-                    it.value().replace(REG_WIFI_SU, "Wiimmfi\\3\\1\\2");
+                    it->second.replace(REG_WIFI_SU, "Wiimmfi\\3\\1\\2");
                 }
                 if (locale == "jp") {
-                    it.value().replace("Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ", Qt::CaseInsensitive);
+                    it->second.replace("Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ", Qt::CaseInsensitive);
                 }
-                it.value().replace(REG_WIFI, "Wiimmfi");
-                it.value().replace("support.nintendo.com", "https://wiimmfi.de/error", Qt::CaseInsensitive);
+                it->second.replace(REG_WIFI, "Wiimmfi");
+                it->second.replace("support.nintendo.com", "https://wiimmfi.de/error", Qt::CaseInsensitive);
             }
         };
     }
