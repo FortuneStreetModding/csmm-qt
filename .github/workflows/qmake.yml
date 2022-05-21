@@ -65,7 +65,7 @@ jobs:
       with:
         version: 5.15.2
         target: desktop
-        arch: win64_mingw81
+        arch: win64_msvc2019_64
     
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@master
