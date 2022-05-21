@@ -24,6 +24,7 @@ jobs:
       run: |
         brew install libarchive
         brew install yaml-cpp
+        brew install ninja
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
@@ -65,6 +66,9 @@ jobs:
         version: 5.15.2
         target: desktop
         arch: win64_mingw81
+    
+    - name: Install Ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
