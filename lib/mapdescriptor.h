@@ -8,6 +8,7 @@
 #include <QVector>
 #include <yaml-cpp/yaml.h>
 #include "fortunestreetdata.h"
+#include "lib/python/pyobjcopywrapper.h"
 #include "music.h"
 #include "mutator/mutator.h"
 #include "lib/python/pythonbindings.h"
@@ -93,7 +94,7 @@ struct MapDescriptor {
     std::map<QString, std::vector<QString>> districtNames;
     std::vector<quint32> districtNameIds;
     std::map<QString, QSharedPointer<Mutator>> mutators;
-    pybind11::dict extraData;
+    PyObjCopyWrapper<pybind11::dict> extraData;
     std::vector<QString> authors;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);

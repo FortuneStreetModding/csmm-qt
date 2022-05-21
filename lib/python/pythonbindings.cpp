@@ -391,7 +391,8 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def_readwrite("districtNameIds", &MapDescriptor::districtNameIds, R"pycsmmdoc(
     A list of localization IDs for the boards' district names.
 )pycsmmdoc")
-            .def_readwrite("extraData", &MapDescriptor::extraData, R"pycsmmdoc(
+            .def_property("extraData", [](MapDescriptor &desc) { return desc.extraData.get(); },
+    [](MapDescriptor &desc, pybind11::dict d) { desc.extraData.get() = d; }, R"pycsmmdoc(
     Additional data in the map descriptor yaml, stored in the extraData key in the yaml.
 )pycsmmdoc");
 

@@ -208,6 +208,7 @@ set(SOURCES
     lib/getordefault.h
     lib/mods/dolio/doliomutator.h lib/mods/dolio/doliomutator.cpp
     lib/mods/freespace/tinydistrictsfreespace.h lib/mods/freespace/tinydistrictsfreespace.cpp
+    lib/python/pyobjcopywrapper.h
 )
 
 qt_add_big_resources(SOURCES csmm.qrc)

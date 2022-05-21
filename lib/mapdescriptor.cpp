@@ -212,9 +212,8 @@ QString MapDescriptor::toYaml() const {
         out << YAML::EndMap;
     }
 
-    if (pybind11::len(extraData) > 0) {
-        qDebug() << pybind11::str(extraData).cast<QString>();
-        out << YAML::Key << "extraData" << YAML::Value << customDataToNode(extraData);
+    if (pybind11::len(extraData.get()) > 0) {
+        out << YAML::Key << "extraData" << YAML::Value << customDataToNode(extraData.get());
     }
 
     out << YAML::EndMap;
@@ -273,7 +272,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && mapDescriptorFilePath == other.mapDescriptorFilePath
             && districtNames == other.districtNames
             && districtNameIds == other.districtNameIds
-            && extraData.equal(other.extraData)
+            && extraData.get().equal(other.extraData.get())
             && std::equal(std::begin(authors), std::end(authors), std::begin(other.authors));
 }
 
@@ -402,7 +401,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         districtNames = VanillaDatabase::getVanillaDistrictNames().toStdMap();
     }
 
-    if (yaml["extraData"]) extraData = nodeToCustomData(yaml["extraData"]);
+    if (yaml["extraData"]) extraData = pybind11::dict(nodeToCustomData(yaml["extraData"]));
 
     authors.clear();
     if (yaml["authors"]) {

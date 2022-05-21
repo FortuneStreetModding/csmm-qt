@@ -20,24 +20,30 @@ static ModListType importModpackDir(const QString &modpackDir) {
     QSet<QString> modids;
 
     while (modListStream.readLineInto(&modid)) {
-        modids.insert(modid);
+        if (!modid.isEmpty()) modids.insert(modid);
+    }
+
+    QVector<QString> defaultModIds;
+    for (auto &mod: result) {
+        defaultModIds.append(mod->modId());
     }
 
     // filter out default mods that aren't from the modlist.txt
     auto removeIterator = std::remove_if(result.begin(), result.end(), [&](const auto &mod) { return !modids.contains(mod->modId()); });
-    // remove modids from modid set that are already accounted for
-    for (auto &mod: result) {
-        modids.remove(mod->modId());
-    }
     // do the actual removing
     result.erase(removeIterator, result.end());
+
+    // remove modids from modid set that are already accounted for by the default set of mods
+    for (auto &modId: defaultModIds) {
+        modids.remove(modId);
+    }
 
     // temporarily add modpack folder to python module search path
     auto sys = pybind11::module_::import("sys");
     auto copy = pybind11::module_::import("copy");
     pybind11::list sysPathCopy(copy.attr("copy")(sys.attr("path")));
     using namespace pybind11::literals;
-    sys.attr("path").attr("insert")(0, modpackDir.toUtf8().data());
+    sys.attr("path").attr("insert")(0, modpackDir);
 
     try {
         for (auto &modid: qAsConst(modids)) {
@@ -51,7 +57,7 @@ static ModListType importModpackDir(const QString &modpackDir) {
 
             qDebug() << "successfully imported user mod" << result.back()->modId();
         }
-    } catch (const pybind11::error_already_set &error) {
+    } catch (const std::runtime_error &error) {
         sys.attr("path") = sysPathCopy;
         throw error;
     }
