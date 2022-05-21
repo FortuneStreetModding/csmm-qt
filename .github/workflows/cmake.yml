@@ -43,7 +43,7 @@ jobs:
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
       run: |
-        export SPHINXBUILD=${{github.workspace}}/csmm.app/Contents/MacOS/csmm python -m sphinx
+        export SPHINXBUILD="${{github.workspace}}/csmm.app/Contents/MacOS/csmm python -m sphinx"
         make html
         cd _build
         zip "csmm-$VERSION_NAME-pydocs.zip" html
