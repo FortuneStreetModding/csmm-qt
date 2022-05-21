@@ -155,13 +155,6 @@ public:
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
-    m.doc() = R"pycsmmdoc(
-    The module for CSMM's Python API. Mod files should be .py scripts with an instance of
-    CSMMMod assigned to a variable (at module scope) named "mod". For the mod to perform
-    actual functionality onto Fortune Street, the "mod" variable instance should inherit
-    one of the mod interface classes such as GeneralInterface, ArcFileInterface, etc.
-)pycsmmdoc";
-
     pybind11::enum_<RuleSet>(m, "RuleSet", R"pycsmmdoc(
     Enum representing whether the board is easy or standard mode.
 )pycsmmdoc")
