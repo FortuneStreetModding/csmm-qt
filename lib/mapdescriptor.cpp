@@ -85,6 +85,8 @@ static pybind11::object nodeToCustomData(const YAML::Node &node) {
         }
         return dct;
     }
+    default:
+        throw std::runtime_error("malformed yaml node for extra data");
     }
 }
 
