@@ -155,6 +155,13 @@ public:
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
+    m.doc() = R"pycsmmdoc(
+    The module for CSMM's Python API. Mod files should be .py scripts with an instance of
+    CSMMMod assigned to a variable (at module scope) named "mod". For the mod to perform
+    actual functionality onto Fortune Street, the "mod" variable instance should inherit
+    one of the mod interface classes such as GeneralInterface, ArcFileInterface, etc.
+)pycsmmdoc";
+
     pybind11::enum_<RuleSet>(m, "RuleSet", R"pycsmmdoc(
     Enum representing whether the board is easy or standard mode.
 )pycsmmdoc")
@@ -385,27 +392,61 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     Additional data in the map descriptor yaml, stored in the extraData key in the yaml.
 )pycsmmdoc");
 
-    pybind11::class_<AddressMapper>(m, "AddressMapper")
-            .def("canConvertToFileAddress", &AddressMapper::canConvertToFileAddress)
-            .def("toFileAddress", &AddressMapper::toFileAddress)
-            .def("boomToFileAddress", &AddressMapper::boomToFileAddress)
-            .def("fileAddressToStandardVirtualAddress", &AddressMapper::fileAddressToStandardVirtualAddress)
-            .def("boomStreetToStandard", &AddressMapper::boomStreetToStandard)
-            .def("standardToBoomStreet", &AddressMapper::standardToBoomStreet)
-            .def("canConvertBoomStreetToStandard", &AddressMapper::canConvertBoomStreetToStandard);
+    pybind11::class_<AddressMapper>(m, "AddressMapper", R"pycsmmdoc(
+    Class for mapping between different types of addresses in the main.dol.
+)pycsmmdoc")
+            .def("canConvertToFileAddress", &AddressMapper::canConvertToFileAddress, R"pycsmmdoc(
+    Whether the given virtual address for this main.dol corresponds to a valid file address.
+)pycsmmdoc")
+            .def("toFileAddress", &AddressMapper::toFileAddress, R"pycsmmdoc(
+    Converts the given virtual address for this main.dol to the corresponding file address.
+)pycsmmdoc")
+            .def("boomToFileAddress", &AddressMapper::boomToFileAddress, R"pycsmmdoc(
+    Converts the given Boom Street virtual address to the corresponding file address.
+)pycsmmdoc")
+            .def("fileAddressToStandardVirtualAddress", &AddressMapper::fileAddressToStandardVirtualAddress, R"pycsmmdoc(
+    Converts the given file address for this main.dol to the corresponding virtual address for this main.dol.
+)pycsmmdoc")
+            .def("boomStreetToStandard", &AddressMapper::boomStreetToStandard, R"pycsmmdoc(
+    Converts the given Boom Street virtual address to this main.dol's corresponding virtual address.
+)pycsmmdoc")
+            .def("standardToBoomStreet", &AddressMapper::standardToBoomStreet, R"pycsmmdoc(
+    Converts the given virtual address for this main.dol to the corresponding Boom Street virtual address.
+)pycsmmdoc")
+            .def("canConvertBoomStreetToStandard", &AddressMapper::canConvertBoomStreetToStandard, R"pycsmmdoc(
+    Whether the given Boom Street virtual address corresponds to a valid virtual address for this main.dol.
+)pycsmmdoc");
 
-    pybind11::class_<FreeSpaceManager>(m, "FreeSpaceManager")
-            .def("addFreeSpace", &FreeSpaceManager::addFreeSpace)
-            .def("calculateTotalRemainingFreeSpace", &FreeSpaceManager::calculateTotalRemainingFreeSpace)
-            .def("calculateTotalFreeSpace", &FreeSpaceManager::calculateTotalFreeSpace)
-            .def("calculateLargestFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestFreeSpaceBlockSize)
-            .def("calculateLargestRemainingFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize)
+    pybind11::class_<FreeSpaceManager>(m, "FreeSpaceManager", R"pycsmmdoc(
+    Class for managing the free space on the main.dol.
+)pycsmmdoc")
+            .def("addFreeSpace", &FreeSpaceManager::addFreeSpace, pybind11::arg("start"), pybind11::arg("end"), R"pycsmmdoc(
+    Adds free space to the main.dol.
+)pycsmmdoc")
+            .def("calculateTotalRemainingFreeSpace", &FreeSpaceManager::calculateTotalRemainingFreeSpace, R"pycsmmdoc(
+    Returns the total remaining free space left in this main.dol.
+)pycsmmdoc")
+            .def("calculateTotalFreeSpace", &FreeSpaceManager::calculateTotalFreeSpace, R"pycsmmdoc(
+    Returns the total free space that was marked for possible allocation in this main.dol.
+)pycsmmdoc")
+            .def("calculateLargestFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestFreeSpaceBlockSize, R"pycsmmdoc(
+    Returns the largest block of free space that was marked for possible allocation in this main.dol.
+)pycsmmdoc")
+            .def("calculateLargestRemainingFreeSpaceBlockSize", &FreeSpaceManager::calculateLargestRemainingFreeSpaceBlockSize, R"pycsmmdoc(
+    Returns the largest block of free space left in this main.dol.
+)pycsmmdoc")
             .def("allocateUnusedSpace", [](FreeSpaceManager &fsm, const QByteArray &bytes, pybind11::object fileObj, const AddressMapper &fileMapper, const QString &purpose, bool reuse) {
                 PyQIODevice device(fileObj);
                 QDataStream stream(&device);
-                fsm.allocateUnusedSpace(bytes, stream, fileMapper, purpose, reuse);
-            })
-            .def("reset", &FreeSpaceManager::reset);
+                return fsm.allocateUnusedSpace(bytes, stream, fileMapper, purpose, reuse);
+            }, pybind11::arg("bytesToAllocate"), pybind11::arg("mainDolFileObj"), pybind11::arg("addressMapper"), pybind11::arg("purpose"), pybind11::arg("reuse") = true, R"pycsmmdoc(
+    Allocates the given bytes into the main.dol.
+
+    :return: the virtual address of the start of the allocated bytes.
+)pycsmmdoc")
+            .def("reset", &FreeSpaceManager::reset, R"pycsmmdoc(
+    Resets the free space manager.
+)pycsmmdoc");
 
     pybind11::class_<GameInstance>(m, "GameInstance")
             .def_property("mapDescriptors",
