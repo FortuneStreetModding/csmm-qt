@@ -6,7 +6,7 @@ Custom Street Map Manager cross-platform port
 ## Requirements
 
 - Qt 5.15.2
-- MSVC 2019 (Windows)
+- MSVC 2019 or later (Windows)
 - cmake
 
 ## Building on Windows (MinGW)
