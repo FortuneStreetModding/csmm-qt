@@ -1,5 +1,5 @@
 Welcome to pycsmm's documentation!
-================================
+==================================
 
 pycsmm is the module for CSMM's Python API. Mod files should be .py scripts with an instance of
 CSMMMod assigned to a variable (at module scope) named "mod". For the mod to perform
