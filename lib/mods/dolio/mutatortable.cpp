@@ -91,6 +91,11 @@ quint32 MutatorTable::getMutatorTableStorageAddr() const {
     return mutatorTableStorageAddr;
 }
 
+quint32 MutatorTable::getMutatorTableRoutineAddr() const {
+    return mutatorTableStorageAddr != 0 ? mutatorTableStorageAddr + 4 : 0;
+}
+
+
 void MutatorTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
     if (!isVanilla) {
         for (auto &descriptor: mapDescriptors) {

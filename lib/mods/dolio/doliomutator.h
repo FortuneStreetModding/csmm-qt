@@ -10,6 +10,7 @@ public:
 protected:
     static CSMMModHolder mutatorTableMod(const ModListType &modList);
     static quint32 mutatorTableStorageAddr(const ModListType &modList);
+    static quint32 mutatorTableRoutineAddr(const ModListType &modList);
 };
 
 #endif // DOLIOMUTATOR_H

@@ -13,6 +13,7 @@ public:
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     quint32 getMutatorTableStorageAddr() const;
+    quint32 getMutatorTableRoutineAddr() const;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;
     quint32 writeTable(const std::vector<MapDescriptor> &descriptors);

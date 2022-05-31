@@ -3,7 +3,7 @@
 #include "lib/mutator/mutator.h"
 
 void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
-    quint32 getMutatorDataSubroutine = mutatorTableStorageAddr(modList()) + 4;
+    quint32 getMutatorDataSubroutine = mutatorTableRoutineAddr(modList());
 
     // --- Base Shop Price Multiplier ---
     {

@@ -209,6 +209,8 @@ set(SOURCES
     lib/mods/dolio/doliomutator.h lib/mods/dolio/doliomutator.cpp
     lib/mods/freespace/tinydistrictsfreespace.h lib/mods/freespace/tinydistrictsfreespace.cpp
     lib/python/pyobjcopywrapper.h
+    lib/mods/dolio/arbitrarynumswitchstates.h lib/mods/dolio/arbitrarynumswitchstates.cpp
+    lib/mods/misc/readfrbfileinfo.h lib/mods/misc/readfrbfileinfo.cpp
 )
 
 qt_add_big_resources(SOURCES csmm.qrc)

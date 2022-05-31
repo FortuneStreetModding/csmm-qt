@@ -41,7 +41,9 @@
 #include "freespace/venturecardfreespace.h"
 #include "freespace/wififreespace.h"
 #include "freespace/tinydistrictsfreespace.h"
+#include "misc/readfrbfileinfo.h"
 #include "misc/defaultmiscpatches.h"
+#include "dolio/arbitrarynumswitchstates.h"
 
 namespace DefaultModList {
 
@@ -78,6 +80,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<DisplayMapInResults>());
     patches.append(CSMMModHolder::fromCppObj<TinyDistricts>());
     patches.append(CSMMModHolder::fromCppObj<NamedDistricts>());
+    patches.append(CSMMModHolder::fromCppObj<ArbitraryNumSwitchStates>());
 
     // mutators
     patches.append(CSMMModHolder::fromCppObj<MutatorTable>());
@@ -97,6 +100,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<TinyDistrictsFreeSpace>());
 
     patches.append(CSMMModHolder::fromCppObj<DefaultMiscPatches>());
+    patches.append(CSMMModHolder::fromCppObj<ReadFrbFileInfo>());
 
     return patches;
 }

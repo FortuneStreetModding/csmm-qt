@@ -23,3 +23,13 @@ quint32 DolIOMutator::mutatorTableStorageAddr(const ModListType &modList)
     }
     return castedMutatorMod->getMutatorTableStorageAddr();
 }
+
+quint32 DolIOMutator::mutatorTableRoutineAddr(const ModListType &modList)
+{
+    auto mutatorMod = mutatorTableMod(modList);
+    auto castedMutatorMod = std::dynamic_pointer_cast<const MutatorTable>(mutatorMod.modHandle());
+    if (!castedMutatorMod) {
+        throw ModException("mutator mod not found!");
+    }
+    return castedMutatorMod->getMutatorTableRoutineAddr();
+}

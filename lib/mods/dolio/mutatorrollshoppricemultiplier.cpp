@@ -39,7 +39,7 @@
 // }
 //
 void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
-    quint32 getMutatorDataSubroutine = mutatorTableStorageAddr(modList()) + 4;
+    quint32 getMutatorDataSubroutine = mutatorTableRoutineAddr(modList());
 
     // --- Mutator Dice Rolled Flag ---
     QVector<quint32> singleValue;
