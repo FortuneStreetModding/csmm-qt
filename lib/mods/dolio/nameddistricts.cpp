@@ -130,13 +130,18 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMe
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage &messages) {
-                auto districtWord = VanillaDatabase::localeToDistrictWord()[locale];
+                QString theLocale = locale;
+                if (locale == "uk") {
+                    theLocale = "en";
+                }
+
+                auto districtWord = VanillaDatabase::localeToDistrictWord()[theLocale];
                 auto districtReplaceRegex = re(districtWord + "<area>");
 
                 for (auto it=messages.begin(); it!=messages.end(); ++it) {
                     // text replace District <area> -> <area>
                     it->second.replace(districtReplaceRegex, "<area>");
-                    if (locale == "it") {
+                    if (theLocale == "it") {
                         it->second.replace("Quartiere<outline_off><n><outline_0><area>", "<area>", Qt::CaseInsensitive);
                     }
 
@@ -149,8 +154,8 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMe
                 }
 
                 for (auto &descriptor: instance.mapDescriptors()) {
-                    for (int i=0; i<descriptor.districtNames[locale].size(); ++i) {
-                        messages[descriptor.districtNameIds[i]] = descriptor.districtNames[locale][i];
+                    for (int i=0; i<descriptor.districtNames[theLocale].size(); ++i) {
+                        messages[descriptor.districtNameIds[i]] = descriptor.districtNames[theLocale][i];
                     }
                 }
             };
