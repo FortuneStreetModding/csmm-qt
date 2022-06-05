@@ -119,7 +119,7 @@ jobs:
         PYVER=$(python --version | sed 's/^Python //' | sed 's/\.[0-9]*$//g')
         mkdir "csmm-$VERSION_NAME/lib"
         mkdir "csmm-$VERSION_NAME/lib/python$PYVER"
-        cp "lib/python*.zip" "csmm-$VERSION_NAME/lib"
+        cp lib/python*.zip "csmm-$VERSION_NAME/lib"
         cp -R "lib/python$PYVER/lib-dynload"  "csmm-$VERSION_NAME/lib/python$PYVER"
     
     - name: Archive
