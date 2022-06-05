@@ -219,30 +219,48 @@ qt_add_big_resources(SOURCES csmm.qrc)
 
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+file(COPY "${Python_STDLIB}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib"
+    PATTERN "config-*/*" EXCLUDE
+    PATTERN ".DS_Store" EXCLUDE
+    PATTERN "site-packages" EXCLUDE)
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
 
-set(PYTHON_STDLIB_ZIP "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.zip")
-ZIP_PACK_TARGET(pythonStdlib ${Python_STDLIB} ${PYTHON_STDLIB_ZIP} .)
-file(GLOB PYTHON_ZLIB "${Python_STDLIB}/lib-dynload/zlib*")
+if(false)
+    if(IS_SYMLINK "${Python_STDLIB}/site-packages")
+        file(READ_SYMLINK "${Python_STDLIB}/site-packages" PY_SITE_PACKAGES)
+        if(NOT IS_ABSOLUTE "${PY_SITE_PACKAGES}")
+            get_filename_component(PY_SITE_PACKAGES_DIR "${Python_STDLIB}/site-packages" DIRECTORY)
+            set(PY_SITE_PACKAGES "${PY_SITE_PACKAGES_DIR}/${PY_SITE_PACKAGES}")
+        endif()
+    else()
+        set(PY_SITE_PACKAGES "${Python_STDLIB}/site-packages")
+    endif()
+
+    file(GLOB PIP_FILES "${PY_SITE_PACKAGES}/pip*")
+    foreach(FILE_ENTRY ${PIP_FILES})
+        file(COPY "${FILE_ENTRY}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
+    endforeach()
+endif()
 
 if(APPLE)
     set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
     set(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.icns)
     set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
-    set_source_files_properties(${PYTHON_STDLIB_ZIP} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lib")
-    set_source_files_properties(${PYTHON_ZLIB} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
-    add_executable(csmm MACOSX_BUNDLE ${SOURCES} ${APP_ICON_MACOSX} ${PYTHON_STDLIB_ZIP} ${PYTHON_ZLIB})
+    file(GLOB_RECURSE PY_STDLIB_FILES "${CMAKE_CURRENT_BINARY_DIR}/lib/python*/*")
+    foreach (PY_STDLIB_FILE ${PY_STDLIB_FILES})
+        file(RELATIVE_PATH PY_STDLIB_FILE_REL "${CMAKE_CURRENT_BINARY_DIR}/lib" ${PY_STDLIB_FILE})
+        get_filename_component(PY_STDLIB_FILE_REL_DIR ${PY_STDLIB_FILE_REL} DIRECTORY)
+        set_property(SOURCE ${PY_STDLIB_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/lib/${PY_STDLIB_FILE_REL_DIR}")
+    endforeach()
+    add_executable(csmm MACOSX_BUNDLE ${SOURCES} ${APP_ICON_MACOSX} ${PY_STDLIB_FILES})
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
-    file(COPY ${PYTHON_ZLIB} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
     add_executable(csmm ${SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
 else()
-    file(COPY ${PYTHON_ZLIB} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
     add_executable(csmm ${SOURCES})
 endif()
-
-add_dependencies(csmm pythonStdlib)
 
 set_target_properties(csmm PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
