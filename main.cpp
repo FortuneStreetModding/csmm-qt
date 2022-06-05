@@ -12,6 +12,14 @@
 
 #include "maincli.h"
 
+static void setPyHome() {
+#ifdef Q_OS_MAC
+        Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("../Resources").toStdWString().c_str());
+#else
+        Py_SetPythonHome(QApplication::applicationDirPath().toStdWString().c_str());
+#endif
+}
+
 int main(int argc, char *argv[])
 {
     bool consoleMode = argc > 1;
@@ -21,6 +29,8 @@ int main(int argc, char *argv[])
         QCoreApplication::setApplicationName("csmm");
         QCoreApplication::setApplicationVersion(QString("%1").arg(CSMM_VERSION));
 
+        setPyHome();
+
         QStringList arguments = QCoreApplication::arguments();
         // arguments.clear();
         // arguments << "csmm" << "save" << "C:\\BoomStreet\\ST7P01";
@@ -29,9 +39,12 @@ int main(int argc, char *argv[])
         QTimer::singleShot( 0, &app, &QCoreApplication::quit );
         return app.exec();
     } else {
+        QApplication app(argc, argv);
+
+        setPyHome();
+
         pybind11::scoped_interpreter guard{}; // start the python interpreter
 
-        QApplication app(argc, argv);
     #if defined( Q_OS_WIN )
         // hide console window under Windows but only if the first argument is the full path to the executable
         //  -> this indicates that the exe file has been started by mouse double click

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 
+include(FindZip.cmake)
+
 add_compile_definitions(QT_NO_KEYWORDS)
 
 if(APPLE)
@@ -215,16 +217,29 @@ set(SOURCES
 
 qt_add_big_resources(SOURCES csmm.qrc)
 
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
+
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
+
+set(PYTHON_STDLIB_ZIP "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.zip")
+ZIP_PACK_TARGET(pythonStdlib ${Python_STDLIB} ${PYTHON_STDLIB_ZIP} .)
+file(GLOB PYTHON_ZLIB "${Python_STDLIB}/lib-dynload/zlib*")
+
 if(APPLE)
     set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
     set(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.icns)
     set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
-    add_executable(csmm MACOSX_BUNDLE ${SOURCES} ${APP_ICON_MACOSX})
+    set_source_files_properties(${PYTHON_STDLIB_ZIP} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lib")
+    set_source_files_properties(${PYTHON_ZLIB} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
+    add_executable(csmm MACOSX_BUNDLE ${SOURCES} ${APP_ICON_MACOSX} ${PYTHON_STDLIB_ZIP} ${PYTHON_ZLIB})
+    add_dependencies(csmm pythonStdlib)
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
+    file(COPY ${PYTHON_ZLIB} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
     add_executable(csmm ${SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
 else()
+    file(COPY ${PYTHON_ZLIB} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/lib-dynload")
     add_executable(csmm ${SOURCES})
 endif()
 
