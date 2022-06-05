@@ -31,6 +31,9 @@ jobs:
       with:
         version: 5.15.2
         target: desktop
+    
+    - name: Install Sphinx
+      run: pip3 install sphinx
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
@@ -39,9 +42,6 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
-      
-    - name: Install Sphinx
-      run: pip3 install sphinx
     
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
@@ -111,6 +111,17 @@ jobs:
       run: |
         Copy-Item -Path "C:\Program Files\OpenSSL\bin\libcrypto-1_1-x64.dll"   -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
         Copy-Item -Path "C:\Program Files\OpenSSL\bin\libssl-1_1-x64.dll"      -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
+    
+    - name: Copy Python stdlib
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: |
+        PYVER=$(python --version | sed 's/^Python //' | sed 's/\.[0-9]*$//g')
+        mkdir "csmm-$VERSION_NAME/lib"
+        mkdir "csmm-$VERSION_NAME/lib/python$PYVER"
+        cp lib/python*.zip "csmm-$VERSION_NAME/lib"
+        cp -R "lib/python$PYVER/lib-dynload"  "csmm-$VERSION_NAME/lib/python$PYVER"
+    
     - name: Archive
       uses: thedoctor0/zip-release@master
       with:
