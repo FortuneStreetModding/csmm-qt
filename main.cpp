@@ -22,6 +22,11 @@ static void setPyHome() {
 
 int main(int argc, char *argv[])
 {
+    // HACK: we need ENSUREPIP_OPTIONS set on Unix b/c pip otherwise thinks we're using a framework
+    if (qEnvironmentVariableIsEmpty("ENSUREPIP_OPTIONS")) {
+        qputenv("ENSUREPIP_OPTIONS", "1");
+    }
+
     bool consoleMode = argc > 1;
     // consoleMode = true;
     if(consoleMode) {

@@ -115,9 +115,9 @@ void run(QStringList arguments)
     QSharedPointer<QTextStream> coutp(parser.isSet(quietOption)? new QTextStream(&b): new QTextStream(stdout));
     QTextStream& cout = *coutp;
 
-    try {
-        pybind11::scoped_interpreter guard{}; // start the python interpreter
+    pybind11::scoped_interpreter guard{};
 
+    try {
         const QStringList args = parser.positionalArguments();
         const QString command = args.isEmpty() ? QString() : args.first();
 

@@ -226,23 +226,6 @@ file(COPY "${Python_STDLIB}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib"
     PATTERN "site-packages" EXCLUDE)
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
 
-if(false)
-    if(IS_SYMLINK "${Python_STDLIB}/site-packages")
-        file(READ_SYMLINK "${Python_STDLIB}/site-packages" PY_SITE_PACKAGES)
-        if(NOT IS_ABSOLUTE "${PY_SITE_PACKAGES}")
-            get_filename_component(PY_SITE_PACKAGES_DIR "${Python_STDLIB}/site-packages" DIRECTORY)
-            set(PY_SITE_PACKAGES "${PY_SITE_PACKAGES_DIR}/${PY_SITE_PACKAGES}")
-        endif()
-    else()
-        set(PY_SITE_PACKAGES "${Python_STDLIB}/site-packages")
-    endif()
-
-    file(GLOB PIP_FILES "${PY_SITE_PACKAGES}/pip*")
-    foreach(FILE_ENTRY ${PIP_FILES})
-        file(COPY "${FILE_ENTRY}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
-    endforeach()
-endif()
-
 if(APPLE)
     set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
     set(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.icns)
