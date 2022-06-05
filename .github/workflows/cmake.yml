@@ -25,6 +25,7 @@ jobs:
         brew install libarchive
         brew install yaml-cpp
         brew install ninja
+        brew install python
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2.14.0
