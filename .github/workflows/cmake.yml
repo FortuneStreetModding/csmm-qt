@@ -115,9 +115,14 @@ jobs:
       run: windeployqt "csmm-$VERSION_NAME/csmm.exe"
 
     - name: Copy dlls
+      working-directory: ${{github.workspace}}
+      shell: bash
       run: |
-        Copy-Item -Path "C:\Program Files\OpenSSL\bin\libcrypto-1_1-x64.dll"   -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
-        Copy-Item -Path "C:\Program Files\OpenSSL\bin\libssl-1_1-x64.dll"      -Destination ${{github.workspace}}/csmm-$env:VERSION_NAME
+        PYVER=$(python --version | sed 's/Python //')
+        CONDENSEDPYVER=$(echo $PYVER | sed 's/\([0-9]*\)\.\([0-9]*\).*/\1\2/')
+        cp "C:\Program Files\OpenSSL\bin\libcrypto-1_1-x64.dll" "csmm-$VERSION_NAME"
+        cp "C:\Program Files\OpenSSL\bin\libssl-1_1-x64.dll" "csmm-$VERSION_NAME"
+        cp "C:\hostedtoolcache\windows\Python\$PYVER\x64\python$CONDENSEDPYVER.dll" "csmm-$VERSION_NAME"
     
     - name: Copy Python stdlib
       working-directory: ${{github.workspace}}
