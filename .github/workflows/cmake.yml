@@ -31,9 +31,6 @@ jobs:
       with:
         version: 5.15.2
         target: desktop
-    
-    - name: Install Sphinx
-      run: pip3 install sphinx
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
@@ -42,6 +39,16 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
+    
+    - name: Install Pip in CSMM
+      working-directory: ${{github.workspace}}
+      run: |
+        wget https://bootstrap.pypa.io/get-pip.py
+        csmm.app/Contents/MacOS/csmm python get-pip.py
+    
+    - name: Install Sphinx
+      working-directory: ${{github.workspace}}
+      run: csmm.app/Contents/MacOS/csmm python -m pip install sphinx
     
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
@@ -116,11 +123,8 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: bash
       run: |
-        PYVER=$(python --version | sed 's/^Python //' | sed 's/\.[0-9]*$//g')
-        mkdir "csmm-$VERSION_NAME/lib"
-        mkdir "csmm-$VERSION_NAME/lib/python$PYVER"
-        cp lib/python*.zip "csmm-$VERSION_NAME/lib"
-        cp -R "lib/python$PYVER/lib-dynload"  "csmm-$VERSION_NAME/lib/python$PYVER"
+        mkdir "csmm-$VERSION_NAME/py"
+        cp -R "py/Lib" "csmm-$VERSION_NAME/py"
     
     - name: Archive
       uses: thedoctor0/zip-release@master
