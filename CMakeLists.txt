@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.3)
 
-include(FindZip.cmake)
-
 add_compile_definitions(QT_NO_KEYWORDS)
 
 if(APPLE)
@@ -220,7 +218,7 @@ qt_add_big_resources(SOURCES csmm.qrc)
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 
 if(WIN32)
-    set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}")
+    set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}/py")
 else()
     set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}/lib")
 endif()
@@ -309,6 +307,6 @@ set_target_properties(csmm PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
     MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
+    WIN32_EXECUTABLE FALSE
 )
 

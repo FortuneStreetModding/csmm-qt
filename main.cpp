@@ -5,6 +5,7 @@
 
 #include "lib/python/pythonbindings.h"
 #include <pybind11/embed.h>
+#include <iostream>
 
 #if defined( Q_OS_WIN )
 #include <windows.h>
@@ -16,7 +17,7 @@ static void setPyHome() {
 #ifdef Q_OS_MAC
         Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("../Resources").toStdWString().c_str());
 #else
-        Py_SetPythonHome(QApplication::applicationDirPath().toStdWString().c_str());
+        Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("py").toStdWString().c_str());
 #endif
 }
 

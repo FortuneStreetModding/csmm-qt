@@ -37,7 +37,7 @@ void run(QStringList arguments)
     *         |   o   |o/ | |____ ____) | |  | | |  | |            *
     *         | o   o |/   \_____|_____/|_|  |_|_|  |_|            *
     *         '-------'                                            *
-    *                     Custom Street Map Manager %1.%2.%3          *
+    *                     Custom Street Map Manager %1          *
     *                                                              *
     *                     github.com/FortuneStreetModding          *
     *                                                              *
