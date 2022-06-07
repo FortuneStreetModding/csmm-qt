@@ -26,6 +26,10 @@ public:
      * @return a set of modids of mods that this mod should run after but are not necessarily required
      */
     virtual QSet<QString> after() const { return {}; }
+    /**
+     * @return a set of modids of mods that this mod should run before but are not necessarily required
+     */
+    virtual QSet<QString> before() const { return {}; }
 
     /**
      * @return the modpack directory, useful for loading configuration file(s)

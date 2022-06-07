@@ -14,12 +14,20 @@ public:
     CSMMModpack(GameInstance &gameInstance, InputIterator modsStart, InputIterator modsEnd) : gameInstance(gameInstance) {
         QMap<int, QHash<QString, CSMMModHolder>> modTable;
         QHash<QString, CSMMModHolder> priorityIndependentModTable;
+        QMultiHash<QString, QString> afters;
         for (auto it = modsStart; it != modsEnd; ++it) {
             modTable[-(*it)->priority()][(*it)->modId()] = *it; // store negative priority so that higher priority is visited first
             if (priorityIndependentModTable.contains((*it)->modId())) {
                 throw ModException(QString("duplicate mod '%1' detected").arg((*it)->modId()));
             }
             priorityIndependentModTable[(*it)->modId()] = *it;
+            auto beforesForMod = (*it)->before(), aftersForMod = (*it)->after();
+            for (auto &nxtId: beforesForMod) {
+                afters.insert(nxtId, (*it)->modId());
+            }
+            for (auto &prevId: aftersForMod) {
+                afters.insert((*it)->modId(), prevId);
+            }
         }
 
         // marks for the vertices (mod ids) in the topological sort
@@ -47,7 +55,7 @@ public:
                     }
                 }
 
-                auto after = mod->after();
+                auto after = afters.values(modid);
 
                 for (auto &nxt: after) {
                     if (modTableForPriority.contains(nxt)) {

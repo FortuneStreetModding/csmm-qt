@@ -484,6 +484,9 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def("after", &CSMMMod::after, R"pycsmmdoc(
     A set of mod ids of mods that this mod must load after; this does NOT necessarily make said mods required.
 )pycsmmdoc")
+            .def("before", &CSMMMod::before, R"pycsmmdoc(
+    A set of mod ids of mods that this mod must load before; this does NOT necessarily make said mods required.
+)pycsmmdoc")
             .def("modpackDir", &CSMMMod::modpackDir, R"pycsmmdoc(
     The modpack directory, useful for loading config files. Will be an empty string if the default modpack is
     being used.
