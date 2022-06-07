@@ -66,7 +66,7 @@ class PyQIODevice : public QIODevice {
 public:
     PyQIODevice(pybind11::object obj) : obj(obj) {}
     bool isSequential() const override {
-        return obj.attr("seekable")().cast<bool>();
+        return !obj.attr("seekable")().cast<bool>();
     }
     bool seek(qint64 pos) override {
         obj.attr("seek")(pos);
@@ -115,7 +115,7 @@ public:
     using ArcFileInterface::ArcFileInterface;
 
     QMap<QString, ModifyArcFunction> modifyArcFile() override {
-        PYBIND11_OVERRIDE_PURE(ResultType, ArcFileInterface, modifyArcFile);
+        PYBIND11_OVERRIDE(ResultType, ArcFileInterface, modifyArcFile);
     }
 };
 
@@ -124,10 +124,10 @@ public:
     using GeneralInterface::GeneralInterface;
 
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
-        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, loadFiles, root, gameInstance, modList);
+        PYBIND11_OVERRIDE(void, GeneralInterface, loadFiles, root, gameInstance, modList);
     }
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
-        PYBIND11_OVERRIDE_PURE(void, GeneralInterface, saveFiles, root, gameInstance, modList);
+        PYBIND11_OVERRIDE(void, GeneralInterface, saveFiles, root, gameInstance, modList);
     }
 };
 
@@ -139,16 +139,16 @@ public:
     using UiMessageInterface::UiMessageInterface;
 
     QMap<QString, LoadMessagesFunction> loadUiMessages() override {
-        PYBIND11_OVERRIDE_PURE(LoadResultType, UiMessageInterface, loadUiMessages);
+        PYBIND11_OVERRIDE(LoadResultType, UiMessageInterface, loadUiMessages);
     }
     QMap<QString, SaveMessagesFunction> freeUiMessages() override {
-        PYBIND11_OVERRIDE_PURE(SaveResultType, UiMessageInterface, freeUiMessages);
+        PYBIND11_OVERRIDE(SaveResultType, UiMessageInterface, freeUiMessages);
     }
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
-        PYBIND11_OVERRIDE_PURE(void, UiMessageInterface, allocateUiMessages, root, gameInstance, modList);
+        PYBIND11_OVERRIDE(void, UiMessageInterface, allocateUiMessages, root, gameInstance, modList);
     }
     QMap<QString, SaveMessagesFunction> saveUiMessages() override {
-        PYBIND11_OVERRIDE_PURE(SaveResultType, UiMessageInterface, saveUiMessages);
+        PYBIND11_OVERRIDE(SaveResultType, UiMessageInterface, saveUiMessages);
     }
 };
 

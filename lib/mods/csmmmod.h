@@ -18,7 +18,7 @@ public:
      * @brief Used to modify .arc files on save.
      * @return a mapping from the .arc file path relative to the game root to the function used to modify the .arc
      */
-    virtual QMap<QString, ModifyArcFunction> modifyArcFile() = 0;
+    virtual QMap<QString, ModifyArcFunction> modifyArcFile() { return {}; };
 
     virtual ~ArcFileInterface() {}
 };
@@ -31,7 +31,7 @@ public:
      * @param gameInstance the game instance
      * @param modList the mod list
      */
-    virtual void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) = 0;
+    virtual void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {};
 
     /**
      * @brief Modifies game files
@@ -39,7 +39,7 @@ public:
      * @param gameInstance the game instance
      * @param modList the mod list
      */
-    virtual void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) = 0;
+    virtual void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {};
 
     virtual ~GeneralInterface() {}
 };
@@ -58,22 +58,22 @@ public:
     /**
      * @return a mapping from the language file path relative to root to a function for loading that language file
      */
-    virtual QMap<QString, LoadMessagesFunction> loadUiMessages() = 0;
+    virtual QMap<QString, LoadMessagesFunction> loadUiMessages() { return {}; };
     /**
      * @return a mapping from the language file path relative to root to a function for freeing old l10n ids
      */
-    virtual QMap<QString, SaveMessagesFunction> freeUiMessages() = 0;
+    virtual QMap<QString, SaveMessagesFunction> freeUiMessages() { return {}; };
     /**
      * @brief Allocates new localization message ids.
      * @param root the root directory of the game
      * @param gameInstance the game instance object
      * @param modList the mod list
      */
-    virtual void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) = 0;
+    virtual void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) {};
     /**
      * @return a mapping from the language file path relative to root to a function for saving to the language file
      */
-    virtual QMap<QString, SaveMessagesFunction> saveUiMessages() = 0;
+    virtual QMap<QString, SaveMessagesFunction> saveUiMessages() { return {}; };
     virtual ~UiMessageInterface() {}
 };
 
