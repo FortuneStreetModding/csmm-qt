@@ -32,8 +32,8 @@ static const auto REG_WIFI = re("Nintendo\\s(?:Wi-Fi\\sConnection|WFC)");
 QMap<QString, UiMessageInterface::SaveMessagesFunction> WifiFix::saveUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage &messages) {
-            for (auto it=messages.begin(); it!=messages.end(); ++it) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage *messages) {
+            for (auto it=messages->begin(); it!=messages->end(); ++it) {
                 // text replace Nintendo WFC -> Wiimmfi
                 if (locale == "de") {
                     it->second.replace(REG_WIFI_DE, "Wiimmfi");

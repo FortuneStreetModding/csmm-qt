@@ -111,7 +111,7 @@ public:
             if (modToLoaders.contains(mod->modId())) {
                 auto &loaders = modToLoaders[mod->modId()];
                 for (auto it = loaders.begin(); it != loaders.end(); ++it) {
-                    it.value()(root, gameInstance, modList, messageFiles[it.key()]);
+                    it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
                 }
             }
         }
@@ -172,7 +172,7 @@ public:
             if (messageFreers.contains(mod->modId())) {
                 auto &freers = messageFreers[mod->modId()];
                 for (auto it=freers.begin(); it!=freers.end(); ++it) {
-                    it.value()(root, gameInstance, modList, messageFiles[it.key()]);
+                    it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
                 }
             }
 
@@ -185,7 +185,7 @@ public:
                 qDebug() << "saving ui messages";
                 auto &savers = messageSavers[mod->modId()];
                 for (auto it=savers.begin(); it!=savers.end(); ++it) {
-                    it.value()(root, gameInstance, modList, messageFiles[it.key()]);
+                    it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
                 }
             }
             auto generalFileInterface = mod.getCapability<GeneralInterface>();

@@ -49,11 +49,11 @@ public:
     /**
      * @brief These functions take the UiMessage to be loaded as the last argument.
      */
-    typedef std::function<void(const QString &, GameInstance &, const ModListType &, const UiMessage &)> LoadMessagesFunction;
+    typedef std::function<void(const QString &, GameInstance &, const ModListType &, const UiMessage *)> LoadMessagesFunction;
     /**
      * @brief These functions take the UiMessage to be manipulated as the last argument.
      */
-    typedef std::function<void(const QString &, GameInstance &, const ModListType &, UiMessage &)> SaveMessagesFunction;
+    typedef std::function<void(const QString &, GameInstance &, const ModListType &, UiMessage *)> SaveMessagesFunction;
 
     /**
      * @return a mapping from the language file path relative to root to a function for loading that language file

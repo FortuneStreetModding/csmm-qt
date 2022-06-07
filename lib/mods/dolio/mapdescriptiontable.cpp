@@ -79,9 +79,9 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> MapDescriptionTable::loa
     QMap<QString, UiMessageInterface::LoadMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
         if (locale == "uk") continue;
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage &messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage *messages) {
             for (auto &descriptor: instance.mapDescriptors()) {
-                descriptor.descs[locale] = messages.at(descriptor.descMsgId);
+                descriptor.descs[locale] = messages->at(descriptor.descMsgId);
             }
         };
     }
@@ -91,9 +91,9 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> MapDescriptionTable::loa
 QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::freeUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage &messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage *messages) {
             for (auto &descriptor: gameInstance.mapDescriptors()) {
-                messages.erase(descriptor.descMsgId);
+                messages->erase(descriptor.descMsgId);
             }
         };
     }
@@ -109,7 +109,7 @@ void MapDescriptionTable::allocateUiMessages(const QString &, GameInstance &game
 QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::saveUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage &messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage *messages) {
             QString theLocale = locale == "uk" ? "en" : locale;
             bool addAuthorToDesc = true;
             if (!modpackDir().isEmpty()) {
@@ -122,7 +122,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::sav
                 }
             }
             for (auto &descriptor: instance.mapDescriptors()) {
-                messages[descriptor.descMsgId] = descriptor.descs[theLocale] + (addAuthorToDesc && !descriptor.authors.empty()
+                (*messages)[descriptor.descMsgId] = descriptor.descs[theLocale] + (addAuthorToDesc && !descriptor.authors.empty()
                                                                                 ? " [" + QStringList(descriptor.authors.begin(), descriptor.authors.end()).join(", ") + "]"
                                                                                 : "");
             }

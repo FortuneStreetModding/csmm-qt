@@ -56,9 +56,9 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> StageNameIDTable::loadUi
     QMap<QString, UiMessageInterface::LoadMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
         if (locale == "uk") continue;
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage &messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage *messages) {
             for (auto &descriptor: instance.mapDescriptors()) {
-                descriptor.names[locale] = messages.at(descriptor.nameMsgId);
+                descriptor.names[locale] = messages->at(descriptor.nameMsgId);
             }
         };
     }
@@ -68,9 +68,9 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> StageNameIDTable::loadUi
 QMap<QString, UiMessageInterface::SaveMessagesFunction> StageNameIDTable::freeUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage &messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage *messages) {
             for (auto &descriptor: gameInstance.mapDescriptors()) {
-                messages.erase(descriptor.nameMsgId);
+                messages->erase(descriptor.nameMsgId);
             }
         };
     }
@@ -86,13 +86,13 @@ void StageNameIDTable::allocateUiMessages(const QString &, GameInstance &gameIns
 QMap<QString, UiMessageInterface::SaveMessagesFunction> StageNameIDTable::saveUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage &messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage *messages) {
             QString theLocale = locale;
             if (locale == "uk") {
                 theLocale = "en";
             }
             for (auto &descriptor: instance.mapDescriptors()) {
-                messages[descriptor.nameMsgId] = descriptor.names[theLocale];
+                (*messages)[descriptor.nameMsgId] = descriptor.names[theLocale];
             }
         };
     }

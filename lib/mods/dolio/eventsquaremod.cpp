@@ -401,10 +401,10 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> EventSquareMod::freeUiMe
 {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage &messages) {
-            messages.erase(eventSquareId);
-            messages.erase(freeParkingId);
-            messages.erase(freeParkingDescId);
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage *messages) {
+            messages->erase(eventSquareId);
+            messages->erase(freeParkingId);
+            messages->erase(freeParkingDescId);
         };
     }
     return result;
@@ -451,13 +451,13 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> EventSquareMod::saveUiMe
 {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage &messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage *messages) {
             // add msg id for event square
-            messages[eventSquareId] = EVENT_SQUARE_LOC[locale];
+            (*messages)[eventSquareId] = EVENT_SQUARE_LOC[locale];
             // add msg id for free parking square
-            messages[freeParkingId] = FREE_PARKING_LOC[locale];
+            (*messages)[freeParkingId] = FREE_PARKING_LOC[locale];
             // add msg id for free parking square description
-            messages[freeParkingDescId] = FREE_PARKING_DESC_LOC[locale];
+            (*messages)[freeParkingDescId] = FREE_PARKING_DESC_LOC[locale];
         };
     }
     return result;
