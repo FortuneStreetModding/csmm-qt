@@ -106,6 +106,9 @@ public:
     QSet<QString> after() const override {
         PYBIND11_OVERRIDE(QSet<QString>, CSMMMod, after);
     }
+    QSet<QString> before() const override {
+        PYBIND11_OVERRIDE(QSet<QString>, CSMMMod, before);
+    }
 };
 
 class PyArcFileInterface : public ArcFileInterface {
