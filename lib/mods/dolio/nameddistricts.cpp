@@ -102,20 +102,6 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> NamedDistricts::loadUiMe
     return result;
 }
 
-QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::freeUiMessages() {
-    QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
-    for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage *messages) {
-            for (auto &descriptor: gameInstance.mapDescriptors()) {
-                for (int id: qAsConst(descriptor.districtNameIds)) {
-                    messages->erase(id);
-                }
-            }
-        };
-    }
-    return result;
-}
-
 void NamedDistricts::allocateUiMessages(const QString &, GameInstance &gameInstance, const ModListType &) {
     for (auto &descriptor: gameInstance.mapDescriptors()) {
         descriptor.districtNameIds.clear();

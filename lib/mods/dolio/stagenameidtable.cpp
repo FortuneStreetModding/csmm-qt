@@ -65,18 +65,6 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> StageNameIDTable::loadUi
     return result;
 }
 
-QMap<QString, UiMessageInterface::SaveMessagesFunction> StageNameIDTable::freeUiMessages() {
-    QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
-    for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage *messages) {
-            for (auto &descriptor: gameInstance.mapDescriptors()) {
-                messages->erase(descriptor.nameMsgId);
-            }
-        };
-    }
-    return result;
-}
-
 void StageNameIDTable::allocateUiMessages(const QString &, GameInstance &gameInstance, const ModListType &) {
     for (auto &descriptor: gameInstance.mapDescriptors()) {
         descriptor.nameMsgId = gameInstance.nextUiMessageId();

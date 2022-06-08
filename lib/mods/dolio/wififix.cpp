@@ -10,11 +10,6 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> WifiFix::loadUiMessages(
     return {};
 }
 
-QMap<QString, UiMessageInterface::SaveMessagesFunction> WifiFix::freeUiMessages() {
-    // crab nothing to do crab
-    return {};
-}
-
 void WifiFix::allocateUiMessages(const QString &, GameInstance &, const ModListType &) {
     // crab nothing to do crab
 }

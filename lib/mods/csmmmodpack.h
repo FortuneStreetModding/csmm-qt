@@ -118,7 +118,7 @@ public:
     }
 
     void save(const QString &root) {
-        QHash<QString, QMap<QString, UiMessageInterface::SaveMessagesFunction>> messageFreers, messageSavers;
+        QHash<QString, QMap<QString, UiMessageInterface::SaveMessagesFunction>> messageSavers;
         QHash<QString, QMap<QString, ArcFileInterface::ModifyArcFunction>> arcModifiers;
         QMap<QString, UiMessage> messageFiles;
         QTemporaryDir arcFilesDir;
@@ -131,15 +131,10 @@ public:
         for (auto &mod: modList) {
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {
-                auto freers = uiMessageInterface->freeUiMessages();
                 auto savers = uiMessageInterface->saveUiMessages();
-                for (auto it = freers.begin(); it != freers.end(); ++it) {
-                    messageFiles[it.key()]; // create blank uimessage
-                }
                 for (auto it = savers.begin(); it != savers.end(); ++it) {
                     messageFiles[it.key()]; // create blank uimessage
                 }
-                messageFreers[mod->modId()] = std::move(freers);
                 messageSavers[mod->modId()] = std::move(savers);
             }
             auto arcFileInterface = mod.getCapability<ArcFileInterface>();
@@ -168,13 +163,6 @@ public:
 
         for (auto &mod: modList) {
             qDebug() << QString("saving mod '%1'").arg(mod->modId());
-
-            if (messageFreers.contains(mod->modId())) {
-                auto &freers = messageFreers[mod->modId()];
-                for (auto it=freers.begin(); it!=freers.end(); ++it) {
-                    it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
-                }
-            }
 
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {

@@ -60,10 +60,6 @@ public:
      */
     virtual QMap<QString, LoadMessagesFunction> loadUiMessages() { return {}; };
     /**
-     * @return a mapping from the language file path relative to root to a function for freeing old l10n ids
-     */
-    virtual QMap<QString, SaveMessagesFunction> freeUiMessages() { return {}; };
-    /**
      * @brief Allocates new localization message ids.
      * @param root the root directory of the game
      * @param gameInstance the game instance object

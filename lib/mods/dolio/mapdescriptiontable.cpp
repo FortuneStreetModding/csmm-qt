@@ -88,18 +88,6 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> MapDescriptionTable::loa
     return result;
 }
 
-QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::freeUiMessages() {
-    QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
-    for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &gameInstance, const ModListType &, UiMessage *messages) {
-            for (auto &descriptor: gameInstance.mapDescriptors()) {
-                messages->erase(descriptor.descMsgId);
-            }
-        };
-    }
-    return result;
-}
-
 void MapDescriptionTable::allocateUiMessages(const QString &, GameInstance &gameInstance, const ModListType &) {
     for (auto &descriptor: gameInstance.mapDescriptors()) {
         descriptor.descMsgId = gameInstance.nextUiMessageId();

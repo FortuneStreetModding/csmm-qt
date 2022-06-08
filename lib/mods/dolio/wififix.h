@@ -10,7 +10,6 @@ public:
     QString modId() const override { return MODID.data(); }
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
-    QMap<QString, SaveMessagesFunction> freeUiMessages() override;
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;
 protected:

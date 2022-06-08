@@ -144,9 +144,6 @@ public:
     QMap<QString, LoadMessagesFunction> loadUiMessages() override {
         PYBIND11_OVERRIDE(LoadResultType, UiMessageInterface, loadUiMessages);
     }
-    QMap<QString, SaveMessagesFunction> freeUiMessages() override {
-        PYBIND11_OVERRIDE(SaveResultType, UiMessageInterface, freeUiMessages);
-    }
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
         PYBIND11_OVERRIDE(void, UiMessageInterface, allocateUiMessages, root, gameInstance, modList);
     }
@@ -541,13 +538,6 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
     the list of mods, and the mapping from localization ID to string that was parsed from the localization file.
     Each callback should save any new localization messages as it pleases by modifying the provided localization ID
-    to string mapping.
-)pycsmmdoc")
-            .def("freeUiMessages", &UiMessageInterface::freeUiMessages, R"pycsmmdoc(
-    Returns a mapping from localization file (relative to the root of the Fortune Street game folder) to callback.
-    Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
-    the list of mods, and the mapping from localization ID to string that was parsed from the localization file.
-    Each callback should free any relevant old localization IDs as it pleases by modifying the provided localization ID
     to string mapping.
 )pycsmmdoc")
             .def("allocateUiMessages", &UiMessageInterface::allocateUiMessages, R"pycsmmdoc(

@@ -397,19 +397,6 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> EventSquareMod::loadUiMe
     return {};
 }
 
-QMap<QString, UiMessageInterface::SaveMessagesFunction> EventSquareMod::freeUiMessages()
-{
-    QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
-    for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage *messages) {
-            messages->erase(eventSquareId);
-            messages->erase(freeParkingId);
-            messages->erase(freeParkingDescId);
-        };
-    }
-    return result;
-}
-
 void EventSquareMod::allocateUiMessages(const QString &, GameInstance &instance, const ModListType &)
 {
     eventSquareId = instance.nextUiMessageId();
