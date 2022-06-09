@@ -82,10 +82,12 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<NamedDistricts>());
     patches.append(CSMMModHolder::fromCppObj<ArbitraryNumSwitchStates>());
 
+#if 0
     // mutators
     patches.append(CSMMModHolder::fromCppObj<MutatorTable>());
     patches.append(CSMMModHolder::fromCppObj<MutatorRollShopPriceMultiplier>());
     patches.append(CSMMModHolder::fromCppObj<MutatorShopPriceMultiplier>());
+#endif
 
     patches.append(CSMMModHolder::fromCppObj<ExpandMapsInZone>());
 
