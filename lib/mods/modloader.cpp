@@ -5,6 +5,47 @@
 
 namespace ModLoader {
 
+static QRegularExpression modListSplit("\\s+|\\b", QRegularExpression::UseUnicodePropertiesOption);
+
+static QSet<QString> parseModListFile(QTextStream &stream, const ModListType &defaultModList) {
+    QSet<QString> result;
+    int isRelative = -1;
+    QString line;
+    while (stream.readLineInto(&line)) {
+        int commentIdx = line.indexOf("#");
+        if (commentIdx < 0) commentIdx = line.size();
+        auto splitLine = line.left(commentIdx).split(modListSplit, Qt::SkipEmptyParts);
+        if (!splitLine.empty()) {
+            bool isCurLineRelative = (splitLine[0] == "+" || splitLine[0] == "-");
+            if (isRelative < 0) {
+                isRelative = isCurLineRelative;
+                if (isRelative) {
+                    for (auto &mod: defaultModList) {
+                        result.insert(mod->modId());
+                    }
+                }
+            } else if (isRelative != isCurLineRelative) {
+                throw ModException(QString("mixing absolute and relative modid specifiers; offending line: %1").arg(line));
+            }
+            if (splitLine.size() != (isRelative ? 2 : 1)) {
+                throw ModException(QString("extraneous tokens; offending line: %1").arg(line));
+            }
+            if (isRelative && splitLine[0] == "-") {
+                if (!result.contains(splitLine.back())) {
+                    throw ModException(QString("mod to remove doesn't exist; offending line: %1").arg(line));
+                }
+                result.remove(splitLine.back());
+            } else {
+                if (result.contains(splitLine.front())) {
+                    throw ModException(QString("mod to add is duplicated; offending line: %1").arg(line));
+                }
+                result.insert(splitLine.back());
+            }
+        }
+    }
+    return result;
+}
+
 static ModListType importModpackDir(const QString &modpackDir) {
     ModListType result(DefaultModList::defaultModList());
 
@@ -15,13 +56,8 @@ static ModListType importModpackDir(const QString &modpackDir) {
 
     QTextStream modListStream(&modListFile);
     modListStream.setCodec("UTF-8");
-    QString modid;
 
-    QSet<QString> modids;
-
-    while (modListStream.readLineInto(&modid)) {
-        if (!modid.isEmpty()) modids.insert(modid);
-    }
+    QSet<QString> modids = parseModListFile(modListStream, result);
 
     QVector<QString> defaultModIds;
     for (auto &mod: result) {
