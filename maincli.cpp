@@ -14,6 +14,7 @@
 #include "lib/datafileset.h"
 #include "lib/mods/csmmmodpack.h"
 #include "lib/mods/modloader.h"
+#include "lib/mods/defaultmodlist.h"
 #include <pybind11/embed.h>
 
 namespace maincli {
@@ -80,6 +81,7 @@ void run(QStringList arguments)
   pack            Pack a Fortune Street game directory to a disc image (pending changes must be saved prior).
   download-tools  Downloads the external tools that CSMM requires.
   python          Run CSMM's embedded Python interpreter
+  default-modlist Output a list of default mod ids
 )").remove(0,1);
 
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsOptions);
@@ -125,6 +127,11 @@ void run(QStringList arguments)
             cout << description;
             cout << parser.helpText();
             cout << commandsDescription;
+        } else if (command == "default-modlist") {
+            auto defaultModList = DefaultModList::defaultModList();
+            for (auto &mod: defaultModList) {
+                cout << mod->modId() << "\n";
+            }
         } else if (command == "extract") {
             // --- extract ---
             setupSubcommand(parser, "extract", "Extract a Fortune Street game disc image to a directory. This is equivalent to\n  wit copy --psel data --preserve --fst source extractDir");
