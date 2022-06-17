@@ -3,6 +3,7 @@
 #include "lib/datafileset.h"
 #include "lib/fslocale.h"
 #include "lib/uigame013.h"
+#include "lib/uigame052.h"
 #include "lib/vanilladatabase.h"
 
 void NamedDistricts::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
@@ -157,8 +158,10 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> NamedDistricts::modifyArcFile
     for (auto &locale: FS_LOCALES) {
         result[gameBoardArc(locale)] = [&](const QString &, GameInstance &, const ModListType &, const QString &tmpDir) {
             auto brlytFile = QDir(tmpDir).filePath("arc/blyt/ui_game_013.brlyt");
-
             Ui_game_013::widenDistrictName(brlytFile);
+
+            brlytFile = QDir(tmpDir).filePath("arc/blyt/ui_game_052.brlyt");
+            Ui_game_052::widenDistrictName(brlytFile);
         };
     }
     return result;
