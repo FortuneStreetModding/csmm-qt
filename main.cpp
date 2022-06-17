@@ -42,8 +42,7 @@ int main(int argc, char *argv[])
         // arguments << "csmm" << "save" << "C:\\BoomStreet\\ST7P01";
         maincli::run(arguments);
 
-        QTimer::singleShot( 0, &app, &QCoreApplication::quit );
-        return app.exec();
+        return 0;
     } else {
         QApplication app(argc, argv);
 

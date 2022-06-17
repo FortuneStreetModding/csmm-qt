@@ -1,9 +1,10 @@
 #include "maincli.h"
 
-#include<QBuffer>
-#include<QTimer>
-#include<QCommandLineParser>
-#include<QTemporaryDir>
+#include <QBuffer>
+#include <QTimer>
+#include <QCommandLineParser>
+#include <QTemporaryDir>
+//#include <filesystem>
 
 #include "lib/await.h"
 #include "lib/asyncfuture.h"
@@ -149,10 +150,10 @@ void run(QStringList arguments)
                 QFileInfo sourceFileInfo(source);
                 if(!sourceFileInfo.exists()) {
                     cout << source << " does not exist.\n";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 } else if(!sourceFileInfo.isFile()) {
                     cout << source << " is not a file.\n";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 const QString target = args.size() >= 3? args.at(2) : QDir::current().filePath(sourceFileInfo.baseName());
                 const QDir targetDir(target);
@@ -163,7 +164,7 @@ void run(QStringList arguments)
 
                     } else {
                         cout << "Cannot extract as " << target << " already exists. Use force option to overwrite.\n";
-                        QCoreApplication::exit(1); return;
+                        exit(1);
                     }
                 } else {
                     targetDir.mkpath(".");
@@ -192,7 +193,7 @@ void run(QStringList arguments)
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
                     cout << source << " does not exist.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 const QString target = args.size() >= 3? args.at(2) : QDir::current().path();
                 QDir targetDir(target);
@@ -206,7 +207,7 @@ void run(QStringList arguments)
                 auto descriptors = gameInstance.mapDescriptors();
                 if (descriptors.empty()) {
                     cout << source << " is not a proper Fortune Street directory.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 QString internalNames = parser.value(internalNamesOption);
                 QStringList internalNamesList = internalNames.split(",");
@@ -271,13 +272,13 @@ void run(QStringList arguments)
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
                     cout << source << " does not exist.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 const QString yaml = args.at(2);
                 const QFile yamlFile(yaml);
                 if(!yamlFile.exists()) {
                     cout << yaml << " does not exist.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
                 if(!file.exists()) {
@@ -288,7 +289,7 @@ void run(QStringList arguments)
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
                         cout << source << " is not a proper Fortune Street directory.";
-                        QCoreApplication::exit(1); return;
+                        exit(1);
                     }
                     Configuration::save(sourceDir.filePath("csmm_pending_changes.csv"), descriptors);
                 }
@@ -312,7 +313,7 @@ void run(QStringList arguments)
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
                     cout << source << " does not exist.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
                 if(file.exists()) {
@@ -325,7 +326,7 @@ void run(QStringList arguments)
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
                         cout << source << " is not a proper Fortune Street directory.";
-                        QCoreApplication::exit(1); return;
+                        exit(1);
                     }
                     cout << Configuration::status(descriptors, sourceDir.filePath("csmm_pending_changes.csv"));
                     cout << "There are no pending changes";
@@ -346,25 +347,38 @@ void run(QStringList arguments)
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
                     cout << source << " does not exist.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
                 if(file.exists()) {
+                    /*
                     QTemporaryDir intermediateDir;
                     if (!intermediateDir.isValid()) {
                         cout << "Could not create an intermediate directory.";
-                        QCoreApplication::exit(1); return;
+                        exit(1);
                     }
+                    QString intermediatePath = intermediateDir.path();
+                    auto copyTask = QtConcurrent::run([=] {
+                        std::error_code error;
+                        std::filesystem::copy(sourceDir.path().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
+                        return error;
+                    });*/
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
-                    auto descriptors = gameInstance.mapDescriptors();
+                    auto &descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
                         cout << source << " is not a proper Fortune Street directory.";
-                        QCoreApplication::exit(1); return;
+                        exit(1);
                     }
                     try {
+                        /*
+                        auto errorCode = await(copyTask);
+                        if (errorCode) {
+                            cout << errorCode.message().c_str();
+                            exit(1);
+                        }*/
                         Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, sourceDir.path());
 
                         QString dolOriginalPath(sourceDir.filePath(MAIN_DOL));
@@ -389,7 +403,7 @@ void run(QStringList arguments)
                         cout << "Pending changes have been saved\n";
                     } catch (const std::runtime_error &exception) {
                         cout << QString("Error loading the map: %1").arg(exception.what());
-                        QCoreApplication::exit(1);
+                        exit(1);
                     }
                     // file.remove();
                 } else {
@@ -411,7 +425,7 @@ void run(QStringList arguments)
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
                     cout << source << " does not exist.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
                 if(file.exists()) {
@@ -440,7 +454,7 @@ void run(QStringList arguments)
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
                     cout << source << " does not exist.";
-                    QCoreApplication::exit(1); return;
+                    exit(1);
                 }
 
                 QString saveId = parser.isSet(saveIdOption)? parser.value(saveIdOption) : "02";
@@ -459,7 +473,7 @@ void run(QStringList arguments)
                         cout << "Overwriting " << target << "...\n";
                     } else {
                         cout << "Cannot extract as " << target << " already exists. Use force option to overwrite.\n";
-                        QCoreApplication::exit(1); return;
+                        exit(1);
                     }
                 }
                 QFileInfo targetInfo(target);
@@ -521,7 +535,7 @@ void run(QStringList arguments)
         }
     } catch (const std::runtime_error &error) {
         cout << error.what() << Qt::endl;
-        QCoreApplication::exit(1);
+        exit(1);
     }
 }
 
