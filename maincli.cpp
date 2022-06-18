@@ -101,6 +101,7 @@ void run(QStringList arguments)
     QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption modPackOption(QStringList() << "modpack", "The modpack file (.zip or modlist.txt) to load (leave blank for default).", "modpack");
+    QCommandLineOption mapDescriptorConfigurationOption(QStringList() << "descCfg" << "descriptorCfg" << "descConfiguration" << "descriptorConfiguration", "The map description configuration .csv to use for saving instead of the default.");
     QCommandLineOption witUrlOption("wit-url", "The URL where to download WIT", "url", WIT_URL);
     QCommandLineOption wszstUrlOption("wszst-url","The URL where to download WSZST", "url", WSZST_URL);
     QCommandLineOption helpOption(QStringList() << "h" << "?" << "help", "Show the help");
@@ -337,6 +338,7 @@ void run(QStringList arguments)
             setupSubcommand(parser, "save", "Write the pending changes into the Fortune Street game directory.");
             parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "save <gameDir>");
             parser.addOption(modPackOption);
+            parser.addOption(mapDescriptorConfigurationOption);
 
             parser.process(arguments);
             const QStringList args = parser.positionalArguments();
@@ -351,18 +353,6 @@ void run(QStringList arguments)
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
                 if(file.exists()) {
-                    /*
-                    QTemporaryDir intermediateDir;
-                    if (!intermediateDir.isValid()) {
-                        cout << "Could not create an intermediate directory.";
-                        exit(1);
-                    }
-                    QString intermediatePath = intermediateDir.path();
-                    auto copyTask = QtConcurrent::run([=] {
-                        std::error_code error;
-                        std::filesystem::copy(sourceDir.path().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
-                        return error;
-                    });*/
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
@@ -373,13 +363,11 @@ void run(QStringList arguments)
                         exit(1);
                     }
                     try {
-                        /*
-                        auto errorCode = await(copyTask);
-                        if (errorCode) {
-                            cout << errorCode.message().c_str();
-                            exit(1);
-                        }*/
-                        Configuration::load(sourceDir.filePath("csmm_pending_changes.csv"), descriptors, sourceDir.path());
+                        auto cfgPath = parser.value(mapDescriptorConfigurationOption);
+                        if (cfgPath.isEmpty()) {
+                            cfgPath = sourceDir.filePath("csmm_pending_changes.csv");
+                        }
+                        Configuration::load(cfgPath, descriptors, sourceDir.path());
 
                         QString dolOriginalPath(sourceDir.filePath(MAIN_DOL));
                         QString dolBackupPath(sourceDir.filePath(MAIN_DOL) + ".bak");
