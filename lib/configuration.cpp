@@ -60,7 +60,8 @@ QString ConfigFile::toYaml()
             for (auto &entry: entries) {
                 if (entry.mapSet == mapSet && entry.mapZone == zone) {
                     emitter << YAML::Key << (entry.mapDescriptorRelativePath.isEmpty()
-                                             ? QString("!default%1_%2").arg(entry.mapId).arg(entry.name) : entry.mapDescriptorRelativePath).toStdString();
+                                             ? QString("!default%1_%2").arg(entry.mapId).arg(entry.name) : entry.mapDescriptorRelativePath).toStdString()
+                            << YAML::Comment("Path relative to this file to the descriptor yaml, or !default<mapid>_<internalname> if left as default");
                     emitter << YAML::Value;
                     emitter << YAML::BeginMap;
                     emitter << YAML::Key << "mapId" << YAML::Value << entry.mapId << YAML::Comment("Omit to deduce map id from order in file");
