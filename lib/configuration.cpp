@@ -197,12 +197,15 @@ int ConfigFile::maxOrder(int mapSet, int zone) {
 void save(const QString &fileName, const std::vector<MapDescriptor> &descriptors)
 {
     QSaveFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return;
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        throw std::runtime_error("Could not open file for saving");
+    }
     ConfigFile config = parse(descriptors, fileName);
     QTextStream out(&file);
     out << config.toYaml();
-    file.commit();
+    if (!file.commit()) {
+        throw std::runtime_error("There was an error writing the file");
+    }
 }
 
 // creates/updates the configuration file with the given arguments
