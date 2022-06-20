@@ -116,7 +116,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::saveMapList() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.csv", "CSMM Map List (*.csv)");
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.yaml", "CSMM Map List (*.yaml)");
     if (saveFile.isEmpty()) return;
     QFileInfo saveFileInfo(saveFile);
     if(saveFileInfo.exists()) {
@@ -129,7 +129,7 @@ void MainWindow::saveMapList() {
 }
 
 void MainWindow::loadMapList() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.csv)");
+    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)");
     if (openFile.isEmpty()) return;
     QFileInfo openFileInfo(openFile);
     if(!openFileInfo.exists()) {

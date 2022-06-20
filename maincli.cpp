@@ -281,7 +281,7 @@ void run(QStringList arguments)
                     cout << yaml << " does not exist.";
                     exit(1);
                 }
-                QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
+                QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
                 if(!file.exists()) {
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
@@ -292,10 +292,10 @@ void run(QStringList arguments)
                         cout << source << " is not a proper Fortune Street directory.";
                         exit(1);
                     }
-                    Configuration::save(sourceDir.filePath("csmm_pending_changes.csv"), descriptors);
+                    Configuration::save(sourceDir.filePath("csmm_pending_changes.yaml"), descriptors);
                 }
                 std::optional<QFileInfo> yamlOpt(yamlFile);
-                cout << Configuration::import(sourceDir.filePath("csmm_pending_changes.csv"), yamlOpt, mapId, mapSet, mapZone, mapOrder, mapPracticeBoard);
+                Configuration::import(sourceDir.filePath("csmm_pending_changes.yaml"), yamlOpt, mapId, mapSet, mapZone, mapOrder, mapPracticeBoard);
             }
 
         } else if (command == "status") {
@@ -316,9 +316,9 @@ void run(QStringList arguments)
                     cout << source << " does not exist.";
                     exit(1);
                 }
-                QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
+                QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
                 if(file.exists()) {
-                    cout << Configuration::status(sourceDir.filePath("csmm_pending_changes.csv"));
+                    cout << Configuration::status(sourceDir.filePath("csmm_pending_changes.yaml"));
                 } else {
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
@@ -329,7 +329,7 @@ void run(QStringList arguments)
                         cout << source << " is not a proper Fortune Street directory.";
                         exit(1);
                     }
-                    cout << Configuration::status(descriptors, sourceDir.filePath("csmm_pending_changes.csv"));
+                    cout << Configuration::status(descriptors, sourceDir.filePath("csmm_pending_changes.yaml"));
                     cout << "There are no pending changes";
                 }
             }
@@ -351,7 +351,7 @@ void run(QStringList arguments)
                     cout << source << " does not exist.";
                     exit(1);
                 }
-                QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
+                QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
                 if(file.exists()) {
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
@@ -365,7 +365,7 @@ void run(QStringList arguments)
                     try {
                         auto cfgPath = parser.value(mapDescriptorConfigurationOption);
                         if (cfgPath.isEmpty()) {
-                            cfgPath = sourceDir.filePath("csmm_pending_changes.csv");
+                            cfgPath = sourceDir.filePath("csmm_pending_changes.yaml");
                         }
                         Configuration::load(cfgPath, descriptors, sourceDir.path());
 
@@ -415,7 +415,7 @@ void run(QStringList arguments)
                     cout << source << " does not exist.";
                     exit(1);
                 }
-                QFile file(sourceDir.filePath("csmm_pending_changes.csv"));
+                QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
                 if(file.exists()) {
                     file.remove();
                     cout << "Pending changes have been discarded";

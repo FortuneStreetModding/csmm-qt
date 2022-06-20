@@ -3,7 +3,7 @@
 
 #include <QException>
 #include <QSharedPointer>
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 #include "lib/addressmapping.h"
 
 enum MutatorType : quint16 {
