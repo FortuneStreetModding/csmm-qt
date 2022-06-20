@@ -3,6 +3,7 @@
 #include <QSaveFile>
 #include <QTextStream>
 #include <yaml-cpp/yaml.h>
+#include "QtCore/qregularexpression.h"
 #include "importexportutils.h"
 #include <fstream>
 #include <filesystem>
@@ -43,17 +44,23 @@ QString ConfigFile::toYaml()
     YAML::Emitter emitter;
     emitter << YAML::BeginDoc;
     emitter << YAML::BeginMap;
-    for (int mapSet = 0; mapSet < 2; ++mapSet) {
+    std::set<int> mapSets, zones; // don't use QSet as that is unsorted
+    for (auto &entry: entries) {
+        mapSets.insert(entry.mapSet);
+        zones.insert(entry.mapZone);
+    }
+    for (int mapSet: mapSets) {
         emitter << YAML::Key << mapSet << YAML::Comment("Map Set");
         emitter << YAML::Value;
         emitter << YAML::BeginMap;
-        for (int zone = 0; zone < 3; ++zone) {
+        for (int zone: zones) {
             emitter << YAML::Key << zone << YAML::Comment("Map Zone");
             emitter << YAML::Value;
             emitter << YAML::BeginMap;
             for (auto &entry: entries) {
                 if (entry.mapSet == mapSet && entry.mapZone == zone) {
-                    emitter << YAML::Key << entry.mapDescriptorRelativePath.toStdString();
+                    emitter << YAML::Key << (entry.mapDescriptorRelativePath.isEmpty()
+                                             ? QString("!default%1_%2").arg(entry.mapId).arg(entry.name) : entry.mapDescriptorRelativePath).toStdString();
                     emitter << YAML::Value;
                     emitter << YAML::BeginMap;
                     emitter << YAML::Key << "mapId" << YAML::Value << entry.mapId << YAML::Comment("Omit to deduce map id from order in file");
@@ -70,6 +77,8 @@ QString ConfigFile::toYaml()
     emitter << YAML::EndDoc;
     return emitter.c_str();
 }
+
+static const QRegularExpression DEFAULT_REGEXP("^!default\\d+_(.*)", QRegularExpression::UseUnicodePropertiesOption);
 
 // open and parse the config file
 static ConfigFile parse(QString fileName) {
@@ -117,8 +126,14 @@ static ConfigFile parse(QString fileName) {
                 for (auto kt = jt->second.begin(); kt != jt->second.end(); ++kt, ++defaultMapOrder, ++defaultMapId) { // iterate over maps
                     ConfigEntry entryToAdd;
                     auto rawName = QString::fromStdString(kt->first.as<std::string>());
-                    entryToAdd.name = QFileInfo(rawName).baseName();
-                    entryToAdd.mapDescriptorRelativePath = QFileInfo(fileName).dir().relativeFilePath(rawName);
+                    auto match = DEFAULT_REGEXP.match(rawName);
+                    if (match.hasMatch()) {
+                        entryToAdd.name = match.captured(1);
+                        entryToAdd.mapDescriptorRelativePath = "";
+                    } else {
+                        entryToAdd.name = QFileInfo(rawName).baseName();
+                        entryToAdd.mapDescriptorRelativePath = QFileInfo(fileName).dir().relativeFilePath(rawName);
+                    }
                     entryToAdd.mapId = kt->second["mapId"].IsDefined() ? kt->second["mapId"].as<int>() : defaultMapId;
                     entryToAdd.mapOrder = kt->second["mapOrder"].IsDefined() ? kt->second["mapOrder"].as<int>() : defaultMapOrder;
                     entryToAdd.mapSet = mapSet;
