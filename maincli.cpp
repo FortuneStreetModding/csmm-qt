@@ -29,7 +29,7 @@ static void setupSubcommand(QCommandLineParser& parser, QString name, QString de
 
 void run(QStringList arguments)
 {
-    QString description(QString(R"(
+    auto description = QString(R"(
     ****************************************************************
     *                                                              *
     *           .-------.   _____  _____ __  __ __  __             *
@@ -48,7 +48,7 @@ void run(QStringList arguments)
 -- Make sure that you have installed the required external tools via the GUI --
     File -> (Re-)Download External Tools
 
-)").arg(CSMM_VERSION));
+)").arg(CSMM_VERSION);
 
     if (arguments.size() > 1 && arguments[1] == "python") {
         wchar_t **args = new wchar_t *[arguments.size()]();
@@ -72,7 +72,7 @@ void run(QStringList arguments)
 
     QCommandLineParser parser;
 
-    QString commandsDescription = QString(R"(
+    auto commandsDescription = QString(R"(
   extract         Extract a Fortune Street game disc image to a directory.
   export          Export one or several map descriptor files (*.yaml) from a Fortune Street game directory.
   import          Add importing a map descriptor file (*.yaml) into a Fortune Street game directory as a pending change.

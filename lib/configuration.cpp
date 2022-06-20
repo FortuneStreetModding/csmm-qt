@@ -44,11 +44,11 @@ QString ConfigFile::toYaml()
     emitter << YAML::BeginDoc;
     emitter << YAML::BeginMap;
     for (int mapSet = 0; mapSet < 2; ++mapSet) {
-        emitter << YAML::Key << mapSet;
+        emitter << YAML::Key << mapSet << YAML::Comment("Map Set");
         emitter << YAML::Value;
         emitter << YAML::BeginMap;
         for (int zone = 0; zone < 3; ++zone) {
-            emitter << YAML::Key << zone;
+            emitter << YAML::Key << zone << YAML::Comment("Map Zone");
             emitter << YAML::Value;
             emitter << YAML::BeginMap;
             for (auto &entry: entries) {
@@ -56,9 +56,9 @@ QString ConfigFile::toYaml()
                     emitter << YAML::Key << entry.mapDescriptorRelativePath.toStdString();
                     emitter << YAML::Value;
                     emitter << YAML::BeginMap;
-                    emitter << YAML::Key << "mapId" << YAML::Value << entry.mapId;
-                    emitter << YAML::Key << "mapOrder" << YAML::Value << entry.mapOrder;
-                    emitter << YAML::Key << "practiceBoard" << YAML::Value << (bool)entry.practiceBoard;
+                    emitter << YAML::Key << "mapId" << YAML::Value << entry.mapId << YAML::Comment("Omit to deduce map id from order in file");
+                    emitter << YAML::Key << "mapOrder" << YAML::Value << entry.mapOrder << YAML::Comment("Omit to deduce map order in mapSet/zone from order in file");
+                    emitter << YAML::Key << "practiceBoard" << YAML::Value << (bool)entry.practiceBoard << YAML::Comment("Defaults to false");
                     emitter << YAML::EndMap;
                 }
             }
