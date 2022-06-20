@@ -105,7 +105,7 @@ static ConfigFile parse(QString fileName) {
         configFile.entries = std::move(configEntries);
     } else {
         QVector<ConfigEntry> configEntries;
-        std::ifstream stream(std::filesystem::path(fileName.toStdString()));
+        std::ifstream stream(std::filesystem::path(fileName.toStdU16String()));
         auto node = YAML::Load(stream);
 
         int defaultMapId = 0;
