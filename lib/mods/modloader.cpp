@@ -9,6 +9,9 @@ static QRegularExpression modListSplit("\\s+|\\b", QRegularExpression::UseUnicod
 
 static QSet<QString> parseModListFile(QTextStream &stream, const ModListType &defaultModList) {
     QSet<QString> result;
+    for (auto &mod: defaultModList) {
+        result.insert(mod->modId());
+    }
     int isRelative = -1;
     QString line;
     while (stream.readLineInto(&line)) {
@@ -19,10 +22,8 @@ static QSet<QString> parseModListFile(QTextStream &stream, const ModListType &de
             bool isCurLineRelative = (splitLine[0] == "+" || splitLine[0] == "-");
             if (isRelative < 0) {
                 isRelative = isCurLineRelative;
-                if (isRelative) {
-                    for (auto &mod: defaultModList) {
-                        result.insert(mod->modId());
-                    }
+                if (!isRelative) {
+                    result.clear();
                 }
             } else if (isRelative != isCurLineRelative) {
                 throw ModException(QString("mixing absolute and relative modid specifiers; offending line: %1").arg(line));

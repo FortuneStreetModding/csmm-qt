@@ -1,6 +1,7 @@
 #include "pythonbindings.h"
 #include <pybind11/embed.h>
 #include <pybind11/stl_bind.h>
+#include "lib/exewrapper.h"
 #include "lib/mods/csmmmod.h"
 
 static std::ostream &operator<<(std::ostream &stream, const QString &str) {
@@ -155,6 +156,10 @@ public:
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
+    m.def("convertPngToTpl", ExeWrapper::convertPngToTpl, pybind11::arg("src"), pybind11::arg("dest"), R"pycsmmdoc(
+    Converts the png file at src to a tpl file at dest, overwriting if necessary.
+)pycsmmdoc");
+
     pybind11::enum_<RuleSet>(m, "RuleSet", R"pycsmmdoc(
     Enum representing whether the board is easy or standard mode.
 )pycsmmdoc")
