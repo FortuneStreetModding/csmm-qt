@@ -1,6 +1,7 @@
 #include "pythonbindings.h"
 #include <pybind11/embed.h>
 #include <pybind11/stl_bind.h>
+#include "lib/await.h"
 #include "lib/exewrapper.h"
 #include "lib/mods/csmmmod.h"
 
@@ -156,7 +157,10 @@ public:
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
-    m.def("convertPngToTpl", ExeWrapper::convertPngToTpl, pybind11::arg("src"), pybind11::arg("dest"), R"pycsmmdoc(
+    m.def("convertPngToTpl", [](const QString &src, const QString &dest) {
+        pybind11::gil_scoped_release release;
+        await(ExeWrapper::convertPngToTpl(src, dest));
+    }, pybind11::arg("src"), pybind11::arg("dest"), R"pycsmmdoc(
     Converts the png file at src to a tpl file at dest, overwriting if necessary.
 )pycsmmdoc");
 
