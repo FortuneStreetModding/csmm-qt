@@ -1,13 +1,17 @@
 #include "configuration.h"
 
+#include <QSaveFile>
 #include <QTextStream>
-
+#include <yaml-cpp/yaml.h>
+#include "QtCore/qregularexpression.h"
 #include "importexportutils.h"
+#include <fstream>
+#include <filesystem>
 
 namespace Configuration {
 
 // to string methods
-QString to_string(QString mapId, QString mapSet, QString mapZone, QString mapOrder, QString practiceBoard, QString name, QString mapDescriptorRelativePath) {
+static QString toCsv(const QString &mapId, const QString & mapSet, const QString & mapZone, const QString & mapOrder, const QString & practiceBoard, const QString & name, const QString & mapDescriptorRelativePath) {
     QString table("%1, %2, %3, %4, %5, %6, %7");
     return table
             .arg(mapId, 3, QChar(' '))
@@ -18,58 +22,134 @@ QString to_string(QString mapId, QString mapSet, QString mapZone, QString mapOrd
             .arg(name.leftJustified(24, ' ', true), mapDescriptorRelativePath);
 }
 
-QString to_string(int mapId, int mapSet, int mapZone, int mapOrder, int practiceBoard, QString name, QString mapDescriptorRelativePath) {
-    return to_string(QString::number(mapId),QString::number(mapSet),QString::number(mapZone),QString::number(mapOrder),QString::number(practiceBoard),name,mapDescriptorRelativePath);
+static QString toCsv(int mapId, int mapSet, int mapZone, int mapOrder, int practiceBoard, const QString &name, const QString &mapDescriptorRelativePath) {
+    return toCsv(QString::number(mapId),QString::number(mapSet),QString::number(mapZone),QString::number(mapOrder),QString::number(practiceBoard),name,mapDescriptorRelativePath);
 }
 
-QString ConfigEntry::to_string() {
-    return Configuration::to_string(mapId, mapSet, mapZone, mapOrder, practiceBoard, name, mapDescriptorRelativePath);
+QString ConfigEntry::toCsv() {
+    return Configuration::toCsv(mapId, mapSet, mapZone, mapOrder, practiceBoard, name, mapDescriptorRelativePath);
 }
 
-QString ConfigFile::to_string() {
+QString ConfigFile::toCsv() {
     QString result("");
-    result += Configuration::to_string("id", "mapS.", "zone", "order", "prac.", "name", "yaml") + "\n";
+    result += Configuration::toCsv("id", "mapS.", "zone", "order", "prac.", "name", "yaml") + "\n";
     for(auto& entry : entries) {
-        result += Configuration::to_string(entry.mapId, entry.mapSet, entry.mapZone, entry.mapOrder, entry.practiceBoard, entry.name, entry.mapDescriptorRelativePath) + "\n";
+        result += Configuration::toCsv(entry.mapId, entry.mapSet, entry.mapZone, entry.mapOrder, entry.practiceBoard, entry.name, entry.mapDescriptorRelativePath) + "\n";
     }
     return result;
 }
 
-// open and parse the config file
-ConfigFile parse(QString fileName) {
-    QFile file(fileName);
-    ConfigFile configFile;
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return configFile;
+QString ConfigFile::toYaml()
+{
+    YAML::Emitter emitter;
+    emitter << YAML::BeginDoc;
+    emitter << YAML::BeginMap;
+    std::set<int> mapSets, zones; // don't use QSet as that is unsorted
+    for (auto &entry: entries) {
+        mapSets.insert(entry.mapSet);
+        zones.insert(entry.mapZone);
     }
-    QTextStream in(&file);
-    QVector<ConfigEntry> configEntries;
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        // if the first line starts with id, skip this line (it is the header)
-        if(line.trimmed().toLower().startsWith("id")) {
-            continue;
+    for (int mapSet: mapSets) {
+        emitter << YAML::Key << mapSet << YAML::Comment("Map Set");
+        emitter << YAML::Value;
+        emitter << YAML::BeginMap;
+        for (int zone: zones) {
+            emitter << YAML::Key << zone << YAML::Comment("Map Zone");
+            emitter << YAML::Value;
+            emitter << YAML::BeginMap;
+            for (auto &entry: entries) {
+                if (entry.mapSet == mapSet && entry.mapZone == zone) {
+                    emitter << YAML::Key << (entry.mapDescriptorRelativePath.isEmpty()
+                                             ? QString("!default%1_%2").arg(entry.mapId).arg(entry.name) : entry.mapDescriptorRelativePath).toStdString()
+                            << YAML::Comment("Path relative to this file to the descriptor yaml, or !default<mapid>_<internalname> if left as default");
+                    emitter << YAML::Value;
+                    emitter << YAML::BeginMap;
+                    emitter << YAML::Key << "mapId" << YAML::Value << entry.mapId << YAML::Comment("Omit to deduce map id from order in file");
+                    emitter << YAML::Key << "mapOrder" << YAML::Value << entry.mapOrder << YAML::Comment("Omit to deduce map order in mapSet/zone from order in file");
+                    emitter << YAML::Key << "practiceBoard" << YAML::Value << (bool)entry.practiceBoard << YAML::Comment("Defaults to false");
+                    emitter << YAML::EndMap;
+                }
+            }
+            emitter << YAML::EndMap;
         }
-        QStringList lineSplit = line.split(",");
-        if(lineSplit.count() != 7) {
-            configFile.error = true;
+        emitter << YAML::EndMap;
+    }
+    emitter << YAML::EndMap;
+    emitter << YAML::EndDoc;
+    return emitter.c_str();
+}
+
+static const QRegularExpression DEFAULT_REGEXP("^!default\\d+_(.*)", QRegularExpression::UseUnicodePropertiesOption);
+
+// open and parse the config file
+static ConfigFile parse(QString fileName) {
+    ConfigFile configFile;
+    if (QFileInfo(fileName).suffix() == "csv") {
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
             return configFile;
         }
-        ConfigEntry entry;
-        entry.mapId = lineSplit.at(0).trimmed().toInt();
-        entry.mapSet = lineSplit.at(1).trimmed().toInt();
-        entry.mapZone = lineSplit.at(2).trimmed().toInt();
-        entry.mapOrder = lineSplit.at(3).trimmed().toInt();
-        entry.practiceBoard = lineSplit.at(4).trimmed().toInt();
-        entry.name = lineSplit.at(5).trimmed();
-        entry.mapDescriptorRelativePath = lineSplit.at(6).trimmed();
-        configEntries.append(entry);
+        QTextStream in(&file);
+        QVector<ConfigEntry> configEntries;
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+            // if the first line starts with id, skip this line (it is the header)
+            if(line.trimmed().toLower().startsWith("id")) {
+                continue;
+            }
+            QStringList lineSplit = line.split(",");
+            if(lineSplit.count() != 7) {
+                configFile.error = true;
+                return configFile;
+            }
+            ConfigEntry entry;
+            entry.mapId = lineSplit.at(0).trimmed().toInt();
+            entry.mapSet = lineSplit.at(1).trimmed().toInt();
+            entry.mapZone = lineSplit.at(2).trimmed().toInt();
+            entry.mapOrder = lineSplit.at(3).trimmed().toInt();
+            entry.practiceBoard = lineSplit.at(4).trimmed().toInt();
+            entry.name = lineSplit.at(5).trimmed();
+            entry.mapDescriptorRelativePath = lineSplit.at(6).trimmed();
+            configEntries.append(entry);
+        }
+        configFile.entries = std::move(configEntries);
+    } else {
+        QVector<ConfigEntry> configEntries;
+        std::ifstream stream(std::filesystem::path(fileName.toStdU16String()));
+        auto node = YAML::Load(stream);
+
+        int defaultMapId = 0;
+        for (auto it=node.begin(); it!=node.end(); ++it) { // iterate over map sets
+            auto mapSet = it->first.as<int>();
+            for (auto jt=it->second.begin(); jt!=it->second.end(); ++jt) { // iterate over zones
+                int zone = jt->first.as<int>();
+                int defaultMapOrder = 0;
+                for (auto kt = jt->second.begin(); kt != jt->second.end(); ++kt, ++defaultMapOrder, ++defaultMapId) { // iterate over maps
+                    ConfigEntry entryToAdd;
+                    auto rawName = QString::fromStdString(kt->first.as<std::string>());
+                    auto match = DEFAULT_REGEXP.match(rawName);
+                    if (match.hasMatch()) {
+                        entryToAdd.name = match.captured(1);
+                        entryToAdd.mapDescriptorRelativePath = "";
+                    } else {
+                        entryToAdd.name = QFileInfo(rawName).baseName();
+                        entryToAdd.mapDescriptorRelativePath = QFileInfo(fileName).dir().relativeFilePath(rawName);
+                    }
+                    entryToAdd.mapId = kt->second["mapId"].IsDefined() ? kt->second["mapId"].as<int>() : defaultMapId;
+                    entryToAdd.mapOrder = kt->second["mapOrder"].IsDefined() ? kt->second["mapOrder"].as<int>() : defaultMapOrder;
+                    entryToAdd.mapSet = mapSet;
+                    entryToAdd.mapZone = zone;
+                    entryToAdd.practiceBoard = kt->second["practiceBoard"].IsDefined() && kt->second["practiceBoard"].as<bool>();
+                    configEntries.push_back(entryToAdd);
+                }
+            }
+        }
+        configFile.entries = std::move(configEntries);
     }
-    configFile.entries = configEntries;
     return configFile;
 }
 
-ConfigFile parse(const std::vector<MapDescriptor> &descriptors, QString fileName) {
+static ConfigFile parse(const std::vector<MapDescriptor> &descriptors, const QString &fileName) {
     ConfigFile configFile;
     QVector<ConfigEntry> configEntries;
     QFileInfo fileInfo(fileName);
@@ -130,18 +210,22 @@ int ConfigFile::maxOrder(int mapSet, int zone) {
     return maxOrder;
 }
 
-void save(QString fileName, const std::vector<MapDescriptor> &descriptors)
+void save(const QString &fileName, const std::vector<MapDescriptor> &descriptors)
 {
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return;
+    QSaveFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        throw std::runtime_error("Could not open file for saving");
+    }
     ConfigFile config = parse(descriptors, fileName);
     QTextStream out(&file);
-    out << config.to_string();
+    out << config.toYaml();
+    if (!file.commit()) {
+        throw std::runtime_error("There was an error writing the file");
+    }
 }
 
 // creates/updates the configuration file with the given arguments
-QString import(QString fileName, std::optional<QFileInfo>& mapDescriptorFile, std::optional<int>& mapId, std::optional<int>& mapSet, std::optional<int>& zone, std::optional<int>& order, std::optional<int>& practiceBoard)
+void import(const QString &fileName, const std::optional<QFileInfo>& mapDescriptorFile, const std::optional<int>& mapId, const std::optional<int>& mapSet, const std::optional<int>& zone, const std::optional<int>& order, const std::optional<int>& practiceBoard)
 {
     ConfigFile config = parse(fileName);
     QFileInfo fileInfo(fileName);
@@ -162,7 +246,7 @@ QString import(QString fileName, std::optional<QFileInfo>& mapDescriptorFile, st
             config.entries[mapId.value()].mapDescriptorRelativePath = dir.relativeFilePath(mapDescriptorFile.value().absoluteFilePath());
             config.entries[mapId.value()].name = mapDescriptorFile->baseName();
         }
-        returnValue = config.entries[mapId.value()].to_string();
+        returnValue = config.entries[mapId.value()].toCsv();
     } else {
         // insert new board
         ConfigEntry entry;
@@ -183,21 +267,20 @@ QString import(QString fileName, std::optional<QFileInfo>& mapDescriptorFile, st
         entry.mapDescriptorRelativePath = dir.relativeFilePath(mapDescriptorFile.value().absoluteFilePath());
         entry.name = mapDescriptorFile->baseName();
         config.entries.append(entry);
-        returnValue = entry.to_string();
+        returnValue = entry.toCsv();
     }
 
     QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return "Error: Could not write to file";
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        throw std::runtime_error("Error: Could not write to file"); // TODO throw a subclass of QException
+    }
     QTextStream out(&file);
-    out << config.to_string();
-
-    return returnValue;
+    out << config.toYaml();
 }
 
 
 // loads the configuration file and loads the yaml files defined in the configuration file into the given tmpDir and the given descriptors object
-void load(QString fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir)
+void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir)
 {
     ConfigFile configFile = parse(fileName);
     QFileInfo fileInfo(fileName);
@@ -220,14 +303,14 @@ void load(QString fileName, std::vector<MapDescriptor> &descriptors, const QDir&
     }
 }
 
-QString status(QString fileName)
+QString status(const QString &fileName)
 {
-    return parse(fileName).to_string();
+    return parse(fileName).toYaml();
 }
 
-QString status(const std::vector<MapDescriptor> &descriptors, QString filePath)
+QString status(const std::vector<MapDescriptor> &descriptors, const QString &filePath)
 {
-    return parse(descriptors, filePath).to_string();
+    return parse(descriptors, filePath).toYaml();
 }
 
 }

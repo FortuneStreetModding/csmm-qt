@@ -116,20 +116,20 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::saveMapList() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.csv", "CSMM Map List (*.csv)");
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.yaml", "CSMM Map List (*.yaml)");
     if (saveFile.isEmpty()) return;
-    QFileInfo saveFileInfo(saveFile);
-    if(saveFileInfo.exists()) {
-        QFile::remove(saveFile);
-    }
     std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
-    Configuration::save(saveFile, descriptors);
+    try {
+        Configuration::save(saveFile, descriptors);
+    } catch (const std::runtime_error &e) {
+         QMessageBox::critical(this, "Save Map List", QString("Error saving the map list: %1").arg(e.what()));
+    }
 }
 
 void MainWindow::loadMapList() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.csv)");
+    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)");
     if (openFile.isEmpty()) return;
     QFileInfo openFileInfo(openFile);
     if(!openFileInfo.exists()) {
@@ -147,7 +147,7 @@ void MainWindow::loadMapList() {
         ui->statusbar->showMessage("Map list load completed");
         ui->statusbar->repaint();
     } catch (const std::runtime_error &exception) {
-        QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
+        QMessageBox::critical(this, "Import Map List", QString("Error importing the map list: %1").arg(exception.what()));
     }
 }
 
