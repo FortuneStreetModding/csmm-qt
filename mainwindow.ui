@@ -94,6 +94,13 @@
         </spacer>
        </item>
        <item>
+        <widget class="QPushButton" name="quickSetup">
+         <property name="text">
+          <string>Quick Setup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="importModPack">
          <property name="text">
           <string>Import Mod Pack</string>

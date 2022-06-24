@@ -5,7 +5,7 @@
 
 namespace ModLoader {
 
-static QRegularExpression modListSplit("\\s+|\\b", QRegularExpression::UseUnicodePropertiesOption);
+static const QRegularExpression modListSplit("\\s+|\\b", QRegularExpression::UseUnicodePropertiesOption);
 
 static QSet<QString> parseModListFile(QTextStream &stream, const ModListType &defaultModList) {
     QSet<QString> result;

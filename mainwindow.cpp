@@ -18,6 +18,7 @@
 #include "lib/datafileset.h"
 #include "lib/mods/defaultmodlist.h"
 #include "lib/mods/modloader.h"
+#include "quicksetupdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -100,6 +101,10 @@ MainWindow::MainWindow(QWidget *parent)
             QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
             PyErr_Clear();
         }
+    });
+    connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
+        QuickSetupDialog dialog;
+        dialog.exec();
     });
     updateModListWidget();
 }
