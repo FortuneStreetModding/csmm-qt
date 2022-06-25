@@ -103,7 +103,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
-        QuickSetupDialog dialog;
+        QuickSetupDialog dialog(getSaveId());
         dialog.exec();
     });
     updateModListWidget();

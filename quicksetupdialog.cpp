@@ -14,11 +14,13 @@
 #include "lib/mods/csmmmodpack.h"
 #include "lib/configuration.h"
 
-QuickSetupDialog::QuickSetupDialog(QWidget *parent) :
+QuickSetupDialog::QuickSetupDialog(const QString &defaultSaveId, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::QuickSetupDialog)
+    ui(new Ui::QuickSetupDialog), defaultSaveId(defaultSaveId)
 {
     ui->setupUi(this);
+
+    ui->saveId->setText(defaultSaveId);
 
     connect(ui->chooseInputGameFolder, &QPushButton::clicked, this, [this](bool){
         auto dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory");
@@ -60,7 +62,6 @@ QuickSetupDialog::QuickSetupDialog(QWidget *parent) :
             ui->outputGameLoc->setText(saveFile);
         }
     });
-
 }
 
 QuickSetupDialog::~QuickSetupDialog()
@@ -90,8 +91,8 @@ void QuickSetupDialog::accept()
             QMessageBox::critical(this, "Cannot save game", "Cannot create temporary directory");
             return;
         }
-        QProgressDialog dialog;
-        dialog.setMaximum(5);
+        QProgressDialog dialog("Saving game to ROM", QString(), 0, 5, this);
+        dialog.setWindowModality(Qt::WindowModal);
         // copy directory if folder, extract wbfs/iso if file
         if (QFileInfo(ui->inputGameLoc->text()).isDir()) {
             std::error_code error;
@@ -130,7 +131,7 @@ void QuickSetupDialog::accept()
                 return;
             }
         } else {
-            await(ExeWrapper::createWbfsIso(intermediateDir.path(), ui->outputGameLoc->text(), "02")); // TODO allow saveid to be changed
+            await(ExeWrapper::createWbfsIso(intermediateDir.path(), ui->outputGameLoc->text(), ui->saveId->text()));
         }
 
         dialog.setValue(5);

@@ -15,10 +15,11 @@ class QuickSetupDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit QuickSetupDialog(QWidget *parent = nullptr);
+    explicit QuickSetupDialog(const QString &defaultSaveId, QWidget *parent = nullptr);
     ~QuickSetupDialog();
 private:
     Ui::QuickSetupDialog *ui;
+    QString defaultSaveId;
 
     // QDialog interface
 public Q_SLOTS:
