@@ -3,7 +3,6 @@
 
 #include <QFuture>
 #include <QNetworkAccessManager>
-#include <QApplication>
 #include <QTemporaryDir>
 #include <QStandardPaths>
 #include <QNetworkRequest>
@@ -90,13 +89,13 @@ namespace DownloadTools
     inline QFuture<void> downloadRequiredFiles(QNetworkAccessManager* manager, QUrl url, InToOutFiles func) {
         QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
         if (tempDir->isValid()) {
-            auto witArchiveFile = new QFile(tempDir->filePath("temp_wit"), QApplication::instance());
+            auto witArchiveFile = QSharedPointer<QFile>::create(tempDir->filePath("temp_wit"));
             if (witArchiveFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
-                QNetworkRequest request = QNetworkRequest(url);
+                QNetworkRequest request(url);
                 request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
                 QNetworkReply *reply = manager->get(request);
                 //manager->setTransferTimeout(1000);
-                QObject::connect(reply, &QNetworkReply::readyRead, QApplication::instance(), [=]() {
+                QObject::connect(reply, &QNetworkReply::readyRead, manager, [=]() {
                     witArchiveFile->write(reply->readAll());
                 });
                 return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> void {
@@ -160,7 +159,6 @@ namespace DownloadTools
                     archive_write_close(ext);
                     archive_write_free(ext);
     #endif
-                    witArchiveFile->deleteLater();
                 }).future();
             } else {
                 throw DownloadException(QString("Temporary file could not be created"));

@@ -280,7 +280,8 @@ void import(const QString &fileName, const std::optional<QFileInfo>& mapDescript
 
 
 // loads the configuration file and loads the yaml files defined in the configuration file into the given tmpDir and the given descriptors object
-void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir)
+void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir,
+          const std::function<void(double)> &progressCallback)
 {
     ConfigFile configFile = parse(fileName);
     QFileInfo fileInfo(fileName);
@@ -292,14 +293,17 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
     while(descriptors.size() > configFile.maxId() + 1) {
         descriptors.pop_back();
     }
+    int idx = 0;
     for(ConfigEntry& entry : configFile.entries) {
         descriptors[entry.mapId].mapSet = entry.mapSet;
         descriptors[entry.mapId].zone = entry.mapZone;
         descriptors[entry.mapId].order = entry.mapOrder;
         descriptors[entry.mapId].isPracticeBoard = entry.practiceBoard;
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
-            ImportExportUtils::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId], tmpDir);
+            ImportExportUtils::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId],
+                    tmpDir, [=](double progress) { progressCallback((idx + progress) / configFile.entries.size()); });
         }
+        ++idx;
     }
 }
 

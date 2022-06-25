@@ -31,8 +31,14 @@ struct ConfigFile {
 };
 
 void save(const QString &fileName, const std::vector<MapDescriptor> &descriptors);
-void import(const QString &fileName, const std::optional<QFileInfo> &mapDescriptorFile, const std::optional<int> &mapId, const std::optional<int> &mapSet, const std::optional<int> &zone, const std::optional<int> &order, const std::optional<int> &practiceBoard);
-void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir);
+void import(const QString &fileName,
+            const std::optional<QFileInfo> &mapDescriptorFile,
+            const std::optional<int> &mapId,
+            const std::optional<int> &mapSet,
+            const std::optional<int> &zone,
+            const std::optional<int> &order,
+            const std::optional<int> &practiceBoard);
+void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir, const std::function<void (double)> &progressCallback = [](double) {});
 QString status(const QString &fileName);
 QString status(const std::vector<MapDescriptor> &descriptors, const QString &filePath);
 

@@ -21,9 +21,11 @@ namespace ImportExportUtils {
      * @param yamlFileSrc the map descriptor file destination
      * @param descriptor the descriptor to modify
      * @param tmpDir the directory to place .frb files before saving, etc.
+     * @param progressCallback called with a number in [0,1] to indicate import progress
      * @return whether the import was successful
      */
-    void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir);
+    void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
+                    const std::function<void(double)> &progressCallback = [](double) {});
 
     QString getSha1OfVanillaFileName(const QString &vanillaFileName);
 

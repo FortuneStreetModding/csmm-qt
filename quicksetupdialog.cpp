@@ -109,7 +109,7 @@ void QuickSetupDialog::accept()
             QMessageBox::critical(this, "Cannot save game", "Cannot create temporary directory");
             return;
         }
-        QProgressDialog dialog("Saving game to ROM", QString(), 0, 5, this);
+        QProgressDialog dialog("Saving game to ROM", QString(), 0, 100, this);
         dialog.setWindowModality(Qt::WindowModal);
         // copy directory if folder, extract wbfs/iso if file
         if (QFileInfo(ui->inputGameLoc->text()).isDir()) {
@@ -123,22 +123,24 @@ void QuickSetupDialog::accept()
             await(ExeWrapper::extractWbfsIso(ui->inputGameLoc->text(), intermediateDir.path()));
         }
 
-        dialog.setValue(1);
+        dialog.setValue(10);
 
         auto mods = ModLoader::importModpackFile(ui->modpackFile->text());
         auto gameInstance = GameInstance::fromGameDirectory(intermediateDir.path());
         CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
         modpack.load(intermediateDir.path());
 
-        dialog.setValue(2);
+        dialog.setValue(20);
 
-        Configuration::load(ui->mapListFile->text(), gameInstance.mapDescriptors(), QDir(intermediateDir.path()));
+        Configuration::load(ui->mapListFile->text(), gameInstance.mapDescriptors(), QDir(intermediateDir.path()), [&](double progress) {
+            dialog.setValue(20 + (60 - 20) * progress);
+        });
 
-        dialog.setValue(3);
+        dialog.setValue(60);
 
         modpack.save(intermediateDir.path());
 
-        dialog.setValue(4);
+        dialog.setValue(80);
 
         // copy directory if folder, create wbfs/iso if file
         if (QFileInfo(ui->outputGameLoc->text()).isDir()) {
@@ -152,7 +154,7 @@ void QuickSetupDialog::accept()
             await(ExeWrapper::createWbfsIso(intermediateDir.path(), ui->outputGameLoc->text(), ui->saveId->text()));
         }
 
-        dialog.setValue(5);
+        dialog.setValue(100);
 
         QMessageBox::information(this, "Quick setup successful", "Save was successful.");
 
