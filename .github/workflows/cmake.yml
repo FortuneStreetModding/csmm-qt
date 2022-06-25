@@ -106,7 +106,7 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: pwsh
       run: |
-        wget https://bootstrap.pypa.io/get-pip.py
+        Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
         ./csmm python get-pip.py
     
     - name: Install Pip Modules In Embedded Python
