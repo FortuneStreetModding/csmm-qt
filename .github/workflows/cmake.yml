@@ -104,6 +104,7 @@ jobs:
     
     - name: Install Pip in CSMM
       working-directory: ${{github.workspace}}
+      shell: pwsh
       run: |
         wget https://bootstrap.pypa.io/get-pip.py
         ./csmm python get-pip.py
