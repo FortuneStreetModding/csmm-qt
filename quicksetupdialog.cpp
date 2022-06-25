@@ -69,9 +69,27 @@ QuickSetupDialog::~QuickSetupDialog()
     delete ui;
 }
 
+namespace csmm_quicksetup_detail {
+class ProcessingGuard : public QObject {
+public:
+    ProcessingGuard(QuickSetupDialog *dialog) : dialog(dialog) {
+        dialog->processing = true;
+        QObject::connect(dialog, &QObject::destroyed, this, [this](QObject *) {
+            this->dialog = nullptr;
+        });
+    }
+    ~ProcessingGuard() {
+        if (dialog) dialog->processing = false;
+    }
+private:
+    QuickSetupDialog *dialog;
+};
+}
 
 void QuickSetupDialog::accept()
 {
+    if (processing) return;
+    csmm_quicksetup_detail::ProcessingGuard guard(this);
     if (ui->inputGameLoc->text().isEmpty()) {
         QMessageBox::critical(this, "Cannot save game", "Input game ROM not specified");
         return;

@@ -3,6 +3,7 @@
 #include <pybind11/stl_bind.h>
 #include "lib/await.h"
 #include "lib/exewrapper.h"
+#include "lib/fslocale.h"
 #include "lib/mods/csmmmod.h"
 
 static std::ostream &operator<<(std::ostream &stream, const QString &str) {
@@ -162,6 +163,20 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
         await(ExeWrapper::convertPngToTpl(src, dest));
     }, pybind11::arg("src"), pybind11::arg("dest"), R"pycsmmdoc(
     Converts the png file at src to a tpl file at dest, overwriting if necessary.
+)pycsmmdoc");
+
+    m.attr("FS_LOCALES") = pybind11::list();
+    for (auto &locale: FS_LOCALES) {
+        m.attr("FS_LOCALES").attr("append")(locale);
+    }
+    m.def("localeToUpper", localeToUpper, R"pycsmmdoc(
+    Converts a locale in FS_LOCALES to its uppercase version used in the game ROM.
+)pycsmmdoc");
+    m.def("yamlKeyToLocale", yamlKeyToLocale, R"pycsmmdoc(
+    Converts a locale in FS_LOCALES to the corresponding map descriptor YAML locale key.
+)pycsmmdoc");
+    m.def("localeToYamlKey", localeToYamlKey, R"pycsmmdoc(
+    Converts a map descriptor YAML locale key to the corresponding locale in FS_LOCALES.
 )pycsmmdoc");
 
     pybind11::enum_<RuleSet>(m, "RuleSet", R"pycsmmdoc(
