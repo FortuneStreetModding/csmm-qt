@@ -104,9 +104,8 @@ jobs:
     
     - name: Install Pip in CSMM
       working-directory: ${{github.workspace}}
-      shell: bash
       run: |
-        C:/msys64/usr/bin/wget.exe https://bootstrap.pypa.io/get-pip.py
+        wget https://bootstrap.pypa.io/get-pip.py
         ./csmm python get-pip.py
     
     - name: Install Pip Modules In Embedded Python
