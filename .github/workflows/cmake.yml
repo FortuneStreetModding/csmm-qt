@@ -46,9 +46,9 @@ jobs:
         wget https://bootstrap.pypa.io/get-pip.py
         csmm.app/Contents/MacOS/csmm python get-pip.py
     
-    - name: Install Sphinx
+    - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
-      run: csmm.app/Contents/MacOS/csmm python -m pip install sphinx
+      run: csmm.app/Contents/MacOS/csmm python -m pip install sphinx pillow
     
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
@@ -101,6 +101,17 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
+    
+    - name: Install Pip in CSMM
+      working-directory: ${{github.workspace}}
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
+        ./csmm python get-pip.py
+    
+    - name: Install Pip Modules In Embedded Python
+      working-directory: ${{github.workspace}}
+      run: ./csmm python -m pip install pillow
 
     - name: Rename
       working-directory: ${{github.workspace}}
