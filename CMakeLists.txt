@@ -214,6 +214,7 @@ qt_add_big_resources(SOURCES csmm.qrc)
 
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 
+# copy over python libraries
 if(WIN32)
     set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}/py")
 else()
@@ -226,11 +227,16 @@ file(COPY "${Python_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
     PATTERN ".DS_Store" EXCLUDE
     PATTERN "site-packages" EXCLUDE)
 
+if (WIN32)
+    file(COPY "${Python_STDLIB}/../DLLs" DESTINATION ${PYTHON_STDLIB_DESTFOLDER})
+endif()
+
 if(APPLE)
     set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
     set(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.icns)
     set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
+    # copy python library files to bundle
     file(GLOB_RECURSE PY_STDLIB_FILES "${PYTHON_STDLIB_DESTFOLDER}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/*")
     foreach (PY_STDLIB_FILE ${PY_STDLIB_FILES})
         file(RELATIVE_PATH PY_STDLIB_FILE_REL "${PYTHON_STDLIB_DESTFOLDER}" ${PY_STDLIB_FILE})
