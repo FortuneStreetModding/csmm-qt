@@ -8,6 +8,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
+#include "lib/csmmnetworkmanager.h"
 #include "lib/exewrapper.h"
 #include "lib/asyncfuture.h"
 #ifdef Q_OS_WIN
@@ -55,17 +56,17 @@ namespace DownloadTools
     }
 
     template<class ErrorCallback>
-    inline QFuture<void> downloadAllRequiredFiles(QNetworkAccessManager* manager, ErrorCallback func, QString witUrl, QString wszstUrl) {
+    inline QFuture<void> downloadAllRequiredFiles(ErrorCallback func, QString witUrl, QString wszstUrl) {
         QDir appDir = getToolsLocation();
         appDir.mkpath(".");
-        auto downloadWit = downloadRequiredFiles(manager, witUrl, [=](const QString &file) {
+        auto downloadWit = downloadRequiredFiles(witUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
             if (filename == WIT_NAME || filename.endsWith(".dll")) {
                 return appDir.filePath(filename);
             }
             return QString();
         });
-        auto downloadWszst = downloadRequiredFiles(manager, wszstUrl, [=](const QString &file) {
+        auto downloadWszst = downloadRequiredFiles(wszstUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
             if (filename == WSZST_NAME || filename == WIMGT_NAME || filename.endsWith(".dll")) {
                 return appDir.filePath(filename);
@@ -86,7 +87,8 @@ namespace DownloadTools
     }
 
     template<class InToOutFiles>
-    inline QFuture<void> downloadRequiredFiles(QNetworkAccessManager* manager, QUrl url, InToOutFiles func) {
+    inline QFuture<void> downloadRequiredFiles(QUrl url, InToOutFiles func) {
+        auto manager = CSMMNetworkManager::instance();
         QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
         if (tempDir->isValid()) {
             auto witArchiveFile = QSharedPointer<QFile>::create(tempDir->filePath("temp_wit"));

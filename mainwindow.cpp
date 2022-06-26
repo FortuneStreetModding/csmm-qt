@@ -22,7 +22,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), manager(new QNetworkAccessManager(this)), modList(DefaultModList::defaultModList())
+    , ui(new Ui::MainWindow), modList(DefaultModList::defaultModList())
 {
     setAttribute(Qt::WA_DeleteOnClose);
 
@@ -34,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionExport_to_WBFS_ISO, &QAction::triggered, this, &MainWindow::exportIsoWbfs);
     connect(ui->action_Re_Download_External_Tools, &QAction::triggered, this, [&]() {
         checkForRequiredFiles(true);
+    });
+    connect(ui->actionShow_CSMM_Network_Cache_In_File_System, &QAction::triggered, this, [&]() {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(CSMMNetworkManager::networkCacheDir()));
     });
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/fortunestreetmodding.github.io/wiki/CSMM-User-Manual"));
@@ -308,7 +311,7 @@ QFuture<void> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
     if (alwaysAsk || !DownloadTools::requiredFilesAvailable()) {
         DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
         if (dialog.exec() == QDialog::Accepted) {
-            auto fut = DownloadTools::downloadAllRequiredFiles(manager, [&](const QString &error) {
+            auto fut = DownloadTools::downloadAllRequiredFiles([&](const QString &error) {
                 QMessageBox::critical(this, "Download", error);
             }, dialog.getWitURL(), dialog.getWszstURL());
             return AsyncFuture::observe(fut).subscribe([=]() {

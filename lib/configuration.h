@@ -21,6 +21,7 @@ struct ConfigEntry {
 
 struct ConfigFile {
     QVector<ConfigEntry> entries;
+    QVector<QString> backgroundPathsList;
     bool error = false;
     int maxId();
     int maxMapSet();

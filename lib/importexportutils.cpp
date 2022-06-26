@@ -5,15 +5,16 @@
 #include <QTemporaryDir>
 #include <QCryptographicHash>
 #include <QNetworkReply>
+#include <filesystem>
 #include "lib/vanilladatabase.h"
 #include "lib/datafileset.h"
 #include "qnetworkaccessmanager.h"
 #include "zip/zip.h"
 #include "bsdiff/bspatchlib.h"
 #include "lib/uimessage.h"
-#include <filesystem>
 #include "lib/await.h"
 #include "lib/asyncfuture.h"
+#include "lib/csmmnetworkmanager.h"
 
 namespace ImportExportUtils {
 
@@ -100,8 +101,9 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
     }
 }
 
-static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir, const std::function<void(double)> &progressCallback) {
-    auto networkManager = QSharedPointer<QNetworkAccessManager>::create();
+static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
+                          const std::function<void(double)> &progressCallback) {
+    auto networkManager = CSMMNetworkManager::instance();
 
     QTemporaryDir intermediateDir;
     if (!intermediateDir.isValid()) {
@@ -183,10 +185,10 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                                 request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
                                 auto reply = networkManager->get(request);
 
-                                QObject::connect(reply, &QNetworkReply::readyRead, networkManager.get(), [=]() {
+                                QObject::connect(reply, &QNetworkReply::readyRead, networkManager, [=]() {
                                     zipMusicFile->write(reply->readAll());
                                 });
-                                QObject::connect(reply, &QNetworkReply::downloadProgress, networkManager.get(), [=](qint64 elapsed, qint64 total) {
+                                QObject::connect(reply, &QNetworkReply::downloadProgress, networkManager, [=](qint64 elapsed, qint64 total) {
                                     progressCallback(total == 0 ? 1 : (double)elapsed / total);
                                 });
                                 await(AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> void {
@@ -235,6 +237,8 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
 
 void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
                 const std::function<void(double)> &progressCallback) {
+    qDebug() << "importing map at" <<  yamlFileSrc;
+
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         importYamlZip(yamlFileSrc, descriptor, tmpDir, progressCallback);
     } else {

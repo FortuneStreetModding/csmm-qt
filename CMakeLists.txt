@@ -207,6 +207,7 @@ set(SOURCES
     lib/python/pyobjcopywrapper.h
     lib/mods/dolio/arbitrarynumswitchstates.h lib/mods/dolio/arbitrarynumswitchstates.cpp
     lib/mods/misc/readfrbfileinfo.h lib/mods/misc/readfrbfileinfo.cpp
+    lib/csmmnetworkmanager.h lib/csmmnetworkmanager.cpp
     quicksetupdialog.h quicksetupdialog.cpp quicksetupdialog.ui
 )
 

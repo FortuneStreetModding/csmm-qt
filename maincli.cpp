@@ -498,9 +498,7 @@ void run(QStringList arguments)
                 auto force = parser.isSet(forceOption);
 
                 if(force || !DownloadTools::requiredFilesAvailable()) {
-                    QNetworkAccessManager manager(QCoreApplication::instance());
-
-                    auto fut = DownloadTools::downloadAllRequiredFiles(&manager, [&](const QString &error) {
+                    auto fut = DownloadTools::downloadAllRequiredFiles([&](const QString &error) {
                         cout << error;
                         cout.flush();
                     }, parser.value(witUrlOption), parser.value(wszstUrlOption));

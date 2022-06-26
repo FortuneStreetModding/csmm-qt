@@ -118,7 +118,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -130,6 +130,7 @@
     <addaction name="actionExport_to_Folder"/>
     <addaction name="actionExport_to_WBFS_ISO"/>
     <addaction name="action_Re_Download_External_Tools"/>
+    <addaction name="actionShow_CSMM_Network_Cache_In_File_System"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
@@ -264,6 +265,11 @@
    </property>
    <property name="text">
     <string>Append Author to Map Description</string>
+   </property>
+  </action>
+  <action name="actionShow_CSMM_Network_Cache_In_File_System">
+   <property name="text">
+    <string>Show CSMM Network Cache In File System</string>
    </property>
   </action>
  </widget>
