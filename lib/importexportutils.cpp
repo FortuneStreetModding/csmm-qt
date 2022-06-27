@@ -102,7 +102,8 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
 }
 
 static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
-                          const std::function<void(double)> &progressCallback) {
+                          const std::function<void(double)> &progressCallback,
+                          const QString &backgroundZipDir) {
     auto networkManager = CSMMNetworkManager::instance();
 
     QTemporaryDir intermediateDir;
@@ -134,11 +135,9 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
             QString extractedCmpresFile = QFileInfo(extractedYamlFile).dir().filePath(descriptor.background + ".cmpres");
             // the background.cmpres file is missing -> extract the background zip as well
             if (!QFileInfo::exists(extractedCmpresFile)) {
-                QString zipBackgroundStr = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".background.zip");
+                QString zipBackgroundStr = (backgroundZipDir.isEmpty() ? QFileInfo(yamlFileSrc).dir() : QDir(backgroundZipDir))
+                        .filePath(descriptor.background + ".background.zip");
                 QFileInfo zipBackground(zipBackgroundStr);
-                if(!zipBackground.exists())
-                    zipBackgroundStr = QDir::current().filePath(descriptor.background + ".background.zip");
-                zipBackground = QFileInfo(zipBackgroundStr);
                 if(zipBackground.exists()) {
                     QString extractedCmpresFile;
                     int extractResult = zip_extract(zipBackgroundStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
@@ -176,10 +175,10 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                 QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
                 QFileInfo zipMusic(zipMusicStr);
                 if(!zipMusic.exists()) {
-                    auto zipMusicFile = QSharedPointer<QFile>::create(zipMusicStr);
-                    if (zipMusicFile->open(QFile::WriteOnly)) {
-                        auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
-                        for (auto &url: urlsList) {
+                    auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
+                    for (auto &url: urlsList) {
+                        auto zipMusicFile = QSharedPointer<QFile>::create(zipMusicStr);
+                            if (zipMusicFile->open(QFile::WriteOnly)) {
                             try {
                                 QNetworkRequest request(QUrl(QString::fromStdString(url)));
                                 request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
@@ -236,11 +235,12 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
 }
 
 void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
-                const std::function<void(double)> &progressCallback) {
+                const std::function<void(double)> &progressCallback,
+                const QString &backgroundZipDir) {
     qDebug() << "importing map at" <<  yamlFileSrc;
 
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
-        importYamlZip(yamlFileSrc, descriptor, tmpDir, progressCallback);
+        importYamlZip(yamlFileSrc, descriptor, tmpDir, progressCallback, backgroundZipDir);
     } else {
         std::ifstream yamlStream(std::filesystem::path(yamlFileSrc.toStdU16String()));
         auto node = YAML::Load(yamlStream);
@@ -254,9 +254,6 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(frbFileFrom));
                 }
-                if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                    throw Exception("Cannot create param folder in temporary directory");
-                }
                 auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
                 QFile(frbFileTo).remove();
                 QFile::copy(frbFileFrom, frbFileTo);
@@ -269,9 +266,6 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
                 }
-                if (!tmpDir.mkpath(PARAM_FOLDER)) {
-                    throw Exception("Cannot create param folder in temporary directory");
-                }
                 QFile(mapIconFileTo).remove();
                 QFile::copy(mapIconFileFrom, mapIconFileTo);
             }
@@ -282,9 +276,6 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 QFileInfo brstmFileInfo(brstmFileFrom);
                 if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(brstmFileFrom));
-                }
-                if (!tmpDir.mkpath(SOUND_STREAM_FOLDER)) {
-                    throw Exception("Cannot create param folder in temporary directory");
                 }
                 auto frbFileTo = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
                 QFile(frbFileTo).remove();
@@ -300,10 +291,6 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 }
                 for (auto &locale: FS_LOCALES) {
                     auto cmpresFileTo = tmpDir.filePath(bgPath(locale, descriptor.background));
-                    QFileInfo cmpresFileToInfo(cmpresFileTo);
-                    if (!cmpresFileToInfo.dir().mkpath(".")) {
-                        throw Exception(QString("Cannot create path %1 in temporary directory").arg(cmpresFileToInfo.dir().path()));
-                    }
                     QFile(cmpresFileTo).remove();
                     QFile::copy(cmpresFileFrom, cmpresFileTo);
                 }
@@ -314,10 +301,6 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     throw Exception(QString("File %1 does not exist").arg(sceneFileFrom));
                 }
                 auto sceneFileTo = tmpDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
-                QFileInfo sceneFileToInfo(sceneFileTo);
-                if (!sceneFileToInfo.dir().mkpath(".")) {
-                    throw Exception(QString("Cannot create path %1 in temporary directory").arg(sceneFileToInfo.dir().path()));
-                }
                 QFile(sceneFileTo).remove();
                 QFile::copy(sceneFileFrom, sceneFileTo);
                 // copy turnlot images
@@ -327,9 +310,6 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     QFileInfo turnlotPngInfo(turnlotPngFrom);
                     if (!turnlotPngInfo.exists() || !turnlotPngInfo.isFile()) {
                         throw Exception(QString("File %1 does not exist").arg(turnlotPngFrom));
-                    }
-                    if (!tmpDir.mkpath(GAME_FOLDER)) {
-                        throw Exception(QString("Cannot create path %1 in temporary directory").arg(GAME_FOLDER));
                     }
                     QString turnlotPngTo = tmpDir.filePath(turnlotPng(extChr, descriptor.background));
                     QFile(turnlotPngTo).remove();

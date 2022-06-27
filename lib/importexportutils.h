@@ -26,7 +26,7 @@ namespace ImportExportUtils {
      * @return whether the import was successful
      */
     void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
-                    const std::function<void(double)> &progressCallback = [](double) {});
+                    const std::function<void(double)> &progressCallback = [](double) {}, const QString &backgroundZipDir = "");
 
     QString getSha1OfVanillaFileName(const QString &vanillaFileName);
 

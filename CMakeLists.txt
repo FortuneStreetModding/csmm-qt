@@ -25,11 +25,7 @@ find_package(Qt5 COMPONENTS Gui REQUIRED)
 find_package(Qt5 COMPONENTS Network REQUIRED)
 find_package(Qt5 COMPONENTS Concurrent REQUIRED)
 
-set(SOURCES
-    downloadclidialog.cpp
-    darkdetect.h
-    downloadclidialog.h
-    downloadclidialog.ui
+set(LIB_SOURCES
     lib/addressmapping.cpp
     lib/addressmapping.h
     lib/archiveutil.h
@@ -184,6 +180,24 @@ set(SOURCES
     lib/zip/miniz.h
     lib/zip/zip.c
     lib/zip/zip.h
+    lib/python/pythonbindings.h lib/python/pythonbindings.cpp
+    lib/mods/modloader.h lib/mods/modloader.cpp
+    lib/mods/csmmmod_decl.h
+    lib/getordefault.h
+    lib/mods/dolio/doliomutator.h lib/mods/dolio/doliomutator.cpp
+    lib/mods/freespace/tinydistrictsfreespace.h lib/mods/freespace/tinydistrictsfreespace.cpp
+    lib/python/pyobjcopywrapper.h
+    lib/mods/dolio/arbitrarynumswitchstates.h lib/mods/dolio/arbitrarynumswitchstates.cpp
+    lib/mods/misc/readfrbfileinfo.h lib/mods/misc/readfrbfileinfo.cpp
+    lib/csmmnetworkmanager.h lib/csmmnetworkmanager.cpp
+)
+
+set(MAIN_SOURCES
+    quicksetupdialog.h quicksetupdialog.cpp quicksetupdialog.ui
+    downloadclidialog.cpp
+    darkdetect.h
+    downloadclidialog.h
+    downloadclidialog.ui
     main.cpp
     maincli.cpp
     maincli.h
@@ -198,18 +212,9 @@ set(SOURCES
     venturecarddialog.cpp
     venturecarddialog.h
     venturecarddialog.ui
-    lib/python/pythonbindings.h lib/python/pythonbindings.cpp
-    lib/mods/modloader.h lib/mods/modloader.cpp
-    lib/mods/csmmmod_decl.h
-    lib/getordefault.h
-    lib/mods/dolio/doliomutator.h lib/mods/dolio/doliomutator.cpp
-    lib/mods/freespace/tinydistrictsfreespace.h lib/mods/freespace/tinydistrictsfreespace.cpp
-    lib/python/pyobjcopywrapper.h
-    lib/mods/dolio/arbitrarynumswitchstates.h lib/mods/dolio/arbitrarynumswitchstates.cpp
-    lib/mods/misc/readfrbfileinfo.h lib/mods/misc/readfrbfileinfo.cpp
-    lib/csmmnetworkmanager.h lib/csmmnetworkmanager.cpp
-    quicksetupdialog.h quicksetupdialog.cpp quicksetupdialog.ui
 )
+
+set(SOURCES ${LIB_SOURCES} ${MAIN_SOURCES})
 
 qt_add_big_resources(SOURCES csmm.qrc)
 

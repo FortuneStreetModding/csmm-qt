@@ -141,8 +141,11 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMe
                 }
 
                 for (auto &descriptor: instance.mapDescriptors()) {
-                    for (int i=0; i<descriptor.districtNames[theLocale].size(); ++i) {
-                        (*messages)[descriptor.districtNameIds[i]] = descriptor.districtNames[theLocale][i];
+                    for (int i=0; i<descriptor.districtNameIds.size(); ++i) {
+                        (*messages)[descriptor.districtNameIds[i]]
+                                = (i < descriptor.districtNames[theLocale].size()
+                                   ? descriptor.districtNames[theLocale][i]
+                                     : descriptor.districtNames["en"][i]);
                     }
                 }
             };

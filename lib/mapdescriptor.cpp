@@ -391,9 +391,9 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     }
     if (yaml["districtNames"]) {
         auto dnNode = yaml["districtNames"];
+        districtNames.clear();
         for (auto it=dnNode.begin(); it!=dnNode.end(); ++it) {
             auto key = yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()));
-            districtNames[key].clear();
             for (const auto &val: it->second) {
                 auto convVal = QString::fromStdString(val.as<std::string>());
                 districtNames[key].push_back(convVal);

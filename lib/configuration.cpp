@@ -3,10 +3,14 @@
 #include <QSaveFile>
 #include <QTextStream>
 #include <yaml-cpp/yaml.h>
-#include "QtCore/qregularexpression.h"
-#include "importexportutils.h"
 #include <fstream>
 #include <filesystem>
+#include <QRegularExpression>
+#include <QNetworkReply>
+#include "importexportutils.h"
+#include "lib/asyncfuture.h"
+#include "lib/await.h"
+#include "lib/csmmnetworkmanager.h"
 
 namespace Configuration {
 
@@ -122,7 +126,13 @@ static ConfigFile parseYaml(const QString &fileName) {
 
     int defaultMapId = 0;
     for (auto it=node.begin(); it!=node.end(); ++it) { // iterate over map sets
-        auto mapSet = it->first.as<int>();
+        auto mapSetStr = it->first.as<std::string>();
+        int mapSet;
+        try {
+            mapSet = std::stoi(mapSetStr);
+        } catch (const std::invalid_argument &) {
+            continue; // non-integer key so ignore
+        }
         for (auto jt=it->second.begin(); jt!=it->second.end(); ++jt) { // iterate over zones
             int zone = jt->first.as<int>();
             int defaultMapOrder = 0;
@@ -146,7 +156,29 @@ static ConfigFile parseYaml(const QString &fileName) {
             }
         }
     }
+    // load background urls if needed
     if (node["backgrounds"].IsDefined()) {
+        auto backgroundPath = QFileInfo(fileName).dir().filePath(
+                    QString::fromStdString(node["backgrounds"].as<std::string>())
+                );
+        std::ifstream bgStream(std::filesystem::path(backgroundPath.toStdU16String()));
+        auto bgNode = YAML::Load(bgStream);
+        for (auto it=bgNode.begin(); it!=bgNode.end(); ++it) {
+            auto bgEntry = *it;
+            auto downloadElem = bgEntry["download"];
+            if (downloadElem.IsDefined()) {
+                QVector<QString> downloadsEntry;
+                for (auto jt=downloadElem.begin(); jt!=downloadElem.end(); ++jt) {
+                    downloadsEntry.push_back(
+                                QString::fromStdString(jt->as<std::string>())
+                                );
+                }
+                configFile.backgroundPaths[
+                        QString::fromStdString(bgEntry["background"].as<std::string>())
+                        ]
+                        = std::move(downloadsEntry);
+            }
+        }
     }
     configFile.entries = std::move(configEntries);
     return configFile;
@@ -305,8 +337,39 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
     while(descriptors.size() > configFile.maxId() + 1) {
         descriptors.pop_back();
     }
-    int idx = 0;
-    for(ConfigEntry& entry : configFile.entries) {
+    auto networkManager = CSMMNetworkManager::instance();
+    for (auto it = configFile.backgroundPaths.begin();
+         it != configFile.backgroundPaths.end();
+         ++it) {
+        for (int i=0; i<it.value().size(); ++i) {
+            auto &url = it.value()[i];
+            QFile destFile(dir.filePath(it.key() + ".background.zip"));
+            if (destFile.open(QFile::WriteOnly | QFile::NewOnly)) {
+                try {
+                    QNetworkRequest req((QUrl(url)));
+                    auto reply = networkManager->get(req);
+                    QObject::connect(reply, &QNetworkReply::readyRead, networkManager, [&]() {
+                        destFile.write(reply->readAll());
+                    });
+                    QObject::connect(reply, &QNetworkReply::downloadProgress, networkManager, [&](qint64 elapsedBytes, qint64 totalBytes) {
+                        double taskProgress = ((double)elapsedBytes / totalBytes + i) / it.value().size();
+                        progressCallback(taskProgress * 0.5);
+                    });
+                    await(AsyncFuture::observe(reply, &QNetworkReply::finished).future());
+                    if (reply->error() != QNetworkReply::NoError) {
+                        throw std::runtime_error(
+                                    QString("could not download %1").arg(url).toStdString()
+                                    );
+                    }
+                    break; // successful
+                } catch (const std::runtime_error &) {
+                    // try next url
+                }
+            }
+        }
+    }
+    for(int i=0; i<configFile.entries.size(); ++i) {
+        auto &entry = configFile.entries[i];
         descriptors[entry.mapId].mapSet = entry.mapSet;
         descriptors[entry.mapId].zone = entry.mapZone;
         descriptors[entry.mapId].order = entry.mapOrder;
@@ -314,9 +377,11 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
             ImportExportUtils::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId],
                     tmpDir,
-                    [=](double progress) { progressCallback((idx + progress) / configFile.entries.size()); });
+                    [=](double progress) {
+                double taskProgress = (i + progress) / configFile.entries.size();
+                progressCallback(0.5 + taskProgress * 0.5);
+            }, dir.path());
         }
-        ++idx;
     }
 }
 
