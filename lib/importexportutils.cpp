@@ -175,6 +175,7 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                 QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
                 QFileInfo zipMusic(zipMusicStr);
                 if(!zipMusic.exists()) {
+                    qInfo() << "Attempting to download music for" << yamlFileZipInfo.fileName();
                     auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
                     for (auto &url: urlsList) {
                         auto zipMusicFile = QSharedPointer<QFile>::create(zipMusicStr);
@@ -237,7 +238,7 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
 void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
                 const std::function<void(double)> &progressCallback,
                 const QString &backgroundZipDir) {
-    qDebug() << "importing map at" <<  yamlFileSrc;
+    qInfo() << "importing map at" <<  yamlFileSrc;
 
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         importYamlZip(yamlFileSrc, descriptor, tmpDir, progressCallback, backgroundZipDir);

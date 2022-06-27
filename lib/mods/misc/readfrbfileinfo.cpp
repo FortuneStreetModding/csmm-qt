@@ -4,7 +4,6 @@
 void ReadFrbFileInfo::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
 {
     auto paramDir = QDir(root).filePath(PARAM_FOLDER);
-    qDebug() << paramDir;
     for (auto &descriptor: gameInstance.mapDescriptors()) {
         descriptor.readFrbFileInfo(paramDir);
     }

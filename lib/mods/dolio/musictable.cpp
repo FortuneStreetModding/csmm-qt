@@ -210,7 +210,7 @@ void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, cons
                 } else if(brsarSlots == -2) {
                     throw ModException(QString("An error happened during patching the brsar file %1. All music %2 slots have been used up.").arg(brsarFilePath).arg(1000));
                 } else {
-                    qDebug() << QString("Used %1 music slots out of %2").arg(brsarSlots).arg(1000);
+                    qDebug() << "Used" << brsarSlots << "music slots out of" << 1000;
                 }
             } else {
                 throw ModException(QString("The brsar file %1 does not contain CSMM entries. You must either start with a vanilla fortune street or use Tools->Save Clean Itast.csmm.brsar").arg(brsarFilePath));

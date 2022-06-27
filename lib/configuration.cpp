@@ -345,6 +345,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
             auto &url = it.value()[i];
             QFile destFile(dir.filePath(it.key() + ".background.zip"));
             if (destFile.open(QFile::WriteOnly | QFile::NewOnly)) {
+                qInfo() << "Attempting to download background" << it.key();
                 try {
                     QNetworkRequest req((QUrl(url)));
                     auto reply = networkManager->get(req);

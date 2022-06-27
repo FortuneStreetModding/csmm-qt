@@ -206,7 +206,6 @@ void MainWindow::openDir() {
 
     auto copyTask = QtConcurrent::run([=]() {
         std::error_code error;
-        qDebug() << dirname << newTempGameDir->path();
         std::filesystem::copy(dirname.toStdU16String(), newTempGameDir->path().toStdU16String(), std::filesystem::copy_options::recursive, error);
         return error;
     });

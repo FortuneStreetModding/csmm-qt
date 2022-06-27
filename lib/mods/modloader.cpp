@@ -84,7 +84,7 @@ static ModListType importModpackDir(const QString &modpackDir) {
 
     try {
         for (auto &modid: qAsConst(modids)) {
-            qDebug() << "trying to import user mod" << modid;
+            qInfo() << "trying to import user mod" << modid;
 
             // append mod instance for each user modid
             bool wasModuleThereBefore = sys.attr("modules").contains(modid);
@@ -92,7 +92,7 @@ static ModListType importModpackDir(const QString &modpackDir) {
             if (wasModuleThereBefore) modModule.reload();
             result.append(CSMMModHolder::fromPyObj(modModule.attr("mod")));
 
-            qDebug() << "successfully imported user mod" << result.back()->modId();
+            qInfo() << "successfully imported user mod" << result.back()->modId();
         }
     } catch (const std::runtime_error &error) {
         sys.attr("path") = sysPathCopy;

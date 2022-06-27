@@ -99,16 +99,18 @@ public:
         }
 
         for (auto &mod: modList) {
-            qDebug() << QString("loading mod '%1'").arg(mod->modId());
+            qInfo() << "loading mod" << mod->modId();
 
             auto generalFileInterface = mod.getCapability<GeneralInterface>();
             if (generalFileInterface) {
-                qDebug() << QString("mod '%1' has general file interface, loading that").arg(mod->modId());
+                qInfo() << "loading general interface for" << mod->modId();
 
                 generalFileInterface->loadFiles(root, gameInstance, modList);
             }
 
             if (modToLoaders.contains(mod->modId())) {
+                qInfo() << "loading UI messages for" << mod->modId();
+
                 auto &loaders = modToLoaders[mod->modId()];
                 for (auto it = loaders.begin(); it != loaders.end(); ++it) {
                     it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
@@ -156,21 +158,21 @@ public:
         }
 
         for (auto &arcFile: arcFiles) {
-            qDebug() << QString("extracting arc file %1").arg(arcFile);
+            qInfo() << "extracting arc file" << arcFile;
             QDir(arcFilesDir.path()).mkpath(arcFile);
             await(ExeWrapper::extractArcFile(QDir(root).filePath(arcFile), arcFilesDir.filePath(arcFile)));
         }
 
         for (auto &mod: modList) {
-            qDebug() << QString("saving mod '%1'").arg(mod->modId());
+            qInfo() << "saving mod" << mod->modId();
 
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {
-                qDebug() << "allocating ui messages";
+                qInfo() << "allocating ui messages for" << mod->modId();
                 uiMessageInterface->allocateUiMessages(root, gameInstance, modList);
             }
             if (messageSavers.contains(mod->modId())) {
-                qDebug() << "saving ui messages";
+                qInfo() << "saving ui messages for" << mod->modId();
                 auto &savers = messageSavers[mod->modId()];
                 for (auto it=savers.begin(); it!=savers.end(); ++it) {
                     it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
@@ -178,11 +180,11 @@ public:
             }
             auto generalFileInterface = mod.getCapability<GeneralInterface>();
             if (generalFileInterface) {
-                qDebug() << "processing general file interface";
+                qInfo() << "processing general interface for" << mod->modId();
                 generalFileInterface->saveFiles(root, gameInstance, modList);
             }
             if (arcModifiers.contains(mod->modId())) {
-                qDebug() << "saving arc files";
+                qInfo() << "saving arc files for" << mod->modId();
                 auto &modifiers = arcModifiers[mod->modId()];
                 for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
                     it.value()(root, gameInstance, modList, arcFilesDir.filePath(it.key()));
@@ -199,7 +201,7 @@ public:
         }
 
         for (auto &arcFile: arcFiles) {
-            qDebug() << QString("saving arc file %1").arg(arcFile);
+            qInfo() << "saving arc file" << arcFile;
             await(ExeWrapper::packDfolderToArc(arcFilesDir.filePath(arcFile), QDir(root).filePath(arcFile)));
         }
     }

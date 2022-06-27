@@ -24,12 +24,12 @@ void DefaultMiscPatches::saveFiles(const QString &root, GameInstance &, const Mo
                 if(!errors.isEmpty()) {
                     throw ModException(QString("Errors occured when applying %1 patch to file %2:\n%3").arg(bsdiffPath, cmpresPath, errors));
                 } else {
-                    qDebug() << "Patched: " << cmpresPath << " sha1: " << ImportExportUtils::fileSha1(cmpresPath);
+                    qDebug() << "Patched:" << cmpresPath << "sha1:" << ImportExportUtils::fileSha1(cmpresPath);
                 }
             } else if (sha1 == patched) {
-                qDebug() << "Already patched: " << cmpresPath << " sha1: " << ImportExportUtils::fileSha1(cmpresPath);
+                qDebug() << "Already patched:" << cmpresPath << "sha1:" << ImportExportUtils::fileSha1(cmpresPath);
             } else {
-                qDebug() << "Not patched (unknown file): " << cmpresPath << " sha1: " << ImportExportUtils::fileSha1(cmpresPath);
+                qDebug() << "Not patched (unknown file):" << cmpresPath << "sha1:" << ImportExportUtils::fileSha1(cmpresPath);
             }
         }
     }
