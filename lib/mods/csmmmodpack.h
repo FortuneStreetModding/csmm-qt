@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void save(const QString &root) {
+    void save(const QString &root, const std::function<void(double)> &progressCallback = [](double) {}) {
         QHash<QString, QMap<QString, UiMessageInterface::SaveMessagesFunction>> messageSavers;
         QHash<QString, QMap<QString, ArcFileInterface::ModifyArcFunction>> arcModifiers;
         QMap<QString, UiMessage> messageFiles;
@@ -157,14 +157,22 @@ public:
             messageFiles[it.key()] = fileToMessage(&file);
         }
 
-        for (auto &arcFile: arcFiles) {
-            qInfo() << "extracting arc file" << arcFile;
-            QDir(arcFilesDir.path()).mkpath(arcFile);
-            await(ExeWrapper::extractArcFile(QDir(root).filePath(arcFile), arcFilesDir.filePath(arcFile)));
+        {
+            int i=0;
+            for (auto &arcFile: arcFiles) {
+                qInfo() << "extracting arc file" << arcFile;
+                progressCallback((double)i / arcFiles.size() / 3);
+                QDir(arcFilesDir.path()).mkpath(arcFile);
+                await(ExeWrapper::extractArcFile(QDir(root).filePath(arcFile), arcFilesDir.filePath(arcFile)));
+                ++i;
+            }
         }
 
-        for (auto &mod: modList) {
+        for (int i=0; i<modList.size(); ++i) {
+            auto &mod = modList[i];
             qInfo() << "saving mod" << mod->modId();
+
+            progressCallback((1 + (double)i / modList.size()) / 3);
 
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {
@@ -200,9 +208,14 @@ public:
             messageToFile(&file, messageFiles[it.key()]);
         }
 
-        for (auto &arcFile: arcFiles) {
-            qInfo() << "saving arc file" << arcFile;
-            await(ExeWrapper::packDfolderToArc(arcFilesDir.filePath(arcFile), QDir(root).filePath(arcFile)));
+        {
+            int i = 0;
+            for (auto &arcFile: arcFiles) {
+                qInfo() << "saving arc file" << arcFile;
+                progressCallback((2 + (double)i / arcFiles.size()) / 3);
+                await(ExeWrapper::packDfolderToArc(arcFilesDir.filePath(arcFile), QDir(root).filePath(arcFile)));
+                ++i;
+            }
         }
     }
 private:

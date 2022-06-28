@@ -160,8 +160,12 @@ void MainWindow::loadMapList() {
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
     ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
     ui->statusbar->repaint();
+    QProgressDialog progressDialog("Importing map list", QString(), 0, 100);
+    progressDialog.setWindowModality(Qt::ApplicationModal);
     try {
-        Configuration::load(openFile, descriptors, tempGameDir->path());
+        Configuration::load(openFile, descriptors, tempGameDir->path(), [&](double progress) {
+            progressDialog.setValue(100 * progress);
+        });
         loadDescriptors(descriptors);
         ui->tableWidget->dirty = true;
         ui->statusbar->showMessage("Map list load completed");
@@ -346,7 +350,7 @@ void MainWindow::exportToFolder() {
 
     if (!ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100, this);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
 
@@ -360,7 +364,7 @@ void MainWindow::exportToFolder() {
                 if (!result) {
                     QMessageBox::critical(this, "Save", "Could not copy game data.");
                 } else {
-                    progress->setValue(2);
+                    progress->setValue(100);
                     QMessageBox::information(this, "Save", "Saved successfuly.");
                 }
             });
@@ -368,11 +372,13 @@ void MainWindow::exportToFolder() {
         }
     }
 
-    if (true) { // TODO check if wifiFix is a modid
+    if (std::find_if(modList.begin(), modList.end(), [](const CSMMModHolder &mod) {
+                  return mod->modId() == "wifiFix";
+})) {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100, this);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
@@ -388,14 +394,16 @@ void MainWindow::exportToFolder() {
             QMessageBox::critical(this, "Save", "Could not copy game data to temporary directory for modifying");
             return;
         }
-        progress->setValue(1);
+        progress->setValue(30);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
             auto gameInstance = GameInstance::fromGameDirectory(saveDir, *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
-            modpack.save(saveDir);
-            progress->setValue(2);
+            modpack.save(saveDir, [=](double progressVal) {
+                progress->setValue(30 + (100 - 30) * progressVal);
+            });
+            progress->setValue(100);
             QMessageBox::information(this, "Save", "Saved successfuly.");
 
             // reload map descriptors
@@ -423,12 +431,12 @@ void MainWindow::exportIsoWbfs() {
 
     if (!ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100, this);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
             auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01")).subscribe([=]() {
+                progress->setValue(100);
                 QMessageBox::information(this, "Export", "Exported successfuly.");
-                progress->setValue(2);
             });
             return;
         }
@@ -436,7 +444,7 @@ void MainWindow::exportIsoWbfs() {
 
     auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 4, this);
+    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 100, this);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
@@ -453,15 +461,17 @@ void MainWindow::exportIsoWbfs() {
             def.complete();
             return def.future();
         }
-        progress->setValue(1);
+        progress->setValue(20);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
             auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
-            modpack.save(intermediatePath);
+            modpack.save(intermediatePath, [=](double progressVal) {
+                progress->setValue(20 + (80 - 20) * progressVal);
+            });
             *descriptors = gameInstance.mapDescriptors();
-            progress->setValue(2);
+            progress->setValue(80);
             return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
         } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
@@ -469,7 +479,7 @@ void MainWindow::exportIsoWbfs() {
             throw exception;
         }
     }).subscribe([=]() {
-        progress->setValue(3);
+        progress->setValue(90);
         if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
             return ExeWrapper::patchWiimmfi(saveFile);
         }
@@ -479,7 +489,7 @@ void MainWindow::exportIsoWbfs() {
     }).subscribe([=]() {
         (void)intermediateResults; // keep temporary directory active while creating wbfs/iso
 
-        progress->setValue(4);
+        progress->setValue(100);
         QMessageBox::information(this, "Export", "Exported successfuly.");
 
         // reload map descriptors

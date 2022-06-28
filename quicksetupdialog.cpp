@@ -109,8 +109,8 @@ void QuickSetupDialog::accept()
             QMessageBox::critical(this, "Cannot save game", "Cannot create temporary directory");
             return;
         }
-        QProgressDialog dialog("Saving game to ROM", QString(), 0, 100, this);
-        dialog.setWindowModality(Qt::WindowModal);
+        QProgressDialog dialog("Saving game to ROM", QString(), 0, 100);
+        dialog.setWindowModality(Qt::ApplicationModal);
         // copy directory if folder, extract wbfs/iso if file
         if (QFileInfo(ui->inputGameLoc->text()).isDir()) {
             std::error_code error;
@@ -138,9 +138,11 @@ void QuickSetupDialog::accept()
 
         dialog.setValue(60);
 
-        modpack.save(intermediateDir.path());
+        modpack.save(intermediateDir.path(), [&](double progress) {
+            dialog.setValue(60 + (90 - 60) * progress);
+        });
 
-        dialog.setValue(80);
+        dialog.setValue(90);
 
         // copy directory if folder, create wbfs/iso if file
         if (QFileInfo(ui->outputGameLoc->text()).isDir()) {
