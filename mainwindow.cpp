@@ -472,6 +472,7 @@ void MainWindow::exportIsoWbfs() {
             });
             *descriptors = gameInstance.mapDescriptors();
             progress->setValue(80);
+            qInfo() << "packing wbfs/iso";
             return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
         } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
@@ -481,6 +482,7 @@ void MainWindow::exportIsoWbfs() {
     }).subscribe([=]() {
         progress->setValue(90);
         if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
+            qInfo() << "patching wiimmfi";
             return ExeWrapper::patchWiimmfi(saveFile);
         }
         auto def = AsyncFuture::deferred<void>();

@@ -143,6 +143,7 @@ void QuickSetupDialog::accept()
         });
 
         dialog.setValue(90);
+        qInfo() << "writing ROM";
 
         // copy directory if folder, create wbfs/iso if file
         if (QFileInfo(ui->outputGameLoc->text()).isDir()) {
