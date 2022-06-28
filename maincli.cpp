@@ -27,6 +27,11 @@ static void setupSubcommand(QCommandLineParser& parser, QString name, QString de
     parser.addOption(openCategory);
 }
 
+static bool _isQuiet;
+static bool _isVerbose;
+static std::unique_ptr<QTextStream> coutp;
+static std::unique_ptr<QTextStream> cerrp;
+
 void run(QStringList arguments)
 {
     auto description = QString(R"(
@@ -97,7 +102,7 @@ void run(QStringList arguments)
     QCommandLineOption mapIdOption(QStringList() << "i" << "id", "The <id> of the map (0,1,2...).", "id");
     QCommandLineOption mapPracticeBoardOption(QStringList() << "p" << "practice-board", "Whether the map is regarded as a practice board (0=no|1=yes).", "practiceBoard");
     QCommandLineOption quietOption(QStringList() << "q" << "quiet", "Do not print anything to console (overrides verbose).");
-    // QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
+    QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
     QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption modPackOption(QStringList() << "modpack", "The modpack file (.zip or modlist.txt) to load (leave blank for default).", "modpack");
@@ -109,20 +114,30 @@ void run(QStringList arguments)
     parser.addOption(helpOption);
     parser.addOption(quietOption);
     quietOption.setDescription(quietOption.description()); // add a linebreak at the last generic option
-    //parser.addOption(verboseOption);
+    parser.addOption(verboseOption);
 
     // Call parse()
     parser.parse(arguments);
 
     QBuffer b;
     b.open(QIODevice::ReadWrite);
-    auto coutp = parser.isSet(quietOption)
+    coutp = parser.isSet(quietOption)
             ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stdout);
     auto &cout = *coutp;
-    auto cerrp = parser.isSet(quietOption)
+    cerrp = parser.isSet(quietOption)
             ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stderr);
     auto &cerr = *cerrp;
     QTextStream &helpStream = parser.isSet(helpOption) ? cout : cerr;
+
+    _isQuiet = parser.isSet(quietOption);
+    _isVerbose = parser.isSet(verboseOption);
+
+    // add logging handler to deal with quiet/verbose options
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+        if (!_isQuiet && (_isVerbose || type != QtMsgType::QtDebugMsg)) {
+            *cerrp << msg << Qt::endl;
+        }
+    });
 
     pybind11::scoped_interpreter guard{};
 

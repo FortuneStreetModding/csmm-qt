@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 
 #include <filesystem>
-#include <QtGlobal>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
