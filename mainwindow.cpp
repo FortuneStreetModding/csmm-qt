@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <filesystem>
+#include <QtGlobal>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -112,6 +113,16 @@ MainWindow::MainWindow(QWidget *parent)
         });
     });
     updateModListWidget();
+
+    // show progress messages in progress dialog
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+        static QTextStream cerr(stderr);
+        cerr << msg << Qt::endl;
+        auto progressDialog = dynamic_cast<QProgressDialog *>(QApplication::activeModalWidget());
+        if (type != QtMsgType::QtDebugMsg && progressDialog != nullptr) {
+            progressDialog->setLabelText(msg);
+        }
+    });
 }
 
 QString MainWindow::getSaveId() {
