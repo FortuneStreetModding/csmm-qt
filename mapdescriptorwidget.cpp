@@ -79,7 +79,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            QProgressDialog dialog("Importing yaml", QString(), 0, 100, this);
+            QProgressDialog dialog("Importing yaml", QString(), 0, 100);
             ImportExportUtils::importYaml(openYaml, newDescriptor, getGameDirectory(), [&](double progress) {
                 dialog.setValue(100 * progress);
             });
