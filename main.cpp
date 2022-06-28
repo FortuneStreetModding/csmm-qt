@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     #if defined( Q_OS_WIN )
         // hide console window under Windows but only if the first argument is the full path to the executable
         //  -> this indicates that the exe file has been started by mouse double click
-        if(QCoreApplication::applicationFilePath().replace("/", "\\") == QString(argv[0])) {
+        if(QCoreApplication::applicationFilePath().replace("/", "\\") == QApplication::arguments()[0]) {
             ::ShowWindow( ::GetConsoleWindow(), SW_HIDE );
         }
     #endif

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.3)
 
 add_compile_definitions(QT_NO_KEYWORDS)
+add_compile_definitions(UNICODE)
+add_compile_definitions(_UNICODE)
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
