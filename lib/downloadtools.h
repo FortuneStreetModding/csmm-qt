@@ -56,15 +56,20 @@ namespace DownloadTools
     }
 
     template<class ErrorCallback>
-    inline QFuture<void> downloadAllRequiredFiles(ErrorCallback func, QString witUrl, QString wszstUrl) {
+    inline QFuture<void> downloadAllRequiredFiles(ErrorCallback func, QString witUrl, QString wszstUrl,
+                                                  const std::function<void(double)> &progressCallback = [](double) {}) {
         QDir appDir = getToolsLocation();
         appDir.mkpath(".");
+        auto downloadProgresses = QSharedPointer<QPair<double, double>>::create(0, 0);
         auto downloadWit = downloadRequiredFiles(witUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
             if (filename == WIT_NAME || filename.endsWith(".dll")) {
                 return appDir.filePath(filename);
             }
             return QString();
+        }, [=](double progress) {
+            downloadProgresses->first = progress;
+            progressCallback((downloadProgresses->first + downloadProgresses->second) / 2);
         });
         auto downloadWszst = downloadRequiredFiles(wszstUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
@@ -72,6 +77,9 @@ namespace DownloadTools
                 return appDir.filePath(filename);
             }
             return QString();
+        }, [=](double progress) {
+            downloadProgresses->second = progress;
+            progressCallback((downloadProgresses->first + downloadProgresses->second) / 2);
         });
         auto downloadFut = (AsyncFuture::combine() << downloadWit << downloadWszst);
         return downloadFut.subscribe([=]() {}, [=]() {

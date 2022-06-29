@@ -236,7 +236,7 @@ void MainWindow::openDir() {
         }
 
         try {
-            *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2, this);
+            *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2);
             (*progress)->setWindowModality(Qt::WindowModal);
             (*progress)->setValue(0);
 
@@ -324,9 +324,12 @@ QFuture<void> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
     if (alwaysAsk || !DownloadTools::requiredFilesAvailable()) {
         DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
         if (dialog.exec() == QDialog::Accepted) {
+            auto progressDialog = QSharedPointer<QProgressDialog>::create("Downloading CLI tools", QString(), 0, 100);
             auto fut = DownloadTools::downloadAllRequiredFiles([&](const QString &error) {
                 QMessageBox::critical(this, "Download", error);
-            }, dialog.getWitURL(), dialog.getWszstURL());
+            }, dialog.getWitURL(), dialog.getWszstURL(), [=](double progress) {
+                progressDialog->setValue(100 * progress);
+            });
             return AsyncFuture::observe(fut).subscribe([=]() {
                 QMessageBox::information(this, "Download", "Successfuly downloaded and extracted the programs.");
             }).future();
@@ -350,7 +353,7 @@ void MainWindow::exportToFolder() {
 
     if (!ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100, this);
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
 
@@ -378,7 +381,7 @@ void MainWindow::exportToFolder() {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100, this);
+    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
@@ -431,7 +434,7 @@ void MainWindow::exportIsoWbfs() {
 
     if (!ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100, this);
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
             auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01")).subscribe([=]() {
