@@ -533,7 +533,8 @@ void MainWindow::validateMaps() {
     if (errorMsgs.isEmpty()) {
         QMessageBox::information(this, "Validation", "Validation passed.");
     } else {
-        (new ValidationErrorDialog(errorMsgs, this))->exec();
+        ValidationErrorDialog errorDialog(errorMsgs);
+        errorDialog.exec();
     }
 }
 
