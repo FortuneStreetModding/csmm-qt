@@ -104,8 +104,6 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
 static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
                           const std::function<void(double)> &progressCallback,
                           const QString &backgroundZipDir) {
-    auto networkManager = CSMMNetworkManager::instance();
-
     QTemporaryDir intermediateDir;
     if (!intermediateDir.isValid()) {
         throw Exception("Could not create an intermediate directory");
@@ -178,32 +176,12 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                     qInfo() << "Attempting to download music for" << yamlFileZipInfo.fileName();
                     auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
                     for (auto &url: urlsList) {
-                        auto zipMusicFile = QSharedPointer<QFile>::create(zipMusicStr);
-                            if (zipMusicFile->open(QFile::WriteOnly)) {
-                            try {
-                                QNetworkRequest request(QUrl(QString::fromStdString(url)));
-                                request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
-                                auto reply = networkManager->get(request);
-
-                                QObject::connect(reply, &QNetworkReply::readyRead, networkManager, [=]() {
-                                    zipMusicFile->write(reply->readAll());
-                                });
-                                QObject::connect(reply, &QNetworkReply::downloadProgress, networkManager, [=](qint64 elapsed, qint64 total) {
-                                    progressCallback(total == 0 ? 1 : (double)elapsed / total);
-                                });
-                                await(AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> void {
-                                    if (reply->error() != QNetworkReply::NoError) {
-                                        Exception ex(QString("Error downloading music: %1").arg(reply->errorString()));
-                                        reply->deleteLater();
-                                        throw ex;
-                                    }
-                                    reply->deleteLater();
-                                }).future());
-
-                                break;
-                            } catch (const std::runtime_error &) {
-                                // download failed, try next url
-                            }
+                        try {
+                            await(CSMMNetworkManager::downloadFileIfUrl(QString::fromStdString(url), zipMusicStr, progressCallback));
+                            break;
+                        } catch (const std::runtime_error &e) {
+                            qWarning() << "warning:" << e.what();
+                            // download failed, try next url
                         }
                     }
                 }

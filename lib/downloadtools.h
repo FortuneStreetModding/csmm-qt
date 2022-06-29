@@ -87,7 +87,8 @@ namespace DownloadTools
     }
 
     template<class InToOutFiles>
-    inline QFuture<void> downloadRequiredFiles(QUrl url, InToOutFiles func) {
+    inline QFuture<void> downloadRequiredFiles(const QUrl &url, InToOutFiles &&func,
+                                               const std::function<void(double)> &progressCallback = [](double) {}) {
         auto manager = CSMMNetworkManager::instance();
         QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
         if (tempDir->isValid()) {
@@ -99,6 +100,9 @@ namespace DownloadTools
                 //manager->setTransferTimeout(1000);
                 QObject::connect(reply, &QNetworkReply::readyRead, manager, [=]() {
                     witArchiveFile->write(reply->readAll());
+                });
+                QObject::connect(reply, &QNetworkReply::downloadProgress, manager, [=](qint64 elapsed, qint64 total) {
+                    progressCallback(total == 0 ? 1 : (double)elapsed / total);
                 });
                 return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> void {
                     if (reply->error() != QNetworkReply::NoError) {

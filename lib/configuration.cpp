@@ -146,6 +146,12 @@ static ConfigFile parseYaml(const QString &fileName) {
                 } else {
                     entryToAdd.name = QFileInfo(rawName).baseName();
                     entryToAdd.mapDescriptorRelativePath = QFileInfo(fileName).dir().relativeFilePath(rawName);
+                    if (kt->second["urls"].IsDefined()) {
+                        auto urls = kt->second["urls"].as<std::vector<std::string>>();
+                        for (auto &url: urls) {
+                            entryToAdd.mapDescriptorUrls.push_back(QString::fromStdString(url));
+                        }
+                    }
                 }
                 entryToAdd.mapId = kt->second["mapId"].IsDefined() ? kt->second["mapId"].as<int>() : defaultMapId;
                 entryToAdd.mapOrder = kt->second["mapOrder"].IsDefined() ? kt->second["mapOrder"].as<int>() : defaultMapOrder;
@@ -337,36 +343,26 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
     while(descriptors.size() > configFile.maxId() + 1) {
         descriptors.pop_back();
     }
-    auto networkManager = CSMMNetworkManager::instance();
-    for (auto it = configFile.backgroundPaths.begin();
-         it != configFile.backgroundPaths.end();
-         ++it) {
-        for (int i=0; i<it.value().size(); ++i) {
-            auto &url = it.value()[i];
-            QFile destFile(dir.filePath(it.key() + ".background.zip"));
-            if (destFile.open(QFile::WriteOnly | QFile::NewOnly)) {
-                qInfo() << "Attempting to download background" << it.key();
+    {
+        int i = 0;
+        for (auto it = configFile.backgroundPaths.begin();
+             it != configFile.backgroundPaths.end();
+             ++it) {
+
+            qInfo() << "attempting to download background" << it.key();
+            for (auto &url: it.value()) {
+                auto dest = dir.filePath(it.key() + ".background.zip");
                 try {
-                    QNetworkRequest req((QUrl(url)));
-                    auto reply = networkManager->get(req);
-                    QObject::connect(reply, &QNetworkReply::readyRead, networkManager, [&]() {
-                        destFile.write(reply->readAll());
-                    });
-                    QObject::connect(reply, &QNetworkReply::downloadProgress, networkManager, [&](qint64 elapsedBytes, qint64 totalBytes) {
-                        double taskProgress = ((double)elapsedBytes / totalBytes + i) / it.value().size();
-                        progressCallback(taskProgress * 0.5);
-                    });
-                    await(AsyncFuture::observe(reply, &QNetworkReply::finished).future());
-                    if (reply->error() != QNetworkReply::NoError) {
-                        throw std::runtime_error(
-                                    QString("could not download %1").arg(url).toStdString()
-                                    );
-                    }
-                    break; // successful
-                } catch (const std::runtime_error &) {
-                    // try next url
+                    await(CSMMNetworkManager::downloadFileIfUrl(url, dest, [&](double progress) {
+                        progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
+                    }));
+                    break;
+                } catch (const std::runtime_error &e) {
+                    qWarning() << "warning:" << e.what();
+                    continue; // try next url
                 }
             }
+            ++i;
         }
     }
     for(int i=0; i<configFile.entries.size(); ++i) {
@@ -376,7 +372,19 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
         descriptors[entry.mapId].order = entry.mapOrder;
         descriptors[entry.mapId].isPracticeBoard = entry.practiceBoard;
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
-            ImportExportUtils::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId],
+            auto descPath = dir.filePath(entry.mapDescriptorRelativePath);
+            if (!QFile::exists(descPath)) {
+                qInfo() << "trying to download map descriptor to" << entry.mapDescriptorRelativePath;
+                for (auto &url: entry.mapDescriptorUrls) {
+                    try {
+                        CSMMNetworkManager::downloadFileIfUrl(url, entry.mapDescriptorRelativePath);
+                    } catch (const std::runtime_error &e) {
+                        qWarning() << "warning:" << e.what();
+                        continue;
+                    }
+                }
+            }
+            ImportExportUtils::importYaml(descPath, descriptors[entry.mapId],
                     tmpDir,
                     [=](double progress) {
                 double taskProgress = (i + progress) / configFile.entries.size();

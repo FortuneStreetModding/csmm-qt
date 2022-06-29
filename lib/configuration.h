@@ -16,6 +16,7 @@ struct ConfigEntry {
     int practiceBoard;
     QString name;
     QString mapDescriptorRelativePath;
+    QVector<QString> mapDescriptorUrls;
     QString toCsv();
 };
 

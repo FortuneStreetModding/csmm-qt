@@ -155,6 +155,11 @@ void QuickSetupDialog::accept()
             }
         } else {
             await(ExeWrapper::createWbfsIso(intermediateDir.path(), ui->outputGameLoc->text(), ui->saveId->text()));
+            if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
+                qInfo() << "patching wiimmfi";
+                dialog.setValue(95);
+                await(ExeWrapper::patchWiimmfi(ui->outputGameLoc->text()));
+            }
         }
 
         dialog.setValue(100);
