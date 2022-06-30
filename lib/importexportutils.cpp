@@ -118,7 +118,8 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
         return 0;
     }, &extractedYamlFile);
     if (extractResult < 0) {
-        throw Exception("Could not extract zip file to intermediate directory");
+        throw Exception(QString("Could not extract zip file to intermediate directory: %1")
+                        .arg(zip_strerror(extractResult)));
     }
     if (extractedYamlFile.isEmpty()) {
         throw Exception("Zip file has no map descriptor");
@@ -172,7 +173,9 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
             if (!allBrstmsAvailable) {
                 QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
                 QFileInfo zipMusic(zipMusicStr);
-                if(!zipMusic.exists()) {
+                if(node["music"].IsDefined()
+                        && node["music"]["download"].IsSequence()
+                        && node["music"]["download"].size() > 0) {
                     qInfo() << "Attempting to download music for" << yamlFileZipInfo.fileName();
                     auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
                     for (auto &url: urlsList) {

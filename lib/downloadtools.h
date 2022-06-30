@@ -130,7 +130,7 @@ namespace DownloadTools
                     if (!zip) {
                         throw DownloadException(QString("Error opening downloaded file %1").arg(fname));
                     }
-                    int n = zip_total_entries(zip);
+                    int n = zip_entries_total(zip);
                     for (int i=0; i<n; ++i) {
                         zip_entry_openbyindex(zip, i);
 

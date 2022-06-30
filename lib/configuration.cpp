@@ -53,6 +53,7 @@ QString ConfigFile::toYaml()
         mapSets.insert(entry.mapSet);
         zones.insert(entry.mapZone);
     }
+    emitter << YAML::Comment("optional: add the backgrounds key to point to a list of backgrounds in cswt yaml format");
     for (int mapSet: mapSets) {
         emitter << YAML::Key << mapSet << YAML::Comment("Map Set");
         emitter << YAML::Value;
@@ -68,6 +69,7 @@ QString ConfigFile::toYaml()
                             << YAML::Comment("Path relative to this file to the descriptor yaml, or !default<mapid>_<internalname> if left as default");
                     emitter << YAML::Value;
                     emitter << YAML::BeginMap;
+                    emitter << YAML::Key << "urls" << YAML::Value << std::vector<std::string>() << YAML::Comment("Can be omitted, list of urls to download board from");
                     emitter << YAML::Key << "mapId" << YAML::Value << entry.mapId << YAML::Comment("Omit to deduce map id from order in file");
                     emitter << YAML::Key << "mapOrder" << YAML::Value << entry.mapOrder << YAML::Comment("Omit to deduce map order in mapSet/zone from order in file");
                     emitter << YAML::Key << "practiceBoard" << YAML::Value << (bool)entry.practiceBoard << YAML::Comment("Defaults to false");
@@ -167,6 +169,9 @@ static ConfigFile parseYaml(const QString &fileName) {
         auto backgroundPath = QFileInfo(fileName).dir().filePath(
                     QString::fromStdString(node["backgrounds"].as<std::string>())
                 );
+        if (!QFileInfo::exists(backgroundPath)) {
+            throw std::runtime_error("file " + backgroundPath.toStdString() + " does not exist");
+        }
         std::ifstream bgStream(std::filesystem::path(backgroundPath.toStdU16String()));
         auto bgNode = YAML::Load(bgStream);
         for (auto it=bgNode.begin(); it!=bgNode.end(); ++it) {
@@ -374,10 +379,10 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
             auto descPath = dir.filePath(entry.mapDescriptorRelativePath);
             if (!QFile::exists(descPath)) {
-                qInfo() << "trying to download map descriptor to" << entry.mapDescriptorRelativePath;
+                qInfo() << "trying to download map descriptor to" << descPath;
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
-                        CSMMNetworkManager::downloadFileIfUrl(url, entry.mapDescriptorRelativePath);
+                        await(CSMMNetworkManager::downloadFileIfUrl(url, descPath));
                     } catch (const std::runtime_error &e) {
                         qWarning() << "warning:" << e.what();
                         continue;

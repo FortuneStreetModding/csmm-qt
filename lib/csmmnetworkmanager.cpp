@@ -53,6 +53,8 @@ QFuture<bool> downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                 reply->deleteLater();
                 return true;
             }).future();
+        } else {
+            throw Exception("failed to create file for downloading");
         }
     }
 
