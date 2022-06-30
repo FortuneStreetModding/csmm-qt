@@ -22,7 +22,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), manager(new QNetworkAccessManager(this)), modList(DefaultModList::defaultModList())
+    , ui(new Ui::MainWindow), modList(DefaultModList::defaultModList())
 {
     setAttribute(Qt::WA_DeleteOnClose);
 
@@ -34,6 +34,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionExport_to_WBFS_ISO, &QAction::triggered, this, &MainWindow::exportIsoWbfs);
     connect(ui->action_Re_Download_External_Tools, &QAction::triggered, this, [&]() {
         checkForRequiredFiles(true);
+    });
+    connect(ui->actionShow_CSMM_Network_Cache_In_File_System, &QAction::triggered, this, [&]() {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(CSMMNetworkManager::networkCacheDir()));
     });
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/fortunestreetmodding.github.io/wiki/CSMM-User-Manual"));
@@ -109,6 +112,16 @@ MainWindow::MainWindow(QWidget *parent)
         });
     });
     updateModListWidget();
+
+    // show progress messages in progress dialog
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+        static QTextStream cerr(stderr);
+        cerr << msg << Qt::endl;
+        auto progressDialog = dynamic_cast<QProgressDialog *>(QApplication::activeModalWidget());
+        if (type != QtMsgType::QtDebugMsg && progressDialog != nullptr) {
+            progressDialog->setLabelText(msg);
+        }
+    });
 }
 
 QString MainWindow::getSaveId() {
@@ -147,8 +160,12 @@ void MainWindow::loadMapList() {
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
     ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
     ui->statusbar->repaint();
+    QProgressDialog progressDialog("Importing map list", QString(), 0, 100);
+    progressDialog.setWindowModality(Qt::ApplicationModal);
     try {
-        Configuration::load(openFile, descriptors, tempGameDir->path());
+        Configuration::load(openFile, descriptors, tempGameDir->path(), [&](double progress) {
+            progressDialog.setValue(100 * progress);
+        });
         loadDescriptors(descriptors);
         ui->tableWidget->dirty = true;
         ui->statusbar->showMessage("Map list load completed");
@@ -203,7 +220,6 @@ void MainWindow::openDir() {
 
     auto copyTask = QtConcurrent::run([=]() {
         std::error_code error;
-        qDebug() << dirname << newTempGameDir->path();
         std::filesystem::copy(dirname.toStdU16String(), newTempGameDir->path().toStdU16String(), std::filesystem::copy_options::recursive, error);
         return error;
     });
@@ -220,7 +236,7 @@ void MainWindow::openDir() {
         }
 
         try {
-            *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2, this);
+            *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2);
             (*progress)->setWindowModality(Qt::WindowModal);
             (*progress)->setValue(0);
 
@@ -308,9 +324,12 @@ QFuture<void> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
     if (alwaysAsk || !DownloadTools::requiredFilesAvailable()) {
         DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
         if (dialog.exec() == QDialog::Accepted) {
-            auto fut = DownloadTools::downloadAllRequiredFiles(manager, [&](const QString &error) {
+            auto progressDialog = QSharedPointer<QProgressDialog>::create("Downloading CLI tools", QString(), 0, 100);
+            auto fut = DownloadTools::downloadAllRequiredFiles([&](const QString &error) {
                 QMessageBox::critical(this, "Download", error);
-            }, dialog.getWitURL(), dialog.getWszstURL());
+            }, dialog.getWitURL(), dialog.getWszstURL(), [=](double progress) {
+                progressDialog->setValue(100 * progress);
+            });
             return AsyncFuture::observe(fut).subscribe([=]() {
                 QMessageBox::information(this, "Download", "Successfuly downloaded and extracted the programs.");
             }).future();
@@ -334,7 +353,7 @@ void MainWindow::exportToFolder() {
 
     if (!ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
 
@@ -348,7 +367,7 @@ void MainWindow::exportToFolder() {
                 if (!result) {
                     QMessageBox::critical(this, "Save", "Could not copy game data.");
                 } else {
-                    progress->setValue(2);
+                    progress->setValue(100);
                     QMessageBox::information(this, "Save", "Saved successfuly.");
                 }
             });
@@ -356,11 +375,13 @@ void MainWindow::exportToFolder() {
         }
     }
 
-    if (true) { // TODO check if wifiFix is a modid
+    if (std::find_if(modList.begin(), modList.end(), [](const CSMMModHolder &mod) {
+                  return mod->modId() == "wifiFix";
+})) {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
@@ -376,14 +397,16 @@ void MainWindow::exportToFolder() {
             QMessageBox::critical(this, "Save", "Could not copy game data to temporary directory for modifying");
             return;
         }
-        progress->setValue(1);
+        progress->setValue(30);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
             auto gameInstance = GameInstance::fromGameDirectory(saveDir, *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
-            modpack.save(saveDir);
-            progress->setValue(2);
+            modpack.save(saveDir, [=](double progressVal) {
+                progress->setValue(30 + (100 - 30) * progressVal);
+            });
+            progress->setValue(100);
             QMessageBox::information(this, "Save", "Saved successfuly.");
 
             // reload map descriptors
@@ -411,12 +434,12 @@ void MainWindow::exportIsoWbfs() {
 
     if (!ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 2, this);
+            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
             auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01")).subscribe([=]() {
+                progress->setValue(100);
                 QMessageBox::information(this, "Export", "Exported successfuly.");
-                progress->setValue(2);
             });
             return;
         }
@@ -424,7 +447,7 @@ void MainWindow::exportIsoWbfs() {
 
     auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 4, this);
+    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 100, this);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
@@ -441,15 +464,18 @@ void MainWindow::exportIsoWbfs() {
             def.complete();
             return def.future();
         }
-        progress->setValue(1);
+        progress->setValue(20);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
             auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
-            modpack.save(intermediatePath);
+            modpack.save(intermediatePath, [=](double progressVal) {
+                progress->setValue(20 + (80 - 20) * progressVal);
+            });
             *descriptors = gameInstance.mapDescriptors();
-            progress->setValue(2);
+            progress->setValue(80);
+            qInfo() << "packing wbfs/iso";
             return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
         } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
@@ -457,8 +483,9 @@ void MainWindow::exportIsoWbfs() {
             throw exception;
         }
     }).subscribe([=]() {
-        progress->setValue(3);
+        progress->setValue(90);
         if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
+            qInfo() << "patching wiimmfi";
             return ExeWrapper::patchWiimmfi(saveFile);
         }
         auto def = AsyncFuture::deferred<void>();
@@ -467,7 +494,7 @@ void MainWindow::exportIsoWbfs() {
     }).subscribe([=]() {
         (void)intermediateResults; // keep temporary directory active while creating wbfs/iso
 
-        progress->setValue(4);
+        progress->setValue(100);
         QMessageBox::information(this, "Export", "Exported successfuly.");
 
         // reload map descriptors
@@ -506,7 +533,8 @@ void MainWindow::validateMaps() {
     if (errorMsgs.isEmpty()) {
         QMessageBox::information(this, "Validation", "Validation passed.");
     } else {
-        (new ValidationErrorDialog(errorMsgs, this))->exec();
+        ValidationErrorDialog errorDialog(errorMsgs);
+        errorDialog.exec();
     }
 }
 

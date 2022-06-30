@@ -24,8 +24,6 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QNetworkAccessManager *manager;
-
     QSharedPointer<QTemporaryDir> tempGameDir;
 
     ModListType modList;

@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTextStream>
+#include <QProgressDialog>
 #include "lib/datafileset.h"
 #include "lib/importexportutils.h"
 #include "lib/getordefault.h"
@@ -78,7 +79,10 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            ImportExportUtils::importYaml(openYaml, newDescriptor, getGameDirectory());
+            QProgressDialog dialog("Importing yaml", QString(), 0, 100);
+            ImportExportUtils::importYaml(openYaml, newDescriptor, getGameDirectory(), [&](double progress) {
+                dialog.setValue(100 * progress);
+            });
             descriptorPtr->setFromImport(newDescriptor);
             descriptorPtr->mapDescriptorFilePath = openYaml;
             dirty = true;

@@ -3,12 +3,12 @@
 
 #include <QFuture>
 #include <QNetworkAccessManager>
-#include <QApplication>
 #include <QTemporaryDir>
 #include <QStandardPaths>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
+#include "lib/csmmnetworkmanager.h"
 #include "lib/exewrapper.h"
 #include "lib/asyncfuture.h"
 #ifdef Q_OS_WIN
@@ -56,22 +56,30 @@ namespace DownloadTools
     }
 
     template<class ErrorCallback>
-    inline QFuture<void> downloadAllRequiredFiles(QNetworkAccessManager* manager, ErrorCallback func, QString witUrl, QString wszstUrl) {
+    inline QFuture<void> downloadAllRequiredFiles(ErrorCallback func, QString witUrl, QString wszstUrl,
+                                                  const std::function<void(double)> &progressCallback = [](double) {}) {
         QDir appDir = getToolsLocation();
         appDir.mkpath(".");
-        auto downloadWit = downloadRequiredFiles(manager, witUrl, [=](const QString &file) {
+        auto downloadProgresses = QSharedPointer<QPair<double, double>>::create(0, 0);
+        auto downloadWit = downloadRequiredFiles(witUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
             if (filename == WIT_NAME || filename.endsWith(".dll")) {
                 return appDir.filePath(filename);
             }
             return QString();
+        }, [=](double progress) {
+            downloadProgresses->first = progress;
+            progressCallback((downloadProgresses->first + downloadProgresses->second) / 2);
         });
-        auto downloadWszst = downloadRequiredFiles(manager, wszstUrl, [=](const QString &file) {
+        auto downloadWszst = downloadRequiredFiles(wszstUrl, [=](const QString &file) {
             auto filename = QFileInfo(file).fileName();
             if (filename == WSZST_NAME || filename == WIMGT_NAME || filename.endsWith(".dll")) {
                 return appDir.filePath(filename);
             }
             return QString();
+        }, [=](double progress) {
+            downloadProgresses->second = progress;
+            progressCallback((downloadProgresses->first + downloadProgresses->second) / 2);
         });
         auto downloadFut = (AsyncFuture::combine() << downloadWit << downloadWszst);
         return downloadFut.subscribe([=]() {}, [=]() {
@@ -87,17 +95,22 @@ namespace DownloadTools
     }
 
     template<class InToOutFiles>
-    inline QFuture<void> downloadRequiredFiles(QNetworkAccessManager* manager, QUrl url, InToOutFiles func) {
+    inline QFuture<void> downloadRequiredFiles(const QUrl &url, InToOutFiles &&func,
+                                               const std::function<void(double)> &progressCallback = [](double) {}) {
+        auto manager = CSMMNetworkManager::instance();
         QSharedPointer<QTemporaryDir> tempDir(new QTemporaryDir);
         if (tempDir->isValid()) {
-            auto witArchiveFile = new QFile(tempDir->filePath("temp_wit"), QApplication::instance());
+            auto witArchiveFile = QSharedPointer<QFile>::create(tempDir->filePath("temp_wit"));
             if (witArchiveFile->open(QIODevice::ReadWrite | QIODevice::Truncate)) {
-                QNetworkRequest request = QNetworkRequest(url);
+                QNetworkRequest request(url);
                 request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
                 QNetworkReply *reply = manager->get(request);
                 //manager->setTransferTimeout(1000);
-                QObject::connect(reply, &QNetworkReply::readyRead, QApplication::instance(), [=]() {
+                QObject::connect(reply, &QNetworkReply::readyRead, manager, [=]() {
                     witArchiveFile->write(reply->readAll());
+                });
+                QObject::connect(reply, &QNetworkReply::downloadProgress, manager, [=](qint64 elapsed, qint64 total) {
+                    progressCallback(total == 0 ? 1 : (double)elapsed / total);
                 });
                 return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> void {
                     if (reply->error() != QNetworkReply::NoError) {
@@ -117,7 +130,7 @@ namespace DownloadTools
                     if (!zip) {
                         throw DownloadException(QString("Error opening downloaded file %1").arg(fname));
                     }
-                    int n = zip_total_entries(zip);
+                    int n = zip_entries_total(zip);
                     for (int i=0; i<n; ++i) {
                         zip_entry_openbyindex(zip, i);
 
@@ -160,7 +173,6 @@ namespace DownloadTools
                     archive_write_close(ext);
                     archive_write_free(ext);
     #endif
-                    witArchiveFile->deleteLater();
                 }).future();
             } else {
                 throw DownloadException(QString("Temporary file could not be created"));

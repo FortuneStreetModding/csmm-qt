@@ -27,6 +27,11 @@ static void setupSubcommand(QCommandLineParser& parser, QString name, QString de
     parser.addOption(openCategory);
 }
 
+static bool _isQuiet;
+static bool _isVerbose;
+static std::unique_ptr<QTextStream> coutp;
+static std::unique_ptr<QTextStream> cerrp;
+
 void run(QStringList arguments)
 {
     auto description = QString(R"(
@@ -97,7 +102,7 @@ void run(QStringList arguments)
     QCommandLineOption mapIdOption(QStringList() << "i" << "id", "The <id> of the map (0,1,2...).", "id");
     QCommandLineOption mapPracticeBoardOption(QStringList() << "p" << "practice-board", "Whether the map is regarded as a practice board (0=no|1=yes).", "practiceBoard");
     QCommandLineOption quietOption(QStringList() << "q" << "quiet", "Do not print anything to console (overrides verbose).");
-    // QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
+    QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
     QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption modPackOption(QStringList() << "modpack", "The modpack file (.zip or modlist.txt) to load (leave blank for default).", "modpack");
@@ -109,15 +114,30 @@ void run(QStringList arguments)
     parser.addOption(helpOption);
     parser.addOption(quietOption);
     quietOption.setDescription(quietOption.description()); // add a linebreak at the last generic option
-    //parser.addOption(verboseOption);
+    parser.addOption(verboseOption);
 
     // Call parse()
     parser.parse(arguments);
 
     QBuffer b;
     b.open(QIODevice::ReadWrite);
-    QSharedPointer<QTextStream> coutp(parser.isSet(quietOption)? new QTextStream(&b): new QTextStream(stdout));
-    QTextStream& cout = *coutp;
+    coutp = parser.isSet(quietOption)
+            ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stdout);
+    auto &cout = *coutp;
+    cerrp = parser.isSet(quietOption)
+            ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stderr);
+    auto &cerr = *cerrp;
+    QTextStream &helpStream = parser.isSet(helpOption) ? cout : cerr;
+
+    _isQuiet = parser.isSet(quietOption);
+    _isVerbose = parser.isSet(verboseOption);
+
+    // add logging handler to deal with quiet/verbose options
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+        if (!_isQuiet && (_isVerbose || type != QtMsgType::QtDebugMsg)) {
+            *cerrp << msg << Qt::endl;
+        }
+    });
 
     pybind11::scoped_interpreter guard{};
 
@@ -126,9 +146,9 @@ void run(QStringList arguments)
         const QString command = args.isEmpty() ? QString() : args.first();
 
         if (command.isEmpty()) {
-            cout << description;
-            cout << parser.helpText();
-            cout << commandsDescription;
+            helpStream << description;
+            helpStream << parser.helpText();
+            helpStream << commandsDescription;
         } else if (command == "default-modlist") {
             auto defaultModList = DefaultModList::defaultModList();
             for (auto &mod: defaultModList) {
@@ -145,32 +165,30 @@ void run(QStringList arguments)
             parser.process(arguments);
             const QStringList args = parser.positionalArguments();
             if(parser.isSet(helpOption) || args.size() < 2) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 const QString source = args.at(1);
                 QFileInfo sourceFileInfo(source);
                 if(!sourceFileInfo.exists()) {
-                    cout << source << " does not exist.\n";
+                    qCritical() << source << "does not exist.";
                     exit(1);
                 } else if(!sourceFileInfo.isFile()) {
-                    cout << source << " is not a file.\n";
+                    qCritical() << source << "is not a file.";
                     exit(1);
                 }
-                const QString target = args.size() >= 3? args.at(2) : QDir::current().filePath(sourceFileInfo.baseName());
+                const QString target = args.size() >= 3 ? args.at(2) : QDir::current().filePath(sourceFileInfo.baseName());
                 const QDir targetDir(target);
-                cout << "Extracting " << source << " to " << target << "...\n";
+                qInfo() << "Extracting" << source << "to" << target << "...";
                 if(targetDir.exists()) {
                     if(parser.isSet(forceOption)) {
-                        cout << "Overwriting " << target << "...\n";
-
+                        qInfo() << "Overwriting" << target << "...";
                     } else {
-                        cout << "Cannot extract as " << target << " already exists. Use force option to overwrite.\n";
+                        qCritical() << "Cannot extract as" << target << "already exists. Use force option to overwrite.";
                         exit(1);
                     }
                 } else {
                     targetDir.mkpath(".");
                 }
-                cout.flush();
                 await(ExeWrapper::extractWbfsIso(source, target));
             }
         } else if (command == "export") {
@@ -188,12 +206,12 @@ void run(QStringList arguments)
             parser.process(arguments);
             const QStringList args = parser.positionalArguments();
             if(parser.isSet(helpOption) || args.size() < 2) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 const QString source = args.at(1);
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
-                    cout << source << " does not exist.";
+                    qCritical() << source << "does not exist.";
                     exit(1);
                 }
                 const QString target = args.size() >= 3? args.at(2) : QDir::current().path();
@@ -207,7 +225,7 @@ void run(QStringList arguments)
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
                 if (descriptors.empty()) {
-                    cout << source << " is not a proper Fortune Street directory.";
+                    qCritical() << source << "is not a proper Fortune Street directory.";
                     exit(1);
                 }
                 QString internalNames = parser.value(internalNamesOption);
@@ -230,15 +248,14 @@ void run(QStringList arguments)
                         exportIt = true;
                     if (exportIt) {
                         QString targetPath(targetDir.filePath(descriptor.internalName + ".yaml"));
-                        cout << "Exporting " << descriptor.internalName << " to " << targetPath << "...\n";
-                        cout.flush();
+                        qInfo() << "Exporting" << descriptor.internalName << "to" << targetPath << "...";
                         ImportExportUtils::exportYaml(sourceDir, targetPath, descriptor);
                         atLeastOneMatch = true;
                     }
                 }
                 if(!atLeastOneMatch) {
-                    cout << "No maps matched. Try providing --id or --name.\n";
-                    cout << '\n' << parser.helpText();
+                    qCritical() << "No maps matched. Try providing --id or --name.";
+                    helpStream << '\n' << parser.helpText();
                 }
             }
         } else if (command == "import") {
@@ -267,18 +284,18 @@ void run(QStringList arguments)
 
             const QStringList args = parser.positionalArguments();
             if(parser.isSet(helpOption) || args.size() < 3) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 const QString source = args.at(1);
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
-                    cout << source << " does not exist.";
+                    qCritical() << source << "does not exist.";
                     exit(1);
                 }
                 const QString yaml = args.at(2);
                 const QFile yamlFile(yaml);
                 if(!yamlFile.exists()) {
-                    cout << yaml << " does not exist.";
+                    qCritical() << yaml << "does not exist.";
                     exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
@@ -289,7 +306,7 @@ void run(QStringList arguments)
                     modpack.load(sourceDir.path());
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
-                        cout << source << " is not a proper Fortune Street directory.";
+                        qCritical() << source << "is not a proper Fortune Street directory.";
                         exit(1);
                     }
                     Configuration::save(sourceDir.filePath("csmm_pending_changes.yaml"), descriptors);
@@ -308,12 +325,12 @@ void run(QStringList arguments)
 
             const QStringList args = parser.positionalArguments();
             if(parser.isSet(helpOption) || args.size() < 2) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 const QString source = args.at(1);
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
-                    cout << source << " does not exist.";
+                    qCritical() << source << "does not exist.";
                     exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
@@ -326,11 +343,11 @@ void run(QStringList arguments)
                     modpack.load(sourceDir.path());
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
-                        cout << source << " is not a proper Fortune Street directory.";
+                        qCritical() << source << "is not a proper Fortune Street directory.";
                         exit(1);
                     }
                     cout << Configuration::status(descriptors, sourceDir.filePath("csmm_pending_changes.yaml"));
-                    cout << "There are no pending changes";
+                    qInfo() << "There are no pending changes";
                 }
             }
         } else if (command == "save") {
@@ -343,12 +360,12 @@ void run(QStringList arguments)
             parser.process(arguments);
             const QStringList args = parser.positionalArguments();
             if(parser.isSet(helpOption) || args.size() < 2) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 const QString source = args.at(1);
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
-                    cout << source << " does not exist.";
+                    qCritical() << source << "does not exist.";
                     exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
@@ -359,7 +376,7 @@ void run(QStringList arguments)
                     modpack.load(sourceDir.path());
                     auto &descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
-                        cout << source << " is not a proper Fortune Street directory.";
+                        qCritical() << source << "is not a proper Fortune Street directory.";
                         exit(1);
                     }
                     try {
@@ -381,21 +398,17 @@ void run(QStringList arguments)
                         }
 
                         if (std::any_of(mods.first.begin(), mods.first.end(), [](auto &mod) { return mod->modId() == "wifiFix"; })) {
-                            cout << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.\n";
-                            cout << "\n";
-                            cout.flush();
+                            qInfo() << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.";
                         }
                         modpack.save(sourceDir.path());
 
-                        cout << "\n";
-                        cout << "Pending changes have been saved\n";
+                        qInfo() << "Pending changes have been saved";
                     } catch (const std::runtime_error &exception) {
-                        cout << QString("Error loading the map: %1").arg(exception.what());
+                        qCritical() << "Error loading the map:" << exception.what();
                         exit(1);
                     }
-                    // file.remove();
                 } else {
-                    cout << "There are no pending changes to save. Run csmm import first.";
+                    qCritical() << "There are no pending changes to save. Run csmm import first.";
                 }
             }
         } else if (command == "discard") {
@@ -407,20 +420,21 @@ void run(QStringList arguments)
 
             const QStringList args = parser.positionalArguments();
             if(parser.isSet(helpOption) || args.size() < 2) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 const QString source = args.at(1);
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
-                    cout << source << " does not exist.";
+                    qCritical() << source << "does not exist.";
                     exit(1);
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
                 if(file.exists()) {
                     file.remove();
-                    cout << "Pending changes have been discarded";
+                    qInfo() << "Pending changes have been discarded";
                 } else {
-                    cout << "There are no pending changes to discard";
+                    qCritical() << "There are no pending changes to discard";
+                    exit(1);
                 }
             }
         } else if (command == "pack") {
@@ -436,16 +450,16 @@ void run(QStringList arguments)
 
             const QStringList args = parser.positionalArguments();
             if(parser.isSet(helpOption) || args.size() < 2) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 const QString source = args.at(1);
                 const QDir sourceDir(source);
                 if(!sourceDir.exists()) {
-                    cout << source << " does not exist.";
+                    qCritical() << source << "does not exist.";
                     exit(1);
                 }
 
-                QString saveId = parser.isSet(saveIdOption)? parser.value(saveIdOption) : "02";
+                QString saveId = parser.isSet(saveIdOption) ? parser.value(saveIdOption) : "02";
 
                 QString target;
                 if(args.size() >= 3) {
@@ -458,9 +472,9 @@ void run(QStringList arguments)
                 QFile targetFile(target);
                 if(targetFile.exists()) {
                     if(parser.isSet(forceOption)) {
-                        cout << "Overwriting " << target << "...\n";
+                        qInfo() << "Overwriting" << target << "...";
                     } else {
-                        cout << "Cannot extract as " << target << " already exists. Use force option to overwrite.\n";
+                        qCritical() << "Cannot extract as" << target << "already exists. Use force option to overwrite.";
                         exit(1);
                     }
                 }
@@ -471,8 +485,7 @@ void run(QStringList arguments)
                     targetDir.mkpath(".");
                 }
 
-                cout << "Creating " << targetInfo.suffix() << " file at " << target << " out from " << source << "...";
-                cout.flush();
+                qInfo() << "Creating" << targetInfo.suffix() << "file at" << target << "out from" << source << "...";
 
                 bool patchWiimmfi = ImportExportUtils::hasWiimmfiText(sourceDir);
                 await(ExeWrapper::createWbfsIso(source, target, saveId));
@@ -493,36 +506,31 @@ void run(QStringList arguments)
             parser.process(arguments);
 
             if(parser.isSet(helpOption)) {
-                cout << '\n' << parser.helpText();
+                helpStream << '\n' << parser.helpText();
             } else {
                 auto force = parser.isSet(forceOption);
 
                 if(force || !DownloadTools::requiredFilesAvailable()) {
-                    QNetworkAccessManager manager(QCoreApplication::instance());
-
-                    auto fut = DownloadTools::downloadAllRequiredFiles(&manager, [&](const QString &error) {
-                        cout << error;
-                        cout.flush();
+                    auto fut = DownloadTools::downloadAllRequiredFiles([&](const QString &error) {
+                        qCritical() << error;
                     }, parser.value(witUrlOption), parser.value(wszstUrlOption));
                     fut = AsyncFuture::observe(fut).subscribe([&]() {
-                        cout << "Successfuly downloaded and extracted the tools at:" << Qt::endl;
+                        qInfo() << "Successfuly downloaded and extracted the tools at:";
                         cout << DownloadTools::getToolsLocation().path() << Qt::endl;
-                        cout.flush();
                     }).future();
                     await(fut);
                 } else {
-                    cout << "Required tools already available at:" << Qt::endl;
+                    qInfo() << "Required tools already available at:";
                     cout << DownloadTools::getToolsLocation().path() << Qt::endl;
-                    cout.flush();
                 }
             }
         } else {
-            cout << description;
-            cout << parser.helpText();
-            cout << commandsDescription;
+            helpStream << description;
+            helpStream << parser.helpText();
+            helpStream << commandsDescription;
         }
     } catch (const std::runtime_error &error) {
-        cout << error.what() << Qt::endl;
+        qCritical() << error.what();
         exit(1);
     }
 }

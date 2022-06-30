@@ -3,10 +3,14 @@
 #include <QSaveFile>
 #include <QTextStream>
 #include <yaml-cpp/yaml.h>
-#include "QtCore/qregularexpression.h"
-#include "importexportutils.h"
 #include <fstream>
 #include <filesystem>
+#include <QRegularExpression>
+#include <QNetworkReply>
+#include "importexportutils.h"
+#include "lib/asyncfuture.h"
+#include "lib/await.h"
+#include "lib/csmmnetworkmanager.h"
 
 namespace Configuration {
 
@@ -49,6 +53,7 @@ QString ConfigFile::toYaml()
         mapSets.insert(entry.mapSet);
         zones.insert(entry.mapZone);
     }
+    emitter << YAML::Comment("optional: add the backgrounds key to point to a list of backgrounds in cswt yaml format");
     for (int mapSet: mapSets) {
         emitter << YAML::Key << mapSet << YAML::Comment("Map Set");
         emitter << YAML::Value;
@@ -64,6 +69,7 @@ QString ConfigFile::toYaml()
                             << YAML::Comment("Path relative to this file to the descriptor yaml, or !default<mapid>_<internalname> if left as default");
                     emitter << YAML::Value;
                     emitter << YAML::BeginMap;
+                    emitter << YAML::Key << "urls" << YAML::Value << std::vector<std::string>() << YAML::Comment("Can be omitted, list of urls to download board from");
                     emitter << YAML::Key << "mapId" << YAML::Value << entry.mapId << YAML::Comment("Omit to deduce map id from order in file");
                     emitter << YAML::Key << "mapOrder" << YAML::Value << entry.mapOrder << YAML::Comment("Omit to deduce map order in mapSet/zone from order in file");
                     emitter << YAML::Key << "practiceBoard" << YAML::Value << (bool)entry.practiceBoard << YAML::Comment("Defaults to false");
@@ -81,72 +87,121 @@ QString ConfigFile::toYaml()
 
 static const QRegularExpression DEFAULT_REGEXP("^!default\\d+_(.*)", QRegularExpression::UseUnicodePropertiesOption);
 
-// open and parse the config file
-static ConfigFile parse(QString fileName) {
+static ConfigFile parseLegacy(const QString &fileName) {
     ConfigFile configFile;
-    if (QFileInfo(fileName).suffix() == "csv") {
-        QFile file(fileName);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return configFile;
+    }
+    QTextStream in(&file);
+    QVector<ConfigEntry> configEntries;
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        // if the first line starts with id, skip this line (it is the header)
+        if(line.trimmed().toLower().startsWith("id")) {
+            continue;
+        }
+        QStringList lineSplit = line.split(",");
+        if(lineSplit.count() != 7) {
+            configFile.error = true;
             return configFile;
         }
-        QTextStream in(&file);
-        QVector<ConfigEntry> configEntries;
-        while (!in.atEnd()) {
-            QString line = in.readLine();
-            // if the first line starts with id, skip this line (it is the header)
-            if(line.trimmed().toLower().startsWith("id")) {
-                continue;
-            }
-            QStringList lineSplit = line.split(",");
-            if(lineSplit.count() != 7) {
-                configFile.error = true;
-                return configFile;
-            }
-            ConfigEntry entry;
-            entry.mapId = lineSplit.at(0).trimmed().toInt();
-            entry.mapSet = lineSplit.at(1).trimmed().toInt();
-            entry.mapZone = lineSplit.at(2).trimmed().toInt();
-            entry.mapOrder = lineSplit.at(3).trimmed().toInt();
-            entry.practiceBoard = lineSplit.at(4).trimmed().toInt();
-            entry.name = lineSplit.at(5).trimmed();
-            entry.mapDescriptorRelativePath = lineSplit.at(6).trimmed();
-            configEntries.append(entry);
-        }
-        configFile.entries = std::move(configEntries);
-    } else {
-        QVector<ConfigEntry> configEntries;
-        std::ifstream stream(std::filesystem::path(fileName.toStdU16String()));
-        auto node = YAML::Load(stream);
-
-        int defaultMapId = 0;
-        for (auto it=node.begin(); it!=node.end(); ++it) { // iterate over map sets
-            auto mapSet = it->first.as<int>();
-            for (auto jt=it->second.begin(); jt!=it->second.end(); ++jt) { // iterate over zones
-                int zone = jt->first.as<int>();
-                int defaultMapOrder = 0;
-                for (auto kt = jt->second.begin(); kt != jt->second.end(); ++kt, ++defaultMapOrder, ++defaultMapId) { // iterate over maps
-                    ConfigEntry entryToAdd;
-                    auto rawName = QString::fromStdString(kt->first.as<std::string>());
-                    auto match = DEFAULT_REGEXP.match(rawName);
-                    if (match.hasMatch()) {
-                        entryToAdd.name = match.captured(1);
-                        entryToAdd.mapDescriptorRelativePath = "";
-                    } else {
-                        entryToAdd.name = QFileInfo(rawName).baseName();
-                        entryToAdd.mapDescriptorRelativePath = QFileInfo(fileName).dir().relativeFilePath(rawName);
-                    }
-                    entryToAdd.mapId = kt->second["mapId"].IsDefined() ? kt->second["mapId"].as<int>() : defaultMapId;
-                    entryToAdd.mapOrder = kt->second["mapOrder"].IsDefined() ? kt->second["mapOrder"].as<int>() : defaultMapOrder;
-                    entryToAdd.mapSet = mapSet;
-                    entryToAdd.mapZone = zone;
-                    entryToAdd.practiceBoard = kt->second["practiceBoard"].IsDefined() && kt->second["practiceBoard"].as<bool>();
-                    configEntries.push_back(entryToAdd);
-                }
-            }
-        }
-        configFile.entries = std::move(configEntries);
+        ConfigEntry entry;
+        entry.mapId = lineSplit.at(0).trimmed().toInt();
+        entry.mapSet = lineSplit.at(1).trimmed().toInt();
+        entry.mapZone = lineSplit.at(2).trimmed().toInt();
+        entry.mapOrder = lineSplit.at(3).trimmed().toInt();
+        entry.practiceBoard = lineSplit.at(4).trimmed().toInt();
+        entry.name = lineSplit.at(5).trimmed();
+        entry.mapDescriptorRelativePath = lineSplit.at(6).trimmed();
+        configEntries.append(entry);
     }
+    configFile.entries = std::move(configEntries);
     return configFile;
+}
+
+static ConfigFile parseYaml(const QString &fileName) {
+    ConfigFile configFile;
+    QVector<ConfigEntry> configEntries;
+    std::ifstream stream(std::filesystem::path(fileName.toStdU16String()));
+    auto node = YAML::Load(stream);
+
+    int defaultMapId = 0;
+    for (auto it=node.begin(); it!=node.end(); ++it) { // iterate over map sets
+        auto mapSetStr = it->first.as<std::string>();
+        int mapSet;
+        try {
+            mapSet = std::stoi(mapSetStr);
+        } catch (const std::invalid_argument &) {
+            continue; // non-integer key so ignore
+        }
+        for (auto jt=it->second.begin(); jt!=it->second.end(); ++jt) { // iterate over zones
+            int zone = jt->first.as<int>();
+            int defaultMapOrder = 0;
+            for (auto kt = jt->second.begin(); kt != jt->second.end(); ++kt, ++defaultMapOrder, ++defaultMapId) { // iterate over maps
+                ConfigEntry entryToAdd;
+                auto rawName = QString::fromStdString(kt->first.as<std::string>());
+                auto match = DEFAULT_REGEXP.match(rawName);
+                if (match.hasMatch()) {
+                    entryToAdd.name = match.captured(1);
+                    entryToAdd.mapDescriptorRelativePath = "";
+                } else {
+                    entryToAdd.name = QFileInfo(rawName).baseName();
+                    entryToAdd.mapDescriptorRelativePath = QFileInfo(fileName).dir().relativeFilePath(rawName);
+                    if (kt->second["urls"].IsDefined()) {
+                        auto urls = kt->second["urls"].as<std::vector<std::string>>();
+                        for (auto &url: urls) {
+                            entryToAdd.mapDescriptorUrls.push_back(QString::fromStdString(url));
+                        }
+                    }
+                }
+                entryToAdd.mapId = kt->second["mapId"].IsDefined() ? kt->second["mapId"].as<int>() : defaultMapId;
+                entryToAdd.mapOrder = kt->second["mapOrder"].IsDefined() ? kt->second["mapOrder"].as<int>() : defaultMapOrder;
+                entryToAdd.mapSet = mapSet;
+                entryToAdd.mapZone = zone;
+                entryToAdd.practiceBoard = kt->second["practiceBoard"].IsDefined() && kt->second["practiceBoard"].as<bool>();
+                configEntries.push_back(entryToAdd);
+            }
+        }
+    }
+    // load background urls if needed
+    if (node["backgrounds"].IsDefined()) {
+        auto backgroundPath = QFileInfo(fileName).dir().filePath(
+                    QString::fromStdString(node["backgrounds"].as<std::string>())
+                );
+        if (!QFileInfo::exists(backgroundPath)) {
+            throw std::runtime_error("file " + backgroundPath.toStdString() + " does not exist");
+        }
+        std::ifstream bgStream(std::filesystem::path(backgroundPath.toStdU16String()));
+        auto bgNode = YAML::Load(bgStream);
+        for (auto it=bgNode.begin(); it!=bgNode.end(); ++it) {
+            auto bgEntry = *it;
+            auto downloadElem = bgEntry["download"];
+            if (downloadElem.IsDefined()) {
+                QVector<QString> downloadsEntry;
+                for (auto jt=downloadElem.begin(); jt!=downloadElem.end(); ++jt) {
+                    downloadsEntry.push_back(
+                                QString::fromStdString(jt->as<std::string>())
+                                );
+                }
+                configFile.backgroundPaths[
+                        QString::fromStdString(bgEntry["background"].as<std::string>())
+                        ]
+                        = std::move(downloadsEntry);
+            }
+        }
+    }
+    configFile.entries = std::move(configEntries);
+    return configFile;
+}
+
+// open and parse the config file
+static ConfigFile parse(const QString &fileName) {
+    if (QFileInfo(fileName).suffix() == "csv") {
+        return parseLegacy(fileName);
+    } else {
+        return parseYaml(fileName);
+    }
 }
 
 static ConfigFile parse(const std::vector<MapDescriptor> &descriptors, const QString &fileName) {
@@ -280,7 +335,8 @@ void import(const QString &fileName, const std::optional<QFileInfo>& mapDescript
 
 
 // loads the configuration file and loads the yaml files defined in the configuration file into the given tmpDir and the given descriptors object
-void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir)
+void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir,
+          const std::function<void(double)> &progressCallback)
 {
     ConfigFile configFile = parse(fileName);
     QFileInfo fileInfo(fileName);
@@ -292,13 +348,53 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
     while(descriptors.size() > configFile.maxId() + 1) {
         descriptors.pop_back();
     }
-    for(ConfigEntry& entry : configFile.entries) {
+    {
+        int i = 0;
+        for (auto it = configFile.backgroundPaths.begin();
+             it != configFile.backgroundPaths.end();
+             ++it) {
+
+            qInfo() << "attempting to download background" << it.key();
+            for (auto &url: it.value()) {
+                auto dest = dir.filePath(it.key() + ".background.zip");
+                try {
+                    await(CSMMNetworkManager::downloadFileIfUrl(url, dest, [&](double progress) {
+                        progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
+                    }));
+                    break;
+                } catch (const std::runtime_error &e) {
+                    qWarning() << "warning:" << e.what();
+                    continue; // try next url
+                }
+            }
+            ++i;
+        }
+    }
+    for(int i=0; i<configFile.entries.size(); ++i) {
+        auto &entry = configFile.entries[i];
         descriptors[entry.mapId].mapSet = entry.mapSet;
         descriptors[entry.mapId].zone = entry.mapZone;
         descriptors[entry.mapId].order = entry.mapOrder;
         descriptors[entry.mapId].isPracticeBoard = entry.practiceBoard;
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
-            ImportExportUtils::importYaml(dir.filePath(entry.mapDescriptorRelativePath), descriptors[entry.mapId], tmpDir);
+            auto descPath = dir.filePath(entry.mapDescriptorRelativePath);
+            if (!QFile::exists(descPath)) {
+                qInfo() << "trying to download map descriptor to" << descPath;
+                for (auto &url: entry.mapDescriptorUrls) {
+                    try {
+                        await(CSMMNetworkManager::downloadFileIfUrl(url, descPath));
+                    } catch (const std::runtime_error &e) {
+                        qWarning() << "warning:" << e.what();
+                        continue;
+                    }
+                }
+            }
+            ImportExportUtils::importYaml(descPath, descriptors[entry.mapId],
+                    tmpDir,
+                    [=](double progress) {
+                double taskProgress = (i + progress) / configFile.entries.size();
+                progressCallback(0.5 + taskProgress * 0.5);
+            }, dir.path());
         }
     }
 }
