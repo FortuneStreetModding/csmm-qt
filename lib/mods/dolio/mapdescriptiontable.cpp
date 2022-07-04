@@ -6,8 +6,6 @@
 #include <filesystem>
 #include <yaml-cpp/yaml.h>
 
-// TODO add configuration for adding author to desription
-
 quint32 MapDescriptionTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) table.append(descriptor.descMsgId);
@@ -119,3 +117,21 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::sav
     return result;
 }
 
+void MapDescriptionTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+{
+    DolIOTable::loadFiles(root, gameInstance, modList);
+    if (!modpackDir().isEmpty()) {
+        auto cfg = QDir(modpackDir()).filePath("mapDescriptionTable.yaml");
+        QSaveFile cfgFile(cfg);
+        if (cfgFile.open(QFile::WriteOnly | QFile::NewOnly)) {
+            YAML::Emitter emitter;
+            emitter << YAML::BeginDoc;
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << "addAuthor" << YAML::Value << true;
+            emitter << YAML::EndMap;
+            emitter << YAML::EndDoc;
+            cfgFile.write(emitter.c_str());
+            cfgFile.commit();
+        }
+    }
+}

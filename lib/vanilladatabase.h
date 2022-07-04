@@ -19,8 +19,9 @@ bool hasDefaultMapIcon(const QString &background);
 bool isDefaultVentureCards(const std::array<bool, 128> &ventureCards, RuleSet ruleSet);
 void setDefaultVentureCards(RuleSet ruleSet, std::array<bool, 128> &outVentureCards);
 QSet<QString> getVanillaIcons();
-const QMap<QString, QString> &localeToDistrictWord();
-const QMap<QString, std::vector<QString>> &getVanillaDistrictNames();
+const std::map<QString, QString> &localeToDistrictWord();
+const std::map<QString, std::vector<QString> > &getVanillaDistrictNames();
+const std::map<QString, std::vector<QString>> &getVanillaShopNames(bool capital);
 }
 
 #endif // VANILLADATABASE_H

@@ -2,6 +2,7 @@
 
 void DolIOTable::readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) {
     bool isVanilla = readIsVanilla(stream, addressMapper);
+#if 0
     qint16 rowCount = readTableRowCount(stream, addressMapper, isVanilla);
     if (rowCount != -1 && rowCount != mapDescriptors.size()) {
         if (isVanilla) {
@@ -13,6 +14,7 @@ void DolIOTable::readAsm(QDataStream &stream, const AddressMapper &addressMapper
             // should not happen as with the hacks that we apply we streamline the tables and total map count so that they should always map
         }
     }
+#endif
     quint32 addr = readTableAddr(stream, addressMapper, isVanilla);
     if (addr) {
         stream.device()->seek(addressMapper.toFileAddress(addr));

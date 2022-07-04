@@ -91,7 +91,7 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> NamedDistricts::loadUiMe
                     auto distName = messages->at(distNameId);
                     // add district word in front of vanilla district names
                     if (5454 <= distNameId && distNameId <= 5760) {
-                        auto distWord = VanillaDatabase::localeToDistrictWord()[locale];
+                        auto distWord = VanillaDatabase::localeToDistrictWord().at(locale);
                         distWord.replace("\\s", " ");
                         distName = distWord + distName;
                     }
@@ -122,7 +122,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMe
                     theLocale = "en";
                 }
 
-                auto districtWord = VanillaDatabase::localeToDistrictWord()[theLocale];
+                auto districtWord = VanillaDatabase::localeToDistrictWord().at(theLocale);
                 auto districtReplaceRegex = re(districtWord + "<area>");
 
                 for (auto it=messages->begin(); it!=messages->end(); ++it) {

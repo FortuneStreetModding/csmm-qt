@@ -90,6 +90,22 @@ static pybind11::object nodeToCustomData(const YAML::Node &node) {
     }
 }
 
+#define SHOP_NAMES_TO_YAML(shopNameType) \
+    if (!shopNameType.empty()) { \
+        out << YAML::Key << #shopNameType << YAML::Value << YAML::BeginMap; \
+        for (auto &fslocale: FS_LOCALES) { \
+            auto namesForLocale = getOrDefault(shopNameType, fslocale, std::vector<QString>()); \
+            if (fslocale == "uk" || namesForLocale.empty()) \
+                continue; \
+            out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginMap; \
+            for (int i=0; i<namesForLocale.size(); ++i) { \
+                out << YAML::Key << (i+1) << YAML::Value << namesForLocale[i].toStdString(); \
+            } \
+            out << YAML::EndMap; \
+        } \
+        out << YAML::EndMap; \
+    }
+
 QString MapDescriptor::toYaml() const {
     YAML::Emitter out;
 
@@ -214,6 +230,9 @@ QString MapDescriptor::toYaml() const {
         out << YAML::EndMap;
     }
 
+    SHOP_NAMES_TO_YAML(shopNames);
+    SHOP_NAMES_TO_YAML(capitalShopNames);
+
     if (pybind11::len(extraData.get()) > 0) {
         out << YAML::Key << "extraData" << YAML::Value << customDataToNode(extraData.get());
     }
@@ -226,17 +245,18 @@ QString MapDescriptor::toYaml() const {
 }
 
 bool MapDescriptor::operator==(const MapDescriptor &other) const {
-    if(mutators.size()!=other.mutators.size())
+    if(mutators.size() != other.mutators.size())
         return false;
     for (auto &mutatorEnt: mutators) {
         auto &mutatorName = mutatorEnt.first;
-        if(!other.mutators.count(mutatorName)) {
+        if (!other.mutators.count(mutatorName)) {
             return false;
         }
         auto mutator = mutators.at(mutatorName);
         auto otherMutator = other.mutators.at(mutatorName);
-        if(*mutator != *otherMutator)
+        if (*mutator != *otherMutator) {
             return false;
+        }
     }
 
     return mapSet == other.mapSet
@@ -274,8 +294,54 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && mapDescriptorFilePath == other.mapDescriptorFilePath
             && districtNames == other.districtNames
             && districtNameIds == other.districtNameIds
+            && shopNames == other.shopNames
+            && shopNameIds == other.shopNameIds
+            && capitalShopNames == other.capitalShopNames
+            && capitalShopNameIds == other.capitalShopNameIds
             && extraData.get().equal(other.extraData.get())
             && std::equal(std::begin(authors), std::end(authors), std::begin(other.authors));
+}
+
+void MapDescriptor::shopNamesFromYaml(const YAML::Node &yaml, bool isCapital) {
+    auto shopNameType = (isCapital ? "capitalShopNames" : "shopNames");
+    auto &theShopNames = (isCapital ? capitalShopNames : shopNames);
+    if (yaml[shopNameType]) {
+        auto snNode = yaml[shopNameType]; // shop name node of the yaml
+        auto snNodeCopy = YAML::Clone(snNode);
+        for (auto it=snNode.begin(); it!=snNode.end(); ++it) {
+            // locale key
+            auto key = yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()));
+            for (const auto &kv: it->second) { // iterate over shop name entries
+                auto convKey = kv.first.as<int>(); // shop model id
+                auto convVal = QString::fromStdString(kv.second.as<std::string>()); // shop name
+                theShopNames[key].at(convKey - 1) = convVal;
+                auto capitalConvVal = convVal;
+                if (!capitalConvVal.isEmpty()) {
+                    capitalConvVal[0] = capitalConvVal[0].toTitleCase();
+                }
+                if (!isCapital) { // add default capital shop names for explicitly specified names
+                    capitalShopNames[key].at(convKey - 1) = capitalConvVal;
+                }
+                if (key == "en") { // fill defaults
+                    for (auto &otherLocale: FS_LOCALES) {
+                        auto otherKey = localeToYamlKey(otherLocale);
+                        if (otherKey == "uk") continue;
+                        auto otherKeyStdStr = otherKey.toStdString();
+                        if (!snNodeCopy[otherKeyStdStr].IsDefined()
+                                || !snNodeCopy[otherKeyStdStr][convKey].IsDefined()) {
+                            theShopNames[otherLocale].at(convKey - 1) = convVal;
+                            if (!isCapital
+                                    && (!yaml["capitalShopNames"].IsDefined()
+                                        || !yaml["capitalShopNames"][otherKeyStdStr].IsDefined()
+                                        || !yaml["capitalShopNames"][otherKeyStdStr][convKey].IsDefined())) {
+                                capitalShopNames[otherLocale].at(convKey - 1) = capitalConvVal;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
@@ -308,7 +374,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     for (auto &originPoint: yaml["switchRotationOriginPoints"]) {
         switchRotationOrigins.push_back({originPoint["x"].as<float>(), originPoint["y"].as<float>()});
     }
-    if(yaml["looping"]) {
+    if (yaml["looping"]) {
         auto loopingModeStr = yaml["looping"]["mode"].as<std::string>();
         if (loopingModeStr == "Vertical") {
             loopingMode = Vertical;
@@ -324,7 +390,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         loopingMode = None;
     }
     tourBankruptcyLimit = yaml["tourMode"]["bankruptcyLimit"].as<quint32>();
-    if(yaml["tourMode"]["initialCash"])
+    if (yaml["tourMode"]["initialCash"])
         tourInitialCash = yaml["tourMode"]["initialCash"].as<quint32>();
     for (int i=0; i<3; ++i) {
         tourCharacters[i] = stringToTourCharacter(
@@ -334,21 +400,24 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     tourClearRank = yaml["tourMode"]["clearRank"].as<quint32>();
     background = QString::fromStdString(yaml["background"].as<std::string>());
 
-    if(VanillaDatabase::hasDefaultMapIcon(background))
+    if (VanillaDatabase::hasDefaultMapIcon(background))
         mapIcon = VanillaDatabase::getDefaultMapIcon(background);
-    if(yaml["mapIcon"]) {
+    if (yaml["mapIcon"]) {
         mapIcon = QString::fromStdString(yaml["mapIcon"].as<std::string>());
         // Check for too long map icon file name, because http://wiki.tockdom.com/wiki/BRLYT_(File_Format) says that the pane name can only have 0x10 bytes.
-        if(mapIcon.length() > 13)
-            throw ImportExportUtils::Exception(QString("The filename of the map icon %1 is too long. It must be max 13 characters, but is %2 characters.").arg(mapIcon).arg(mapIcon.length()));
+        if (mapIcon.length() > 13) {
+            throw ImportExportUtils::Exception(
+                        QString("The filename of the map icon %1 is too long. It must be max 13 characters, but is %2 characters.")
+                        .arg(mapIcon).arg(mapIcon.length()));
+        }
     }
 
-    if(VanillaDatabase::hasDefaultBgmId(background))
+    if (VanillaDatabase::hasDefaultBgmId(background))
         bgmId = VanillaDatabase::getDefaultBgmId(background);
-    if(yaml["bgmId"])
+    if (yaml["bgmId"])
         bgmId = Bgm::stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
 
-    if(yaml["music"]) {
+    if (yaml["music"]) {
         for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
             if(it->second.IsNull()) {
                 continue;
@@ -376,13 +445,13 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             }
         }
     }
-    if(yaml["mutators"]) {
+    if (yaml["mutators"]) {
         for (auto it=yaml["mutators"].begin(); it!=yaml["mutators"].end(); ++it) {
             auto mutatorStr = QString::fromStdString(it->first.as<std::string>());
             mutators.emplace(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
         }
     }
-    if(yaml["ventureCards"]) {
+    if (yaml["ventureCards"]) {
         for (quint32 i=0; i<ventureCards.size(); ++i) {
             ventureCards[i] = yaml["ventureCards"][i].as<int>();
         }
@@ -400,10 +469,8 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             }
         }
     } else {
-        districtNames = VanillaDatabase::getVanillaDistrictNames().toStdMap();
+        districtNames = VanillaDatabase::getVanillaDistrictNames();
     }
-
-    if (yaml["extraData"]) extraData = pybind11::dict(nodeToCustomData(yaml["extraData"]));
 
     authors.clear();
     if (yaml["authors"]) {
@@ -414,6 +481,13 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             authors.push_back(authorName);
         }
     }
+
+    shopNames = VanillaDatabase::getVanillaShopNames(false);
+    capitalShopNames = VanillaDatabase::getVanillaShopNames(true);
+    shopNamesFromYaml(yaml, false);
+    shopNamesFromYaml(yaml, true);
+
+    if (yaml["extraData"]) extraData = pybind11::dict(nodeToCustomData(yaml["extraData"]));
 
     return true;
 }

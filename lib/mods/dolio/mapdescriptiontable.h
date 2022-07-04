@@ -13,6 +13,7 @@ public:
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
+    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;
     quint32 writeTable(const std::vector<MapDescriptor> &descriptors);
