@@ -20,16 +20,23 @@ void CustomShopNames::writeAsm(QDataStream &stream, const AddressMapper &address
 void CustomShopNames::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla)
 {
     for (auto &descriptor: mapDescriptors) {
-        quint32 startingVal;
-        if (tableAddr) {
-            stream >> startingVal;
-        } else {
-            startingVal = (isCapital ? 0x14d4 : 0x1468);
-        }
         auto &l10nIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
         l10nIds.clear();
-        for (int i=1; i<=100; ++i) {
-            l10nIds.push_back(startingVal + i);
+        if (tableAddr) {
+            quint32 subTableAddr;
+            stream >> subTableAddr;
+            auto oldPos = stream.device()->pos();
+            stream.device()->seek(addressMapper.toFileAddress(subTableAddr));
+            for (int i=0; i<100; ++i) {
+                quint32 l10nId; stream >> l10nId;
+                l10nIds.push_back(l10nId);
+            }
+            stream.device()->seek(oldPos);
+        } else {
+            auto startingVal = (isCapital ? 0x14d4 : 0x1468) + 1;
+            for (int i=0; i<100; ++i) {
+                l10nIds.push_back(startingVal + i);
+            }
         }
     }
 }
