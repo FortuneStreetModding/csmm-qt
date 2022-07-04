@@ -30,25 +30,15 @@ quint32 DolIO::allocate(const QByteArray &data, const QString &purpose, bool reu
 }
 
 quint32 DolIO::allocate(const QByteArray &data, const char *purpose, bool reuse) {
-    return (this->*qOverload<const QByteArray &, const QString &, bool>(&DolIO::allocate))(data, purpose, reuse);
+    return allocate(data, QString(purpose), reuse);
 }
 
 quint32 DolIO::allocate(const QVector<quint32> &words, const QString &purpose, bool reuse) {
-    QByteArray data;
-    QDataStream dataStream(&data, QIODevice::WriteOnly);
-    for (auto word: words) {
-        dataStream << word;
-    }
-    return allocate(data, purpose, reuse);
+    return allocate(words.begin(), words.end(), purpose, reuse);
 }
 
 quint32 DolIO::allocate(const QVector<quint16> &words, const QString &purpose, bool reuse) {
-    QByteArray data;
-    QDataStream dataStream(&data, QIODevice::WriteOnly);
-    for (auto word: words) {
-        dataStream << word;
-    }
-    return allocate(data, purpose, reuse);
+    return allocate(words.begin(), words.end(), purpose, reuse);
 }
 
 quint32 DolIO::allocate(const QString &str, bool reuse) {

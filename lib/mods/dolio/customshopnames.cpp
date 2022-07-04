@@ -55,7 +55,8 @@ quint32 CustomShopNames::writeTable(const std::vector<MapDescriptor> &descriptor
 {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
-        table.push_back((isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds)[0] - 1);
+        auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
+        table.push_back(allocate(shopNameIds.begin(), shopNameIds.end(), "Shop Name ID Subtable"));
     }
     return allocate(table, "Shop Name ID Table");
 }
@@ -63,11 +64,12 @@ quint32 CustomShopNames::writeTable(const std::vector<MapDescriptor> &descriptor
 QVector<quint32> CustomShopNames::getMsgIdSubroutine(const AddressMapper &mapper, quint32 routineStartAddr)
 {
     auto v = PowerPcAsm::make16bitValuePair(tableAddr);
+    auto returnAddr = mapper.boomStreetToStandard(isCapital ? 0x800f89d8 : 0x800f8660);
 
     QVector<quint32> res;
-    res.push_back(PowerPcAsm::li(4, isCapital ? 0x14d4 : 0x1468));           // r4 <- 0x14d4
+    res.push_back(PowerPcAsm::addi(4, 30, isCapital ? 0x14d4 : 0x1468));     // r4 <- r30 + 0x14d4
     res.push_back(PowerPcAsm::cmpwi(30, 0));                                 // if (r30 > 0)
-    res.push_back(PowerPcAsm::ble(9));                                       // {
+    res.push_back(PowerPcAsm::ble(12));                                      // {
     res.push_back(PowerPcAsm::mr(31, 3));                                    //   r31 <- r3
     res.push_back(PowerPcAsm::bl(routineStartAddr, res.size(),
                                  mapper.boomStreetToStandard(0x800113f0)));  //   r3 <- Flag::Volatile::GetGameSelectInfo()
@@ -75,12 +77,13 @@ QVector<quint32> CustomShopNames::getMsgIdSubroutine(const AddressMapper &mapper
     res.push_back(PowerPcAsm::lis(4, v.upper));                              //   r4 <- tableAddr
     res.push_back(PowerPcAsm::addi(4, 4, v.lower));                          //
     res.push_back(PowerPcAsm::mulli(3, 3, 4));                               //   r3 <- r3 * 4
-    res.push_back(PowerPcAsm::lwzx(4, 4, 3));                                //   r4 <- tableAddr[r3]
+    res.push_back(PowerPcAsm::lwzx(4, 4, 3));                                //   r4 <- r4[r3]
+    res.push_back(PowerPcAsm::mulli(3, 30, 4));                              //   r3 <- r30 * 4
+    res.push_back(PowerPcAsm::subi(3, 3, 4));                                //   r3 <- r3 - 4
+    res.push_back(PowerPcAsm::lwzx(4, 4, 3));                                //   r4 <- r4[r3]
     res.push_back(PowerPcAsm::mr(3, 31));                                    //   r3 <- r31
                                                                              // }
-    res.push_back(PowerPcAsm::add(4, 4, 30));                                // r4 <- r4 + r30
-    res.push_back(PowerPcAsm::b(routineStartAddr, res.size(),
-                                mapper.boomStreetToStandard(isCapital ? 0x800f89d8 : 0x800f8660)));  // return
+    res.push_back(PowerPcAsm::b(routineStartAddr, res.size(), returnAddr));  // return
 
     return res;
 }
@@ -107,11 +110,21 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> CustomShopNames::loadUiM
 
 void CustomShopNames::allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList)
 {
+    // reuse shop name ids if they are equivalent in all languages
+    std::map<std::vector<QString>, int> uiMessageIdReuse;
     for (auto &descriptor : gameInstance.mapDescriptors()) {
         auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
+        auto &shopNames = (isCapital ? descriptor.capitalShopNames : descriptor.shopNames);
         shopNameIds.clear();
         for (int i=0; i<100; ++i) {
-             shopNameIds.push_back(gameInstance.nextUiMessageId());
+            std::vector<QString> reuse;
+            for (auto &ent: shopNames) {
+                reuse.push_back(ent.second[i]);
+            }
+            if (!uiMessageIdReuse.count(reuse)) {
+                uiMessageIdReuse[reuse] = gameInstance.nextUiMessageId();
+            }
+            shopNameIds.push_back(uiMessageIdReuse[reuse]);
         }
     }
 }
