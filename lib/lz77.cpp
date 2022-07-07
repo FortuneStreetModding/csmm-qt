@@ -69,9 +69,9 @@ std::pair<Archive, QByteArray> extract(QDataStream &src) {
 static constexpr int SLIDING_WINDOW_SZ = 4096;
 static constexpr int MIN_MATCH = 3;
 
-static inline qint32 matchLen(const QByteArray &src, qint32 candIdx, qint32 curIdx) {
+static inline qint32 matchLen(const QByteArray &src, qint32 candIdx, qint32 curIdx, qint32 MAX_RUN_SIZE) {
     qint32 i = 0;
-    for ( ; curIdx + i < src.size(); ++i) {
+    for ( ; i < MAX_RUN_SIZE && curIdx + i < src.size(); ++i) {
         if (src[candIdx + i] != src[curIdx + i]) {
             break;
         }
@@ -121,7 +121,7 @@ void compress(const QByteArray &src, QDataStream &dest, bool isExtended)
         // check previous element as candidate
         if (it != window.begin()) {
             auto candSuffix = *std::prev(it);
-            auto candMatchLen = matchLen(src, candSuffix, pos);
+            auto candMatchLen = matchLen(src, candSuffix, pos, MAX_RUN_SIZE);
             if (runningMatchLen < candMatchLen) {
                 runningSuffix = candSuffix;
                 runningMatchLen = candMatchLen;
@@ -130,7 +130,7 @@ void compress(const QByteArray &src, QDataStream &dest, bool isExtended)
         // check next element as candidate
         if (std::next(it) != window.end()) {
             auto candSuffix = *std::next(it);
-            auto candMatchLen = matchLen(src, candSuffix, pos);
+            auto candMatchLen = matchLen(src, candSuffix, pos, MAX_RUN_SIZE);
             if (runningMatchLen < candMatchLen) {
                 runningSuffix = candSuffix;
                 runningMatchLen = candMatchLen;
@@ -138,7 +138,6 @@ void compress(const QByteArray &src, QDataStream &dest, bool isExtended)
         }
         // update buffer
         qint32 newPos = pos;
-        runningMatchLen = std::min({runningMatchLen, MAX_RUN_SIZE, src.size() - pos});
         if (runningMatchLen >= MIN_MATCH) { // if match length is above threshold then compress
             curControl |= (0x1U << (8 - 1 - controlIdx));
             quint32 offset = pos - runningSuffix;
