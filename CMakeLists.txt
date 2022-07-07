@@ -192,6 +192,10 @@ set(LIB_SOURCES
     lib/mods/dolio/arbitrarynumswitchstates.h lib/mods/dolio/arbitrarynumswitchstates.cpp
     lib/mods/misc/readfrbfileinfo.h lib/mods/misc/readfrbfileinfo.cpp
     lib/csmmnetworkmanager.h lib/csmmnetworkmanager.cpp
+    lib/lz77.h lib/lz77.cpp
+    lib/libsais/libsais.h lib/libsais/libsais.c
+    lib/libsais/libsais16.h lib/libsais/libsais16.c
+    lib/libsais/libsais64.h lib/libsais/libsais64.c
 )
 
 set(MAIN_SOURCES
