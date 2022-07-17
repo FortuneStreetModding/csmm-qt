@@ -103,6 +103,9 @@ void compress(const QByteArray &src, QDataStream &dest, bool isExtended)
         invSuffixArray[suffixArray[i]] = i;
     }
 
+    // free memory for suffix array
+    suffixArray = nullptr;
+
     // window sorted by suffix order
     auto suffixCmp = [&](quint32 A, quint32 B) {
         return invSuffixArray[A] < invSuffixArray[B];

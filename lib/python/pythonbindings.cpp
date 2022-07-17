@@ -155,6 +155,16 @@ public:
     }
 };
 
+class PyCmpresInterface : public CmpresInterface {
+private:
+    typedef QMap<QString, ModifyCmpresFunction> ResultType;
+public:
+    using CmpresInterface::CmpresInterface;
+    QMap<QString, ModifyCmpresFunction> modifyCmpresFile() override {
+        PYBIND11_OVERRIDE(ResultType, CmpresInterface, modifyCmpresFile);
+    }
+};
+
 }
 
 PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
@@ -567,4 +577,18 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
             .def("allocateUiMessages", &UiMessageInterface::allocateUiMessages, R"pycsmmdoc(
     Allocates any new localization IDs that this mod needs.
 )pycsmmdoc", pybind11::arg("root"), pybind11::arg("gameInstance"), pybind11::arg("modList"));
+
+    pybind11::class_<CmpresInterface, PyCmpresInterface, std::shared_ptr<CmpresInterface>>(m, "CmpresInterface", R"pycsmmdoc(
+    Mod interface for working with .cmpres files.
+)pycsmmdoc")
+            .def(pybind11::init<>(), R"pycsmmdoc(
+    Constructor. Due to how multiple inheritance works with pybind11, you'll have to invoke this constructor
+    explicitly in your mod.
+)pycsmmdoc")
+            .def("modifyArcFile", &CmpresInterface::modifyCmpresFile, R"pycsmmdoc(
+    Returns a mapping from .cmpres file (relative to the root of the Fortune Street game folder) to callback.
+    Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
+    the list of mods, and the directory that the .cmpres file was extracted to for modification. Each callback
+    should modify the .cmpres file as it desires.
+)pycsmmdoc");
 }
