@@ -3,7 +3,7 @@
 
 #include "dolio.h"
 
-class EventSquareMod : public virtual DolIO, public virtual UiMessageInterface
+class EventSquareMod : public virtual DolIO, public virtual UiMessageInterface, public virtual CmpresInterface
 {
 public:
     static constexpr std::string_view MODID = "eventSquare";
@@ -15,6 +15,7 @@ public:
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
+    QMap<QString, ModifyCmpresFunction> modifyCmpresFile() override;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;
 private:

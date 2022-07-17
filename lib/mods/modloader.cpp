@@ -25,7 +25,7 @@ static QSet<QString> parseModListFile(QTextStream &stream, const ModListType &de
                 if (!isRelative) {
                     result.clear();
                 }
-            } else if (isRelative != isCurLineRelative) {
+            } else if (isRelative != int(isCurLineRelative)) {
                 throw ModException(QString("mixing absolute and relative modid specifiers; offending line: %1").arg(line));
             }
             if (splitLine.size() != (isRelative ? 2 : 1)) {

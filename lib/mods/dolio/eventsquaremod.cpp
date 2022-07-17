@@ -1,7 +1,9 @@
 #include "eventsquaremod.h"
+#include "lib/await.h"
 #include "lib/datafileset.h"
 #include "lib/fslocale.h"
 #include "lib/powerpcasm.h"
+#include "lib/exewrapper.h"
 
 void EventSquareMod::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
 void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
@@ -469,4 +471,40 @@ void EventSquareMod::saveFiles(const QString &root, GameInstance &gameInstance, 
         addrStream << forceVentureCardVariable;
         addrFile.commit();
     }
+}
+
+QMap<QString, CmpresInterface::ModifyCmpresFunction> EventSquareMod::modifyCmpresFile()
+{
+    QMap<QString, CmpresInterface::ModifyCmpresFunction> result;
+    // modify chance cards
+    auto chanceCards = QDir(":/files/chance_card").entryInfoList(QDir::Files);
+    for (auto &chanceCard: chanceCards) {
+        auto cmpresBase = chanceCard.baseName().replace("_ja", "");
+        auto modifyCardFunc = [=](
+                const QString &root, GameInstance &gameInstance, const ModListType &modList, const QString &extractedDir) {
+            auto texturePath = QDir(extractedDir).filePath("Textures(NW4R)");
+            auto destPath = QDir(texturePath).filePath(chanceCard.fileName());
+            QFile::remove(destPath);
+            QFile::copy(chanceCard.filePath(), destPath);
+        };
+        for (auto &locale: FS_LOCALES) {
+            QString chanceCardFile = locale == "jp"
+                    ? QString("files/chance_card/%1.cmpres").arg(cmpresBase)
+                    : QString("files/chance_card/lang%1/%2_%1.cmpres").arg(localeToUpper(locale), cmpresBase);
+            result[chanceCardFile] = modifyCardFunc;
+        }
+    }
+    // and add event square textures
+    auto eventSquares = QDir(":/files/event_square_textures").entryInfoList(QDir::Files);
+    for (auto &locale: FS_LOCALES) {
+        result[gameBoardCmpres(locale)] = [=](
+                const QString &root, GameInstance &gameInstance, const ModListType &modList, const QString &extractedDir) {
+            auto texturePath = QDir(extractedDir).filePath("Textures(NW4R)");
+            for (auto &eventSquareTexInfo: eventSquares) {
+                QFile::copy(eventSquareTexInfo.filePath(), QDir(texturePath).filePath(eventSquareTexInfo.fileName()));
+            }
+        };
+    }
+
+    return result;
 }

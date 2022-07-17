@@ -7,6 +7,7 @@
 #include "lib/exewrapper.h"
 #include "lib/mods/csmmmod.h"
 #include "lib/python/pythonbindings.h"
+#include "lib/lz77.h"
 
 class CSMMModpack {
 public:
@@ -122,12 +123,14 @@ public:
     void save(const QString &root, const std::function<void(double)> &progressCallback = [](double) {}) {
         QHash<QString, QMap<QString, UiMessageInterface::SaveMessagesFunction>> messageSavers;
         QHash<QString, QMap<QString, ArcFileInterface::ModifyArcFunction>> arcModifiers;
+        QHash<QString, QMap<QString, CmpresInterface::ModifyCmpresFunction>> cmpresModifiers;
         QMap<QString, UiMessage> messageFiles;
-        QTemporaryDir arcFilesDir;
+        QTemporaryDir archiveFilesDir;
         QSet<QString> arcFiles;
+        QSet<QString> cmpresFiles;
 
-        if (!arcFilesDir.isValid()) {
-            throw ModException(QString("error creating temporary directory: %1").arg(arcFilesDir.errorString()));
+        if (!archiveFilesDir.isValid()) {
+            throw ModException(QString("error creating temporary directory: %1").arg(archiveFilesDir.errorString()));
         }
 
         for (auto &mod: modList) {
@@ -147,6 +150,14 @@ public:
                 }
                 arcModifiers[mod->modId()] = std::move(modArcModifiers);
             }
+            auto cmpresInterface = mod.getCapability<CmpresInterface>();
+            if (cmpresInterface) {
+                auto modCmpresModifiers = cmpresInterface->modifyCmpresFile();
+                for (auto it = modCmpresModifiers.begin(); it != modCmpresModifiers.end(); ++it) {
+                    cmpresFiles.insert(it.key());
+                }
+                cmpresModifiers[mod->modId()] = std::move(modCmpresModifiers);
+            }
         }
 
         for (auto it=messageFiles.begin(); it!=messageFiles.end(); ++it) {
@@ -159,11 +170,25 @@ public:
 
         {
             int i=0;
+            int arcCmpresSize = arcFiles.size() + cmpresFiles.size();
             for (auto &arcFile: arcFiles) {
                 qInfo() << "extracting arc file" << arcFile;
-                progressCallback((double)i / arcFiles.size() / 3);
-                QDir(arcFilesDir.path()).mkpath(arcFile);
-                await(ExeWrapper::extractArcFile(QDir(root).filePath(arcFile), arcFilesDir.filePath(arcFile)));
+                progressCallback((double)i / arcCmpresSize / 3);
+                QDir(archiveFilesDir.path()).mkpath(arcFile);
+                await(ExeWrapper::extractArcFile(QDir(root).filePath(arcFile), archiveFilesDir.filePath(arcFile)));
+                ++i;
+            }
+            for (auto &cmpres: cmpresFiles) {
+                qInfo() << "extracting cmpres file" << cmpres;
+                progressCallback((double)i / arcCmpresSize / 3);
+                QFile cmpresFileObj(QDir(root).filePath(cmpres));
+                if (!cmpresFileObj.open(QFile::ReadOnly)) {
+                    throw ModException("could not open " + cmpresFileObj.fileName());
+                }
+                QDataStream stream(&cmpresFileObj);
+                auto extracted = LZ77::extract(stream).second;
+                QDir(archiveFilesDir.path()).mkpath(cmpres);
+                await(ExeWrapper::extractArcFileStdin(extracted, archiveFilesDir.filePath(cmpres)));
                 ++i;
             }
         }
@@ -195,7 +220,14 @@ public:
                 qInfo() << "saving arc files for" << mod->modId();
                 auto &modifiers = arcModifiers[mod->modId()];
                 for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
-                    it.value()(root, gameInstance, modList, arcFilesDir.filePath(it.key()));
+                    it.value()(root, gameInstance, modList, archiveFilesDir.filePath(it.key()));
+                }
+            }
+            if (cmpresModifiers.contains(mod->modId())) {
+                qInfo() << "saving cmpres files for" << mod->modId();
+                auto &modifiers = cmpresModifiers[mod->modId()];
+                for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
+                    it.value()(root, gameInstance, modList, archiveFilesDir.filePath(it.key()));
                 }
             }
         }
@@ -210,10 +242,26 @@ public:
 
         {
             int i = 0;
+            int arcCmpresSize = arcFiles.size() + cmpresFiles.size();
             for (auto &arcFile: arcFiles) {
                 qInfo() << "saving arc file" << arcFile;
-                progressCallback((2 + (double)i / arcFiles.size()) / 3);
-                await(ExeWrapper::packDfolderToArc(arcFilesDir.filePath(arcFile), QDir(root).filePath(arcFile)));
+                progressCallback((2 + (double)i / arcCmpresSize) / 3);
+                await(ExeWrapper::packDfolderToArc(archiveFilesDir.filePath(arcFile), QDir(root).filePath(arcFile)));
+                ++i;
+            }
+            for (auto &cmpres: cmpresFiles) {
+                qInfo() << "saving cmpres file" << cmpres;
+                progressCallback((2 + (double)i / arcCmpresSize) / 3);
+                QByteArray packed = await(ExeWrapper::packDfolderToArcStdout(archiveFilesDir.filePath(cmpres)));
+                QSaveFile cmpresFileObj(QDir(root).filePath(cmpres));
+                if (!cmpresFileObj.open(QFile::WriteOnly)) {
+                    throw ModException("could not open " + cmpresFileObj.fileName() + " for writing");
+                }
+                QDataStream stream(&cmpresFileObj);
+                LZ77::compress(packed, stream, true);
+                if (!cmpresFileObj.commit()) {
+                    throw ModException("could not save " + cmpresFileObj.fileName());
+                }
                 ++i;
             }
         }

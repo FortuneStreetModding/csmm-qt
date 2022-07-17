@@ -73,6 +73,22 @@ public:
     virtual ~UiMessageInterface() {}
 };
 
+class CmpresInterface {
+public:
+    /**
+     * @brief Typedef for functions that modify the contents of .cmpres files; takes the extracted directory path as the last argument.
+     */
+    typedef std::function<void(const QString &, GameInstance &, const ModListType &, const QString &)> ModifyCmpresFunction;
+
+    /**
+     * @brief Used to modify .cmpres files on save.
+     * @return a mapping from the .cmpres file path relative to the game root to the function used to modify the .cmpres
+     */
+    virtual QMap<QString, ModifyCmpresFunction> modifyCmpresFile() { return {}; };
+
+    virtual ~CmpresInterface() {}
+};
+
 class ModException : public QException, public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;

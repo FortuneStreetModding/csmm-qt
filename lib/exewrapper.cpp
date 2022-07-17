@@ -50,7 +50,7 @@ static QFuture<void> observeProcess(QProcess *proc, bool deleteProcAfterSuccess 
         delete proc;
         auto def = AsyncFuture::deferred<void>();
         def.complete();
-        return def.subscribe([=] { throw Exception(QString("Process '%1' failed to start").arg(program)); }).future();
+        throw Exception(QString("Process '%1' failed to start").arg(program));
     }
     return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
             .subscribe([=](int code) {
@@ -110,11 +110,34 @@ QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder) {
     proc->start(getWszstPath(), {"EXTRACT", "--overwrite", arcFile, "--dest", dFolder});
     return observeProcess(proc);
 }
+QFuture<void> extractArcFileStdin(const QByteArray &arcFileContents, const QString &dFolder) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->start(getWszstPath(), {"EXTRACT", "--overwrite", "-", "--dest", dFolder});
+    proc->write(arcFileContents);
+    QObject::connect(proc, &QProcess::bytesWritten, [=](qint64 written) {
+        proc->closeWriteChannel();
+    });
+    return observeProcess(proc);
+}
 QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
     return observeProcess(proc);
+}
+QFuture<QByteArray> packDfolderToArcStdout(const QString &dFolder) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->setReadChannel(QProcess::StandardOutput);
+    proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", "-"});
+    auto result = QSharedPointer<QByteArray>::create();
+    QObject::connect(proc, &QProcess::readyRead, [=]() {
+        result->append(proc->readAll());
+    });
+    return AsyncFuture::observe(observeProcess(proc)).subscribe([=]() {
+        return *result;
+    }).future();
 }
 QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
