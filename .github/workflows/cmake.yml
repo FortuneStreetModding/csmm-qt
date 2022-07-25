@@ -48,7 +48,7 @@ jobs:
     
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
-      run: csmm.app/Contents/MacOS/csmm python -m pip install sphinx pillow
+      run: csmm.app/Contents/MacOS/csmm python -m pip install sphinx==5.0.2 pillow
     
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
