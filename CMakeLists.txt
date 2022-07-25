@@ -192,6 +192,7 @@ set(LIB_SOURCES
     lib/mods/dolio/arbitrarynumswitchstates.h lib/mods/dolio/arbitrarynumswitchstates.cpp
     lib/mods/misc/readfrbfileinfo.h lib/mods/misc/readfrbfileinfo.cpp
     lib/csmmnetworkmanager.h lib/csmmnetworkmanager.cpp
+    lib/mods/dolio/customshopnames.h lib/mods/dolio/customshopnames.cpp
 )
 
 set(MAIN_SOURCES

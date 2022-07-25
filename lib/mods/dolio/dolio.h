@@ -22,6 +22,18 @@ protected:
     quint32 allocate(const QByteArray &data, const char *purpose, bool reuse = true);
     quint32 allocate(const QVector<quint32> &words, const QString &purpose, bool reuse = true);
     quint32 allocate(const QVector<quint16> &words, const QString &purpose, bool reuse = true);
+    template<class Iter>
+    std::enable_if_t<
+        std::is_arithmetic_v<typename std::iterator_traits<Iter>::value_type>,
+        quint32
+    > allocate(Iter it0, Iter it1, const QString &purpose, bool reuse = true) {
+        QByteArray data;
+        QDataStream dataStream(&data, QIODevice::WriteOnly);
+        for (auto it = it0; it != it1; ++it) {
+            dataStream << *it;
+        }
+        return allocate(data, purpose, reuse);
+    };
     quint32 allocate(const QString &str, bool reuse = true);
     const ModListType &modList();
     QString resolveAddressToString(quint32 virtualAddress, QDataStream &stream, const AddressMapper &addressMapper);

@@ -14,9 +14,9 @@ class CSMMModHolder {
 public:
     CSMMModHolder() = default;
 
-    template<class T>
-    static CSMMModHolder fromCppObj() {
-        return CSMMModHolder(std::make_shared<T>(), pybind11::none());
+    template<class T, class... Args>
+    static CSMMModHolder fromCppObj(Args... args) {
+        return CSMMModHolder(std::make_shared<T>(std::forward<Args>(args)...), pybind11::none());
     }
 
     static CSMMModHolder fromPyObj(pybind11::object obj) {

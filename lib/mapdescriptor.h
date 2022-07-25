@@ -94,8 +94,25 @@ struct MapDescriptor {
     std::map<QString, std::vector<QString>> districtNames;
     std::vector<quint32> districtNameIds;
     std::map<QString, QSharedPointer<Mutator>> mutators;
-    PyObjCopyWrapper<pybind11::dict> extraData;
     std::vector<QString> authors;
+    /**
+     * shopNames[locale][shopModel - 1] == shopName
+     */
+    std::map<QString, std::vector<QString>> shopNames;
+    /**
+     * capitalShopNames[locale][shopModel - 1] == shopName
+     */
+    std::map<QString, std::vector<QString>> capitalShopNames;
+    /**
+     * shopNameIds[shopModel - 1] == shopNameId
+     */
+    std::vector<quint32> shopNameIds;
+    /**
+     * capitalShopNameIds[shopModel - 1] == shopNameId
+     */
+    std::vector<quint32> capitalShopNameIds;
+
+    PyObjCopyWrapper<pybind11::dict> extraData;
 
     QSet<SquareType> readFrbFileInfo(const QDir &paramDir);
 
@@ -108,6 +125,8 @@ struct MapDescriptor {
     MapDescriptor &setFromImport(const MapDescriptor &other);
 
     friend QDebug &operator<<(QDebug &debugStream, const MapDescriptor &obj);
+private:
+    void shopNamesFromYaml(const YAML::Node &yaml, bool isCapital);
 };
 
 // VALIDATION FUNCTIONS

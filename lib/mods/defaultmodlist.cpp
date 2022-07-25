@@ -44,6 +44,7 @@
 #include "misc/readfrbfileinfo.h"
 #include "misc/defaultmiscpatches.h"
 #include "dolio/arbitrarynumswitchstates.h"
+#include "dolio/customshopnames.h"
 
 namespace DefaultModList {
 
@@ -81,6 +82,8 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<TinyDistricts>());
     patches.append(CSMMModHolder::fromCppObj<NamedDistricts>());
     patches.append(CSMMModHolder::fromCppObj<ArbitraryNumSwitchStates>());
+    patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(false));
+    patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(true));
 
 #if 0
     // mutators
