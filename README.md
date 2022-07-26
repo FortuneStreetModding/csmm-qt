@@ -9,7 +9,7 @@ Custom Street Map Manager cross-platform port
 - MSVC 2019 or later (Windows)
 - cmake
 
-## Building on Windows (MinGW)
+## Building on Windows (MSVC)
 
 Make sure that openssl is installed on your computer. When deploying, you'll need to distribute the libssl and libcrypto dlls that come with openssl.
 
