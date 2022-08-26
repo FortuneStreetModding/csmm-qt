@@ -378,7 +378,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
         descriptors[entry.mapId].isPracticeBoard = entry.practiceBoard;
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
             auto descPath = dir.filePath(entry.mapDescriptorRelativePath);
-            if (!QFile::exists(descPath)) {
+            if (!entry.mapDescriptorUrls.empty()) {
                 qInfo() << "trying to download map descriptor to" << descPath;
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
