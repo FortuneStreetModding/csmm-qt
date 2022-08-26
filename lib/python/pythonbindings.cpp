@@ -413,6 +413,12 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
     Additional data in the map descriptor yaml, stored in the extraData key in the yaml.
 )pycsmmdoc");
 
+    pybind11::enum_<GameVersion>(m, "GameVersion", R"pycsmmdoc(
+    The game region.
+)pycsmmdoc")
+            .value("BOOM", GameVersion::BOOM)
+            .value("FORTUNE", GameVersion::FORTUNE);
+
     pybind11::class_<AddressMapper>(m, "AddressMapper", R"pycsmmdoc(
     Class for mapping between different types of addresses in the main.dol.
 )pycsmmdoc")
@@ -436,6 +442,9 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
 )pycsmmdoc")
             .def("canConvertBoomStreetToStandard", &AddressMapper::canConvertBoomStreetToStandard, R"pycsmmdoc(
     Whether the given Boom Street virtual address corresponds to a valid virtual address for this main.dol.
+)pycsmmdoc")
+            .def("getVersion", &AddressMapper::getVersion, R"pycsmmdoc(
+    The game version.
 )pycsmmdoc");
 
     pybind11::class_<FreeSpaceManager>(m, "FreeSpaceManager", R"pycsmmdoc(

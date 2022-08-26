@@ -35,7 +35,7 @@ qint64 AddressSectionMapper::map(qint64 address) const {
     if (sectionPtr) {
         return (int)sectionPtr->toFileAddress(address);
     }
-    return std::numeric_limits<qint64>::max(); // TODO flag exception
+    return -1;
 }
 qint64 AddressSectionMapper::inverseMap(qint64 address) const {
     for (auto &section: sections) {
@@ -47,8 +47,9 @@ qint64 AddressSectionMapper::inverseMap(qint64 address) const {
 }
 
 AddressMapper::AddressMapper(const AddressSectionMapper &fileMapperVal) : fileMapper(fileMapperVal) {}
-void AddressMapper::setVersionMapper(const AddressSectionMapper &versionMapperVal) {
+void AddressMapper::setVersionMapper(const AddressSectionMapper &versionMapperVal, GameVersion versionVal) {
     versionMapper = versionMapperVal;
+    version = versionVal;
 }
 bool AddressMapper::canConvertToFileAddress(quint32 versionAddress) const {
     return fileMapper.findSection(versionAddress);
@@ -70,4 +71,9 @@ quint32 AddressMapper::standardToBoomStreet(quint32 standardAddress) const {
 }
 bool AddressMapper::canConvertBoomStreetToStandard(quint32 boomAddress) const {
     return versionMapper.findSection(boomAddress);
+}
+
+GameVersion AddressMapper::getVersion() const
+{
+    return version;
 }

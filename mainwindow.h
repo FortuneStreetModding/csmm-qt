@@ -32,7 +32,7 @@ private:
 
     void openDir();
     void openIsoWbfs();
-    void exportToFolder();
+    void exportToFolder(bool riivolution);
     void exportIsoWbfs();
     void loadDescriptors(const std::vector<MapDescriptor> &descriptors);
     QFuture<void> checkForRequiredFiles(bool alwaysAsk = false);

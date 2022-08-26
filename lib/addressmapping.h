@@ -5,6 +5,10 @@
 #include <QString>
 #include <QVector>
 
+enum class GameVersion {
+    BOOM, FORTUNE
+};
+
 struct AddressSection {
     qint64 offsetBeg = std::numeric_limits<qint64>::min();
     qint64 offsetEnd = std::numeric_limits<qint64>::max();
@@ -30,7 +34,7 @@ private:
 class AddressMapper {
 public:
     AddressMapper(const AddressSectionMapper &fileMapperVal = AddressSectionMapper());
-    void setVersionMapper(const AddressSectionMapper &versionMapperVal);
+    void setVersionMapper(const AddressSectionMapper &versionMapperVal, GameVersion versionVal);
 
     /**
      * @param versionAddress the virtual address
@@ -72,9 +76,11 @@ public:
      * @return whether the Boom Street address maps to a valid standard address
      */
     bool canConvertBoomStreetToStandard(quint32 boomAddress) const;
+    GameVersion getVersion() const;
 private:
     AddressSectionMapper fileMapper;
     AddressSectionMapper versionMapper;
+    GameVersion version = GameVersion::BOOM;
 };
 
 
