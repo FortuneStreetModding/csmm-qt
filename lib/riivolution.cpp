@@ -2,6 +2,7 @@
 #include "lib/datafileset.h"
 
 #include <QXmlStreamWriter>
+#include <QDirIterator>
 
 namespace Riivolution {
 
@@ -97,6 +98,19 @@ void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &a
     xmlWriter.writeEndElement();
 
     xmlWriter.writeEndDocument();
+
+    // purge unneeded files
+    // first purge non-file directories
+    for (auto &fileInfo: QDir(fullPatchDir.filePath(riivolutionName)).entryInfoList(
+             QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)) {
+        if (fileInfo.fileName() != "files") {
+            if (fileInfo.isDir()) {
+                QDir(fileInfo.filePath()).removeRecursively();
+            } else {
+                QFile::remove(fileInfo.filePath());
+            }
+        }
+    }
 }
 
 }
