@@ -10,21 +10,17 @@ namespace Ui {
 class QuickSetupDialog;
 }
 
-namespace csmm_quicksetup_detail {
-class ProcessingGuard;
-}
-
 class QuickSetupDialog : public QDialog
 {
     Q_OBJECT
-    friend class csmm_quicksetup_detail::ProcessingGuard;
 public:
     explicit QuickSetupDialog(const QString &defaultSaveId, QWidget *parent = nullptr);
     ~QuickSetupDialog();
 private:
+    void updateRiivolutionEnabled();
+    bool shouldPatchRiivolution();
     Ui::QuickSetupDialog *ui;
     QString defaultSaveId;
-    bool processing = false;
     // QDialog interface
 public Q_SLOTS:
     void accept() override;
