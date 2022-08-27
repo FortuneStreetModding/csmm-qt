@@ -8,7 +8,7 @@
 namespace Riivolution {
 
 bool validateRiivolutionName(const QString &riivolutionName);
-void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &addressMapper, const QString &discId, const QString &riivolutionName);
+void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &addressMapper, const QString &riivolutionName);
 
 class Exception : public QException, public std::runtime_error {
 public:

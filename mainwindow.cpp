@@ -447,8 +447,6 @@ void MainWindow::exportToFolder(bool riivolution) {
                 progress->setValue(90);
                 qInfo() << "Patching Riivolution…";
                 Riivolution::write(windowFilePath(), saveDir, gameInstance.addressMapper(),
-                                   gameInstance.addressMapper().getVersion() == GameVersion::BOOM
-                                   ? "ST7P" : "ST7E",
                                    riivolutionName);
             }
 

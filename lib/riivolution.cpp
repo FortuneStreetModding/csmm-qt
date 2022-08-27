@@ -7,7 +7,7 @@
 namespace Riivolution {
 
 bool validateRiivolutionName(const QString &riivolutionName) {
-    return !riivolutionName.contains('/') && !riivolutionName.contains('\\')
+    return !riivolutionName.isEmpty() && !riivolutionName.contains('/') && !riivolutionName.contains('\\')
             && riivolutionName != "riivolution";
 }
 
@@ -37,7 +37,9 @@ static bool fileContentsEqual(const QString &filePath0, const QString &filePath1
     return true;
 }
 
-void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &addressMapper, const QString &discId, const QString &riivolutionName) {
+void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &addressMapper, const QString &riivolutionName) {
+    auto discId = addressMapper.getVersion() == GameVersion::BOOM ? "ST7P" : "ST7E";
+
     if (!fullPatchDir.mkdir("riivolution")) {
         throw Exception("could not create riivolution dir in " + fullPatchDir.path());
     }

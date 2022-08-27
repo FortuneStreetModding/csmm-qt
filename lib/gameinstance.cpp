@@ -66,6 +66,8 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
                 {0x804ac880, 0x8081f013, 0x200, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
             }), GameVersion::FORTUNE);
         }
+    } else {
+        throw std::runtime_error("could not open main.dol file of "+dir.toStdString()); // TODO use a QException subclass
     }
     return GameInstance(descriptors, addressMapperVal, FreeSpaceManager(), importDir);
 }
