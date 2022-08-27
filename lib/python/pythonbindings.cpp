@@ -494,6 +494,9 @@ PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
 )pycsmmdoc")
             .def("nextUiMessageId", &GameInstance::nextUiMessageId, R"pycsmmdoc(
     Fetches and updates the next available localization ID.
+)pycsmmdoc")
+            .def("importDir", &GameInstance::getImportDir, R"pycsmmdoc(
+    Get the directory where import map files, etc. are placed.
 )pycsmmdoc");
 
     pybind11::class_<CSMMMod, PyCSMMMod, std::shared_ptr<CSMMMod>>(m, "CSMMMod", R"pycsmmdoc(
