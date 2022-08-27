@@ -33,6 +33,8 @@ static bool _isVerbose;
 static std::unique_ptr<QTextStream> coutp;
 static std::unique_ptr<QTextStream> cerrp;
 
+static QBuffer placeholderBuffer;
+
 void run(QStringList arguments)
 {
     auto description = QString(R"(
@@ -121,15 +123,19 @@ void run(QStringList arguments)
     // Call parse()
     parser.parse(arguments);
 
-    QBuffer b;
-    b.open(QIODevice::ReadWrite);
+    placeholderBuffer.open(QIODevice::ReadWrite);
     coutp = parser.isSet(quietOption)
-            ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stdout);
+            ? std::make_unique<QTextStream>(&placeholderBuffer) : std::make_unique<QTextStream>(stdout);
     auto &cout = *coutp;
     cerrp = parser.isSet(quietOption)
-            ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stderr);
+            ? std::make_unique<QTextStream>(&placeholderBuffer) : std::make_unique<QTextStream>(stderr);
     auto &cerr = *cerrp;
     QTextStream &helpStream = parser.isSet(helpOption) ? cout : cerr;
+
+    atexit([]() { // hack: manually set these to nullptr to prevent weird segfaults on macos
+        coutp = nullptr;
+        cerrp = nullptr;
+    });
 
     _isQuiet = parser.isSet(quietOption);
     _isVerbose = parser.isSet(verboseOption);
