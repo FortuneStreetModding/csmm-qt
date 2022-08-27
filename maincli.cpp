@@ -219,7 +219,7 @@ void run(QStringList arguments)
                 if(!targetDir.exists()) {
                     targetDir.mkpath(".");
                 }
-                auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                 auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                 CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                 modpack.load(sourceDir.path());
@@ -300,7 +300,7 @@ void run(QStringList arguments)
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
                 if(!file.exists()) {
-                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -337,7 +337,7 @@ void run(QStringList arguments)
                 if(file.exists()) {
                     cout << Configuration::status(sourceDir.filePath("csmm_pending_changes.yaml"));
                 } else {
-                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -368,9 +368,17 @@ void run(QStringList arguments)
                     qCritical() << source << "does not exist.";
                     exit(1);
                 }
-                QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
-                if(file.exists()) {
-                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                auto cfgPath = parser.value(mapDescriptorConfigurationOption);
+                if (cfgPath.isEmpty()) {
+                    cfgPath = sourceDir.filePath("csmm_pending_changes.yaml");
+                }
+                if (QFile::exists(cfgPath)) {
+                    QTemporaryDir importDir;
+                    if (importDir.isValid()) {
+                        qCritical() << "Could not create temporary directory for importing descriptors.";
+                        exit(1);
+                    }
+                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), importDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -380,11 +388,7 @@ void run(QStringList arguments)
                         exit(1);
                     }
                     try {
-                        auto cfgPath = parser.value(mapDescriptorConfigurationOption);
-                        if (cfgPath.isEmpty()) {
-                            cfgPath = sourceDir.filePath("csmm_pending_changes.yaml");
-                        }
-                        Configuration::load(cfgPath, descriptors, sourceDir.path());
+                        Configuration::load(cfgPath, descriptors, importDir.path());
 
                         QString dolOriginalPath(sourceDir.filePath(MAIN_DOL));
                         QString dolBackupPath(sourceDir.filePath(MAIN_DOL) + ".bak");

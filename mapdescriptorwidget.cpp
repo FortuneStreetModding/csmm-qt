@@ -80,7 +80,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         MapDescriptor newDescriptor;
         try {
             QProgressDialog dialog("Importing yaml", QString(), 0, 100);
-            ImportExportUtils::importYaml(openYaml, newDescriptor, getGameDirectory(), [&](double progress) {
+            ImportExportUtils::importYaml(openYaml, newDescriptor, getImportDirectory(), [&](double progress) {
                 dialog.setValue(100 * progress);
             });
             descriptorPtr->setFromImport(newDescriptor);
@@ -214,4 +214,9 @@ const QVector<QSharedPointer<MapDescriptor>> &MapDescriptorWidget::getDescriptor
 
 void MapDescriptorWidget::setGameDirectoryFunction(const std::function<QString()> &fn) {
     getGameDirectory = fn;
+}
+
+void MapDescriptorWidget::setImportDirectoryFunction(const std::function<QString ()> &fn)
+{
+    getImportDirectory = fn;
 }

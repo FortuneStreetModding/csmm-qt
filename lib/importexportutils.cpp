@@ -101,7 +101,7 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
     }
 }
 
-static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
+static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &importDir,
                           const std::function<void(double)> &progressCallback,
                           const QString &backgroundZipDir) {
     QTemporaryDir intermediateDir;
@@ -210,20 +210,38 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                 }
             }
         }
-        importYaml(extractedYamlFile, descriptor, tmpDir);
+        importYaml(extractedYamlFile, descriptor, importDir);
     } else {
         throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
     }
 }
 
-void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &tmpDir,
+void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &importDir,
                 const std::function<void(double)> &progressCallback,
                 const QString &backgroundZipDir) {
     qInfo() << "importing map at" <<  yamlFileSrc;
 
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
-        importYamlZip(yamlFileSrc, descriptor, tmpDir, progressCallback, backgroundZipDir);
+        importYamlZip(yamlFileSrc, descriptor, importDir, progressCallback, backgroundZipDir);
     } else {
+        if (!importDir.mkpath(PARAM_FOLDER)) {
+            throw Exception("could not create import param folder");
+        }
+        if (!importDir.mkpath(SOUND_STREAM_FOLDER)) {
+            throw Exception("could not create import sound stream folder");
+        }
+        if (!importDir.mkpath(SCENE_FOLDER)) {
+            throw Exception("could not create import scene folder");
+        }
+        if (!importDir.mkpath(GAME_FOLDER)) {
+            throw Exception("could not create import game folder");
+        }
+        for (auto &locale: FS_LOCALES) {
+            if (!importDir.mkpath(bgPath(locale))) {
+                throw Exception("could not create import background folder for locale " + locale);
+            }
+        }
+
         std::ifstream yamlStream(std::filesystem::path(yamlFileSrc.toStdU16String()));
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
@@ -236,14 +254,14 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(frbFileFrom));
                 }
-                auto frbFileTo = tmpDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
+                auto frbFileTo = importDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
                 QFile(frbFileTo).remove();
                 QFile::copy(frbFileFrom, frbFileTo);
             }
             // import map icons if needed
             if (!VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
                 auto mapIconFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.mapIcon + ".png");
-                auto mapIconFileTo = tmpDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
+                auto mapIconFileTo = importDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
                 QFileInfo mapIconFileFromInfo(mapIconFileFrom);
                 if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
@@ -259,7 +277,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(brstmFileFrom));
                 }
-                auto frbFileTo = tmpDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
+                auto frbFileTo = importDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
                 QFile(frbFileTo).remove();
                 QFile::copy(brstmFileFrom, frbFileTo);
             }
@@ -272,7 +290,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     throw Exception(QString("File %1 does not exist").arg(cmpresFileFrom));
                 }
                 for (auto &locale: FS_LOCALES) {
-                    auto cmpresFileTo = tmpDir.filePath(bgPath(locale, descriptor.background));
+                    auto cmpresFileTo = importDir.filePath(bgPath(locale, descriptor.background));
                     QFile(cmpresFileTo).remove();
                     QFile::copy(cmpresFileFrom, cmpresFileTo);
                 }
@@ -282,7 +300,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 if (!sceneFileInfo.exists() || !sceneFileInfo.isFile()) {
                     throw Exception(QString("File %1 does not exist").arg(sceneFileFrom));
                 }
-                auto sceneFileTo = tmpDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
+                auto sceneFileTo = importDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
                 QFile(sceneFileTo).remove();
                 QFile::copy(sceneFileFrom, sceneFileTo);
                 // copy turnlot images
@@ -293,7 +311,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     if (!turnlotPngInfo.exists() || !turnlotPngInfo.isFile()) {
                         throw Exception(QString("File %1 does not exist").arg(turnlotPngFrom));
                     }
-                    QString turnlotPngTo = tmpDir.filePath(turnlotPng(extChr, descriptor.background));
+                    QString turnlotPngTo = importDir.filePath(turnlotPng(extChr, descriptor.background));
                     QFile(turnlotPngTo).remove();
                     QFile::copy(turnlotPngFrom, turnlotPngTo);
                 }

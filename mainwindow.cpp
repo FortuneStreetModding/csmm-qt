@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
     ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
+    ui->tableWidget->setImportDirectoryFunction([&]() { return importDir->path(); });
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openDir);
     connect(ui->actionImport_WBFS_ISO, &QAction::triggered, this, &MainWindow::openIsoWbfs);
     connect(ui->actionExport_to_Folder, &QAction::triggered, this, [&]() {
@@ -169,7 +170,7 @@ void MainWindow::loadMapList() {
     QProgressDialog progressDialog("Importing map list", QString(), 0, 100);
     progressDialog.setWindowModality(Qt::ApplicationModal);
     try {
-        Configuration::load(openFile, descriptors, tempGameDir->path(), [&](double progress) {
+        Configuration::load(openFile, descriptors, importDir->path(), [&](double progress) {
             progressDialog.setValue(100 * progress);
         });
         loadDescriptors(descriptors);
@@ -213,7 +214,8 @@ void MainWindow::saveCleanItastCsmmBrsar() {
 
 void MainWindow::openDir() {
     auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
-    if (!newTempGameDir->isValid()) {
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create();
+    if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
         QMessageBox::critical(this, "Open Game Directory", "The temporary directory used for copying the game directory could not be created");
         return;
     }
@@ -246,7 +248,7 @@ void MainWindow::openDir() {
             (*progress)->setWindowModality(Qt::WindowModal);
             (*progress)->setValue(0);
 
-            auto gameInstance = GameInstance::fromGameDirectory(dirname);
+            auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
             modpack.load(dirname);
             (*progress)->setValue(1);
@@ -259,6 +261,7 @@ void MainWindow::openDir() {
             loadDescriptors(gameInstance.mapDescriptors());
             setWindowFilePath(newTempGameDir->path());
             tempGameDir = newTempGameDir;
+            importDir = newTempImportDir;
         } catch (const std::runtime_error &e) {
             *progress = nullptr;
             QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
@@ -269,7 +272,8 @@ void MainWindow::openDir() {
 
 void MainWindow::openIsoWbfs() {
     auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
-    if (!newTempGameDir->isValid()) {
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create();
+    if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
         QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
         return;
     }
@@ -297,13 +301,14 @@ void MainWindow::openIsoWbfs() {
         auto dirname = newTempGameDir->path();
 
         try {
-            auto gameInstance = GameInstance::fromGameDirectory(dirname);
+            auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
             modpack.load(dirname);
             (*progress)->setValue(2);
             loadDescriptors(gameInstance.mapDescriptors());
             setWindowFilePath(newTempGameDir->path());
             tempGameDir = newTempGameDir;
+            importDir = newTempImportDir;
         } catch (const std::runtime_error &e) {
             *progress = nullptr;
             QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
@@ -432,7 +437,7 @@ void MainWindow::exportToFolder(bool riivolution) {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            auto gameInstance = GameInstance::fromGameDirectory(wiiSaveDir, *descriptors);
+            auto gameInstance = GameInstance::fromGameDirectory(wiiSaveDir, importDir->path(), *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
             modpack.save(wiiSaveDir, [=](double progressVal) {
                 progress->setValue(30 + (90 - 30) * progressVal);
@@ -509,7 +514,7 @@ void MainWindow::exportIsoWbfs() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, *descriptors);
+            auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, importDir->path(), *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
             modpack.save(intermediatePath, [=](double progressVal) {
                 progress->setValue(20 + (80 - 20) * progressVal);

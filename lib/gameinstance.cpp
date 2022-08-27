@@ -5,8 +5,13 @@
 #include "lib/exewrapper.h"
 #include "lib/powerpcasm.h"
 
-GameInstance::GameInstance(const std::vector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager)
-    : descriptors(descriptors), mapper(addressMapper), fsm(freeSpaceManager), curUiMessageId(MIN_CSMM_UI_MESSAGE_ID) {
+GameInstance::GameInstance(const std::vector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager, const QString &importDir)
+    : descriptors(descriptors), mapper(addressMapper), fsm(freeSpaceManager), curUiMessageId(MIN_CSMM_UI_MESSAGE_ID), importDir(importDir) {
+}
+
+const QString &GameInstance::getImportDir() const
+{
+    return importDir;
 }
 
 std::vector<MapDescriptor> &GameInstance::mapDescriptors() {
@@ -33,7 +38,7 @@ int GameInstance::nextUiMessageId() {
     return curUiMessageId++;
 }
 
-GameInstance GameInstance::fromGameDirectory(const QString &dir, const std::vector<MapDescriptor> &descriptors)
+GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &importDir, const std::vector<MapDescriptor> &descriptors)
 {
     QString mainDol = QDir(dir).filePath(MAIN_DOL);
     auto fileMappingSections = await(ExeWrapper::readSections(mainDol));
@@ -62,5 +67,5 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const std::vect
             }), GameVersion::FORTUNE);
         }
     }
-    return GameInstance(descriptors, addressMapperVal, FreeSpaceManager());
+    return GameInstance(descriptors, addressMapperVal, FreeSpaceManager(), importDir);
 }

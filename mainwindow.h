@@ -26,6 +26,8 @@ private:
 
     QSharedPointer<QTemporaryDir> tempGameDir;
 
+    QSharedPointer<QTemporaryDir> importDir;
+
     ModListType modList;
 
     std::shared_ptr<QTemporaryDir> tempModpackDir;

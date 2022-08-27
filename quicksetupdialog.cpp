@@ -104,8 +104,9 @@ void QuickSetupDialog::accept()
     }
 
     try {
+        QTemporaryDir importDir;
         QTemporaryDir intermediateDir;
-        if (!intermediateDir.isValid()) {
+        if (!importDir.isValid() || !intermediateDir.isValid()) {
             QMessageBox::critical(this, "Cannot save game", "Cannot create temporary directory");
             return;
         }
@@ -126,13 +127,13 @@ void QuickSetupDialog::accept()
         dialog.setValue(10);
 
         auto mods = ModLoader::importModpackFile(ui->modpackFile->text());
-        auto gameInstance = GameInstance::fromGameDirectory(intermediateDir.path());
+        auto gameInstance = GameInstance::fromGameDirectory(intermediateDir.path(), importDir.path());
         CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
         modpack.load(intermediateDir.path());
 
         dialog.setValue(20);
 
-        Configuration::load(ui->mapListFile->text(), gameInstance.mapDescriptors(), QDir(intermediateDir.path()), [&](double progress) {
+        Configuration::load(ui->mapListFile->text(), gameInstance.mapDescriptors(), QDir(importDir.path()), [&](double progress) {
             dialog.setValue(20 + (60 - 20) * progress);
         });
 

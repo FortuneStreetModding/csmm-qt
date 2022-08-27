@@ -28,7 +28,7 @@ void TurnlotScenes::saveFiles(const QString &root, GameInstance &gameInstance, c
         // convert turnlot images
         for(char extChr='a'; extChr <= 'c'; ++extChr)
         {
-            QString turnlotPngPath = QDir(root).filePath(turnlotPng(extChr, background));
+            QString turnlotPngPath = QDir(gameInstance.getImportDir()).filePath(turnlotPng(extChr, background));
             QFileInfo turnlotPngInfo(turnlotPngPath);
             QString turnlotTplPath = QDir(root).filePath(turnlotTpl(extChr, background));
             QFileInfo turnlotTplInfo(turnlotTplPath);

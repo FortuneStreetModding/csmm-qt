@@ -38,6 +38,12 @@ inline QString gameBoardArc(const QString &locale) {
     }
     return QString("files/game/lang%1/game_board_%1.arc").arg(localeToUpper(locale));
 }
+inline QString bgPath(const QString &locale) {
+    if (locale == "jp") {
+        return "files/bg";
+    }
+    return QString("files/bg/lang%1").arg(localeToUpper(locale));
+}
 inline QString bgPath(const QString &locale, const QString &background) {
     if (locale == "jp") {
         return QString("files/bg/%1.cmpres").arg(background);

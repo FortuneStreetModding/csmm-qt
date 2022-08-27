@@ -306,7 +306,7 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> MapIconTable::modifyArcFile()
                 if (mapDescriptor.mapIcon.isEmpty() || VanillaDatabase::hasVanillaTpl(mapDescriptor.mapIcon)) {
                     continue;
                 }
-                QString mapIconPng = QDir(root).filePath(PARAM_FOLDER + "/" + mapDescriptor.mapIcon + ".png");
+                QString mapIconPng = QDir(gameInstance.getImportDir()).filePath(PARAM_FOLDER + "/" + mapDescriptor.mapIcon + ".png");
                 QFileInfo mapIconPngInfo(mapIconPng);
                 if (mapIconPngInfo.exists() && mapIconPngInfo.isFile()) {
                     auto mapIconTpl = QDir(tmpDir).filePath("arc/timg/" + mapIconToTplName[mapDescriptor.mapIcon]);

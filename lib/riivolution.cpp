@@ -11,6 +11,32 @@ bool validateRiivolutionName(const QString &riivolutionName) {
             && riivolutionName != "riivolution";
 }
 
+static bool fileContentsEqual(const QString &filePath0, const QString &filePath1) {
+    QFileInfo fileInfo0(filePath0), fileInfo1(filePath1);
+    if (!fileInfo0.exists()) {
+        return !fileInfo1.exists();
+    }
+    if (fileInfo0.size() != fileInfo1.size()) {
+        return false;
+    }
+    QFile file0(filePath0), file1(filePath1);
+    if (!file0.open(QFile::ReadOnly)) {
+        throw Exception("could not open " + filePath0 + " for inspection");
+    }
+    if (!file1.open(QFile::ReadOnly)) {
+        throw Exception("could not open " + filePath1 + " for inspection");
+    }
+    char buffer0[4096], buffer1[4096];
+    while (!file0.atEnd() && !file1.atEnd()) {
+        auto numRead0 = file0.read(buffer0, 4096);
+        auto numRead1 = file1.read(buffer1, 4096);
+        if (numRead0 != numRead1 || memcmp(buffer0, buffer1, numRead0) != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &addressMapper, const QString &discId, const QString &riivolutionName) {
     if (!fullPatchDir.mkdir("riivolution")) {
         throw Exception("could not create riivolution dir in " + fullPatchDir.path());
@@ -109,6 +135,17 @@ void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &a
             } else {
                 QFile::remove(fileInfo.filePath());
             }
+        }
+    }
+
+    // then purge unchanged files
+    QDirIterator dirIt(fullPatchDir.filePath(riivolutionName + "/files"),
+                       QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (dirIt.hasNext()) {
+        auto patchedFilePath = dirIt.next();
+        auto vanillaFilePath = vanilla.filePath("files/" + QDir(dirIt.path()).relativeFilePath(patchedFilePath));
+        if (fileContentsEqual(vanillaFilePath, patchedFilePath)) {
+            QFile::remove(patchedFilePath);
         }
     }
 }
