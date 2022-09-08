@@ -1,7 +1,8 @@
 #include "exewrapper.h"
 
 #include "asyncfuture.h"
-#include <QDir>
+#include "qdir.h"
+#include <QApplication>
 #include <QDataStream>
 #include <QProcess>
 #include <QStandardPaths>
@@ -11,7 +12,7 @@ namespace ExeWrapper {
 static const QString &getWitPath() {
     static QString witPath;
     if (witPath.isEmpty()) {
-        witPath = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath(WIT_NAME);
+        witPath = QDir(QApplication::applicationDirPath()).filePath("wit/bin/wit");
     }
     return witPath;
 }
@@ -19,7 +20,7 @@ static const QString &getWitPath() {
 static const QString &getWszstPath() {
     static QString wszstPath;
     if (wszstPath.isEmpty()) {
-        wszstPath = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath(WSZST_NAME);
+        wszstPath = QDir(QApplication::applicationDirPath()).filePath("szs/bin/wszst");
     }
     return wszstPath;
 }
@@ -27,7 +28,7 @@ static const QString &getWszstPath() {
 static const QString &getWimgtPath() {
     static QString wimgtPath;
     if (wimgtPath.isEmpty()) {
-        wimgtPath = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath(WIMGT_NAME);
+        wimgtPath = QDir(QApplication::applicationDirPath()).filePath("szs/bin/wimgt");
     }
     return wimgtPath;
 }

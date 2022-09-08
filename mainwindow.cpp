@@ -8,13 +8,12 @@
 #include <QProgressDialog>
 #include <QtConcurrent>
 #include <QInputDialog>
+#include "lib/configuration.h"
+#include "lib/csmmnetworkmanager.h"
 #include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/importexportutils.h"
-#include "downloadclidialog.h"
 #include "validationerrordialog.h"
-#include "lib/configuration.h"
-#include "lib/downloadtools.h"
 #include "lib/datafileset.h"
 #include "lib/mods/defaultmodlist.h"
 #include "lib/mods/modloader.h"
@@ -38,9 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionExport_to_WBFS_ISO, &QAction::triggered, this, &MainWindow::exportIsoWbfs);
     connect(ui->actionExport_to_Riivolution, &QAction::triggered, this, [&]() {
         exportToFolder(true);
-    });
-    connect(ui->action_Re_Download_External_Tools, &QAction::triggered, this, [&]() {
-        checkForRequiredFiles(true);
     });
     connect(ui->actionShow_CSMM_Network_Cache_In_File_System, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl::fromLocalFile(CSMMNetworkManager::networkCacheDir()));
@@ -113,10 +109,8 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
-        AsyncFuture::observe(checkForRequiredFiles()).subscribe([this]() {
-            QuickSetupDialog dialog(getSaveId());
-            dialog.exec();
-        });
+        QuickSetupDialog dialog(getSaveId());
+        dialog.exec();
     });
     updateModListWidget();
 
@@ -231,43 +225,39 @@ void MainWindow::openDir() {
         std::filesystem::copy(dirname.toStdU16String(), newTempGameDir->path().toStdU16String(), std::filesystem::copy_options::recursive, error);
         return error;
     });
-
-    AsyncFuture::observe(checkForRequiredFiles())
-            .subscribe([=]() {
-        if (!ImportExportUtils::isMainDolVanilla(QDir(dirname))) {
-            auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
-                                 "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
-                                 QMessageBox::Yes | QMessageBox::No);
-            if (btn != QMessageBox::Yes) {
-                return;
-            }
+    if (!ImportExportUtils::isMainDolVanilla(QDir(dirname))) {
+        auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
+                             "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
+                             QMessageBox::Yes | QMessageBox::No);
+        if (btn != QMessageBox::Yes) {
+            return;
         }
+    }
 
-        try {
-            *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2);
-            (*progress)->setWindowModality(Qt::WindowModal);
-            (*progress)->setValue(0);
+    try {
+        *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2);
+        (*progress)->setWindowModality(Qt::WindowModal);
+        (*progress)->setValue(0);
 
-            auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
-            CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
-            modpack.load(dirname);
-            (*progress)->setValue(1);
-            auto errorCode = await(copyTask);
-            (*progress)->setValue(2);
-            if (errorCode) {
-                QMessageBox::critical(this, "Error loading game", QString::fromStdString("Error copying files to temporary working directory: " + errorCode.message()));
-                return;
-            }
-            loadDescriptors(gameInstance.mapDescriptors());
-            setWindowFilePath(newTempGameDir->path());
-            tempGameDir = newTempGameDir;
-            importDir = newTempImportDir;
-        } catch (const std::runtime_error &e) {
-            *progress = nullptr;
-            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
-            PyErr_Clear();
+        auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
+        CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
+        modpack.load(dirname);
+        (*progress)->setValue(1);
+        auto errorCode = await(copyTask);
+        (*progress)->setValue(2);
+        if (errorCode) {
+            QMessageBox::critical(this, "Error loading game", QString::fromStdString("Error copying files to temporary working directory: " + errorCode.message()));
+            return;
         }
-    });
+        loadDescriptors(gameInstance.mapDescriptors());
+        setWindowFilePath(newTempGameDir->path());
+        tempGameDir = newTempGameDir;
+        importDir = newTempImportDir;
+    } catch (const std::runtime_error &e) {
+        *progress = nullptr;
+        QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+        PyErr_Clear();
+    }
 }
 
 void MainWindow::openIsoWbfs() {
@@ -282,13 +272,10 @@ void MainWindow::openIsoWbfs() {
 
     auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
 
-    AsyncFuture::observe(checkForRequiredFiles())
-            .subscribe([=]() {
-        *progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
-        (*progress)->setWindowModality(Qt::WindowModal);
-        (*progress)->setValue(0);
-        return ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path());
-    }).subscribe([=]() {
+    *progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
+    (*progress)->setWindowModality(Qt::WindowModal);
+    (*progress)->setValue(0);
+    AsyncFuture::observe(ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path())).subscribe([=]() {
         (*progress)->setValue(1);
         if (!ImportExportUtils::isMainDolVanilla(newTempGameDir->path())) {
             auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
@@ -330,29 +317,6 @@ void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) 
     ui->actionExport_to_Folder->setEnabled(true);
     ui->actionExport_to_WBFS_ISO->setEnabled(true);
     ui->actionExport_to_Riivolution->setEnabled(true);
-}
-
-QFuture<void> MainWindow::checkForRequiredFiles(bool alwaysAsk) {
-    if (alwaysAsk || !DownloadTools::requiredFilesAvailable()) {
-        DownloadCLIDialog dialog(WIT_URL, WSZST_URL, this);
-        if (dialog.exec() == QDialog::Accepted) {
-            auto progressDialog = QSharedPointer<QProgressDialog>::create("Downloading CLI tools", QString(), 0, 100);
-            auto fut = DownloadTools::downloadAllRequiredFiles([&](const QString &error) {
-                QMessageBox::critical(this, "Download", error);
-            }, dialog.getWitURL(), dialog.getWszstURL(), [=](double progress) {
-                progressDialog->setValue(100 * progress);
-            });
-            return AsyncFuture::observe(fut).subscribe([=]() {
-                QMessageBox::information(this, "Download", "Successfuly downloaded and extracted the programs.");
-            }).future();
-        }
-        auto def = AsyncFuture::deferred<void>();
-        def.cancel();
-        return def.future();
-    }
-    auto def = AsyncFuture::deferred<void>();
-    def.complete();
-    return def.future();
 }
 
 void MainWindow::exportToFolder(bool riivolution) {

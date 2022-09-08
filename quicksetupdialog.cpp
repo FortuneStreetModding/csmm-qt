@@ -7,7 +7,6 @@
 #include <QMessageBox>
 #include <filesystem>
 
-#include "lib/asyncfuture.h"
 #include "lib/await.h"
 #include "lib/exewrapper.h"
 #include "lib/mods/modloader.h"

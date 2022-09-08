@@ -51,7 +51,6 @@ set(LIB_SOURCES
     lib/configuration.cpp
     lib/configuration.h
     lib/datafileset.h
-    lib/downloadtools.h
     lib/exewrapper.cpp
     lib/exewrapper.h
     lib/fortunestreetdata.cpp
@@ -199,10 +198,7 @@ set(LIB_SOURCES
 
 set(MAIN_SOURCES
     quicksetupdialog.h quicksetupdialog.cpp quicksetupdialog.ui
-    downloadclidialog.cpp
     darkdetect.h
-    downloadclidialog.h
-    downloadclidialog.ui
     main.cpp
     maincli.cpp
     maincli.h
@@ -255,10 +251,37 @@ if(APPLE)
         set_property(SOURCE ${PY_STDLIB_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/lib/${PY_STDLIB_FILE_REL_DIR}")
     endforeach()
     add_executable(csmm MACOSX_BUNDLE ${SOURCES} ${APP_ICON_MACOSX} ${PY_STDLIB_FILES})
+
+    file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-mac.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/wit
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/wit-v3.05a-r8638-mac ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/wit
+    )
+    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.28a-r8636-mac.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/szs
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.28a-r8636-mac ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/szs
+    )
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
     add_executable(csmm ${SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
+
+    file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip ${CMAKE_CURRENT_BINARY_DIR}/wit.zip)
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_CURRENT_BINARY_DIR}/wit.zip
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/wit
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/wit-v3.05a-r8638-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/wit
+    )
+    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.28a-r8636-cygwin64.zip ${CMAKE_CURRENT_BINARY_DIR}/szs.zip)
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_CURRENT_BINARY_DIR}/szs.zip
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.28a-r8636-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/szs
+    )
 else()
+    # TODO add download wit/wszst commands to linux
     add_executable(csmm ${SOURCES})
 endif()
 
