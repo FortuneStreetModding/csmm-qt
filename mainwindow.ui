@@ -129,7 +129,6 @@
     <addaction name="actionImport_WBFS_ISO"/>
     <addaction name="actionExport_to_Folder"/>
     <addaction name="actionExport_to_WBFS_ISO"/>
-    <addaction name="action_Re_Download_External_Tools"/>
     <addaction name="actionShow_CSMM_Network_Cache_In_File_System"/>
    </widget>
    <widget class="QMenu" name="menuOptions">

@@ -35,7 +35,6 @@ private:
     void exportToFolder();
     void exportIsoWbfs();
     void loadDescriptors(const std::vector<MapDescriptor> &descriptors);
-    QFuture<void> checkForRequiredFiles(bool alwaysAsk = false);
     void validateMaps();
     void saveCleanItastCsmmBrsar();
     void saveMapList();
