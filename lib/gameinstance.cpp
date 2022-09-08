@@ -5,8 +5,13 @@
 #include "lib/exewrapper.h"
 #include "lib/powerpcasm.h"
 
-GameInstance::GameInstance(const std::vector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager)
-    : descriptors(descriptors), mapper(addressMapper), fsm(freeSpaceManager), curUiMessageId(MIN_CSMM_UI_MESSAGE_ID) {
+GameInstance::GameInstance(const std::vector<MapDescriptor> &descriptors, const AddressMapper &addressMapper, const FreeSpaceManager &freeSpaceManager, const QString &importDir)
+    : descriptors(descriptors), mapper(addressMapper), fsm(freeSpaceManager), curUiMessageId(MIN_CSMM_UI_MESSAGE_ID), importDir(importDir) {
+}
+
+const QString &GameInstance::getImportDir() const
+{
+    return importDir;
 }
 
 std::vector<MapDescriptor> &GameInstance::mapDescriptors() {
@@ -33,7 +38,7 @@ int GameInstance::nextUiMessageId() {
     return curUiMessageId++;
 }
 
-GameInstance GameInstance::fromGameDirectory(const QString &dir, const std::vector<MapDescriptor> &descriptors)
+GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &importDir, const std::vector<MapDescriptor> &descriptors)
 {
     QString mainDol = QDir(dir).filePath(MAIN_DOL);
     auto fileMappingSections = await(ExeWrapper::readSections(mainDol));
@@ -46,7 +51,7 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const std::vect
         stream >> inst;
         if (inst == PowerPcAsm::lwz(0, -0x547c, 13)) {
             // Boom Street detected
-            addressMapperVal.setVersionMapper(AddressSectionMapper({ AddressSection() }));
+            addressMapperVal.setVersionMapper(AddressSectionMapper({ AddressSection() }), GameVersion::BOOM);
         } else {
             // Fortune Street
             stream.device()->seek(addressMapperVal.toFileAddress(0x8007a2c0));
@@ -59,8 +64,10 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const std::vect
                 {0x804105f0, 0x8044ebe7, 0x188, "continuation of .data4"},
                 {0x8044ec00, 0x804ac804, 0x1A0, ".data5"},
                 {0x804ac880, 0x8081f013, 0x200, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
-            }));
+            }), GameVersion::FORTUNE);
         }
+    } else {
+        throw std::runtime_error("could not open main.dol file of "+dir.toStdString()); // TODO use a QException subclass
     }
-    return GameInstance(descriptors, addressMapperVal, FreeSpaceManager());
+    return GameInstance(descriptors, addressMapperVal, FreeSpaceManager(), importDir);
 }

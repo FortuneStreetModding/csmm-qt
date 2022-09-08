@@ -18,10 +18,12 @@ public:
     void clearDescriptors();
     const QVector<QSharedPointer<MapDescriptor>> &getDescriptors();
     void setGameDirectoryFunction(const std::function<QString()> &fn);
+    void setImportDirectoryFunction(const std::function<QString()> &fn);
     bool dirty = false;
 private:
     QVector<QSharedPointer<MapDescriptor>> descriptors;
     std::function<QString()> getGameDirectory;
+    std::function<QString()> getImportDirectory;
 };
 
 #endif // MAPDESCRIPTORWIDGET_H

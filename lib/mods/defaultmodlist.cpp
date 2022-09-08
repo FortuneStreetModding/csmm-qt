@@ -45,6 +45,7 @@
 #include "misc/defaultmiscpatches.h"
 #include "dolio/arbitrarynumswitchstates.h"
 #include "dolio/customshopnames.h"
+#include "misc/copymapfiles.h"
 
 namespace DefaultModList {
 
@@ -106,6 +107,7 @@ ModListType defaultModList() {
 
     patches.append(CSMMModHolder::fromCppObj<DefaultMiscPatches>());
     patches.append(CSMMModHolder::fromCppObj<ReadFrbFileInfo>());
+    patches.append(CSMMModHolder::fromCppObj<CopyMapFiles>());
 
     return patches;
 }

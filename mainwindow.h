@@ -26,13 +26,15 @@ private:
 
     QSharedPointer<QTemporaryDir> tempGameDir;
 
+    QSharedPointer<QTemporaryDir> importDir;
+
     ModListType modList;
 
     std::shared_ptr<QTemporaryDir> tempModpackDir;
 
     void openDir();
     void openIsoWbfs();
-    void exportToFolder();
+    void exportToFolder(bool riivolution);
     void exportIsoWbfs();
     void loadDescriptors(const std::vector<MapDescriptor> &descriptors);
     void validateMaps();

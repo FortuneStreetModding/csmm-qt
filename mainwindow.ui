@@ -118,7 +118,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -129,6 +129,7 @@
     <addaction name="actionImport_WBFS_ISO"/>
     <addaction name="actionExport_to_Folder"/>
     <addaction name="actionExport_to_WBFS_ISO"/>
+    <addaction name="actionExport_to_Riivolution"/>
     <addaction name="actionShow_CSMM_Network_Cache_In_File_System"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
@@ -269,6 +270,14 @@
   <action name="actionShow_CSMM_Network_Cache_In_File_System">
    <property name="text">
     <string>Show CSMM Network Cache In File System</string>
+   </property>
+  </action>
+  <action name="actionExport_to_Riivolution">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Export to Riivolution</string>
    </property>
   </action>
  </widget>

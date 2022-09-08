@@ -10,6 +10,7 @@
 #include "lib/importexportutils.h"
 #include "lib/configuration.h"
 #include "lib/datafileset.h"
+#include "lib/riivolution.h"
 #include "lib/mods/csmmmodpack.h"
 #include "lib/mods/modloader.h"
 #include "lib/mods/defaultmodlist.h"
@@ -28,6 +29,8 @@ static bool _isQuiet;
 static bool _isVerbose;
 static std::unique_ptr<QTextStream> coutp;
 static std::unique_ptr<QTextStream> cerrp;
+
+static QBuffer placeholderBuffer;
 
 void run(QStringList arguments)
 {
@@ -85,6 +88,7 @@ void run(QStringList arguments)
   download-tools  Downloads the external tools that CSMM requires.
   python          Run CSMM's embedded Python interpreter
   default-modlist Output a list of default mod ids
+  riivolution     Create a Riivolution patch file from vanilla and patched game folders (WARNING: modifies the patched game folder)
 )").remove(0,1);
 
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsOptions);
@@ -108,21 +112,25 @@ void run(QStringList arguments)
     // add some generic options
     parser.addOption(helpOption);
     parser.addOption(quietOption);
-    quietOption.setDescription(quietOption.description()); // add a linebreak at the last generic option
     parser.addOption(verboseOption);
+    quietOption.setDescription(verboseOption.description()); // add a linebreak at the last generic option
 
     // Call parse()
     parser.parse(arguments);
 
-    QBuffer b;
-    b.open(QIODevice::ReadWrite);
+    placeholderBuffer.open(QIODevice::ReadWrite);
     coutp = parser.isSet(quietOption)
-            ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stdout);
+            ? std::make_unique<QTextStream>(&placeholderBuffer) : std::make_unique<QTextStream>(stdout);
     auto &cout = *coutp;
     cerrp = parser.isSet(quietOption)
-            ? std::make_unique<QTextStream>(&b) : std::make_unique<QTextStream>(stderr);
+            ? std::make_unique<QTextStream>(&placeholderBuffer) : std::make_unique<QTextStream>(stderr);
     auto &cerr = *cerrp;
     QTextStream &helpStream = parser.isSet(helpOption) ? cout : cerr;
+
+    atexit([]() { // hack: manually set these to nullptr to prevent weird segfaults on macos
+        coutp = nullptr;
+        cerrp = nullptr;
+    });
 
     _isQuiet = parser.isSet(quietOption);
     _isVerbose = parser.isSet(verboseOption);
@@ -214,7 +222,7 @@ void run(QStringList arguments)
                 if(!targetDir.exists()) {
                     targetDir.mkpath(".");
                 }
-                auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                 auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                 CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                 modpack.load(sourceDir.path());
@@ -295,7 +303,7 @@ void run(QStringList arguments)
                 }
                 QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
                 if(!file.exists()) {
-                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -332,7 +340,7 @@ void run(QStringList arguments)
                 if(file.exists()) {
                     cout << Configuration::status(sourceDir.filePath("csmm_pending_changes.yaml"));
                 } else {
-                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -363,9 +371,17 @@ void run(QStringList arguments)
                     qCritical() << source << "does not exist.";
                     exit(1);
                 }
-                QFile file(sourceDir.filePath("csmm_pending_changes.yaml"));
-                if(file.exists()) {
-                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path());
+                auto cfgPath = parser.value(mapDescriptorConfigurationOption);
+                if (cfgPath.isEmpty()) {
+                    cfgPath = sourceDir.filePath("csmm_pending_changes.yaml");
+                }
+                if (QFile::exists(cfgPath)) {
+                    QTemporaryDir importDir;
+                    if (importDir.isValid()) {
+                        qCritical() << "Could not create temporary directory for importing descriptors.";
+                        exit(1);
+                    }
+                    auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), importDir.path());
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption));
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -375,11 +391,7 @@ void run(QStringList arguments)
                         exit(1);
                     }
                     try {
-                        auto cfgPath = parser.value(mapDescriptorConfigurationOption);
-                        if (cfgPath.isEmpty()) {
-                            cfgPath = sourceDir.filePath("csmm_pending_changes.yaml");
-                        }
-                        Configuration::load(cfgPath, descriptors, sourceDir.path());
+                        Configuration::load(cfgPath, descriptors, importDir.path());
 
                         QString dolOriginalPath(sourceDir.filePath(MAIN_DOL));
                         QString dolBackupPath(sourceDir.filePath(MAIN_DOL) + ".bak");
@@ -431,6 +443,32 @@ void run(QStringList arguments)
                     qCritical() << "There are no pending changes to discard";
                     exit(1);
                 }
+            }
+        } else if (command == "riivolution") {
+            setupSubcommand(parser, "riivolution", "Creates a Riivolution patch xml at <patchedDir>/../riivolution/<patchedDir name not including the path>.xml from the vanilla and patched game files.");
+            parser.addPositionalArgument("vanillaDir", "Vanilla Fortune Street directory.", "pack <vanillaDir>");
+            parser.addPositionalArgument("patchedDir", "Patched Fortune Street directory. (WARNING: modifies the patched game folder)", "<patchedDir>");
+
+            parser.process(arguments);
+
+            const QStringList args = parser.positionalArguments();
+            if (parser.isSet(helpOption) || args.size() < 3) {
+                helpStream << '\n' << parser.helpText();
+            } else {
+                const QString vanillaDir = args.at(1);
+                const QString patchedDir = args.at(2);
+                const QString patchName = QDir(patchedDir).dirName();
+                if (!Riivolution::validateRiivolutionName(patchName)) {
+                    qCritical() << "patch name" << patchName << "is invalid";
+                    exit(1);
+                }
+                auto vanillaInst = GameInstance::fromGameDirectory(vanillaDir, "");
+                auto patchedInst = GameInstance::fromGameDirectory(patchedDir, "");
+                if (vanillaInst.addressMapper().getVersion() != patchedInst.addressMapper().getVersion()) {
+                    qCritical() << "version mismatch between vanilla and patched roms";
+                    exit(1);
+                }
+                Riivolution::write(vanillaDir, QFileInfo(patchedDir).dir(), vanillaInst.addressMapper(), patchName);
             }
         } else if (command == "pack") {
             // --- pack ---

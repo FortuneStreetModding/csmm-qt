@@ -192,6 +192,8 @@ set(LIB_SOURCES
     lib/mods/misc/readfrbfileinfo.h lib/mods/misc/readfrbfileinfo.cpp
     lib/csmmnetworkmanager.h lib/csmmnetworkmanager.cpp
     lib/mods/dolio/customshopnames.h lib/mods/dolio/customshopnames.cpp
+    lib/riivolution.h lib/riivolution.cpp
+    lib/mods/misc/copymapfiles.h lib/mods/misc/copymapfiles.cpp
 )
 
 set(MAIN_SOURCES

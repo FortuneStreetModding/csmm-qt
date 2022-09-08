@@ -17,6 +17,7 @@
 #include "lib/datafileset.h"
 #include "lib/mods/defaultmodlist.h"
 #include "lib/mods/modloader.h"
+#include "lib/riivolution.h"
 #include "quicksetupdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -27,10 +28,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
     ui->tableWidget->setGameDirectoryFunction([&]() { return windowFilePath(); });
+    ui->tableWidget->setImportDirectoryFunction([&]() { return importDir->path(); });
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::openDir);
     connect(ui->actionImport_WBFS_ISO, &QAction::triggered, this, &MainWindow::openIsoWbfs);
-    connect(ui->actionExport_to_Folder, &QAction::triggered, this, &MainWindow::exportToFolder);
+    connect(ui->actionExport_to_Folder, &QAction::triggered, this, [&]() {
+        exportToFolder(false);
+    });
     connect(ui->actionExport_to_WBFS_ISO, &QAction::triggered, this, &MainWindow::exportIsoWbfs);
+    connect(ui->actionExport_to_Riivolution, &QAction::triggered, this, [&]() {
+        exportToFolder(true);
+    });
     connect(ui->actionShow_CSMM_Network_Cache_In_File_System, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl::fromLocalFile(CSMMNetworkManager::networkCacheDir()));
     });
@@ -157,7 +164,7 @@ void MainWindow::loadMapList() {
     QProgressDialog progressDialog("Importing map list", QString(), 0, 100);
     progressDialog.setWindowModality(Qt::ApplicationModal);
     try {
-        Configuration::load(openFile, descriptors, tempGameDir->path(), [&](double progress) {
+        Configuration::load(openFile, descriptors, importDir->path(), [&](double progress) {
             progressDialog.setValue(100 * progress);
         });
         loadDescriptors(descriptors);
@@ -201,7 +208,8 @@ void MainWindow::saveCleanItastCsmmBrsar() {
 
 void MainWindow::openDir() {
     auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
-    if (!newTempGameDir->isValid()) {
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create();
+    if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
         QMessageBox::critical(this, "Open Game Directory", "The temporary directory used for copying the game directory could not be created");
         return;
     }
@@ -231,7 +239,7 @@ void MainWindow::openDir() {
         (*progress)->setWindowModality(Qt::WindowModal);
         (*progress)->setValue(0);
 
-        auto gameInstance = GameInstance::fromGameDirectory(dirname);
+        auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
         CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
         modpack.load(dirname);
         (*progress)->setValue(1);
@@ -244,6 +252,7 @@ void MainWindow::openDir() {
         loadDescriptors(gameInstance.mapDescriptors());
         setWindowFilePath(newTempGameDir->path());
         tempGameDir = newTempGameDir;
+        importDir = newTempImportDir;
     } catch (const std::runtime_error &e) {
         *progress = nullptr;
         QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
@@ -253,7 +262,8 @@ void MainWindow::openDir() {
 
 void MainWindow::openIsoWbfs() {
     auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
-    if (!newTempGameDir->isValid()) {
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create();
+    if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
         QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
         return;
     }
@@ -278,13 +288,14 @@ void MainWindow::openIsoWbfs() {
         auto dirname = newTempGameDir->path();
 
         try {
-            auto gameInstance = GameInstance::fromGameDirectory(dirname);
+            auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
             modpack.load(dirname);
             (*progress)->setValue(2);
             loadDescriptors(gameInstance.mapDescriptors());
             setWindowFilePath(newTempGameDir->path());
             tempGameDir = newTempGameDir;
+            importDir = newTempImportDir;
         } catch (const std::runtime_error &e) {
             *progress = nullptr;
             QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
@@ -305,17 +316,34 @@ void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) 
     ui->actionSave_map_list_csv->setEnabled(true);
     ui->actionExport_to_Folder->setEnabled(true);
     ui->actionExport_to_WBFS_ISO->setEnabled(true);
+    ui->actionExport_to_Riivolution->setEnabled(true);
 }
 
-void MainWindow::exportToFolder() {
+void MainWindow::exportToFolder(bool riivolution) {
     auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory");
     if (saveDir.isEmpty()) return;
     if (!QDir(saveDir).isEmpty()) {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
         return;
     }
+    QString riivolutionName;
+    if (riivolution) {
+        bool riivolutionNameChosen;
+        riivolutionName = QInputDialog::getText(this,
+                                                "Enter Riivolution Patch Name",
+                                                "Enter Riivolution Patch Name:",
+                                                QLineEdit::Normal,
+                                                "csmm", &riivolutionNameChosen);
+        if (!riivolutionNameChosen) {
+            return;
+        }
+        if (!Riivolution::validateRiivolutionName(riivolutionName)) {
+            QMessageBox::critical(this, "Save", "Riivolution patch name is invalid");
+            return;
+        }
+    }
 
-    if (!ui->tableWidget->dirty) {
+    if (!riivolution && !ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
             auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
@@ -345,13 +373,21 @@ void MainWindow::exportToFolder() {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
 
+    auto wiiSaveDir = saveDir;
+    if (riivolution) {
+        if (!QDir(saveDir).mkdir(riivolutionName)) {
+            QMessageBox::critical(this, "Export", "Export failed: Could not create riivolution directory");
+        }
+        wiiSaveDir = QDir(saveDir).filePath(riivolutionName);
+    }
+
     auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
     auto copyTask = QtConcurrent::run([=] {
         std::error_code error;
-        std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
+        std::filesystem::copy(windowFilePath().toStdU16String(), wiiSaveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
         return !error;
     });
     auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
@@ -365,11 +401,19 @@ void MainWindow::exportToFolder() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            auto gameInstance = GameInstance::fromGameDirectory(saveDir, *descriptors);
+            auto gameInstance = GameInstance::fromGameDirectory(wiiSaveDir, importDir->path(), *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
-            modpack.save(saveDir, [=](double progressVal) {
-                progress->setValue(30 + (100 - 30) * progressVal);
+            modpack.save(wiiSaveDir, [=](double progressVal) {
+                progress->setValue(30 + (90 - 30) * progressVal);
             });
+
+            if (riivolution) {
+                progress->setValue(90);
+                qInfo() << "Patching Riivolution…";
+                Riivolution::write(windowFilePath(), saveDir, gameInstance.addressMapper(),
+                                   riivolutionName);
+            }
+
             progress->setValue(100);
             QMessageBox::information(this, "Save", "Saved successfuly.");
 
@@ -432,7 +476,7 @@ void MainWindow::exportIsoWbfs() {
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(*descriptors), [](auto &ptr) { return *ptr; });
         try {
-            auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, *descriptors);
+            auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, importDir->path(), *descriptors);
             CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
             modpack.save(intermediatePath, [=](double progressVal) {
                 progress->setValue(20 + (80 - 20) * progressVal);

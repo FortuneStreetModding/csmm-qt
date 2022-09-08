@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>919</width>
-    <height>222</height>
+    <height>256</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,8 +20,70 @@
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="3">
-    <widget class="QPushButton" name="chooseInputWbfsIso">
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Save ID</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="4">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="saveId"/>
+   </item>
+   <item row="0" column="2">
+    <widget class="QPushButton" name="chooseInputGameFolder">
+     <property name="text">
+      <string>Choose Folder</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Modpack file</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2" colspan="2">
+    <widget class="QPushButton" name="chooseModpackFile">
+     <property name="text">
+      <string>Choose Modpack File</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Output Folder/WBFS/ISO</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2" colspan="2">
+    <widget class="QPushButton" name="chooseMapListFile">
+     <property name="text">
+      <string>Choose Map List File</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="modpackFile">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QPushButton" name="chooseOutputWbfsIso">
      <property name="text">
       <string>Choose WBFS/ISO</string>
      </property>
@@ -34,20 +96,6 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="3">
-    <widget class="QPushButton" name="chooseOutputWbfsIso">
-     <property name="text">
-      <string>Choose WBFS/ISO</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="2">
-    <widget class="QPushButton" name="chooseOutputFolder">
-     <property name="text">
-      <string>Choose Folder</string>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="1">
     <widget class="QLineEdit" name="outputGameLoc">
      <property name="enabled">
@@ -55,15 +103,22 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="2" colspan="2">
-    <widget class="QPushButton" name="chooseModpackFile">
-     <property name="text">
-      <string>Choose Modpack File</string>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="inputGameLoc">
+     <property name="enabled">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QPushButton" name="chooseInputGameFolder">
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="mapListFile">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QPushButton" name="chooseOutputFolder">
      <property name="text">
       <string>Choose Folder</string>
      </property>
@@ -76,67 +131,42 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
+   <item row="0" column="3">
+    <widget class="QPushButton" name="chooseInputWbfsIso">
      <property name="text">
-      <string>Modpack file</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="mapListFile">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>Output Folder/WBFS/ISO</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="inputGameLoc">
-     <property name="enabled">
-      <bool>false</bool>
+      <string>Choose WBFS/ISO</string>
      </property>
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Save ID</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="2" colspan="2">
-    <widget class="QPushButton" name="chooseMapListFile">
-     <property name="text">
-      <string>Choose Map List File</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0" colspan="4">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="modpackFile">
+    <widget class="QLabel" name="riivolutionPatchNameLabel">
      <property name="enabled">
       <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Riivolution Patch Name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2" colspan="2">
+    <widget class="QCheckBox" name="enableRiivolution">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Enable Riivolution</string>
      </property>
     </widget>
    </item>
    <item row="4" column="1">
-    <widget class="QLineEdit" name="saveId"/>
+    <widget class="QLineEdit" name="riivolutionPatchName">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>csmm</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
