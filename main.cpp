@@ -15,9 +15,11 @@
 
 static void setPyHome() {
 #ifdef Q_OS_MAC
-        Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("../Resources").toStdWString().c_str());
+    Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("../Resources").toStdWString().c_str());
+#elif defined(Q_OS_WINDOWS)
+    Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("py").toStdWString().c_str());
 #else
-        Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("py").toStdWString().c_str());
+    // do nothing for now (TODO change later)
 #endif
 }
 

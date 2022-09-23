@@ -283,6 +283,18 @@ elseif(WIN32)
 else()
     # TODO add download wit/wszst commands to linux
     add_executable(csmm ${SOURCES})
+    file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/wit
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/wit-v3.05a-r8638-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/wit
+    )
+    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.28a-r8636-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.28a-r8636-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/szs
+    )
 endif()
 
 set_target_properties(csmm PROPERTIES CXX_VISIBILITY_PRESET hidden)
