@@ -222,10 +222,12 @@ qt_add_big_resources(SOURCES csmm.qrc)
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 
 # copy over python libraries
-if(WIN32)
+if(APPLE)
+    set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}/lib")
+elseif(WIN32)
     set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}/py")
 else()
-    set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}/lib")
+    set(PYTHON_STDLIB_DESTFOLDER "${CMAKE_CURRENT_BINARY_DIR}/py/lib")
 endif()
 
 file(MAKE_DIRECTORY ${PYTHON_STDLIB_DESTFOLDER})
