@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
         return 0;
     } else {
         QApplication app(argc, argv);
+        QCoreApplication::setApplicationName("csmm");
 
         setPyHome();
 
