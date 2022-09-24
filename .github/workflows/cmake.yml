@@ -47,12 +47,13 @@ jobs:
         ./linuxdeploy-x86_64.AppImage --appdir=csmm-x86_64 -e csmm -d csmm.desktop -i AppIcon.png -p qt
         cp -r -t csmm-x86_64/usr/bin wit szs py
         ARCH=x86_64 ./linuxdeploy-x86_64.AppImage --appdir=csmm-x86_64 -p qt -o appimage
+        mv csmm*.AppImage csmm-$VERSION_NAME-linux.AppImage
     
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: ${{github.workspace}}/csmm-x86_64.AppImage
+        files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
   macos:
     runs-on: macos-11
     steps:
