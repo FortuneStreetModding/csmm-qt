@@ -22,11 +22,17 @@ jobs:
     
     - name: Install dependencies
       run: |
-        sudo apt-get install -y qt5-default libyaml-cpp-dev libarchive-dev wget ninja-build
+        sudo apt-get install -y libyaml-cpp-dev libarchive-dev wget ninja-build
         wget https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20220822-1/linuxdeploy-x86_64.AppImage
         chmod +x linuxdeploy-x86_64.AppImage
         wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
         chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2.14.0
+      with:
+        version: 5.15.2
+        target: desktop
     
     - name: Configure CMake
       working-directory: ${{github.workspace}}
