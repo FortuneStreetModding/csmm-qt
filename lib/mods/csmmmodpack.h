@@ -99,17 +99,17 @@ public:
         }
 
         for (auto &mod: modList) {
-            qInfo() << "loading mod" << mod->modId();
+            qDebug() << "loading mod" << mod->modId();
 
             auto generalFileInterface = mod.getCapability<GeneralInterface>();
             if (generalFileInterface) {
-                qInfo() << "loading general interface for" << mod->modId();
+                qDebug() << "loading general interface for" << mod->modId();
 
                 generalFileInterface->loadFiles(root, gameInstance, modList);
             }
 
             if (modToLoaders.contains(mod->modId())) {
-                qInfo() << "loading UI messages for" << mod->modId();
+                qDebug() << "loading UI messages for" << mod->modId();
 
                 auto &loaders = modToLoaders[mod->modId()];
                 for (auto it = loaders.begin(); it != loaders.end(); ++it) {
