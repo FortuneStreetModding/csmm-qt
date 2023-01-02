@@ -377,8 +377,8 @@ void run(QStringList arguments)
                 }
                 if (QFile::exists(cfgPath)) {
                     QTemporaryDir importDir;
-                    if (importDir.isValid()) {
-                        qCritical() << "Could not create temporary directory for importing descriptors.";
+                    if (!importDir.isValid()) {
+                        qCritical() << "Could not create temporary directory for importing descriptors." << importDir.errorString();
                         exit(1);
                     }
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), importDir.path());
