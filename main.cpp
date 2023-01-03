@@ -7,7 +7,7 @@
 #include <pybind11/embed.h>
 #include <iostream>
 
-#if defined( Q_OS_WIN )
+#ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
@@ -51,13 +51,13 @@ int main(int argc, char *argv[])
 
         pybind11::scoped_interpreter guard{}; // start the python interpreter
 
-    #if defined( Q_OS_WIN )
+#ifdef Q_OS_WIN
         // hide console window under Windows but only if the first argument is the full path to the executable
         //  -> this indicates that the exe file has been started by mouse double click
-        if(QCoreApplication::applicationFilePath().replace("/", "\\") == QApplication::arguments()[0]) {
+        if(QCoreApplication::applicationFilePath().replace("/", "\\") == QApplication::arguments().front()) {
             ::ShowWindow( ::GetConsoleWindow(), SW_HIDE );
         }
-    #endif
+#endif
         initDarkThemeSettings();
         MainWindow *w = new MainWindow;
 #ifdef Q_OS_LINUX

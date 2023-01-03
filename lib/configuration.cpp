@@ -289,19 +289,24 @@ void import(const QString &fileName, const std::optional<QFileInfo>& mapDescript
     QString returnValue;
     if(mapId.has_value()) {
         // modify existing board
-        if(mapSet.has_value())
-            config.entries[mapId.value()].mapSet = mapSet.value();
-        if(zone.has_value())
-            config.entries[mapId.value()].mapZone = zone.value();
-        if(order.has_value())
-            config.entries[mapId.value()].mapOrder = order.value();
-        if(practiceBoard.has_value())
-            config.entries[mapId.value()].practiceBoard = practiceBoard.value();
-        if(mapDescriptorFile.has_value()) {
-            config.entries[mapId.value()].mapDescriptorRelativePath = dir.relativeFilePath(mapDescriptorFile.value().absoluteFilePath());
-            config.entries[mapId.value()].name = mapDescriptorFile->baseName();
+        auto entry_to_modify = std::find_if(config.entries.begin(), config.entries.end(),
+                     [&](const auto &entry) { return entry.mapId == mapId.value(); });
+        if (entry_to_modify == config.entries.end()) {
+            throw std::runtime_error("Error: Could not write to file");
         }
-        returnValue = config.entries[mapId.value()].toCsv();
+        if(mapSet.has_value())
+            entry_to_modify->mapSet = mapSet.value();
+        if(zone.has_value())
+            entry_to_modify->mapZone = zone.value();
+        if(order.has_value())
+            entry_to_modify->mapOrder = order.value();
+        if(practiceBoard.has_value())
+            entry_to_modify->practiceBoard = practiceBoard.value();
+        if(mapDescriptorFile.has_value()) {
+            entry_to_modify->mapDescriptorRelativePath = dir.relativeFilePath(mapDescriptorFile.value().absoluteFilePath());
+            entry_to_modify->name = mapDescriptorFile->baseName();
+        }
+        returnValue = entry_to_modify->toCsv();
     } else {
         // insert new board
         ConfigEntry entry;
