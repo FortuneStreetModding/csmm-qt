@@ -137,7 +137,7 @@ void run(QStringList arguments)
 
     // add logging handler to deal with quiet/verbose options
     qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
-        if (!_isQuiet && (_isVerbose || type != QtMsgType::QtDebugMsg)) {
+        if (!_isQuiet && (_isVerbose || (type != QtMsgType::QtDebugMsg && type != QtMsgType::QtWarningMsg))) {
             *cerrp << msg << Qt::endl;
         }
     });
