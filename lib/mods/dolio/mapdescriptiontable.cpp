@@ -108,9 +108,10 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::sav
                 }
             }
             for (auto &descriptor: instance.mapDescriptors()) {
-                (*messages)[descriptor.descMsgId] = descriptor.descs[theLocale] + (addAuthorToDesc && !descriptor.authors.empty()
-                                                                                ? " [" + QStringList(descriptor.authors.begin(), descriptor.authors.end()).join(", ") + "]"
-                                                                                : "");
+                (*messages)[descriptor.descMsgId] = retrieveStr(descriptor.descs, theLocale)
+                        + (addAuthorToDesc && !descriptor.authors.empty()
+                            ? " [" + QStringList(descriptor.authors.begin(), descriptor.authors.end()).join(", ") + "]"
+                            : "");
             }
         };
     }

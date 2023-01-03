@@ -80,7 +80,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> StageNameIDTable::saveUi
                 theLocale = "en";
             }
             for (auto &descriptor: instance.mapDescriptors()) {
-                (*messages)[descriptor.nameMsgId] = descriptor.names[theLocale];
+                (*messages)[descriptor.nameMsgId] = retrieveStr(descriptor.names, theLocale);
             }
         };
     }

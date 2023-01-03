@@ -144,7 +144,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> CustomShopNames::saveUiM
                 const ModListType &, UiMessage *messages) {
             auto theLocale = locale == "uk" ? "en" : locale;
             for (auto &descriptor: gameInstance.mapDescriptors()) {
-                auto &shopNames = (isCapital ? descriptor.capitalShopNames : descriptor.shopNames)[theLocale];
+                auto &shopNames = retrieveStr(isCapital ? descriptor.capitalShopNames : descriptor.shopNames, theLocale);
                 auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
                 for (int i=0; i<shopNameIds.size(); ++i) {
                     (*messages)[shopNameIds[i]] = shopNames[i];

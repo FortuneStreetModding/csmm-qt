@@ -27,5 +27,12 @@ inline QString localeToUpper(const QString &locale) {
     }
     return locale.toUpper();
 }
+template<class MapType>
+auto retrieveStr(const MapType &map, const QString &key) -> decltype(map.at(key)) {
+    if (map.count(key)) {
+        return map.at(key);
+    }
+    return map.at("en");
+}
 
 #endif // FSLOCALE_H

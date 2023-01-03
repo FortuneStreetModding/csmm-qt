@@ -345,6 +345,8 @@ void MapDescriptor::shopNamesFromYaml(const YAML::Node &yaml, bool isCapital) {
 }
 
 bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
+    names.clear();
+    descs.clear();
     for (auto it=yaml["name"].begin(); it!=yaml["name"].end(); ++it) {
         names[yamlKeyToLocale(QString::fromStdString(it->first.as<std::string>()))] = QString::fromStdString(it->second.as<std::string>());
     }
