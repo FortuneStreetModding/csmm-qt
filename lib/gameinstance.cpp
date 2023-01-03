@@ -47,12 +47,16 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
     if (mainDolFile.open(QFile::ReadOnly)) {
         QDataStream stream(&mainDolFile);
         stream.device()->seek(addressMapperVal.toFileAddress(0x8007a314));
-        quint32 inst;
-        stream >> inst;
-        if (inst == PowerPcAsm::lwz(0, -0x547c, 13)) {
+        quint32 boomInst;
+        stream >> boomInst;
+        stream.device()->seek(addressMapperVal.toFileAddress(0x8007a2c0));
+        quint32 fortuneInst;
+        stream >> fortuneInst;
+        quint32 opcode = PowerPcAsm::lwz(0, -0x547c, 13);
+        if (boomInst == opcode) {
             // Boom Street detected
             addressMapperVal.setVersionMapper(AddressSectionMapper({ AddressSection() }), GameVersion::BOOM);
-        } else {
+        } else if (fortuneInst == opcode) {
             // Fortune Street
             stream.device()->seek(addressMapperVal.toFileAddress(0x8007a2c0));
             // check PowerPcAsm::lwz(0, -0x547c, 13)?
@@ -65,6 +69,8 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
                 {0x8044ec00, 0x804ac804, 0x1A0, ".data5"},
                 {0x804ac880, 0x8081f013, 0x200, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
             }), GameVersion::FORTUNE);
+        } else {
+            throw std::runtime_error("could not determine the Fortune Street region in the main.dol file of "+dir.toStdString()+" Is this a proper Fortune Street directory?"); // TODO use a QException subclass
         }
     } else {
         throw std::runtime_error("could not open main.dol file of "+dir.toStdString()); // TODO use a QException subclass

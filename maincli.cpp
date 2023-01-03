@@ -228,7 +228,7 @@ void run(QStringList arguments)
                 modpack.load(sourceDir.path());
                 auto descriptors = gameInstance.mapDescriptors();
                 if (descriptors.empty()) {
-                    qCritical() << source << "is not a proper Fortune Street directory.";
+                    qCritical() << " no maps were found in " << source;
                     exit(1);
                 }
                 QString internalNames = parser.value(internalNamesOption);
@@ -308,8 +308,8 @@ void run(QStringList arguments)
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
                     auto descriptors = gameInstance.mapDescriptors();
-                    if (descriptors.empty()) {
-                        qCritical() << source << "is not a proper Fortune Street directory.";
+                    if(descriptors.empty()) {
+                        qCritical() << " no maps were found in " << source;
                         exit(1);
                     }
                     Configuration::save(sourceDir.filePath("csmm_pending_changes.yaml"), descriptors);
@@ -346,7 +346,7 @@ void run(QStringList arguments)
                     modpack.load(sourceDir.path());
                     auto descriptors = gameInstance.mapDescriptors();
                     if (descriptors.empty()) {
-                        qCritical() << source << "is not a proper Fortune Street directory.";
+                        qCritical() << " no maps were found in " << source;
                         exit(1);
                     }
                     cout << Configuration::status(descriptors, sourceDir.filePath("csmm_pending_changes.yaml"));
@@ -386,10 +386,6 @@ void run(QStringList arguments)
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
                     auto &descriptors = gameInstance.mapDescriptors();
-                    if (descriptors.empty()) {
-                        qCritical() << source << "is not a proper Fortune Street directory.";
-                        exit(1);
-                    }
                     try {
                         Configuration::load(cfgPath, descriptors, importDir.path());
 
