@@ -9,6 +9,7 @@ public:
     static constexpr std::string_view MODID = "eventSquare";
     static constexpr std::string_view FORCE_VENTURE_CARD_ADDRESS_FILE = "files/forceVentureCard.dat";
     QString modId() const override { return MODID.data(); }
+    QSet<QString> depends() const override { return {"defaultMiscPatches"}; }
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;

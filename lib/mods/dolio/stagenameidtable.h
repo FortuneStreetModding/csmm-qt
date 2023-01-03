@@ -8,6 +8,7 @@ class StageNameIDTable : public virtual DolIOTable, public virtual UiMessageInte
 public:
     static constexpr std::string_view MODID = "stageNameIdTable";
     QString modId() const override { return MODID.data(); }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
     virtual void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;
