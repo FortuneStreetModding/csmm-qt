@@ -10,6 +10,7 @@ public:
     static constexpr std::string_view MODID_CAPITAL = "customShopNamesCapital";
     CustomShopNames(bool isCapital) : isCapital(isCapital) {}
     QString modId() const override { return (isCapital ? MODID_CAPITAL : MODID).data(); }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;

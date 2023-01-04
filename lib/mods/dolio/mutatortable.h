@@ -9,6 +9,7 @@ public:
     static constexpr std::string_view MODID = "mutatorTable";
     static constexpr std::string_view ADDRESS_FILE = "files/mutatorTable.dat";
     QString modId() const override { return MODID.data(); }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;

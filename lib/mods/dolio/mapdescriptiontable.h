@@ -9,6 +9,7 @@ public:
     static constexpr std::string_view MODID = "mapDescriptionTable";
     QString modId() const override { return MODID.data(); }
     QSet<QString> after() const override { return { "mapOriginTable" }; }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
     void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;

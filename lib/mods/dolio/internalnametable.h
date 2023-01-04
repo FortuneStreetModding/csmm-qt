@@ -9,6 +9,7 @@ public:
     static constexpr std::string_view MODID = "internalNameTable";
     static constexpr std::string_view ADDRESS_FILE = "files/internalNameTable.dat";
     QString modId() const override { return MODID.data(); }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;

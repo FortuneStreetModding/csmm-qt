@@ -8,6 +8,7 @@ class RuleSetTable : public virtual DolIOTable
 public:
     static constexpr std::string_view MODID = "ruleSetTable";
     QString modId() const override { return MODID.data(); }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;

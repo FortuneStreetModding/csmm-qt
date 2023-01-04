@@ -9,6 +9,7 @@ public:
     static constexpr std::string_view MODID = "mapIconTable";
     QString modId() const override { return MODID.data(); }
     QSet<QString> after() const override { return { "backgroundTable", "mapOriginTable" }; }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;\
     QMap<QString, ModifyArcFunction> modifyArcFile() override;
 protected:
