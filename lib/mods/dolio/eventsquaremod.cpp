@@ -155,6 +155,10 @@ void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressM
     // li r8,0x3    -> nop
     stream.device()->seek(addressMapper.boomToFileAddress(0x801b7f74));
     stream << PowerPcAsm::nop();
+
+    // --- Fix Proper initialization of Fake Venture Card ---
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800d89e0));
+    stream << PowerPcAsm::nop();
 }
 
 QVector<quint32> EventSquareMod::writeFontCharacterIdModifierRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
@@ -346,23 +350,23 @@ QVector<quint32> EventSquareMod::writeProcStopEventSquareRoutine(const AddressMa
     quint32 gameProgressChangeModeRoutine = addressMapper.boomStreetToStandard(0x800c093c);
     quint32 endOfSwitchCase = addressMapper.boomStreetToStandard(0x800fac38);
 
-    return {
-        PowerPcAsm::lwz(3, 0x188, 28),         // |
-        PowerPcAsm::lwz(3, 0x74, 3),           // | r3_place = gameChara.currentPlace
-        PowerPcAsm::lbz(6, 0x18, 3),           // | r6_ventureCardId = r3_place.districtId
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::lwz(3, 0x188, 28));         // |
+    asm_.append(PowerPcAsm::lwz(3, 0x74, 3));           // | r3_place = gameChara.currentPlace
+    asm_.append(PowerPcAsm::lbz(6, 0x18, 3));           // | r6_ventureCardId = r3_place.districtId
 
-        PowerPcAsm::lis(3, v.upper),           // |
-        PowerPcAsm::addi(3, 3, v.lower),       // | forceVentureCardVariable <- r6_ventureCardId
-        PowerPcAsm::stw(6, 0x0, 3),            // |
+    asm_.append(PowerPcAsm::lis(3, v.upper));           // |
+    asm_.append(PowerPcAsm::addi(3, 3, v.lower));       // | forceVentureCardVariable <- r6_ventureCardId
+    asm_.append(PowerPcAsm::stw(6, 0x0, 3));            // |
 
-        PowerPcAsm::lwz(3, 0x18, 20),          // | lwz r3,0x18(r20)
-        PowerPcAsm::li(4, 0x1f),               // | li r4,0x1f  (the GameProgress mode id 0x1f is for executing a venture card)
-        PowerPcAsm::li(5, -0x1),               // | li r5,-0x1
-        PowerPcAsm::li(6, -0x1),               // | li r6,-0x1
-        PowerPcAsm::li(7, 0x0),                // | li r7,0x0
-        PowerPcAsm::bl(routineStartAddress, 11 /* asm.Count */, gameProgressChangeModeRoutine),        // | bl Game::GameProgress::changeMode
-        PowerPcAsm::b(routineStartAddress, 12 /* asm.Count */, endOfSwitchCase)        // | goto end of switch case
-    };
+    asm_.append(PowerPcAsm::lwz(3, 0x18, 20));          // | lwz r3,0x18(r20)  <- r3 = GameProgress *
+    asm_.append(PowerPcAsm::li(4, 0x1f));               // | li r4,0x1n  (the GameProgress mode id 0x1b is for picking a venture card)
+    asm_.append(PowerPcAsm::li(5, -0x1));               // | li r5,-0x1
+    asm_.append(PowerPcAsm::li(6, -0x1));               // | li r6,-0x1
+    asm_.append(PowerPcAsm::li(7, 0x0));                // | li r7,0x0
+    asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), gameProgressChangeModeRoutine));        // | bl Game::GameProgress::changeMode
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count() , endOfSwitchCase));        // | goto end of switch case
+    return asm_;
 }
 
 QVector<quint32> EventSquareMod::writeSubroutineForceFetchFakeVentureCard(quint32 fakeVentureCard) {
