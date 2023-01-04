@@ -2,6 +2,7 @@
 #include <brlyt.h>
 #include <fstream>
 #include <filesystem>
+#include <functional>
 
 namespace Ui_game_052
 {

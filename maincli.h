@@ -1,7 +1,7 @@
 #ifndef MAINCLI_H
 #define MAINCLI_H
 
-#include<QStringList>
+#include <QStringList>
 
 namespace maincli {
 

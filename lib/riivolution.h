@@ -4,6 +4,7 @@
 #include "lib/addressmapping.h"
 #include <QDir>
 #include <QException>
+#include <stdexcept>
 
 namespace Riivolution {
 

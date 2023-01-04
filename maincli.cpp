@@ -55,26 +55,6 @@ void run(QStringList arguments)
 
 )").arg(CSMM_VERSION);
 
-    if (arguments.size() > 1 && arguments[1] == "python") {
-        wchar_t **args = new wchar_t *[arguments.size()]();
-        auto programName = (arguments[0] + " python");
-        args[0] = new wchar_t[programName.size() + 1]();
-        programName.toWCharArray(args[0]);
-        for (int i=2; i<arguments.size(); ++i) {
-            args[i-1] = new wchar_t[arguments[i].size() + 1]();
-            arguments[i].toWCharArray(args[i-1]);
-        }
-
-        int result = Py_Main(arguments.size() - 1, args);
-
-        for (int i=0; i<arguments.size() - 1; ++i) {
-            delete [] args[i];
-        }
-        delete [] args;
-
-        exit(result);
-    }
-
     QCommandLineParser parser;
 
     auto commandsDescription = QString(R"(
@@ -86,7 +66,6 @@ void run(QStringList arguments)
   save            Save the pending changes in a Fortune Street game directory.
   pack            Pack a Fortune Street game directory to a disc image (pending changes must be saved prior).
   download-tools  Downloads the external tools that CSMM requires.
-  python          Run CSMM's embedded Python interpreter
   default-modlist Output a list of default mod ids
   riivolution     Create a Riivolution patch file from vanilla and patched game folders (WARNING: modifies the patched game folder)
 )").remove(0,1);

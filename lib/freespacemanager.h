@@ -3,6 +3,7 @@
 
 #include <QMap>
 #include <QException>
+#include <stdexcept>
 #include "addressmapping.h"
 
 class FreeSpaceManager {

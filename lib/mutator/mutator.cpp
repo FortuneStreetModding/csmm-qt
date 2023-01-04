@@ -5,6 +5,7 @@
 #include "shoppricemultiplier.h"
 
 #include <QDataStream>
+#include <QMap>
 
 static const QMap<QString, MutatorType> stringToMutatorTypes = {
     {"rollAgain", RollAgainType},
