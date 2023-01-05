@@ -3,11 +3,11 @@
 #include <QDir>
 #include <QApplication>
 
-static void setPyHome(const wchar_t *apploc) {
+static void setPyHome(const QString &apploc) {
 #ifdef Q_OS_MAC
-    Py_SetPythonHome(QFileInfo(QString::fromWCharArray(apploc)).dir().filePath("../Resources").toStdWString().c_str());
+    Py_SetPythonHome(QFileInfo(apploc).dir().filePath("../Resources").toStdWString().c_str());
 #else
-    Py_SetPythonHome(QFileInfo(QString::fromWCharArray(apploc)).dir().filePath("py").toStdWString().c_str());
+    Py_SetPythonHome(QFileInfo(apploc).dir().filePath("py").toStdWString().c_str());
 #endif
 }
 
@@ -20,7 +20,12 @@ int main(int argc, char *argv[]) {
     if (qEnvironmentVariableIsEmpty("ENSUREPIP_OPTIONS")) {
         qputenv("ENSUREPIP_OPTIONS", "1");
     }
+
+#ifdef Q_OS_WIN
+    setPyHome(QString::fromWCharArray(argv[0]));
+#else
     setPyHome(argv[0]);
+#endif
 
 #ifdef Q_OS_WIN
     return Py_Main(argc, argv);
