@@ -20,6 +20,19 @@
 #include "lib/riivolution.h"
 #include "quicksetupdialog.h"
 
+static QFile logFile;
+
+static void initLogFile() {
+    if (!logFile.isOpen()) {
+        QDir logFileDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+        logFileDir.mkpath(".");
+        logFile.setFileName(logFileDir.filePath("csmmgui.log"));
+        if (!logFile.open(QFile::WriteOnly)) {
+            qWarning() << "could not create log file" << logFile.fileName() << "for writing";
+        }
+    }
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow), modList(DefaultModList::defaultModList())
@@ -114,10 +127,16 @@ MainWindow::MainWindow(QWidget *parent)
     });
     updateModListWidget();
 
+    initLogFile();
+
     // show progress messages in progress dialog
     qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
         static QTextStream cerr(stderr);
+        static QTextStream logFileStream(&logFile);
         cerr << msg << Qt::endl;
+        if (logFile.isOpen()) {
+            logFileStream << msg << Qt::endl;
+        }
         auto progressDialog = dynamic_cast<QProgressDialog *>(QApplication::activeModalWidget());
         if (type != QtMsgType::QtDebugMsg && progressDialog != nullptr) {
             progressDialog->setLabelText(msg);
