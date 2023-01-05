@@ -8,7 +8,7 @@ if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 endif()
 
-set(PROJECT_VERSION 2.7.4)
+set(PROJECT_VERSION 2.7.5)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
 
@@ -195,7 +195,10 @@ set(LIB_SOURCES
     lib/mods/misc/copymapfiles.h lib/mods/misc/copymapfiles.cpp
 )
 
+qt_add_big_resources(LIB_SOURCES csmm.qrc)
+
 set(MAIN_SOURCES
+    ${LIB_SOURCES}
     quicksetupdialog.h quicksetupdialog.cpp quicksetupdialog.ui
     darkdetect.h
     main.cpp
@@ -215,12 +218,9 @@ set(MAIN_SOURCES
 )
 
 set(PY_SOURCES
+    ${LIB_SOURCES}
     pymain.cpp
 )
-
-set(SOURCES ${LIB_SOURCES} ${MAIN_SOURCES})
-
-qt_add_big_resources(SOURCES csmm.qrc)
 
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 
@@ -255,11 +255,8 @@ if(APPLE)
         get_filename_component(PY_STDLIB_FILE_REL_DIR ${PY_STDLIB_FILE_REL} DIRECTORY)
         set_property(SOURCE ${PY_STDLIB_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/lib/${PY_STDLIB_FILE_REL_DIR}")
     endforeach()
-    add_library(csmmaux STATIC ${LIB_SOURCES})
     add_executable(csmm MACOSX_BUNDLE ${MAIN_SOURCES} ${APP_ICON_MACOSX} ${PY_STDLIB_FILES})
     add_executable(csmmpython ${PY_SOURCES})
-    target_link_libraries(csmm PRIVATE csmmaux)
-    target_link_libraries(csmmpython PRIVATE csmmaux)
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-mac.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
@@ -278,11 +275,8 @@ if(APPLE)
     )
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
-    add_library(csmmaux STATIC ${LIB_SOURCES})
     add_executable(csmm ${MAIN_SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
     add_executable(csmmpython ${PY_SOURCES})
-    target_link_libraries(csmm PRIVATE csmmaux)
-    target_link_libraries(csmmpython PRIVATE csmmaux)
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip ${CMAKE_CURRENT_BINARY_DIR}/wit.zip)
     add_custom_command(TARGET csmm POST_BUILD
@@ -297,11 +291,8 @@ elseif(WIN32)
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.28a-r8636-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/szs
     )
 else()
-    add_library(csmmaux STATIC ${LIB_SOURCES})
     add_executable(csmm ${MAIN_SOURCES})
     add_executable(csmmpython ${PY_SOURCES})
-    target_link_libraries(csmm PRIVATE csmmaux)
-    target_link_libraries(csmmpython PRIVATE csmmaux)
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
@@ -340,28 +331,41 @@ if(NOT WIN32)
     if (NOT YAML_CPP_LIBRARIES)
         set(YAML_CPP_LIBRARIES "yaml-cpp")
     endif()
-    target_include_directories(csmmaux PUBLIC ${YAML_CPP_INCLUDE_DIR})
-    target_link_libraries(csmmaux PUBLIC ${YAML_CPP_LIBRARIES})
+    target_include_directories(csmm PRIVATE ${YAML_CPP_INCLUDE_DIR})
+    target_link_libraries(csmm PRIVATE ${YAML_CPP_LIBRARIES})
+    target_include_directories(csmmpython PRIVATE ${YAML_CPP_INCLUDE_DIR})
+    target_link_libraries(csmmpython PRIVATE ${YAML_CPP_LIBRARIES})
 else()
     add_subdirectory(lib/yaml-cpp)
-    target_include_directories(csmmaux PUBLIC lib/yaml-cpp/include)
-    target_link_libraries(csmmaux PUBLIC yaml-cpp)
+    target_include_directories(csmm PRIVATE lib/yaml-cpp/include)
+    target_link_libraries(csmm PRIVATE yaml-cpp)
+    target_include_directories(csmmpython PRIVATE lib/yaml-cpp/include)
+    target_link_libraries(csmmpython PRIVATE yaml-cpp)
 endif()
 
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(lib/pybind11)
-target_link_libraries(csmmaux PUBLIC pybind11::embed)
-target_link_libraries(csmmaux PUBLIC pybind11::windows_extras)
+target_link_libraries(csmm PRIVATE pybind11::embed)
+target_link_libraries(csmm PRIVATE pybind11::windows_extras)
+target_link_libraries(csmmpython PRIVATE pybind11::embed)
+target_link_libraries(csmmpython PRIVATE pybind11::windows_extras)
 
-target_include_directories(csmmaux PRIVATE lib/libbecquerel)
+target_include_directories(csmm PRIVATE lib/libbecquerel)
+target_include_directories(csmmpython PRIVATE lib/libbecquerel)
 add_subdirectory(lib/libbecquerel)
-target_link_libraries(csmmaux PRIVATE becquerel)
+target_link_libraries(csmm PRIVATE becquerel)
+target_link_libraries(csmmpython PRIVATE becquerel)
 
-target_link_libraries(csmmaux PUBLIC Qt5::Core)
-target_link_libraries(csmmaux PUBLIC Qt5::Widgets)
-target_link_libraries(csmmaux PUBLIC Qt5::Gui)
-target_link_libraries(csmmaux PUBLIC Qt5::Network)
-target_link_libraries(csmmaux PUBLIC Qt5::Concurrent)
+target_link_libraries(csmm PRIVATE Qt5::Core)
+target_link_libraries(csmm PRIVATE Qt5::Widgets)
+target_link_libraries(csmm PRIVATE Qt5::Gui)
+target_link_libraries(csmm PRIVATE Qt5::Network)
+target_link_libraries(csmm PRIVATE Qt5::Concurrent)
+target_link_libraries(csmmpython PRIVATE Qt5::Core)
+target_link_libraries(csmmpython PRIVATE Qt5::Widgets)
+target_link_libraries(csmmpython PRIVATE Qt5::Gui)
+target_link_libraries(csmmpython PRIVATE Qt5::Network)
+target_link_libraries(csmmpython PRIVATE Qt5::Concurrent)
 
 set_target_properties(csmm PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER com.fortunestreetmodding

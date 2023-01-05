@@ -10,19 +10,14 @@ void CopyMapFiles::saveFiles(const QString &root, GameInstance &gameInstance, co
         QFile::remove(destFrbFile);
         QFile::copy(frbFile.filePath(), destFrbFile);
     }
-    std::filesystem::copy(
-                QDir(gameInstance.getImportDir()).filePath(SOUND_STREAM_FOLDER).toStdU16String(),
-                QDir(root).filePath(SOUND_STREAM_FOLDER).toStdU16String(),
-                std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing
-                );
-    std::filesystem::copy(
-                QDir(gameInstance.getImportDir()).filePath(SCENE_FOLDER).toStdU16String(),
-                QDir(root).filePath(SCENE_FOLDER).toStdU16String(),
-                std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing
-                );
-    std::filesystem::copy(
-                QDir(gameInstance.getImportDir()).filePath("files/bg").toStdU16String(),
-                QDir(root).filePath("files/bg").toStdU16String(),
-                std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing
-                );
+    const QStringList toCopyList{SOUND_STREAM_FOLDER, SCENE_FOLDER, "files/bg"};
+    for (auto &toCopy: toCopyList) {
+        if (QFileInfo::exists(QDir(gameInstance.getImportDir()).filePath(toCopy))) {
+            std::filesystem::copy(
+                        QDir(gameInstance.getImportDir()).filePath(toCopy).toStdU16String(),
+                        QDir(root).filePath(toCopy).toStdU16String(),
+                        std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing
+                        );
+        }
+    }
 }
