@@ -85,16 +85,16 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         wget https://bootstrap.pypa.io/get-pip.py
-        csmm.app/Contents/MacOS/csmm python get-pip.py
+        csmm.app/Contents/MacOS/csmmpython get-pip.py
     
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
-      run: csmm.app/Contents/MacOS/csmm python -m pip install sphinx==5.0.2 pillow
+      run: csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==5.0.2 pillow
     
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
       run: |
-        export SPHINXBUILD="${{github.workspace}}/csmm.app/Contents/MacOS/csmm python -m sphinx"
+        export SPHINXBUILD="${{github.workspace}}/csmm.app/Contents/MacOS/csmmpython -m sphinx"
         make html
         cd _build
         zip -r "csmm-$VERSION_NAME-pydocs.zip" html
@@ -148,11 +148,11 @@ jobs:
       shell: pwsh
       run: |
         Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
-        ./csmm python get-pip.py
+        ./csmmpython get-pip.py
     
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
-      run: ./csmm python -m pip install pillow
+      run: ./csmmpython -m pip install pillow
 
     - name: Rename
       working-directory: ${{github.workspace}}
@@ -162,6 +162,7 @@ jobs:
         mv "csmm.exe" "csmm-$VERSION_NAME/csmm.exe"
         mv "wit" "csmm-$VERSION_NAME/wit"
         mv "szs" "csmm-$VERSION_NAME/szs"
+        mv "csmmpython.exe" "csmm-$VERSION_NAME/csmmpython.exe"
 
     - name: Deploy
       working-directory: ${{github.workspace}}
