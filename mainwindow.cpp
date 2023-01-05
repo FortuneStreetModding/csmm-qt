@@ -20,15 +20,34 @@
 #include "lib/riivolution.h"
 #include "quicksetupdialog.h"
 
+static constexpr int MAX_LOGS = 10;
+
 static QFile logFile;
 
 static void initLogFile() {
     if (!logFile.isOpen()) {
         QDir logFileDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-        logFileDir.mkpath(".");
-        logFile.setFileName(logFileDir.filePath("csmmgui.log"));
+        if (!logFileDir.mkpath(".")) {
+            qWarning() << "could not create directory" << logFileDir.path();
+            return;
+        }
+        logFile.setFileName(logFileDir.filePath(QString("csmmgui-%0.log").arg(QDateTime::currentDateTime().toString("dd-MM-yy-hh-mm-ss.zzz"))));
         if (!logFile.open(QFile::WriteOnly)) {
             qWarning() << "could not create log file" << logFile.fileName() << "for writing";
+            return;
+        }
+        if (!logFile.link(logFileDir.filePath("csmmgui-latest.log"))) {
+            qWarning() << "could not symlink to latest log file" << logFile.fileName();
+        }
+        auto pastLogs = logFileDir.entryInfoList({"csmmgui*.log"}, QDir::Files);
+        std::sort(pastLogs.begin(), pastLogs.end(), [](const QFileInfo &A, const QFileInfo &B) {
+            return A.fileTime(QFile::FileBirthTime) > B.fileTime(QFile::FileBirthTime);
+        });
+        while (pastLogs.size() > MAX_LOGS) {
+            if (!QFile::remove(pastLogs.back().absoluteFilePath())) {
+                qWarning() << "could not remove old log file" << pastLogs.back().absoluteFilePath();
+            }
+            pastLogs.pop_back();
         }
     }
 }
