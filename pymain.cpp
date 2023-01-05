@@ -3,35 +3,28 @@
 #include <QDir>
 #include <QApplication>
 
-static void setPyHome() {
+static void setPyHome(const wchar_t *apploc) {
 #ifdef Q_OS_MAC
-    Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("../Resources").toStdWString().c_str());
+    Py_SetPythonHome(QFileInfo(QString::fromWCharArray(apploc)).dir().filePath("../Resources").toStdWString().c_str());
 #else
-    Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("py").toStdWString().c_str());
+    Py_SetPythonHome(QFileInfo(QString::fromWCharArray(apploc)).dir().filePath("py").toStdWString().c_str());
 #endif
 }
 
+#ifdef Q_OS_WIN
+int wmain(int argc, wchar_t *argv[]) {
+#else
 int main(int argc, char *argv[]) {
-    QCoreApplication app(argc, argv);
-
+#endif
     // HACK: we need ENSUREPIP_OPTIONS set on Unix b/c pip otherwise thinks we're using a framework
     if (qEnvironmentVariableIsEmpty("ENSUREPIP_OPTIONS")) {
         qputenv("ENSUREPIP_OPTIONS", "1");
     }
-    setPyHome();
+    setPyHome(argv[0]);
 
-    auto appArgs = app.arguments();
-    QVector<std::wstring> wstrs;
-
-    const wchar_t **args = new const wchar_t *[appArgs.length() + 1]();
-    for (int i=0; i<appArgs.length(); ++i) {
-        wstrs.append(appArgs[i].toStdWString());
-        args[i] = wstrs.back().c_str();
-    }
-
-    int result = Py_Main(argc, const_cast<wchar_t **>(args));
-
-    delete [] args;
-
-    exit(result);
+#ifdef Q_OS_WIN
+    return Py_Main(argc, argv);
+#else
+    return Py_BytesMain(argc, argv);
+#endif
 }
