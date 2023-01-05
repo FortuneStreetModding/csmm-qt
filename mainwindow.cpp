@@ -73,6 +73,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionShow_CSMM_Network_Cache_In_File_System, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl::fromLocalFile(CSMMNetworkManager::networkCacheDir()));
     });
+    connect(ui->actionOpen_Log_Folder, &QAction::triggered, this, [&]() {
+        QDesktopServices::openUrl(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    });
     connect(ui->actionCSMM_Help, &QAction::triggered, this, [&]() {
         QDesktopServices::openUrl(QUrl("https://github.com/FortuneStreetModding/fortunestreetmodding.github.io/wiki/CSMM-User-Manual"));
     });

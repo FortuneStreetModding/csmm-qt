@@ -118,7 +118,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -131,6 +131,7 @@
     <addaction name="actionExport_to_WBFS_ISO"/>
     <addaction name="actionExport_to_Riivolution"/>
     <addaction name="actionShow_CSMM_Network_Cache_In_File_System"/>
+    <addaction name="actionOpen_Log_Folder"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
@@ -278,6 +279,11 @@
    </property>
    <property name="text">
     <string>Export to Riivolution</string>
+   </property>
+  </action>
+  <action name="actionOpen_Log_Folder">
+   <property name="text">
+    <string>Open Log Folder</string>
    </property>
   </action>
  </widget>
