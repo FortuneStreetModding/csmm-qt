@@ -273,6 +273,9 @@ if(APPLE)
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/szs
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.28a-r8636-mac ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/szs
     )
+    add_custom_command(TARGET csmmpython POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/csmmpython ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/csmmpython
+    )
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
     add_library(csmmaux STATIC ${LIB_SOURCES})
