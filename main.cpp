@@ -13,6 +13,10 @@
 
 #include "maincli.h"
 
+PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
+    init_pycsmm(m);
+}
+
 static void setPyHome() {
 #ifdef Q_OS_MAC
     Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("../Resources").toStdWString().c_str());

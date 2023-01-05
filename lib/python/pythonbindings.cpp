@@ -1,5 +1,5 @@
 #include "pythonbindings.h"
-#include <pybind11/embed.h>
+//#include <pybind11/embed.h>
 #include <pybind11/stl_bind.h>
 #include "lib/await.h"
 #include "lib/exewrapper.h"
@@ -157,7 +157,8 @@ public:
 
 }
 
-PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
+//PYBIND11_EMBEDDED_MODULE(pycsmm, m)
+void init_pycsmm(pybind11::module_ &m) {
     m.def("convertPngToTpl", [](const QString &src, const QString &dest) {
         pybind11::gil_scoped_release release;
         await(ExeWrapper::convertPngToTpl(src, dest));

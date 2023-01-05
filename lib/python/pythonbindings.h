@@ -271,4 +271,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<quint32>);
 PYBIND11_MAKE_OPAQUE(std::vector<MapDescriptor>);
 PYBIND11_MAKE_OPAQUE(UiMessage);
 
+void init_pycsmm(pybind11::module_ &m);
+
 #endif // PYTHONBINDINGS_H

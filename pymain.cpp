@@ -2,6 +2,11 @@
 #include <QString>
 #include <QDir>
 #include <QApplication>
+#include <pybind11/embed.h>
+
+PYBIND11_EMBEDDED_MODULE(pycsmm, m) {
+    init_pycsmm(m);
+}
 
 static void setPyHome(const QString &apploc) {
 #ifdef Q_OS_MAC
