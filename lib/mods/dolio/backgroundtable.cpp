@@ -43,10 +43,6 @@ quint32 BackgroundTable::readTableAddr(QDataStream &stream, const AddressMapper 
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 BackgroundTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool BackgroundTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca80));
     quint32 opcode; stream >> opcode;

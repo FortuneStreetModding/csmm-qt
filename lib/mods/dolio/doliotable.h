@@ -8,7 +8,6 @@ class DolIOTable : public virtual DolIO {
 protected:
     virtual void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) = 0;
     virtual bool readIsVanilla(QDataStream & stream, const AddressMapper &addressMapper) = 0;
-    virtual qint16 readTableRowCount(QDataStream & stream, const AddressMapper &addressMapper, bool isVanilla) = 0;
     virtual quint32 readTableAddr(QDataStream & stream, const AddressMapper &addressMapper, bool isVanilla) = 0;
 };
 

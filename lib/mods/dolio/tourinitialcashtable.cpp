@@ -64,12 +64,6 @@ quint32 TourInitialCashTable::readTableAddr(QDataStream &stream, const AddressMa
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 TourInitialCashTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80211cf0));
-    quint32 opcode; stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
-}
-
 bool TourInitialCashTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020d248));
     quint32 opcode; stream >> opcode;

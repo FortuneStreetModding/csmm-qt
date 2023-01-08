@@ -20,7 +20,6 @@ protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
     bool readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) override;
-    qint16 readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
     quint32 readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
 private:
     QString tableAddrFileName() { return isCapital ? "files/customShopNamesCapital.dat" : "files/customShopNames.dat"; }

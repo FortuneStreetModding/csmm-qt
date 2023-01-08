@@ -41,10 +41,6 @@ quint32 StageNameIDTable::readTableAddr(QDataStream &stream, const AddressMapper
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 StageNameIDTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool StageNameIDTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca6c));
     quint32 opcode; stream >> opcode;

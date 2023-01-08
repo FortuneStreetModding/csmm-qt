@@ -73,13 +73,6 @@ quint32 MapSetZoneOrder::readTableAddr(QDataStream &stream, const AddressMapper 
     return addr;
 }
 
-qint16 MapSetZoneOrder::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) {
-    if (isVanilla) return -1;
-    stream.device()->seek(addressMapper.boomToFileAddress(0x8020F45E));
-    qint16 result; stream >> result;
-    return result;
-}
-
 bool MapSetZoneOrder::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020f454));
     quint32 opcode; stream >> opcode;

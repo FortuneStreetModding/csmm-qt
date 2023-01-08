@@ -89,10 +89,6 @@ quint32 RuleSetTable::readTableAddr(QDataStream &stream, const AddressMapper &ad
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 RuleSetTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool RuleSetTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca98));
     quint32 opcode; stream >> opcode;

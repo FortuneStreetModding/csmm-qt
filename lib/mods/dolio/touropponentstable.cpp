@@ -72,12 +72,6 @@ quint32 TourOpponentsTable::readTableAddr(QDataStream &stream, const AddressMapp
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 TourOpponentsTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80211b00));
-    quint32 opcode; stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
-}
-
 bool TourOpponentsTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020cf68));
     quint32 opcode; stream >> opcode;

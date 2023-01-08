@@ -165,10 +165,6 @@ quint32 MusicTable::readTableAddr(QDataStream &, const AddressMapper &, bool) {
     return 0;
 }
 
-qint16 MusicTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool MusicTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cc8a0));
     quint32 opcode; stream >> opcode;

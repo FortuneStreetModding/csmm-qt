@@ -52,10 +52,6 @@ quint32 TourClearRankTable::readTableAddr(QDataStream &stream, const AddressMapp
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 TourClearRankTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool TourClearRankTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021210c));
     quint32 opcode; stream >> opcode;

@@ -56,10 +56,6 @@ quint32 MapGalaxyParamTable::readTableAddr(QDataStream &stream, const AddressMap
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 MapGalaxyParamTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool MapGalaxyParamTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb40));
     quint32 opcode; stream >> opcode;

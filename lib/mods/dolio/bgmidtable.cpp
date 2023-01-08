@@ -42,10 +42,6 @@ quint32 BGMIDTable::readTableAddr(QDataStream &stream, const AddressMapper &addr
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 BGMIDTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool BGMIDTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca50));
     quint32 opcode; stream >> opcode;

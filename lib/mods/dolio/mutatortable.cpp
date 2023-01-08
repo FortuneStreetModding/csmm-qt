@@ -147,10 +147,6 @@ quint32 MutatorTable::readTableAddr(QDataStream &stream, const AddressMapper &ad
     return addr;
 }
 
-qint16 MutatorTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool MutatorTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     return mutatorTableStorageAddr == 0;
 }

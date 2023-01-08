@@ -20,7 +20,6 @@ protected:
     quint32 writeTable(const std::vector<MapDescriptor> &descriptors);
     quint32 writeMutatorData(const MapDescriptor &descriptor);
     bool readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) override;
-    qint16 readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
     quint32 readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
     QVector<quint32> writeGetMutatorDataSubroutine(const AddressMapper &addressMapper, quint32 tableAddr);
 private:

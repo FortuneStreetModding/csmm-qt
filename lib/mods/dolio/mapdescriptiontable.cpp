@@ -43,12 +43,6 @@ quint32 MapDescriptionTable::readTableAddr(QDataStream &stream, const AddressMap
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 MapDescriptionTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80212158));
-    quint32 opcode; stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
-}
-
 bool MapDescriptionTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021214c));
     quint32 opcode; stream >> opcode;

@@ -60,12 +60,6 @@ quint32 DefaultTargetAmountTable::readTableAddr(QDataStream &stream, const Addre
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 DefaultTargetAmountTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    quint32 opcode;
-    stream.device()->seek(addressMapper.boomToFileAddress(0x8020d0e8)); stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
-}
-
 bool DefaultTargetAmountTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020d160));
     quint32 opcode; stream >> opcode;

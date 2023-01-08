@@ -65,10 +65,6 @@ quint32 FrbMapTable::readTableAddr(QDataStream &stream, const AddressMapper &add
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 FrbMapTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool FrbMapTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccad0));
     quint32 opcode; stream >> opcode;

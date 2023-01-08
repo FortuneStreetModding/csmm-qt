@@ -152,12 +152,6 @@ quint32 MapIconTable::readTableAddr(QDataStream &stream, const AddressMapper &ad
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 MapIconTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80211dd4));
-    quint32 opcode; stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
-}
-
 bool MapIconTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8021e790));
     quint32 opcode; stream >> opcode;

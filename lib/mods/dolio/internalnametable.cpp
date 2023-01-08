@@ -68,10 +68,6 @@ quint32 InternalNameTable::readTableAddr(QDataStream &stream, const AddressMappe
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 InternalNameTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool InternalNameTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     return internalNameDataAddr == 0;
 }

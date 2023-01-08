@@ -36,12 +36,6 @@ bool NamedDistricts::readIsVanilla(QDataStream &stream, const AddressMapper &add
     return opcode == PowerPcAsm::cmplwi(4, 0x15);
 }
 
-qint16 NamedDistricts::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x800f8458));
-    quint32 opcode; stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
-}
-
 quint32 NamedDistricts::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool)  {
     stream.device()->seek(addressMapper.boomToFileAddress(0x800f8484));
     quint32 lisOpcode, dummy, addiOpcode;

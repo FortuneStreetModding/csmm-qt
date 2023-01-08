@@ -60,12 +60,6 @@ quint32 VentureCardTable::readTableAddr(QDataStream &stream, const AddressMapper
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 VentureCardTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e104));
-    quint32 opcode; stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode) + 1;
-}
-
 bool VentureCardTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8007e130));
     quint32 opcode; stream >> opcode;

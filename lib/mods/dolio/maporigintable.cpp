@@ -41,10 +41,6 @@ quint32 MapOriginTable::readTableAddr(QDataStream &stream, const AddressMapper &
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 MapOriginTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool MapOriginTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801ccb58));
     quint32 opcode; stream >> opcode;

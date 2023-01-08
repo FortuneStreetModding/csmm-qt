@@ -65,13 +65,6 @@ quint32 TourBankruptcyLimitTable::readTableAddr(QDataStream &stream, const Addre
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 TourBankruptcyLimitTable::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool) {
-    quint32 opcode;
-    stream.device()->seek(addressMapper.boomToFileAddress(0x8020d2bc));
-    stream >> opcode;
-    return PowerPcAsm::getOpcodeParameter(opcode);
-}
-
 bool TourBankruptcyLimitTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020d334));
     quint32 opcode; stream >> opcode;

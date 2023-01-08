@@ -48,11 +48,6 @@ bool CustomShopNames::readIsVanilla(QDataStream &stream, const AddressMapper &ad
     return opcode == PowerPcAsm::addi(4, 30, isCapital ? 0x14d4 : 0x1468);
 }
 
-qint16 CustomShopNames::readTableRowCount(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla)
-{
-    return -1;
-}
-
 quint32 CustomShopNames::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla)
 {
     return tableAddr;

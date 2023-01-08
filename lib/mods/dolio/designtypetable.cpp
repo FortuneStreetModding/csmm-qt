@@ -41,10 +41,6 @@ quint32 DesignTypeTable::readTableAddr(QDataStream &stream, const AddressMapper 
     return PowerPcAsm::make32bitValueFromPair(lisOpcode, addiOpcode);
 }
 
-qint16 DesignTypeTable::readTableRowCount(QDataStream &, const AddressMapper &, bool) {
-    return -1;
-}
-
 bool DesignTypeTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cca38));
     quint32 opcode; stream >> opcode;
