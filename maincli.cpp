@@ -65,9 +65,10 @@ void run(QStringList arguments)
   discard         Discard the pending changes in a Fortune Street game directory.
   save            Save the pending changes in a Fortune Street game directory.
   pack            Pack a Fortune Street game directory to a disc image (pending changes must be saved prior).
-  download-tools  Downloads the external tools that CSMM requires.
   default-modlist Output a list of default mod ids
   riivolution     Create a Riivolution patch file from vanilla and patched game folders (WARNING: modifies the patched game folder)
+  bsdiff          Create a .bsdiff file
+  bspatch         Patch an existing file using a .bsdiff file
 )").remove(0,1);
 
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsOptions);
@@ -502,13 +503,118 @@ void run(QStringList arguments)
                 }
 
             }
-        } else if (command == "download-tools") {
-            // --- discard ---
-            setupSubcommand(parser, "download-tools", "Does nothing since the tools are already pre-downloaded.");
+        } else if (command == "bsdiff") {
+            // --- bsdiff ---
+            setupSubcommand(parser, "bsdiff", "Create a .bsdiff file");
+            parser.addPositionalArgument("oldFile", "Old (original) file.", "bsdiff <gameDir>");
+            parser.addPositionalArgument("newFile", "New (modified) file.", "<newFile>");
+            parser.addPositionalArgument("bsdiffFile", "Resulting .bsdiff file.\n[default = <newFile>.bsdiff]", "[bsdiffFile]");
+
+            parser.addOption(forceOption);
 
             parser.process(arguments);
 
-            qInfo() << "Nothing done; the external tools are pre-downloaded.";
+            const QStringList args = parser.positionalArguments();
+            if(parser.isSet(helpOption) || args.size() < 3) {
+                helpStream << '\n' << parser.helpText();
+            } else {
+                const QString oldFileStr = args.at(1);
+                const QFile oldFile = QFile(oldFileStr);
+                const QFileInfo oldFileInfo = QFileInfo(oldFile);
+                if(!oldFile.exists()) {
+                    qCritical() << oldFileStr << "does not exist.";
+                    exit(1);
+                }
+                const QString newFileStr = args.at(2);
+                const QFile newFile = QFile(newFileStr);
+                const QFileInfo newFileInfo(newFile);
+                if(!newFile.exists()) {
+                    qCritical() << newFileStr << "does not exist.";
+                    exit(1);
+                }
+                QString bsdiffFileStr;
+                if(args.size() >= 4) {
+                    bsdiffFileStr = args.at(3);
+                } else {
+                    bsdiffFileStr = QDir(newFileInfo.absolutePath()).filePath(newFileInfo.baseName() + ".bsdiff");
+                }
+                QFile bsdiffFile(bsdiffFileStr);
+                QFileInfo bsdiffFileInfo(bsdiffFile);
+                if(bsdiffFile.exists()) {
+                    if(parser.isSet(forceOption)) {
+                        qInfo() << "Overwriting" << bsdiffFileInfo.filePath() << "...";
+                    } else {
+                        qCritical() << "Cannot create .bsdiff file as" << bsdiffFileInfo.filePath() << "already exists. Use force option to overwrite.";
+                        exit(1);
+                    }
+                }
+
+                QDir bsdiffFileDir(bsdiffFileInfo.dir());
+                if(!bsdiffFileDir.exists()) {
+                    bsdiffFileDir.mkpath(".");
+                }
+
+                qInfo() << "Creating" << bsdiffFileInfo.suffix() << "file at" << bsdiffFileInfo.filePath() << "out from" << oldFileInfo.filePath() << "...";
+
+                QString errors = ImportExportUtils::createBsdiff(oldFileInfo.absoluteFilePath(), newFileInfo.absoluteFilePath(), bsdiffFileInfo.absoluteFilePath());
+                if(!errors.isEmpty()) {
+                    qCritical() << errors;
+                    exit(1);
+                }
+            }
+        } else if (command == "bspatch") {
+            // --- bspatch ---
+            setupSubcommand(parser, "bspatch", "Patch an existing file using a .bsdiff file");
+            parser.addPositionalArgument("oldFile", "Old (original) file.", "bspatch <gameDir>");
+            parser.addPositionalArgument("newFile", "New (patched) file.", "<newFile>");
+            parser.addPositionalArgument("bsdiffFile", "Input .bsdiff file.", "<bsdiffFile>");
+            parser.addOption(forceOption);
+
+            parser.process(arguments);
+
+            const QStringList args = parser.positionalArguments();
+            if(parser.isSet(helpOption) || args.size() < 3) {
+                helpStream << '\n' << parser.helpText();
+            } else {
+                const QString oldFileStr = args.at(1);
+                const QFile oldFile = QFile(oldFileStr);
+                const QFileInfo oldFileInfo = QFileInfo(oldFile);
+                if(!oldFile.exists()) {
+                    qCritical() << oldFileStr << "does not exist.";
+                    exit(1);
+                }
+                const QString newFileStr = args.at(2);
+                const QFile newFile = QFile(newFileStr);
+                const QFileInfo newFileInfo(newFile);
+                if(newFile.exists()) {
+                    if(parser.isSet(forceOption)) {
+                        qInfo() << "Overwriting" << newFileInfo.filePath() << "...";
+                    } else {
+                        qCritical() << "Cannot patch as" << newFileInfo.filePath() << "already exists. Use force option to overwrite.";
+                        exit(1);
+                    }
+                }
+                QString bsdiffFileStr = args.at(3);
+                QFile bsdiffFile(bsdiffFileStr);
+                QFileInfo bsdiffFileInfo(bsdiffFile);
+                if(!bsdiffFile.exists()) {
+                    qCritical() << newFileStr << "does not exist.";
+                    exit(1);
+                }
+
+                QDir bsdiffFileDir(bsdiffFileInfo.dir());
+                if(!bsdiffFileDir.exists()) {
+                    bsdiffFileDir.mkpath(".");
+                }
+
+                qInfo() << "Applying patch" << bsdiffFileInfo.filePath() << "to" << oldFileInfo.filePath() << "and creating" << newFileInfo.filePath() <<"...";
+
+                QString errors = ImportExportUtils::applyBspatch(oldFileInfo.absoluteFilePath(), newFileInfo.absoluteFilePath(), bsdiffFileInfo.absoluteFilePath());
+                if(!errors.isEmpty()) {
+                    qCritical() << errors;
+                    exit(1);
+                }
+            }
         } else {
             helpStream << description;
             helpStream << parser.helpText();

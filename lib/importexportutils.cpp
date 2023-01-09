@@ -11,6 +11,7 @@
 #include "qnetworkaccessmanager.h"
 #include "zip/zip.h"
 #include "bsdiff/bspatchlib.h"
+#include "bsdiff/bsdifflib.h"
 #include "lib/uimessage.h"
 #include "lib/await.h"
 #include "lib/asyncfuture.h"
@@ -48,10 +49,26 @@ QString fileSha1(const QString &fileName) {
    return QByteArray().toHex();
 }
 
+QString createBsdiff(const QString &oldfileStr, const QString &newfileStr, const QString &patchfileStr) {
+   QFile oldfile(oldfileStr);
+   if (!oldfile.exists()) {
+       return QString("%1 does not exist.").arg(oldfileStr);
+   }
+   QFile newFile(newfileStr);
+   if (!newFile.exists()) {
+       return QString("%1 does not exist.").arg(newfileStr);
+   }
+
+   char *errs = bsdiff(oldfileStr.toLatin1().constData(), newfileStr.toLatin1().constData(), patchfileStr.toLatin1().constData());
+   if (errs)
+       return QString(errs);
+   return QString();
+}
+
 QString applyBspatch(const QString &oldfileStr, const QString &newfileStr, const QString &patchfileStr) {
    unsigned char	*in_buf, *out_buf, *patch_buf;
    int				in_sz, out_sz, patch_sz;
-   char			*errs;
+   char         	*errs;
 
    QFile oldfile(oldfileStr);
    if (!oldfile.open(QFile::ReadOnly)) {
