@@ -117,6 +117,9 @@ void run(QStringList arguments)
 
     // add logging handler to deal with quiet/verbose options
     qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+        // filter this specific message since it is littering the whole console output
+        if(msg == "QFutureWatcher::connect: connecting after calling setFuture() is likely to produce race")
+            return;
         if (!_isQuiet && (_isVerbose || (type != QtMsgType::QtDebugMsg && type != QtMsgType::QtWarningMsg))) {
             *cerrp << msg << Qt::endl;
         }
