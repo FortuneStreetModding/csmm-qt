@@ -291,6 +291,37 @@ bool containsCsmmEntries(QDataStream &stream) {
     return false;
 }
 
+int read(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
+    Brsar::File brsar;
+    stream >> brsar;
+
+    if(stream.status() == QDataStream::ReadCorruptData)
+        return -1;
+
+    for(int brsarIndex = 0; brsarIndex < brsar.entries.length(); brsarIndex++) {
+        auto &entry = brsar.entries[brsarIndex];
+        if(entry.fileName->startsWith("CSMM_")) {
+            auto volume = entry.soundDataEntry->volume;
+            auto fileLength = entry.collectionEntry->externalFileLength;
+            auto fileName = entry.collectionEntry->externalFileName;
+            QFileInfo fileNameInfo(fileName);
+            QString brstmBaseFileName = fileNameInfo.completeBaseName();
+            for (int i=0; i<descriptors.size(); i++) {
+                auto &descriptor = descriptors[i];
+                for (auto it=descriptor.music.begin(); it!=descriptor.music.end(); ++it) {
+                    if(it->second.brsarIndex == brsarIndex) {
+                        it->second.brsarIndex = brsarIndex;
+                        it->second.brstmBaseFilename = brstmBaseFileName;
+                        it->second.brstmFileSize = fileLength;
+                        it->second.volume = volume;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 int patch(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
     Brsar::File brsar;
     stream >> brsar;

@@ -3,7 +3,7 @@
 
 #include "doliotable.h"
 
-class MusicTable : public virtual DolIOTable, public virtual GeneralInterface
+class MusicTable : public virtual DolIO, public virtual GeneralInterface
 {
 public:
     static constexpr std::string_view MODID = "musicTable";
@@ -12,14 +12,11 @@ public:
     QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
-    void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
+    void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;
     quint32 writeBgmTable(const std::vector<MapDescriptor> &descriptors);
     quint32 writeMeTable(const std::vector<MapDescriptor> &descriptors);
-    bool readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) override;
-    quint32 readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
-
 private:
     QVector<quint32> writeSubroutineReplaceBgmId(const AddressMapper &addressMapper, quint32 tableAddr, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnBgmReplacedAddr);
 };

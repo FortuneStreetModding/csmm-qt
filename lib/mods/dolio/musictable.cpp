@@ -70,7 +70,7 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
 
     // Hijack Game::ConvBGMID(int bgmId = r3, int theme = r4)
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x801cc8a0);
-    quint32 returnContinueAddr = addressMapper.boomStreetToStandard(0x801cc8a4);
+    quint32 returnContinueAddr = addressMapper.boomStreetToStandard(0x801cc8b0);
     quint32 returnBgmReplacedAddr = addressMapper.boomStreetToStandard(0x801cc93c);
 
     quint32 subroutineReplaceBgmId = allocate(writeSubroutineReplaceBgmId(addressMapper, bgmTableAddr, 0, returnContinueAddr, returnBgmReplacedAddr), "SubroutineReplaceBgmId");
@@ -81,11 +81,13 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
     // mr r31, r3                                   -> b subroutineReplaceBgmId
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     stream << PowerPcAsm::b(hijackAddr, subroutineReplaceBgmId);
-
+    // store the address of the bgmTable so we can read it later again
+    stream.device()->seek(addressMapper.toFileAddress(0x801cc8a8));
+    stream << bgmTableAddr;
 
     // Hijack Game::ConvSEID(int bgmId = r3, int theme = r4)
     hijackAddr = addressMapper.boomStreetToStandard(0x801cc964);
-    returnContinueAddr = addressMapper.boomStreetToStandard(0x801cc968);
+    returnContinueAddr = addressMapper.boomStreetToStandard(0x801cc974);
     returnBgmReplacedAddr = addressMapper.boomStreetToStandard(0x801cca00);
 
     quint32 subroutineReplaceMeId = allocate(writeSubroutineReplaceBgmId(addressMapper, meTableAddr, 0, returnContinueAddr, returnBgmReplacedAddr), "SubroutineReplaceMeId");
@@ -96,6 +98,9 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
     // mr r31, r3                                   -> b subroutineReplaceMeId
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     stream << PowerPcAsm::b(hijackAddr, subroutineReplaceMeId);
+    // store the address of the meTable so we can read it later again
+    stream.device()->seek(addressMapper.toFileAddress(0x801cc96c));
+    stream << meTableAddr;
 }
 
 QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &addressMapper, quint32 tableAddr, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnBgmReplacedAddr) {
@@ -115,10 +120,15 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::addi(3, 3, g.lower));   // |.
     asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Game_Manager
     asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0? (is a game Manager defined? if it is, that means a game is running, otherwise we are still in menu)
-    asm_.append(PowerPcAsm::bne(4));                // continue
+    asm_.append(PowerPcAsm::bne(6));                // continue
+    // return
+    int retur = asm_.size();
     asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
-    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));     // make the comparision again from the original function
-    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
+    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // \.
+    asm_.append(PowerPcAsm::bne(2));                                           // /. is r3 == -1?
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr)); // |. return returnBgmReplacedAddr
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // |. else return returnContinueAddr
+    // continue
     asm_.append(PowerPcAsm::lis(3, m.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, m.lower));   // |.
     asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Global_MapID
@@ -127,54 +137,96 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::lis(3, t.upper));       // \.
     asm_.append(PowerPcAsm::addi(3, 3, t.lower));   // |.
     asm_.append(PowerPcAsm::lwzx(5, 5, 3));         // /. r5 <- MapMusicReplacementTable = MapBgmMePointerTable[r5]
-    asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0?
-    asm_.append(PowerPcAsm::bne(4));                // continue
-    asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
-    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));     // make the comparision again from the original function
-    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
+    asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 == 0?
+    asm_.append(PowerPcAsm::beq(asm_.size(), retur)); // return
+    // continue
     asm_.append(PowerPcAsm::lwz(6, 0x0, 5));        // r6 <- size of MapMusicReplacementTable
     asm_.append(PowerPcAsm::addi(5, 5, 0x4));       // r5+=4
-    int whileVentureCardIdSmaller128 = asm_.size();
+    int loop = asm_.size();
     {
         asm_.append(PowerPcAsm::lwz(3, 0x0, 5));    // r3 <- firstBgmId
         asm_.append(PowerPcAsm::cmpw(3, 31));       // r3 == r31?
-        asm_.append(PowerPcAsm::bne(6));            // {
+        asm_.append(PowerPcAsm::bne(4));            // {
         asm_.append(PowerPcAsm::addi(5, 5, 0x4));   // r5+=4
         asm_.append(PowerPcAsm::lwz(31, 0x0, 5));   // r31 <- secondBgmId
         asm_.append(PowerPcAsm::mr(3, 31));         // r3 <- r31
-        asm_.append(PowerPcAsm::cmplwi(3, 0xffff)); // make the comparision again from the original function
-        asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr));     // return returnBgmReplacedAddr
+        asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr)); // |. return returnBgmReplacedAddr
                                                     // }
+        // continue
         asm_.append(PowerPcAsm::addi(5, 5, 0x8));   // r5+=8
         asm_.append(PowerPcAsm::subi(6, 6, 0x1));   // r6--
         asm_.append(PowerPcAsm::cmpwi(6, 0x0));     // r6 != 0?
-        asm_.append(PowerPcAsm::bne(asm_.size(), whileVentureCardIdSmaller128));   // loop
-        asm_.append(PowerPcAsm::mr(3, 31));         // r3 <- r31
-        asm_.append(PowerPcAsm::cmplwi(3, 0xffff)); // make the comparision again from the original function
-        asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
+        asm_.append(PowerPcAsm::bne(asm_.size(), loop));   // loop
+        asm_.append(PowerPcAsm::b(asm_.size(), retur)); // return
     }
     return asm_;
 }
 
-void MusicTable::readAsm(QDataStream &, std::vector<MapDescriptor> &, const AddressMapper &, bool ) {
-    // TODO
-}
-
-quint32 MusicTable::readTableAddr(QDataStream &, const AddressMapper &, bool) {
-    // TODO
-    return 0;
-}
-
-bool MusicTable::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
+bool readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) {
     stream.device()->seek(addressMapper.boomToFileAddress(0x801cc8a0));
     quint32 opcode; stream >> opcode;
     return opcode == PowerPcAsm::mr(31, 3);
 }
 
+void readTable(QDataStream &stream, const AddressMapper &addressMapper, MapDescriptor &descriptor) {
+    quint32 tableAddr;
+    stream >> tableAddr;
+    if(tableAddr == 0)
+        return;
+    stream.device()->seek(addressMapper.toFileAddress(tableAddr));
+    quint32 tableSize;
+    stream >> tableSize;
+    for(int i=0; i<tableSize; i++) {
+        MusicType musicType;
+        MusicEntry musicEntry;
+        // read the original bgmid (the value to look for)
+        stream >> musicType;
+        // read the new brsar index (the value which shall be replaced)
+        stream >> musicEntry.brsarIndex;
+        descriptor.music[musicType] = musicEntry;
+    }
+}
 
+void MusicTable::readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) {
+    if(!readIsVanilla(stream, addressMapper)) {
+        quint32 bgmTableAddr;
+        stream.device()->seek(addressMapper.toFileAddress(0x801cc8a8));
+        stream >> bgmTableAddr;
+        for (auto &descriptor: mapDescriptors) {
+            stream.device()->seek(addressMapper.toFileAddress(bgmTableAddr));
+            readTable(stream, addressMapper, descriptor);
+            bgmTableAddr+=4;
+        }
+        quint32 meTableAddr;
+        stream.device()->seek(addressMapper.toFileAddress(0x801cc96c));
+        stream >> meTableAddr;
+        for (auto &descriptor: mapDescriptors) {
+            stream.device()->seek(addressMapper.toFileAddress(meTableAddr));
+            readTable(stream, addressMapper, descriptor);
+            meTableAddr+=4;
+        }
+    }
+}
 
 void MusicTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
-    DolIOTable::loadFiles(root, gameInstance, modList);
+    DolIO::loadFiles(root, gameInstance, modList);
+    // read the brsar
+    auto brsarFilePath = QDir(root).filePath(SOUND_FOLDER+"/Itast.brsar");
+    QFileInfo brsarFileInfo(brsarFilePath);
+    if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
+        QFile brsarFile(brsarFilePath);
+        if (brsarFile.open(QIODevice::ReadOnly)) {
+            QDataStream stream(&brsarFile);
+            if (Brsar::containsCsmmEntries(stream)) {
+                stream.device()->seek(0);
+                Brsar::read(stream, gameInstance.mapDescriptors());
+            }
+        } else {
+            throw ModException(QString("Could not open file %1 for read/write. %2").arg(brsarFilePath, brsarFile.errorString()));
+        }
+    } else {
+        throw ModException(QString("The file %1 does not exist.").arg(brsarFilePath));
+    }
 }
 
 void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
@@ -218,5 +270,5 @@ void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, cons
         throw ModException(QString("The file %1 does not exist.").arg(brsarFilePath));
     }
 
-    DolIOTable::saveFiles(root, gameInstance, modList);
+    DolIO::saveFiles(root, gameInstance, modList);
 }
