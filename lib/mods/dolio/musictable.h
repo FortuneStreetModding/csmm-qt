@@ -8,8 +8,8 @@ class MusicTable : public virtual DolIO, public virtual GeneralInterface
 public:
     static constexpr std::string_view MODID = "musicTable";
     QString modId() const override { return MODID.data(); }
-    QSet<QString> after() const override { return { "defaultMiscPatches" }; }
-    QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
+    QSet<QString> after() const override { return { "defaultMiscPatches", "copyMapFiles" }; }
+    QSet<QString> depends() const override { return {"allocateDescriptorCount", "copyMapFiles"}; }
     void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;

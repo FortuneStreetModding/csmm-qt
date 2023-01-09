@@ -233,7 +233,7 @@ void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, cons
     for (auto &descriptor: gameInstance.mapDescriptors()) {
         for (auto &mapEnt: descriptor.music) {
             auto &musicEntry = mapEnt.second;
-            QFileInfo brstmFileInfo(QDir(gameInstance.getImportDir()).filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename+".brstm"));
+            QFileInfo brstmFileInfo(QDir(root).filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename+".brstm"));
             if (!brstmFileInfo.exists()) {
                 throw ModException(QString("file %1 doesn't exist").arg(brstmFileInfo.absoluteFilePath()));
             }
