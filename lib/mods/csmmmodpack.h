@@ -7,6 +7,8 @@
 #include "lib/exewrapper.h"
 #include "lib/mods/csmmmod.h"
 #include "lib/python/pythonbindings.h"
+#include "lib/importexportutils.h"
+#include "lib/datafileset.h"
 
 class CSMMModpack {
 public:
@@ -119,16 +121,80 @@ public:
         }
     }
 
+    void backupAndRestore(const QTemporaryDir &tempDir, const QString &root, bool restore) {
+        QString mainDolStr = QDir(root).filePath(MAIN_DOL);
+        QFile mainDolFile(mainDolStr);
+        QFileInfo mainDolInfo(mainDolStr);
+
+        QString mainDolTempStr = QDir(root).filePath(MAIN_DOL_TEMP_BACKUP);
+        QFile mainDolTempFile(mainDolTempStr);
+        QFileInfo mainDolTempInfo(mainDolTempStr);
+
+        QString mainDolVanillaStr = QDir(root).filePath(MAIN_DOL_VANILLA_BACKUP);
+        QFile mainDolVanillaFile(mainDolVanillaStr);
+        QFileInfo mainDolVanillaInfo(mainDolVanillaStr);
+
+        QString mainDolCsmmStr = QDir(root).filePath(MAIN_DOL_CSMM_BACKUP);
+        QFile mainDolCsmmFile(mainDolCsmmStr);
+        QFileInfo mainDolCsmmInfo(mainDolCsmmStr);
+
+        QString bsdiffStr = tempDir.filePath(mainDolInfo.baseName() + ".bsdiff");
+        QFileInfo bsdiffInfo(bsdiffStr);
+
+        if(!restore) {
+            if(mainDolTempInfo.exists()) {
+                // something went wrong last time -> restore main.dol.temp.bak
+                mainDolFile.remove();
+                mainDolTempFile.rename(mainDolStr);
+            }
+            // save the main.dol changes that happened since last time CSMM touched it
+            //   (bsdiff main.dol.csmm.bak <-> main.dol)
+            if(mainDolCsmmInfo.exists()) {
+                ImportExportUtils::createBsdiff(mainDolCsmmStr, mainDolStr, bsdiffStr);
+            }
+            if(mainDolVanillaInfo.exists()) {
+                // restore the original main.dol
+                //   (main.dol -> main.dol.temp.bak)
+                //   (main.dol.orig.bak -> main.dol)
+                mainDolFile.rename(mainDolTempStr);
+                mainDolVanillaFile.copy(mainDolStr);
+            } else {
+                // backup the original main.dol
+                //  (main.dol -> main.dol.orig.bak)
+                mainDolFile.copy(mainDolVanillaStr);
+            }
+        } else {
+            // backup the csmm modified main.dol
+            //  (main.dol -> main.dol.csmm.bak)
+            if(mainDolCsmmInfo.exists()) {
+                mainDolCsmmFile.remove();
+            }
+            mainDolFile.copy(mainDolCsmmStr);
+
+            // apply the saved main.dol changes that happened since last time CSMM touched it
+            //   (bspatch main.dol)
+            if(bsdiffInfo.exists()) {
+                ImportExportUtils::applyBspatch(mainDolStr, mainDolStr, bsdiffStr);
+            }
+
+            if(mainDolTempInfo.exists()) {
+                // everything done -> delete main.dol.temp.bak
+                mainDolTempFile.remove();
+            }
+        }
+    }
+
     void save(const QString &root, const std::function<void(double)> &progressCallback = [](double) {}) {
         QHash<QString, QMap<QString, UiMessageInterface::SaveMessagesFunction>> messageSavers;
         QHash<QString, QMap<QString, ArcFileInterface::ModifyArcFunction>> arcModifiers;
         QMap<QString, UiMessage> messageFiles;
         QTemporaryDir arcFilesDir;
         QSet<QString> arcFiles;
-
         if (!arcFilesDir.isValid()) {
             throw ModException(QString("error creating temporary directory: %1").arg(arcFilesDir.errorString()));
         }
+
+        backupAndRestore(arcFilesDir, root, false);
 
         for (auto &mod: modList) {
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
@@ -199,6 +265,8 @@ public:
                 }
             }
         }
+
+        backupAndRestore(arcFilesDir, root, true);
 
         for (auto it=messageFiles.begin(); it!=messageFiles.end(); ++it) {
             QFile file(QDir(root).filePath(it.key()));

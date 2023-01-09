@@ -4,6 +4,9 @@
 #include "fslocale.h"
 
 static const QString MAIN_DOL = "sys/main.dol";
+static const QString MAIN_DOL_TEMP_BACKUP = "sys/main.dol.temp.bak";
+static const QString MAIN_DOL_VANILLA_BACKUP = "sys/main.dol.orig.bak";
+static const QString MAIN_DOL_CSMM_BACKUP = "sys/main.dol.csmm.bak";
 static const QString CHANCE_CARD_FOLDER = "files/chance_card";
 static const QString FONT_FOLDER = "files/font";
 static const QString GAME_FOLDER = "files/game";

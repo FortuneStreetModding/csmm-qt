@@ -369,17 +369,6 @@ void run(QStringList arguments)
                     try {
                         Configuration::load(cfgPath, descriptors, importDir.path());
 
-                        QString dolOriginalPath(sourceDir.filePath(MAIN_DOL));
-                        QString dolBackupPath(sourceDir.filePath(MAIN_DOL) + ".bak");
-                        QFile dolOriginal(dolOriginalPath);
-                        QFile dolBackup(dolBackupPath);
-                        if(dolBackup.exists()) {
-                            dolOriginal.remove();
-                            dolBackup.copy(dolOriginalPath);
-                        } else {
-                            dolOriginal.copy(dolBackupPath);
-                        }
-
                         if (std::any_of(mods.first.begin(), mods.first.end(), [](auto &mod) { return mod->modId() == "wifiFix"; })) {
                             qInfo() << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.";
                         }
