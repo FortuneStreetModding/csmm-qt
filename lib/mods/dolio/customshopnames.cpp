@@ -22,7 +22,7 @@ void CustomShopNames::readAsm(QDataStream &stream, std::vector<MapDescriptor> &m
     for (auto &descriptor: mapDescriptors) {
         auto &l10nIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
         l10nIds.clear();
-        if (tableAddr) {
+        if (!isVanilla) {
             quint32 subTableAddr;
             stream >> subTableAddr;
             auto oldPos = stream.device()->pos();

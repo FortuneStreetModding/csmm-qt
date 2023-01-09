@@ -135,6 +135,8 @@ void MapIconTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapD
             if (mapDescriptor.unlockId < 18) {
                 QRegularExpression reg("\\d+");
                 auto number = reg.match(mapDescriptor.background).captured();
+                if(number.isEmpty())
+                    number = "001";
                 mapDescriptor.mapIcon = QString("p_bg_") + number;
             }
         } else {

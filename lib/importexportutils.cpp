@@ -276,7 +276,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 QFile::copy(frbFileFrom, frbFileTo);
             }
             // import map icons if needed
-            if (!VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
+            if (!descriptor.mapIcon.isEmpty() && !VanillaDatabase::hasVanillaTpl(descriptor.mapIcon)) {
                 auto mapIconFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.mapIcon + ".png");
                 auto mapIconFileTo = importDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
                 QFileInfo mapIconFileFromInfo(mapIconFileFrom);
