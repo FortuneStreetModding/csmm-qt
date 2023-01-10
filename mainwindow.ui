@@ -137,7 +137,7 @@
     <property name="title">
      <string>Optional Patches</string>
     </property>
-    <addaction name="actionPatch_SaveId"/>
+    <addaction name="actionPatch_MarkerCode"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -223,7 +223,7 @@
     <string>Validate</string>
    </property>
   </action>
-  <action name="actionPatch_SaveId">
+  <action name="actionPatch_MarkerCode">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -231,7 +231,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Patch SaveId (SaveId=02)</string>
+    <string>Patch Marker Code (marker_code=02)</string>
    </property>
   </action>
   <action name="actionItast_csmm_brsar">

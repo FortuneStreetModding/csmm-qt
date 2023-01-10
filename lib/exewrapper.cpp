@@ -136,10 +136,10 @@ QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir)
     proc->start(getWitPath(), {"COPY", "--psel", "data", "--preserve", "--overwrite", "--fst", wbfsFile, extractDir});
     return observeProcess(proc);
 }
-QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &saveId) {
+QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    QStringList args{"COPY", "--id", QString("....%1").arg(saveId), "--overwrite", sourceDir, wbfsFile};
+    QStringList args{"COPY", "--id", QString("....%1").arg(markerCode), "--overwrite", sourceDir, wbfsFile};
     proc->start(getWitPath(), args);
     return observeProcess(proc);
 }

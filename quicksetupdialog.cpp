@@ -14,13 +14,13 @@
 #include "lib/configuration.h"
 #include "lib/riivolution.h"
 
-QuickSetupDialog::QuickSetupDialog(const QString &defaultSaveId, QWidget *parent) :
+QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::QuickSetupDialog), defaultSaveId(defaultSaveId)
+    ui(new Ui::QuickSetupDialog), defaultMarkerCode(defaultMarkerCode)
 {
     ui->setupUi(this);
 
-    ui->saveId->setText(defaultSaveId);
+    ui->markerCode->setText(defaultMarkerCode);
 
     connect(ui->chooseInputGameFolder, &QPushButton::clicked, this, [this](bool){
         auto dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory");
@@ -189,7 +189,7 @@ void QuickSetupDialog::accept()
 
         // create wbfs/iso if file
         if (!QFileInfo(ui->outputGameLoc->text()).isDir()) {
-            await(ExeWrapper::createWbfsIso(targetGameDir, ui->outputGameLoc->text(), ui->saveId->text()));
+            await(ExeWrapper::createWbfsIso(targetGameDir, ui->outputGameLoc->text(), ui->markerCode->text()));
             if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
                 qInfo() << "patching wiimmfi";
                 dialog.setValue(95);

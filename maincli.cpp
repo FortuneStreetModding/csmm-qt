@@ -84,7 +84,7 @@ void run(QStringList arguments)
     QCommandLineOption mapPracticeBoardOption(QStringList() << "p" << "practice-board", "Whether the map is regarded as a practice board (0=no|1=yes).", "practiceBoard");
     QCommandLineOption quietOption(QStringList() << "q" << "quiet", "Do not print anything to console (overrides verbose).");
     QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
-    QCommandLineOption saveIdOption(QStringList() << "s" << "saveId", "Set the save id for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "saveId");
+    QCommandLineOption markerCodeOption(QStringList() << "c" << "markerCode", "Set the marker code for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "markerCode");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption modPackOption(QStringList() << "modpack", "The modpack file (.zip or modlist.txt) to load (leave blank for default).", "modpack");
     QCommandLineOption mapDescriptorConfigurationOption(QStringList() << "descCfg" << "descriptorCfg" << "descConfiguration" << "descriptorConfiguration", "The map description configuration .csv to use for saving instead of the default.", "descCfg", "");
@@ -444,7 +444,7 @@ void run(QStringList arguments)
             parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "pack <gameDir>");
             parser.addPositionalArgument("target", "Target filename.\n[default = <gameId6>.wbfs]", "[target]");
 
-            parser.addOption(saveIdOption);
+            parser.addOption(markerCodeOption);
             parser.addOption(forceOption);
 
             parser.process(arguments);
@@ -460,7 +460,7 @@ void run(QStringList arguments)
                     exit(1);
                 }
 
-                QString saveId = parser.isSet(saveIdOption) ? parser.value(saveIdOption) : "02";
+                QString markerCode = parser.isSet(markerCodeOption) ? parser.value(markerCodeOption) : "02";
 
                 QString target;
                 if(args.size() >= 3) {
@@ -468,7 +468,7 @@ void run(QStringList arguments)
                 } else {
                     QString id6 = await(ExeWrapper::getId6(source));
                     QString id4 = id6.remove(4,2);
-                    target = QDir::current().filePath(id4 + saveId + ".wbfs");
+                    target = QDir::current().filePath(id4 + markerCode + ".wbfs");
                 }
                 QFile targetFile(target);
                 if(targetFile.exists()) {
@@ -489,7 +489,7 @@ void run(QStringList arguments)
                 qInfo() << "Creating" << targetInfo.suffix() << "file at" << target << "out from" << source << "...";
 
                 bool patchWiimmfi = ImportExportUtils::hasWiimmfiText(sourceDir);
-                await(ExeWrapper::createWbfsIso(source, target, saveId));
+                await(ExeWrapper::createWbfsIso(source, target, markerCode));
                 if(patchWiimmfi) {
                     await(ExeWrapper::patchWiimmfi(target));
                 }

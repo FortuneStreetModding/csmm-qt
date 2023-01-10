@@ -43,6 +43,6 @@ private:
     void loadMapList();
     void updateModListWidget();
 
-    QString getSaveId();
+    QString getMarkerCode();
 };
 #endif // MAINWINDOW_H

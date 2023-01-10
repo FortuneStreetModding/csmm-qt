@@ -92,20 +92,20 @@ MainWindow::MainWindow(QWidget *parent)
             ui->tableWidget->removeSelectedMapDescriptors();
         }
     });
-    connect(ui->actionPatch_SaveId, &QAction::triggered, this, [&]() {
+    connect(ui->actionPatch_MarkerCode, &QAction::triggered, this, [&]() {
         bool ok;
-        QString text = QInputDialog::getText(this, tr("Enter SaveId."),
-                                             tr("- 2 characters.\n- Digits and uppercase letters only.\n- 01 is vanilla game. The save file is then shared with vanilla game.\n- 02 is csmm default."), QLineEdit::Normal,
-                                             getSaveId(), &ok);
+        QString text = QInputDialog::getText(this, tr("Enter MarkerCode."),
+                                             tr("- 2 characters.\n- Digits and uppercase letters only.\n- 01 is vanilla game.\n- 02 is csmm default."), QLineEdit::Normal,
+                                             getMarkerCode(), &ok);
         if (ok && !text.isEmpty()) {
             if(text.length() != 2) {
-                QMessageBox::critical(this, "Save ID", "The input must be two characters");
+                QMessageBox::critical(this, "MarkerCode", "The input must be two characters");
             } else {
-                ui->actionPatch_SaveId->setText(QString("Patch SaveId (SaveId=%1)").arg(text.toUpper()));
-                ui->actionPatch_SaveId->setData(text.toUpper());
+                ui->actionPatch_MarkerCode->setText(QString("Patch MarkerCode (MarkerCode=%1)").arg(text.toUpper()));
+                ui->actionPatch_MarkerCode->setData(text.toUpper());
             }
         }
-        ui->actionPatch_SaveId->setChecked(getSaveId() != "01");
+        ui->actionPatch_MarkerCode->setChecked(getMarkerCode() != "01");
     });
     connect(ui->actionExport_default_modlists_txt, &QAction::triggered, this, [&]() {
         auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)");
@@ -144,7 +144,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
-        QuickSetupDialog dialog(getSaveId());
+        QuickSetupDialog dialog(getMarkerCode());
         dialog.exec();
     });
     updateModListWidget();
@@ -166,10 +166,10 @@ MainWindow::MainWindow(QWidget *parent)
     });
 }
 
-QString MainWindow::getSaveId() {
-    if(ui->actionPatch_SaveId->data().isNull())
+QString MainWindow::getMarkerCode() {
+    if(ui->actionPatch_MarkerCode->data().isNull())
         return "02";
-    return ui->actionPatch_SaveId->data().toString().toUpper();
+    return ui->actionPatch_MarkerCode->data().toString().toUpper();
 }
 
 MainWindow::~MainWindow()
@@ -525,7 +525,7 @@ void MainWindow::exportIsoWbfs() {
             *descriptors = gameInstance.mapDescriptors();
             progress->setValue(80);
             qInfo() << "packing wbfs/iso";
-            return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getSaveId());
+            return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode());
         } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
             PyErr_Clear();
