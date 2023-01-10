@@ -207,7 +207,7 @@ void MusicTable::loadFiles(const QString &root, GameInstance &gameInstance, cons
     }
     DolIO::loadFiles(root, gameInstance, modList);
     // read the brsar
-    auto brsarFilePath = QDir(root).filePath(SOUND_FOLDER+"/Itast.brsar");
+    auto brsarFilePath = QDir(root).filePath(ITAST_BRSAR);
     QFileInfo brsarFileInfo(brsarFilePath);
     if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
         QFile brsarFile(brsarFilePath);
@@ -240,7 +240,7 @@ void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, cons
     }
 
     // the Itast.brsar is assumed to have already been patched with Itast.brsar.bsdiff in the applyAllBspatches() method and now contains special CSMM entries
-    auto brsarFilePath = QDir(root).filePath(SOUND_FOLDER+"/Itast.brsar");
+    auto brsarFilePath = QDir(root).filePath(ITAST_BRSAR);
     QFileInfo brsarFileInfo(brsarFilePath);
     if (brsarFileInfo.exists() && brsarFileInfo.isFile()) {
         QFile brsarFile(brsarFilePath);

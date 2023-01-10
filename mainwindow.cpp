@@ -235,7 +235,7 @@ void MainWindow::saveCleanItastCsmmBrsar() {
     if (openFile.isEmpty()) return;
     //QFileInfo openFileInfo(openFile);
 
-    if (ImportExportUtils::fileSha1(openFile) != ImportExportUtils::getSha1OfVanillaFileName(SOUND_FOLDER + "/Itast.brsar")) {
+    if (ImportExportUtils::fileSha1(openFile) != ImportExportUtils::getSha1OfVanillaFileName(ITAST_BRSAR)) {
         QMessageBox::information(this, "Wrong Itast.brsar", QString("The provided file %1 is not a vanilla Itast.brsar").arg(openFile));
         return;
     }
@@ -243,7 +243,7 @@ void MainWindow::saveCleanItastCsmmBrsar() {
     auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)");
     if (saveFile.isEmpty()) return;
 
-    QString errors = ImportExportUtils::applyBspatch(openFile, saveFile, ":/" + SOUND_FOLDER + "/Itast.brsar.bsdiff");
+    QString errors = ImportExportUtils::applyBspatch(openFile, saveFile, ":/" + ITAST_BRSAR + ".bsdiff");
     if(!errors.isEmpty()) {
         QMessageBox::critical(this, "Open", QString("Errors occurred when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(openFile, errors));
     }
