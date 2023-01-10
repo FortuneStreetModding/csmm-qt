@@ -19,6 +19,9 @@ protected:
     quint32 writeMeTable(const std::vector<MapDescriptor> &descriptors);
 private:
     QVector<quint32> writeSubroutineReplaceBgmId(const AddressMapper &addressMapper, quint32 tableAddr, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnBgmReplacedAddr);
+    quint32 bgmTableAddr = 0;
+    quint32 meTableAddr = 0;
+    static constexpr std::string_view ADDRESS_FILE = "files/musicTable.dat";
 };
 
 #endif // MUSICTABLE_H
