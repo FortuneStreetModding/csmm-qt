@@ -138,6 +138,7 @@
      <string>Optional Patches</string>
     </property>
     <addaction name="actionPatch_MarkerCode"/>
+    <addaction name="actionSeparate_Save_Game"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -284,6 +285,14 @@
   <action name="actionOpen_Log_Folder">
    <property name="text">
     <string>Open Log Folder</string>
+   </property>
+  </action>
+  <action name="actionSeparate_Save_Game">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Separate Save Game</string>
    </property>
   </action>
  </widget>

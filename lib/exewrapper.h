@@ -21,7 +21,7 @@ namespace ExeWrapper {
     QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile);
     QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile);
     QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
-    QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode);
+    QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame);
     QFuture<void> patchWiimmfi(const QString &wbfsFile);
     QFuture<QString> getId6(const QString &inputFile);
 

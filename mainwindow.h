@@ -44,5 +44,6 @@ private:
     void updateModListWidget();
 
     QString getMarkerCode();
+    bool getSeparateSaveGame();
 };
 #endif // MAINWINDOW_H

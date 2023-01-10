@@ -144,7 +144,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
-        QuickSetupDialog dialog(getMarkerCode());
+        QuickSetupDialog dialog(getMarkerCode(), getSeparateSaveGame());
         dialog.exec();
     });
     updateModListWidget();
@@ -170,6 +170,10 @@ QString MainWindow::getMarkerCode() {
     if(ui->actionPatch_MarkerCode->data().isNull())
         return "02";
     return ui->actionPatch_MarkerCode->data().toString().toUpper();
+}
+
+bool MainWindow::getSeparateSaveGame() {
+    return ui->actionSeparate_Save_Game->isChecked();
 }
 
 MainWindow::~MainWindow()
@@ -486,7 +490,7 @@ void MainWindow::exportIsoWbfs() {
             auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
-            auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01")).subscribe([=]() {
+            auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01", false)).subscribe([=]() {
                 progress->setValue(100);
                 QMessageBox::information(this, "Export", "Exported successfuly.");
             });
@@ -525,7 +529,7 @@ void MainWindow::exportIsoWbfs() {
             *descriptors = gameInstance.mapDescriptors();
             progress->setValue(80);
             qInfo() << "packing wbfs/iso";
-            return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode());
+            return ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode(), getSeparateSaveGame());
         } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
             PyErr_Clear();

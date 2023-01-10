@@ -84,7 +84,8 @@ void run(QStringList arguments)
     QCommandLineOption mapPracticeBoardOption(QStringList() << "p" << "practice-board", "Whether the map is regarded as a practice board (0=no|1=yes).", "practiceBoard");
     QCommandLineOption quietOption(QStringList() << "q" << "quiet", "Do not print anything to console (overrides verbose).");
     QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
-    QCommandLineOption markerCodeOption(QStringList() << "c" << "markerCode", "Set the marker code for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "markerCode");
+    QCommandLineOption markerCodeOption(QStringList() << "markerCode", "Set the marker code for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "markerCode");
+    QCommandLineOption separateSaveGameOption(QStringList() << "separateSaveGame", "If set, the game will use a separate save game file instead of relying on the original save game.");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption modPackOption(QStringList() << "modpack", "The modpack file (.zip or modlist.txt) to load (leave blank for default).", "modpack");
     QCommandLineOption mapDescriptorConfigurationOption(QStringList() << "descCfg" << "descriptorCfg" << "descConfiguration" << "descriptorConfiguration", "The map description configuration .csv to use for saving instead of the default.", "descCfg", "");
@@ -445,6 +446,7 @@ void run(QStringList arguments)
             parser.addPositionalArgument("target", "Target filename.\n[default = <gameId6>.wbfs]", "[target]");
 
             parser.addOption(markerCodeOption);
+            parser.addOption(separateSaveGameOption);
             parser.addOption(forceOption);
 
             parser.process(arguments);
@@ -489,7 +491,7 @@ void run(QStringList arguments)
                 qInfo() << "Creating" << targetInfo.suffix() << "file at" << target << "out from" << source << "...";
 
                 bool patchWiimmfi = ImportExportUtils::hasWiimmfiText(sourceDir);
-                await(ExeWrapper::createWbfsIso(source, target, markerCode));
+                await(ExeWrapper::createWbfsIso(source, target, markerCode, parser.isSet(separateSaveGameOption)));
                 if(patchWiimmfi) {
                     await(ExeWrapper::patchWiimmfi(target));
                 }
