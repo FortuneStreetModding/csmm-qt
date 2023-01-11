@@ -251,6 +251,9 @@ struct qbytearray_caster {
     PYBIND11_TYPE_CASTER(QByteArray, const_name(PYBIND11_BYTES_NAME));
 };
 
+template<>
+struct type_caster<QByteArray> : qbytearray_caster {};
+
 }
 
 struct OriginPoint;
