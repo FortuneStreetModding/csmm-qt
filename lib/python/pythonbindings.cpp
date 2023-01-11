@@ -468,6 +468,7 @@ void init_pycsmm(pybind11::module_ &m) {
 )pycsmmdoc")
             .def("allocateUnusedSpace", [](FreeSpaceManager &fsm, const QByteArray &bytes, pybind11::object fileObj, const AddressMapper &fileMapper, const QString &purpose, bool reuse) {
                 PyQIODevice device(fileObj);
+                device.open(QIODevice::ReadWrite);
                 QDataStream stream(&device);
                 return fsm.allocateUnusedSpace(bytes, stream, fileMapper, purpose, reuse);
             }, pybind11::arg("bytesToAllocate"), pybind11::arg("mainDolFileObj"), pybind11::arg("addressMapper"), pybind11::arg("purpose"), pybind11::arg("reuse") = true, R"pycsmmdoc(
