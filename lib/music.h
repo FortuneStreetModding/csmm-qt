@@ -115,13 +115,15 @@ enum MusicType: quint32 {
     roundTheBlocks         = 28,  // BGM
     roundTheBlocksWin      = 108, // ME
     roundTheBlocks777      = 109, // ME
-    roundTheBlocksWinMario = 110, // ME (prize win theme but always the Mario theme variant? -> still a mystery where this is used by the game)
+    // roundTheBlocksWinMario = 110, // ME (prize win theme but always the Mario theme variant? -> still a mystery where this is used by the game)
+    // roundTheBlocksLose     = 49,  // ME (maybe this one is reused at other places?)
     memoryBlock            = 29,  // BGM
     dartOfGold             = 30,  // BGM
     slurpodromeSelect      = 31,  // BGM
     slurpodromeStart       = 102, // ME
     slurpodromeRace        = 32,  // BGM
-    slurpodromeWin         = 112  // ME
+    slurpodromeWin         = 103  // ME
+    // zoneWinSound        = 112  // ME
 };
 
 static const QMap<QString, MusicType> stringToMusicTypes = {
