@@ -9,8 +9,8 @@ public:
     static constexpr std::string_view MODID = "initialFreeSpace";
     QString modId() const override { return MODID.data(); }
     int priority() const override { return FREE_SPACE_PRIORITY; }
-    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
-    void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
+    void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
+    void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
 };
 
 #endif // INITIALFREESPACE_H

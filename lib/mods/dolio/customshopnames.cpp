@@ -96,9 +96,9 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> CustomShopNames::loadUiM
     QMap<QString, UiMessageInterface::LoadMessagesFunction> result;
     for (auto &locale : FS_LOCALES) {
         if (locale == "uk") continue;
-        result[uiMessageCsv(locale)] = [=](const QString &, GameInstance &gameInstance,
+        result[uiMessageCsv(locale)] = [=](const QString &, GameInstance *gameInstance,
                 const ModListType &, const UiMessage *messages) {
-            for (auto &descriptor: gameInstance.mapDescriptors()) {
+            for (auto &descriptor: gameInstance->mapDescriptors()) {
                 auto &shopNames = (isCapital ? descriptor.capitalShopNames : descriptor.shopNames)[locale];
                 shopNames.clear();
                 for (auto id : (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds)) {
@@ -110,11 +110,11 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> CustomShopNames::loadUiM
     return result;
 }
 
-void CustomShopNames::allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void CustomShopNames::allocateUiMessages(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     // reuse shop name ids if they are equivalent in all languages
     std::map<std::vector<QString>, int> uiMessageIdReuse;
-    for (auto &descriptor : gameInstance.mapDescriptors()) {
+    for (auto &descriptor : gameInstance->mapDescriptors()) {
         auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
         auto &shopNames = (isCapital ? descriptor.capitalShopNames : descriptor.shopNames);
         shopNameIds.clear();
@@ -124,7 +124,7 @@ void CustomShopNames::allocateUiMessages(const QString &root, GameInstance &game
                 reuse.push_back(ent.second[i]);
             }
             if (!uiMessageIdReuse.count(reuse)) {
-                uiMessageIdReuse[reuse] = gameInstance.nextUiMessageId();
+                uiMessageIdReuse[reuse] = gameInstance->nextUiMessageId();
             }
             shopNameIds.push_back(uiMessageIdReuse[reuse]);
         }
@@ -135,10 +135,10 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> CustomShopNames::saveUiM
 {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale : FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [=](const QString &, GameInstance &gameInstance,
+        result[uiMessageCsv(locale)] = [=](const QString &, GameInstance *gameInstance,
                 const ModListType &, UiMessage *messages) {
             auto theLocale = locale == "uk" ? "en" : locale;
-            for (auto &descriptor: gameInstance.mapDescriptors()) {
+            for (auto &descriptor: gameInstance->mapDescriptors()) {
                 auto &shopNames = retrieveStr(isCapital ? descriptor.capitalShopNames : descriptor.shopNames, theLocale);
                 auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
                 for (int i=0; i<shopNameIds.size(); ++i) {
@@ -151,7 +151,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> CustomShopNames::saveUiM
 }
 
 
-void CustomShopNames::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void CustomShopNames::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     QFile addrFile(QDir(root).filePath(tableAddrFileName()));
     if (addrFile.open(QFile::ReadOnly)) {
@@ -161,7 +161,7 @@ void CustomShopNames::loadFiles(const QString &root, GameInstance &gameInstance,
     DolIOTable::loadFiles(root, gameInstance, modList);
 }
 
-void CustomShopNames::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void CustomShopNames::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     DolIOTable::saveFiles(root, gameInstance, modList);
     QFile addrFile(QDir(root).filePath(tableAddrFileName()));

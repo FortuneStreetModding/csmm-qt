@@ -10,8 +10,8 @@ public:
     QString modId() const override { return MODID.data(); }
     QSet<QString> after() const override { return { "defaultMiscPatches", "copyMapFiles" }; }
     QSet<QString> depends() const override { return {"allocateDescriptorCount", "copyMapFiles"}; }
-    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
-    void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
+    void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
+    void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;

@@ -1,14 +1,14 @@
 #include "initialfreespace.h"
 
-void InitialFreeSpace::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void InitialFreeSpace::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     // nothing to do
 }
 
-void InitialFreeSpace::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void InitialFreeSpace::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
-    auto &freeSpaceManager = gameInstance.freeSpaceManager();
-    auto &addressMapper = gameInstance.addressMapper();
+    auto &freeSpaceManager = gameInstance->freeSpaceManager();
+    auto &addressMapper = gameInstance->addressMapper();
     // Unused costume string table 1
     freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8042bc78), addressMapper.boomStreetToStandard(0x8042c240));
     // Unused costume string table 2

@@ -58,7 +58,7 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> DisplayMapInResults::modifyAr
 {
     QMap<QString, ArcFileInterface::ModifyArcFunction> result;
     for (auto &locale : FS_LOCALES) {
-        result[gameSequenceResultArc(locale)] = [](const QString &, GameInstance &, const ModListType &, const QString &tmpDir) {
+        result[gameSequenceResultArc(locale)] = [](const QString &, GameInstance *, const ModListType &, const QString &tmpDir) {
             auto brlytFile = QDir(tmpDir).filePath("arc/blyt/ui_menu_011_scene.brlyt");
 
             ResultScenes::widenResultTitle(brlytFile);

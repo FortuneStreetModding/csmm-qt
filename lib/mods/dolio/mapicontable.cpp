@@ -284,9 +284,9 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> MapIconTable::modifyArcFile()
     QMap<QString, ArcFileInterface::ModifyArcFunction> result;
 
     for (auto &locale: FS_LOCALES) {
-        result[gameSequenceArc(locale)] = [&](const QString &root, GameInstance &gameInstance, const ModListType &, const QString &tmpDir) {
+        result[gameSequenceArc(locale)] = [&](const QString &root, GameInstance *gameInstance, const ModListType &, const QString &tmpDir) {
             QMap<QString, QString> mapIconToTplName;
-            for (auto &mapDescriptor: gameInstance.mapDescriptors()) {
+            for (auto &mapDescriptor: gameInstance->mapDescriptors()) {
                 if (mapDescriptor.mapIcon.isEmpty()) continue;
                 if (VanillaDatabase::hasVanillaTpl(mapDescriptor.mapIcon)) {
                     mapIconToTplName[mapDescriptor.mapIcon] = VanillaDatabase::getVanillaTpl(mapDescriptor.mapIcon);
@@ -298,11 +298,11 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> MapIconTable::modifyArcFile()
                 }
             }
 
-            for (auto &mapDescriptor: gameInstance.mapDescriptors()) {
+            for (auto &mapDescriptor: gameInstance->mapDescriptors()) {
                 if (mapDescriptor.mapIcon.isEmpty() || VanillaDatabase::hasVanillaTpl(mapDescriptor.mapIcon)) {
                     continue;
                 }
-                QString mapIconPng = QDir(gameInstance.getImportDir()).filePath(PARAM_FOLDER + "/" + mapDescriptor.mapIcon + ".png");
+                QString mapIconPng = QDir(gameInstance->getImportDir()).filePath(PARAM_FOLDER + "/" + mapDescriptor.mapIcon + ".png");
                 QFileInfo mapIconPngInfo(mapIconPng);
                 if (mapIconPngInfo.exists() && mapIconPngInfo.isFile()) {
                     auto mapIconTpl = QDir(tmpDir).filePath("arc/timg/" + mapIconToTplName[mapDescriptor.mapIcon]);

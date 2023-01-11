@@ -11,10 +11,10 @@ public:
     QString modId() const override { return MODID.data(); }
     QSet<QString> depends() const override { return {"defaultMiscPatches"}; }
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
-    void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
+    void allocateUiMessages(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;
-    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
-    void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
+    void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
+    void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;

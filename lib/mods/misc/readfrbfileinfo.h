@@ -6,8 +6,8 @@
 class ReadFrbFileInfo : public CSMMMod, public GeneralInterface
 {
     static constexpr std::string_view MODID = "readFrbFileInfo";
-    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
-    void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
+    void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
+    void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     QString modId() const override { return MODID.data(); };
     QSet<QString> after() const override { return {"frbMapTable"}; }
 };

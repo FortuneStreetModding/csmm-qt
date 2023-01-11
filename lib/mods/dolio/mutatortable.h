@@ -11,8 +11,8 @@ public:
     QString modId() const override { return MODID.data(); }
     QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
-    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
-    void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
+    void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
+    void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     quint32 getMutatorTableStorageAddr() const;
     quint32 getMutatorTableRoutineAddr() const;
 protected:

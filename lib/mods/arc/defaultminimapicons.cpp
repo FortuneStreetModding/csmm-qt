@@ -43,7 +43,7 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> DefaultMinimapIcons::modifyAr
         auto icon_w = getFileCopy(QString(":/files/minimap/%1ui_minimap_icon_w_ja.png").arg(langDir), minimapTemp->path());
         auto mark_eventsquare = getFileCopy(QString(":/files/ui_mark_eventsquare.png"), minimapTemp->path());
 
-        result[gameSequenceArc(locale)] = [=](const QString &, GameInstance &, const ModListType &, const QString &tmpDir) {
+        result[gameSequenceArc(locale)] = [=](const QString &, GameInstance *, const ModListType &, const QString &tmpDir) {
             (void)minimapTemp; // keep alive
 
             QFile::remove(QDir(tmpDir).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));
@@ -56,7 +56,7 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> DefaultMinimapIcons::modifyAr
             await(ExeWrapper::convertPngToTpl(icon_w, QDir(tmpDir).filePath("arc/timg/ui_minimap_icon_w_ja.tpl")));
         };
 
-        result[gameBoardArc(locale)] = [=](const QString &, GameInstance &, const ModListType &, const QString &tmpDir) {
+        result[gameBoardArc(locale)] = [=](const QString &, GameInstance *, const ModListType &, const QString &tmpDir) {
             (void)minimapTemp; // keep alive
 
             QFile::remove(QDir(tmpDir).filePath("arc/timg/ui_minimap_icon2_ja.tpl"));

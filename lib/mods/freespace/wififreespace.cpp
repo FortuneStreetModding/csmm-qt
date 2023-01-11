@@ -1,14 +1,14 @@
 #include "wififreespace.h"
 
-void WifiFreeSpace::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void WifiFreeSpace::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     // nothing to do
 }
 
-void WifiFreeSpace::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void WifiFreeSpace::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
-    auto &freeSpaceManager = gameInstance.freeSpaceManager();
-    auto &addressMapper = gameInstance.addressMapper();
+    auto &freeSpaceManager = gameInstance->freeSpaceManager();
+    auto &addressMapper = gameInstance->addressMapper();
     // -- Random Matchmaking Code --
     // WifiFreeScene
     freeSpaceManager.addFreeSpace(addressMapper.boomStreetToStandard(0x8023d088), addressMapper.boomStreetToStandard(0x8023d308));

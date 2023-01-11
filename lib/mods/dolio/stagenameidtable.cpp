@@ -52,8 +52,8 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> StageNameIDTable::loadUi
     QMap<QString, UiMessageInterface::LoadMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
         if (locale == "uk") continue;
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage *messages) {
-            for (auto &descriptor: instance.mapDescriptors()) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *instance, const ModListType &, const UiMessage *messages) {
+            for (auto &descriptor: instance->mapDescriptors()) {
                 descriptor.names[locale] = messages->at(descriptor.nameMsgId);
             }
         };
@@ -61,21 +61,21 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> StageNameIDTable::loadUi
     return result;
 }
 
-void StageNameIDTable::allocateUiMessages(const QString &, GameInstance &gameInstance, const ModListType &) {
-    for (auto &descriptor: gameInstance.mapDescriptors()) {
-        descriptor.nameMsgId = gameInstance.nextUiMessageId();
+void StageNameIDTable::allocateUiMessages(const QString &, GameInstance *gameInstance, const ModListType &) {
+    for (auto &descriptor: gameInstance->mapDescriptors()) {
+        descriptor.nameMsgId = gameInstance->nextUiMessageId();
     }
 }
 
 QMap<QString, UiMessageInterface::SaveMessagesFunction> StageNameIDTable::saveUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage *messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *instance, const ModListType &, UiMessage *messages) {
             QString theLocale = locale;
             if (locale == "uk") {
                 theLocale = "en";
             }
-            for (auto &descriptor: instance.mapDescriptors()) {
+            for (auto &descriptor: instance->mapDescriptors()) {
                 (*messages)[descriptor.nameMsgId] = retrieveStr(descriptor.names, theLocale);
             }
         };

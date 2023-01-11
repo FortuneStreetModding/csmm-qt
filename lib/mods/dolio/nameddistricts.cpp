@@ -78,8 +78,8 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> NamedDistricts::loadUiMe
     QMap<QString, UiMessageInterface::LoadMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
         if (locale == "uk") continue;
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage *messages) {
-            for (auto &descriptor: instance.mapDescriptors()) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *instance, const ModListType &, const UiMessage *messages) {
+            for (auto &descriptor: instance->mapDescriptors()) {
                 descriptor.districtNames[locale].clear();
                 for (int distNameId: qAsConst(descriptor.districtNameIds)) {
                     auto distName = messages->at(distNameId);
@@ -97,11 +97,11 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> NamedDistricts::loadUiMe
     return result;
 }
 
-void NamedDistricts::allocateUiMessages(const QString &, GameInstance &gameInstance, const ModListType &) {
-    for (auto &descriptor: gameInstance.mapDescriptors()) {
+void NamedDistricts::allocateUiMessages(const QString &, GameInstance *gameInstance, const ModListType &) {
+    for (auto &descriptor: gameInstance->mapDescriptors()) {
         descriptor.districtNameIds.clear();
         for (int i=0; i<descriptor.districtNames["en"].size(); ++i) {
-            int newId = gameInstance.nextUiMessageId();
+            int newId = gameInstance->nextUiMessageId();
             descriptor.districtNameIds.push_back(newId);
         }
     }
@@ -110,7 +110,7 @@ void NamedDistricts::allocateUiMessages(const QString &, GameInstance &gameInsta
 QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage *messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *instance, const ModListType &, UiMessage *messages) {
                 QString theLocale = locale;
                 if (locale == "uk") {
                     theLocale = "en";
@@ -134,7 +134,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> NamedDistricts::saveUiMe
                     // TODO find out what 2963 does if anything at all
                 }
 
-                for (auto &descriptor: instance.mapDescriptors()) {
+                for (auto &descriptor: instance->mapDescriptors()) {
                     for (int i=0; i<descriptor.districtNameIds.size(); ++i) {
                         (*messages)[descriptor.districtNameIds[i]]
                                 = (i < descriptor.districtNames[theLocale].size()
@@ -153,7 +153,7 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> NamedDistricts::modifyArcFile
 {
     QMap<QString, ArcFileInterface::ModifyArcFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[gameBoardArc(locale)] = [&](const QString &, GameInstance &, const ModListType &, const QString &tmpDir) {
+        result[gameBoardArc(locale)] = [&](const QString &, GameInstance *, const ModListType &, const QString &tmpDir) {
             auto brlytFile = QDir(tmpDir).filePath("arc/blyt/ui_game_013.brlyt");
             Ui_game_013::widenDistrictName(brlytFile);
 

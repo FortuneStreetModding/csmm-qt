@@ -10,7 +10,7 @@ public:
     QString modId() const override { return MODID.data(); }
     QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
-    virtual void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override;
+    virtual void allocateUiMessages(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     QMap<QString, SaveMessagesFunction> saveUiMessages() override;
     void readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) override;
     QMap<QString, ModifyArcFunction> modifyArcFile() override;

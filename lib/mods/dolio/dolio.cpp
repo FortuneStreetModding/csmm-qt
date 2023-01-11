@@ -1,7 +1,7 @@
 #include "dolio.h"
 #include "lib/datafileset.h"
 
-void DolIO::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void DolIO::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     auto mainDolLoc = QDir(root).filePath(MAIN_DOL);
     QFile mainDolFile(mainDolLoc);
     if (!mainDolFile.open(QFile::ReadOnly)) {
@@ -9,11 +9,11 @@ void DolIO::loadFiles(const QString &root, GameInstance &gameInstance, const Mod
     }
     QDataStream mainDolStream(&mainDolFile);
     modListPtr = &modList;
-    readAsm(mainDolStream, gameInstance.addressMapper(), gameInstance.mapDescriptors());
+    readAsm(mainDolStream, gameInstance->addressMapper(), gameInstance->mapDescriptors());
     modListPtr = nullptr;
 }
 
-void DolIO::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void DolIO::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     auto mainDolLoc = QDir(root).filePath(MAIN_DOL);
     QFile mainDolFile(mainDolLoc);
     if (!mainDolFile.open(QFile::ReadWrite)) {
@@ -21,7 +21,7 @@ void DolIO::saveFiles(const QString &root, GameInstance &gameInstance, const Mod
     }
     QDataStream mainDolStream(&mainDolFile);
     modListPtr = &modList;
-    write(mainDolStream, gameInstance.addressMapper(), gameInstance.mapDescriptors(), gameInstance.freeSpaceManager());
+    write(mainDolStream, gameInstance->addressMapper(), gameInstance->mapDescriptors(), gameInstance->freeSpaceManager());
     modListPtr = nullptr;
 }
 

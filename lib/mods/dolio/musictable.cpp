@@ -197,7 +197,7 @@ void MusicTable::readAsm(QDataStream &stream, const AddressMapper &addressMapper
     }
 }
 
-void MusicTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void MusicTable::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     // read the addresses
     QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
     if (addrFile.open(QFile::ReadOnly)) {
@@ -215,7 +215,7 @@ void MusicTable::loadFiles(const QString &root, GameInstance &gameInstance, cons
             QDataStream stream(&brsarFile);
             if (Brsar::containsCsmmEntries(stream)) {
                 stream.device()->seek(0);
-                Brsar::read(stream, gameInstance.mapDescriptors());
+                Brsar::read(stream, gameInstance->mapDescriptors());
             }
         } else {
             throw ModException(QString("Could not open file %1 for read/write. %2").arg(brsarFilePath, brsarFile.errorString()));
@@ -226,8 +226,8 @@ void MusicTable::loadFiles(const QString &root, GameInstance &gameInstance, cons
 
 }
 
-void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
-    for (auto &descriptor: gameInstance.mapDescriptors()) {
+void MusicTable::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
+    for (auto &descriptor: gameInstance->mapDescriptors()) {
         for (auto &mapEnt: descriptor.music) {
             auto &musicEntry = mapEnt.second;
             QFileInfo brstmFileInfo(QDir(root).filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename+".brstm"));
@@ -249,7 +249,7 @@ void MusicTable::saveFiles(const QString &root, GameInstance &gameInstance, cons
             QDataStream stream(&brsarFile);
             if (Brsar::containsCsmmEntries(stream)) {
                 stream.device()->seek(0);
-                int brsarSlots = Brsar::patch(stream, gameInstance.mapDescriptors());
+                int brsarSlots = Brsar::patch(stream, gameInstance->mapDescriptors());
                 if(brsarSlots == -1) {
                     throw ModException(QString("An error happened during patching the brsar file %1. The brsar file seems to be corrupt.").arg(brsarFilePath));
                 } else if(brsarSlots == -2) {

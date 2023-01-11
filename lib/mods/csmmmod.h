@@ -12,7 +12,7 @@ public:
     /**
      * @brief Typedef for functions that modify the contents of .arc files; takes the extracted directory path as the last argument.
      */
-    typedef std::function<void(const QString &, GameInstance &, const ModListType &, const QString &)> ModifyArcFunction;
+    typedef std::function<void(const QString &, GameInstance *, const ModListType &, const QString &)> ModifyArcFunction;
 
     /**
      * @brief Used to modify .arc files on save.
@@ -31,7 +31,7 @@ public:
      * @param gameInstance the game instance
      * @param modList the mod list
      */
-    virtual void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {};
+    virtual void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {};
 
     /**
      * @brief Modifies game files
@@ -39,7 +39,7 @@ public:
      * @param gameInstance the game instance
      * @param modList the mod list
      */
-    virtual void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {};
+    virtual void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {};
 
     virtual ~GeneralInterface() {}
 };
@@ -49,11 +49,11 @@ public:
     /**
      * @brief These functions take the UiMessage to be loaded as the last argument.
      */
-    typedef std::function<void(const QString &, GameInstance &, const ModListType &, const UiMessage *)> LoadMessagesFunction;
+    typedef std::function<void(const QString &, GameInstance *, const ModListType &, const UiMessage *)> LoadMessagesFunction;
     /**
      * @brief These functions take the UiMessage to be manipulated as the last argument.
      */
-    typedef std::function<void(const QString &, GameInstance &, const ModListType &, UiMessage *)> SaveMessagesFunction;
+    typedef std::function<void(const QString &, GameInstance *, const ModListType &, UiMessage *)> SaveMessagesFunction;
 
     /**
      * @return a mapping from the language file path relative to root to a function for loading that language file
@@ -65,7 +65,7 @@ public:
      * @param gameInstance the game instance object
      * @param modList the mod list
      */
-    virtual void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) {};
+    virtual void allocateUiMessages(const QString &root, GameInstance *gameInstance, const ModListType &modList) {};
     /**
      * @return a mapping from the language file path relative to root to a function for saving to the language file
      */

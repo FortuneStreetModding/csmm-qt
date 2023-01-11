@@ -118,7 +118,7 @@ void MutatorTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapD
     }
 }
 
-void MutatorTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList){
+void MutatorTable::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList){
     QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
     if (addrFile.open(QFile::ReadOnly)) {
         QDataStream addrStream(&addrFile);
@@ -127,7 +127,7 @@ void MutatorTable::loadFiles(const QString &root, GameInstance &gameInstance, co
     DolIOTable::loadFiles(root, gameInstance, modList);
 }
 
-void MutatorTable::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void MutatorTable::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     DolIOTable::saveFiles(root, gameInstance, modList);
     QSaveFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
     if (addrFile.open(QFile::WriteOnly)) {

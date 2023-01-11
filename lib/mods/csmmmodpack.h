@@ -107,7 +107,7 @@ public:
             if (generalFileInterface) {
                 qDebug() << "loading general interface for" << mod->modId();
 
-                generalFileInterface->loadFiles(root, gameInstance, modList);
+                generalFileInterface->loadFiles(root, &gameInstance.get(), modList);
             }
 
             if (modToLoaders.contains(mod->modId())) {
@@ -115,7 +115,7 @@ public:
 
                 auto &loaders = modToLoaders[mod->modId()];
                 for (auto it = loaders.begin(); it != loaders.end(); ++it) {
-                    it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
+                    it.value()(root, &gameInstance.get(), modList, &messageFiles[it.key()]);
                 }
             }
         }
@@ -286,25 +286,25 @@ public:
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {
                 qInfo() << "allocating ui messages for" << mod->modId();
-                uiMessageInterface->allocateUiMessages(root, gameInstance, modList);
+                uiMessageInterface->allocateUiMessages(root, &gameInstance.get(), modList);
             }
             if (messageSavers.contains(mod->modId())) {
                 qInfo() << "saving ui messages for" << mod->modId();
                 auto &savers = messageSavers[mod->modId()];
                 for (auto it=savers.begin(); it!=savers.end(); ++it) {
-                    it.value()(root, gameInstance, modList, &messageFiles[it.key()]);
+                    it.value()(root, &gameInstance.get(), modList, &messageFiles[it.key()]);
                 }
             }
             auto generalFileInterface = mod.getCapability<GeneralInterface>();
             if (generalFileInterface) {
                 qInfo() << "processing general interface for" << mod->modId();
-                generalFileInterface->saveFiles(root, gameInstance, modList);
+                generalFileInterface->saveFiles(root, &gameInstance.get(), modList);
             }
             if (arcModifiers.contains(mod->modId())) {
                 qInfo() << "saving arc files for" << mod->modId();
                 auto &modifiers = arcModifiers[mod->modId()];
                 for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
-                    it.value()(root, gameInstance, modList, arcFilesDir.filePath(it.key()));
+                    it.value()(root, &gameInstance.get(), modList, arcFilesDir.filePath(it.key()));
                 }
             }
         }

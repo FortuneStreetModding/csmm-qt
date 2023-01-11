@@ -1,7 +1,7 @@
 #include "forcesimulatedbuttonpress.h"
 #include "lib/powerpcasm.h"
 
-void ForceSimulatedButtonPress::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void ForceSimulatedButtonPress::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     DolIO::loadFiles(root, gameInstance, modList);
     QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
     if (addrFile.open(QFile::ReadOnly)) {
@@ -10,7 +10,7 @@ void ForceSimulatedButtonPress::loadFiles(const QString &root, GameInstance &gam
     }
 }
 
-void ForceSimulatedButtonPress::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void ForceSimulatedButtonPress::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     DolIO::saveFiles(root, gameInstance, modList);
     QSaveFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
     if (addrFile.open(QFile::WriteOnly)) {

@@ -87,6 +87,8 @@ protected:
         return size;
     }
     qint64 writeData(const char *data, qint64 len) override {
+        //using namespace pybind11::literals;
+        //pybind11::print(obj, pybind11::bytes(data, len), "file"_a = pybind11::module::import("sys").attr("stderr"));
         return obj.attr("write")(pybind11::bytes(data, len)).cast<qint64>();
     }
 private:
@@ -129,10 +131,10 @@ class PyGeneralInterface : public GeneralInterface {
 public:
     using GeneralInterface::GeneralInterface;
 
-    void loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
+    void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override {
         PYBIND11_OVERRIDE(void, GeneralInterface, loadFiles, root, gameInstance, modList);
     }
-    void saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
+    void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override {
         PYBIND11_OVERRIDE(void, GeneralInterface, saveFiles, root, gameInstance, modList);
     }
 };
@@ -147,7 +149,7 @@ public:
     QMap<QString, LoadMessagesFunction> loadUiMessages() override {
         PYBIND11_OVERRIDE(LoadResultType, UiMessageInterface, loadUiMessages);
     }
-    void allocateUiMessages(const QString &root, GameInstance &gameInstance, const ModListType &modList) override {
+    void allocateUiMessages(const QString &root, GameInstance *gameInstance, const ModListType &modList) override {
         PYBIND11_OVERRIDE(void, UiMessageInterface, allocateUiMessages, root, gameInstance, modList);
     }
     QMap<QString, SaveMessagesFunction> saveUiMessages() override {
@@ -488,12 +490,12 @@ void init_pycsmm(pybind11::module_ &m) {
                           [](GameInstance &instance, const std::vector<MapDescriptor> &descs) { instance.mapDescriptors() = descs; }, R"pycsmmdoc(
     The list of map descriptors.
 )pycsmmdoc")
-            .def("addressMapper", &GameInstance::addressMapper, R"pycsmmdoc(
+            .def("addressMapper", [](GameInstance &instance) { return &instance.addressMapper(); }, R"pycsmmdoc(
     Retrieves the address mapper.
-)pycsmmdoc")
-            .def("freeSpaceManager", qNonConstOverload<>(&GameInstance::freeSpaceManager), R"pycsmmdoc(
+)pycsmmdoc", pybind11::return_value_policy::reference)
+            .def("freeSpaceManager", [](GameInstance &instance) { return &instance.freeSpaceManager(); }, R"pycsmmdoc(
     Retrieves the free space manager.
-)pycsmmdoc")
+)pycsmmdoc", pybind11::return_value_policy::reference)
             .def("nextUiMessageId", &GameInstance::nextUiMessageId, R"pycsmmdoc(
     Fetches and updates the next available localization ID.
 )pycsmmdoc")

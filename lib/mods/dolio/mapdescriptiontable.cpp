@@ -71,8 +71,8 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> MapDescriptionTable::loa
     QMap<QString, UiMessageInterface::LoadMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
         if (locale == "uk") continue;
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, const UiMessage *messages) {
-            for (auto &descriptor: instance.mapDescriptors()) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *instance, const ModListType &, const UiMessage *messages) {
+            for (auto &descriptor: instance->mapDescriptors()) {
                 descriptor.descs[locale] = messages->at(descriptor.descMsgId);
             }
         };
@@ -80,16 +80,16 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> MapDescriptionTable::loa
     return result;
 }
 
-void MapDescriptionTable::allocateUiMessages(const QString &, GameInstance &gameInstance, const ModListType &) {
-    for (auto &descriptor: gameInstance.mapDescriptors()) {
-        descriptor.descMsgId = gameInstance.nextUiMessageId();
+void MapDescriptionTable::allocateUiMessages(const QString &, GameInstance *gameInstance, const ModListType &) {
+    for (auto &descriptor: gameInstance->mapDescriptors()) {
+        descriptor.descMsgId = gameInstance->nextUiMessageId();
     }
 }
 
 QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::saveUiMessages() {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &instance, const ModListType &, UiMessage *messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *instance, const ModListType &, UiMessage *messages) {
             QString theLocale = locale == "uk" ? "en" : locale;
             bool addAuthorToDesc = true;
             if (!modpackDir().isEmpty()) {
@@ -101,7 +101,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::sav
                     addAuthorToDesc = !addAuthorToDescNode.IsDefined() || addAuthorToDescNode.as<bool>();
                 }
             }
-            for (auto &descriptor: instance.mapDescriptors()) {
+            for (auto &descriptor: instance->mapDescriptors()) {
                 (*messages)[descriptor.descMsgId] = retrieveStr(descriptor.descs, theLocale)
                         + (addAuthorToDesc && !descriptor.authors.empty()
                             ? " [" + QStringList(descriptor.authors.begin(), descriptor.authors.end()).join(", ") + "]"
@@ -112,7 +112,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> MapDescriptionTable::sav
     return result;
 }
 
-void MapDescriptionTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void MapDescriptionTable::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     DolIOTable::loadFiles(root, gameInstance, modList);
     if (!modpackDir().isEmpty()) {

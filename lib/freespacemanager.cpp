@@ -81,6 +81,9 @@ quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStre
     }
     quint32 end = findSuitableFreeSpaceBlock(bytes.size());
     quint32 start = remainingFreeSpaceBlocks[end];
+    /*if (bytes == QByteArray::fromHex("98bb023a98bb022d98bb022e4e800020")) {
+        qDebug() << "old start: " << remainingFreeSpaceBlocks[end];
+    }*/
     quint32 newStart = start + bytes.size();
     while (newStart % 4 != 0) {
         ++newStart;
@@ -89,6 +92,9 @@ quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStre
         newStart = end;
     }
     remainingFreeSpaceBlocks[end] = newStart;
+    /*if (bytes == QByteArray::fromHex("98bb023a98bb022d98bb022e4e800020")) {
+        qDebug() << "new start: " << remainingFreeSpaceBlocks[end];
+    }*/
     stream.device()->seek(fileMapper.toFileAddress(start));
     stream.writeRawData(bytes, bytes.size());
     QByteArray padding(newStart - start - bytes.size(), '\0');
@@ -97,6 +103,15 @@ quint32 FreeSpaceManager::allocateUnusedSpace(const QByteArray &bytes, QDataStre
         reuseValues[bytes] = start;
     }
     qDebug().noquote() << "Allocate " + byteArrayAsString + " (" + QString::number(bytes.size()) + " bytes) at " + QString::number(start, 16) + purposeMsg;
+
+    /*
+    qDebug() << "== START" << (void *)this << "==";
+    for (auto it=remainingFreeSpaceBlocks.begin(); it!=remainingFreeSpaceBlocks.end(); ++it) {
+        qDebug() << QString::number(it.value(), 16) << " to " << QString::number(it.key(), 16);
+    }
+    qDebug() << "== END ==";
+    */
+
     return start;
 }
 

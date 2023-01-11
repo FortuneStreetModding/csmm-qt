@@ -1,12 +1,12 @@
 #include "defaultmiscpatches.h"
 #include "lib/importexportutils.h"
 
-void DefaultMiscPatches::loadFiles(const QString &, GameInstance &, const ModListType &)
+void DefaultMiscPatches::loadFiles(const QString &, GameInstance *, const ModListType &)
 {
     // crab nothing to do crab
 }
 
-void DefaultMiscPatches::saveFiles(const QString &root, GameInstance &, const ModListType &)
+void DefaultMiscPatches::saveFiles(const QString &root, GameInstance *, const ModListType &)
 {
     QFile f(":/files/bspatches.yaml");
     if (f.open(QFile::ReadOnly)) {

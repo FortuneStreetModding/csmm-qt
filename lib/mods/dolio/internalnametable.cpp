@@ -2,7 +2,7 @@
 #include "lib/powerpcasm.h"
 #include <cstring>
 
-void InternalNameTable::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void InternalNameTable::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
     if (addrFile.open(QFile::ReadOnly)) {
         QDataStream addrStream(&addrFile);
@@ -11,7 +11,7 @@ void InternalNameTable::loadFiles(const QString &root, GameInstance &gameInstanc
     DolIOTable::loadFiles(root, gameInstance, modList);
 }
 
-void InternalNameTable::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList) {
+void InternalNameTable::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     DolIOTable::saveFiles(root, gameInstance, modList);
     DolIO::saveFiles(root, gameInstance, modList);
     QSaveFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));

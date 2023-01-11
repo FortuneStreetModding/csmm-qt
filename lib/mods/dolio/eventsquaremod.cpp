@@ -401,11 +401,11 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> EventSquareMod::loadUiMe
     return {};
 }
 
-void EventSquareMod::allocateUiMessages(const QString &, GameInstance &instance, const ModListType &)
+void EventSquareMod::allocateUiMessages(const QString &, GameInstance *instance, const ModListType &)
 {
-    eventSquareId = instance.nextUiMessageId();
-    freeParkingId = instance.nextUiMessageId();
-    freeParkingDescId = instance.nextUiMessageId();
+    eventSquareId = instance->nextUiMessageId();
+    freeParkingId = instance->nextUiMessageId();
+    freeParkingDescId = instance->nextUiMessageId();
 }
 
 static const QHash<QString, QString> EVENT_SQUARE_LOC = {
@@ -442,7 +442,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> EventSquareMod::saveUiMe
 {
     QMap<QString, UiMessageInterface::SaveMessagesFunction> result;
     for (auto &locale: FS_LOCALES) {
-        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance &, const ModListType &, UiMessage *messages) {
+        result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *, const ModListType &, UiMessage *messages) {
             // add msg id for event square
             (*messages)[eventSquareId] = EVENT_SQUARE_LOC[locale];
             // add msg id for free parking square
@@ -454,7 +454,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> EventSquareMod::saveUiMe
     return result;
 }
 
-void EventSquareMod::loadFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void EventSquareMod::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     DolIO::loadFiles(root, gameInstance, modList);
     QFile addrFile(QDir(root).filePath(FORCE_VENTURE_CARD_ADDRESS_FILE.data()));
@@ -464,7 +464,7 @@ void EventSquareMod::loadFiles(const QString &root, GameInstance &gameInstance, 
     }
 }
 
-void EventSquareMod::saveFiles(const QString &root, GameInstance &gameInstance, const ModListType &modList)
+void EventSquareMod::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
     DolIO::saveFiles(root, gameInstance, modList);
     QSaveFile addrFile(QDir(root).filePath(FORCE_VENTURE_CARD_ADDRESS_FILE.data()));
