@@ -438,7 +438,11 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             QFileInfo fileInfo(brstmBaseFilename);
             QString suffix = fileInfo.suffix();
             if(!suffix.isEmpty()) {
-                entry.volume = suffix.toInt();
+                bool ok;
+                auto volume = suffix.toInt(&ok);
+                if(ok && volume >= 0 && volume <= 255) {
+                    entry.volume = volume;
+                }
             }
             auto musicType = Music::stringToMusicType(musicTypeStr);
             music[musicType] = entry;
