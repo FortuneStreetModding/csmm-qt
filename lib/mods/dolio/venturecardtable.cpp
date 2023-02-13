@@ -30,7 +30,7 @@ void VentureCardTable::writeAsm(QDataStream &stream, const AddressMapper &addres
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(ventureCardCompressedTableAddr);
 
     // Allocate working memory space for a single uncompressed venture card table which is passed on for the game to use. We will use it to store the result of decompressing a compressed venture card table
-    quint32 ventureCardDecompressedTableAddr = allocate(QByteArray(130, '\0'), "VentureCardReservedMemoryForDecompressedTable");
+    quint32 ventureCardDecompressedTableAddr = allocate(QByteArray(130, '\0'), "VentureCardReservedMemoryForDecompressedTable", false);
     quint32 ventureCardDecompressTableRoutine = allocate(writeSubroutine(ventureCardDecompressedTableAddr), "DecompressVentureCardSubroutine");
 
     // cmplwi r24,0x29                                     -> cmplwi r24,ventureCardTableCount-1

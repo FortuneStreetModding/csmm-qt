@@ -44,13 +44,14 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     // --- Mutator Dice Rolled Flag ---
     QVector<quint32> singleValue;
     singleValue.append(0);
-    const quint32 hasRolledDice = allocate(singleValue, "MutatorRollShopPriceMultiplier.HasRolledDice");
+    const quint32 hasRolledDice = allocate(singleValue, "MutatorRollShopPriceMultiplier.HasRolledDice", false);
+    const quint32 lastShopPrice = allocate(singleValue, "MutatorRollShopPriceMultiplier.lastShopPrice", false);
 
     // --- Roll before paying up ---
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x800fa7b4);
-    quint32 procRollDiceBeforePayingRoutine = allocate(writeRollDiceBeforePayingRoutine(addressMapper, 0, hasRolledDice, getMutatorDataSubroutine), "procRollDiceBeforePayingRoutine");
+    quint32 procRollDiceBeforePayingRoutine = allocate(writeRollDiceBeforePayingRoutine(addressMapper, 0, lastShopPrice, hasRolledDice, getMutatorDataSubroutine), "procRollDiceBeforePayingRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procRollDiceBeforePayingRoutine));
-    auto routineCode = writeRollDiceBeforePayingRoutine(addressMapper, procRollDiceBeforePayingRoutine, hasRolledDice, getMutatorDataSubroutine);
+    auto routineCode = writeRollDiceBeforePayingRoutine(addressMapper, procRollDiceBeforePayingRoutine, lastShopPrice, hasRolledDice, getMutatorDataSubroutine);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // li r7,0        ->  b procRollDiceBeforePayingRoutine
@@ -68,9 +69,9 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
 
     // --- Calc shop price depending on previously rolled dice value ---
     hijackAddr = addressMapper.boomStreetToStandard(0x8008ff9c);
-    quint32 procCalculateGainRoutine = allocate(writeCalculateGainRoutine(addressMapper, 0, hasRolledDice, getMutatorDataSubroutine), "procCalculateGainRoutine");
+    quint32 procCalculateGainRoutine = allocate(writeCalculateGainRoutine(addressMapper, 0, lastShopPrice, hasRolledDice, getMutatorDataSubroutine), "procCalculateGainRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procCalculateGainRoutine));
-    routineCode = writeCalculateGainRoutine(addressMapper, procCalculateGainRoutine, hasRolledDice, getMutatorDataSubroutine);
+    routineCode = writeCalculateGainRoutine(addressMapper, procCalculateGainRoutine, lastShopPrice, hasRolledDice, getMutatorDataSubroutine);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // add r3,r0,r3   ->  b procCalculateGainRoutine
@@ -108,7 +109,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
 
 }
 
-QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 hasRolledDice, quint32 getMutatorDataSubroutine) {
+QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 lastShopPrice, const quint32 hasRolledDice, quint32 getMutatorDataSubroutine) {
     // postcondition: r4 - progress mode
     //                r5 - progress mode afterwards
     //                r6 - progress mode if cancelled
@@ -121,6 +122,7 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     PowerPcAsm::Pair16Bit b = PowerPcAsm::make16bitValuePair(Gm_Board);
     auto Gm_Board_StopPlace = addressMapper.boomStreetToStandard(0x8007f1ec);
     PowerPcAsm::Pair16Bit d = PowerPcAsm::make16bitValuePair(hasRolledDice);
+    PowerPcAsm::Pair16Bit s = PowerPcAsm::make16bitValuePair(lastShopPrice);
     auto returnAddr = addressMapper.boomStreetToStandard(0x800fa7b8);
 
     QVector<quint32> asm_;
@@ -137,6 +139,12 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     asm_.append(PowerPcAsm::li(7, 0));
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
                 // mutator stuff
+    asm_.append(PowerPcAsm::lis(4, s.upper));           // \.
+    asm_.append(PowerPcAsm::addi(4, 4, s.lower));       // |.
+    asm_.append(PowerPcAsm::lwz(5, 0, 4));              // /. r5 <- lastShopPrice
+    asm_.append(PowerPcAsm::cmpwi(5, 0));               // \. if(lastShopPrice == 0)
+    asm_.append(PowerPcAsm::beq(asm_.size(), vanilla)); // /.   goto vanilla
+
     asm_.append(PowerPcAsm::lis(4, d.upper));           // \.
     asm_.append(PowerPcAsm::addi(4, 4, d.lower));       // |.
     asm_.append(PowerPcAsm::lwz(5, 0, 4));              // /. r5 <- hasRolledDice
@@ -174,7 +182,7 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRememberSquareType(const A
     return asm_;
 }
 
-QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 hasRolledDice, quint32 getMutatorDataSubroutine) {
+QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 lastShopPrice, const quint32 hasRolledDice, quint32 getMutatorDataSubroutine) {
     // precondition:  r3 - calculated shop price
     //               r10 - square type
     // postcondition: r3 - calculated shop price
@@ -182,6 +190,7 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const
     auto returnAddr = addressMapper.boomStreetToStandard(0x8008ffa0);
     PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(gameProgressObject);
     PowerPcAsm::Pair16Bit d = PowerPcAsm::make16bitValuePair(hasRolledDice);
+    PowerPcAsm::Pair16Bit s = PowerPcAsm::make16bitValuePair(lastShopPrice);
 
     QVector<quint32> asm_;
     asm_.append(PowerPcAsm::add(3, 0, 3));
@@ -191,16 +200,13 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const
     asm_.append(PowerPcAsm::beq(2));                                                // /.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));      // |.   return vanilla shop price
                                                                                     // |. }
-        // property or 3 star shop
+                                                                                    // property or 3 star shop
+    asm_.append(PowerPcAsm::lis(7, s.upper));                                       // \.
+    asm_.append(PowerPcAsm::addi(7, 7, s.lower));                                   // /. r7 <- &lastShopPrice
+    asm_.append(PowerPcAsm::stw(3, 0, 7));                                          // |. lastShopPrice = price
+
     asm_.append(PowerPcAsm::lis(7, d.upper));                                       // \.
     asm_.append(PowerPcAsm::addi(7, 7, d.lower));                                   // /. r7 <- &hasRolledDice
-
-    asm_.append(PowerPcAsm::cmpwi(3, 0));                                           // \. if (price == 0) {
-    asm_.append(PowerPcAsm::bne(4));                                                // |.
-    asm_.append(PowerPcAsm::li(3, 1));                                              // |.   hasRolledDice = true   // we do this so that we do not need to roll when the price is either way 0
-    asm_.append(PowerPcAsm::stw(3, 0, 7));                                          // |.
-    asm_.append(PowerPcAsm::li(3, 0));                                              // /. }
-
     asm_.append(PowerPcAsm::lwz(7, 0, 7));                                          // |. r7 <- hasRolledDice
     asm_.append(PowerPcAsm::cmpwi(7, 1));                                           // \. if(!hasRolledDice) {
     asm_.append(PowerPcAsm::beq(12));                                               // |.
