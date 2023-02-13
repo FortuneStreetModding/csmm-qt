@@ -419,6 +419,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     if (yaml["bgmId"])
         bgmId = Bgm::stringToBgmId(QString::fromStdString(yaml["bgmId"].as<std::string>()));
 
+    music.clear();
     if (yaml["music"]) {
         for (auto it=yaml["music"].begin(); it!=yaml["music"].end(); ++it) {
             if(it->second.IsNull()) {
@@ -451,6 +452,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             }
         }
     }
+    mutators.clear();
     if (yaml["mutators"]) {
         for (auto it=yaml["mutators"].begin(); it!=yaml["mutators"].end(); ++it) {
             auto mutatorStr = QString::fromStdString(it->first.as<std::string>());
