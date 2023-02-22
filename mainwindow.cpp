@@ -31,7 +31,7 @@ static void initLogFile() {
             qWarning() << "could not create directory" << logFileDir.path();
             return;
         }
-        logFile.setFileName(logFileDir.filePath(QString("csmmgui-%0.log").arg(QDateTime::currentDateTime().toString("dd-MM-yy-hh-mm-ss.zzz"))));
+        logFile.setFileName(logFileDir.filePath(QString("csmmgui-%0.log").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd-HH-mm-ss"))));
         if (!logFile.open(QFile::WriteOnly)) {
             qWarning() << "could not create log file" << logFile.fileName() << "for writing";
             return;
