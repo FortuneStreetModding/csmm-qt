@@ -16,6 +16,7 @@ public:
     void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     void saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
+    quint32 forceVentureCardVariable;
 protected:
     void writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) override;
 private:
@@ -30,7 +31,6 @@ private:
     quint32 eventSquareId = -1;
     quint32 freeParkingId = -1;
     quint32 freeParkingDescId = -1;
-    quint32 forceVentureCardVariable;
 };
 
 #endif // EVENTSQUAREMOD_H
