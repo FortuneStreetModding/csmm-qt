@@ -156,8 +156,6 @@ set(LIB_SOURCES
     lib/music.h
     lib/mutator/mutator.cpp
     lib/mutator/mutator.h
-    lib/mutator/rollagain.cpp
-    lib/mutator/rollagain.h
     lib/mutator/rollshoppricemultiplier.cpp
     lib/mutator/rollshoppricemultiplier.h
     lib/mutator/shoppricemultiplier.cpp

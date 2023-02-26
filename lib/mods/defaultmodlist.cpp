@@ -86,15 +86,13 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(false));
     patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(true));
 
-#if 0
     // mutators
     patches.append(CSMMModHolder::fromCppObj<MutatorTable>());
     patches.append(CSMMModHolder::fromCppObj<MutatorRollShopPriceMultiplier>());
     patches.append(CSMMModHolder::fromCppObj<MutatorShopPriceMultiplier>());
-#endif
+
 
     patches.append(CSMMModHolder::fromCppObj<ExpandMapsInZone>());
-
     patches.append(CSMMModHolder::fromCppObj<DefaultMinimapIcons>());
     patches.append(CSMMModHolder::fromCppObj<TurnlotScenes>());
 

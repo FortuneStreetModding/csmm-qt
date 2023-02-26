@@ -5,7 +5,7 @@
 
 struct ShopPriceMultiplier : Mutator {
     void toYaml(YAML::Emitter& out) const override;
-    void toBytes(QVector<quint32>& data) const override;
+    void toBytes_(QDataStream& data) const override;
     ShopPriceMultiplier(const YAML::Node &yaml);
     ShopPriceMultiplier(QDataStream &stream);
     bool operator==(const Mutator &other) const override;

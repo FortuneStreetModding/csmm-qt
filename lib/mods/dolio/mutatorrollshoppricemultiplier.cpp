@@ -78,14 +78,13 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     stream << PowerPcAsm::b(hijackAddr, procCalculateGainRoutine);
 
     // --- Clear Mutator Dice Rolled Flag ---
-    hijackAddr = addressMapper.boomStreetToStandard(0x800c57dc);
+    hijackAddr = addressMapper.boomStreetToStandard(0x80475e20);
     quint32 procClearDiceRolledFlag = allocate(writeClearDiceRolledFlag(addressMapper, 0, hasRolledDice), "procClearDiceRolledFlag");
     stream.device()->seek(addressMapper.toFileAddress(procClearDiceRolledFlag));
     routineCode = writeClearDiceRolledFlag(addressMapper, procClearDiceRolledFlag, hasRolledDice);
     for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
-    // mr r3,r24      ->  b procClearDiceRolledFlag
-    stream << PowerPcAsm::b(hijackAddr, procClearDiceRolledFlag);
+    stream << procClearDiceRolledFlag;
 
     // --- Do not show "Do you want to stop here" message twice ---
     hijackAddr = addressMapper.boomStreetToStandard(0x800f9cf0);
@@ -154,7 +153,7 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     asm_.append(PowerPcAsm::li(5, 1));                  // \. hasRolledDice = true
     asm_.append(PowerPcAsm::stw(5, 0, 4));              // /.
 
-    asm_.append(PowerPcAsm::lwz(3, 0x0, 3));            // r3 <- maxDiceRoll
+    asm_.append(PowerPcAsm::lbz(3, 0x0, 3));            // r3 <- maxDiceRoll
     asm_.append(PowerPcAsm::lwz(4, 0x18, 20));          // r4 <- GameProgress*
     asm_.append(PowerPcAsm::addis(4, 4, 0x2));          // \ GameProgress->MaxDiceRoll <- r4
     asm_.append(PowerPcAsm::stw(3, 0x2814, 4));         // /
@@ -233,16 +232,16 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const
 }
 
 QVector<quint32> MutatorRollShopPriceMultiplier::writeClearDiceRolledFlag(const AddressMapper &addressMapper, quint32 routineStartAddress, const quint32 hasRolledDice) {
-    auto returnAddr = addressMapper.boomStreetToStandard(0x800c57e0);
+    // auto returnAddr = addressMapper.boomStreetToStandard(0x8007ea64);
     PowerPcAsm::Pair16Bit d = PowerPcAsm::make16bitValuePair(hasRolledDice);
 
     QVector<quint32> asm_;
-    asm_.append(PowerPcAsm::li(0, 0));                                            // \.
-    asm_.append(PowerPcAsm::lis(3, d.upper));                                     // |
-    asm_.append(PowerPcAsm::addi(3, 3, d.lower));                                 // |. hasRolledDice = false
-    asm_.append(PowerPcAsm::stw(0, 0, 3));                                        // /.
-    asm_.append(PowerPcAsm::mr(3, 24));                                           // |. replaced opcode
-    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    asm_.append(PowerPcAsm::li(0, 0));                                            // \.> replaced opcode
+    asm_.append(PowerPcAsm::lis(4, d.upper));                                     // |
+    asm_.append(PowerPcAsm::addi(4, 4, d.lower));                                 // |. hasRolledDice = false
+    asm_.append(PowerPcAsm::stw(0, 0, 4));                                        // /.
+    asm_.append(PowerPcAsm::blr());
+    // asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
     return asm_;
 }
 

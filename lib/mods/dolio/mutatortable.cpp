@@ -2,12 +2,14 @@
 #include "lib/powerpcasm.h"
 
 quint32 MutatorTable::writeMutatorData(const MapDescriptor &descriptor) {
-    QVector<quint32> data;
+    QByteArray data;
+    QDataStream dataStream(&data, QIODevice::WriteOnly);
+    dataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     for(auto& mutatorEnt : descriptor.mutators) {
-        data.append(mutatorEnt.second->toBytes());
+        mutatorEnt.second->toBytes(dataStream);
     }
     // zero-terminate the mutator list
-    data.append(0);
+    dataStream << (quint32) 0;
     return allocate(data, QString("MutatorData_%1").arg(descriptor.internalName));
 }
 

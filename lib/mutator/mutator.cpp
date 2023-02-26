@@ -1,6 +1,5 @@
 #include "mutator.h"
 
-#include "rollagain.h"
 #include "rollshoppricemultiplier.h"
 #include "shoppricemultiplier.h"
 
@@ -8,11 +7,9 @@
 #include <QMap>
 
 static const QMap<QString, MutatorType> stringToMutatorTypes = {
-    {"rollAgain", RollAgainType},
     {"rollShopPriceMultiplier",  RollShopPriceMultiplierType},
     {"shopPriceMultiplier",  ShopPriceMultiplierType}
 };
-
 QString mutatorTypeToString(MutatorType mutatorType) {
     return stringToMutatorTypes.key(mutatorType);
 }
@@ -23,41 +20,41 @@ MutatorType stringToMutatorType(const QString &str) {
 QSharedPointer<Mutator> Mutator::fromYaml(QString mutatorStr, const YAML::Node &yaml) {
     if(!stringToMutatorTypes.contains(mutatorStr))
         throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
-    switch(stringToMutatorType(mutatorStr)) {
-        case NoneType: throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
-        case RollAgainType: return QSharedPointer<Mutator>(new RollAgain(yaml));
+    auto mutatorType = stringToMutatorType(mutatorStr);
+    switch(mutatorType) {
+        case InvalidMutatorType: throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(yaml));
         case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(yaml));
     }
     throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
 }
 
-QVector<quint32> Mutator::toBytes() const {
-    QVector<quint32> body;
-    toBytes(body);
+void Mutator::toBytes(QDataStream& stream) const {
+    QByteArray body;
+    QDataStream bodyDataStream(&body, QIODevice::WriteOnly);
+    bodyDataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+    toBytes_(bodyDataStream);
+    if((body.size()%4) != 0) {
+        QByteArray padding(4 - (body.size()%4), '\0');
+        bodyDataStream.writeRawData(padding, padding.size());
+    }
     // save the mutator type and the size of the body in the header
-    quint32 headerWord = type;
-    headerWord <<= 16;
-    headerWord |= body.length();
-
-    QVector<quint32> data;
-    data.append(headerWord);
-    data.append(body);
-    return data;
+    stream << (quint16) type;
+    stream << (quint16) (body.size() / 4);
+    stream.writeRawData(body, body.size());
 }
 
 QSharedPointer<Mutator> Mutator::fromBytes(QDataStream &stream) {
-    MutatorType type;
-    stream >> type;
+    MutatorType mutatorType;
+    stream >> mutatorType;
     quint16 size;
     stream >> size;
-    switch(type) {
-        case NoneType: return QSharedPointer<Mutator>();
-        case RollAgainType: return QSharedPointer<Mutator>(new RollAgain(stream));
+    switch(mutatorType) {
+        case InvalidMutatorType: return QSharedPointer<Mutator>();
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(stream));
         case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(stream));
     }
-    throw MutatorException(QString("Invalid mutator %1").arg(type));
+    throw MutatorException(QString("Invalid mutator %1").arg(mutatorType));
 }
 
 Mutator::~Mutator(void) {}
