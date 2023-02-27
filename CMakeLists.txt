@@ -8,6 +8,11 @@ if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 endif()
 
+if(WIN32)
+    add_definitions(/wd4996)
+    add_definitions(/wd4267)
+endif()
+
 set(PROJECT_VERSION 2.8.1)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
