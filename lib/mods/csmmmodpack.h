@@ -159,46 +159,64 @@ public:
         if(!restore) {
             if(mainDolTempInfo.exists()) {
                 // something went wrong last time -> restore main.dol.temp.bak
+                qInfo() << "Something went wrong last time -> restoring main.dol from main.dol.temp.bak";
                 mainDolFile.remove();
                 mainDolTempFile.rename(mainDolStr);
             }
             if(itastBrsarTempInfo.exists()) {
                 // something went wrong last time -> restore Itast.brsar.temp.bak
+                qInfo() << "Something went wrong last time -> restoring Itast.brsar from Itast.brsar.temp.bak";
                 itastBrsarFile.remove();
                 itastBrsarTempFile.rename(itastBrsarStr);
             }
             // save the main.dol changes that happened since last time CSMM touched it
             //   (bsdiff main.dol.csmm.bak <-> main.dol)
             if(mainDolCsmmInfo.exists()) {
-                ImportExportUtils::createBsdiff(mainDolCsmmStr, mainDolStr, mainDolBsdiffStr);
+                QString mainDolHash = ImportExportUtils::fileSha1(mainDolStr);
+                QString mainDolCsmmHash = ImportExportUtils::fileSha1(mainDolCsmmStr);
+                if(mainDolHash != mainDolCsmmHash) {
+                    qInfo() << "Calculating the user changes that happened since last time CSMM modified the main.dol and store them in main.dol.bsdiff";
+                    ImportExportUtils::createBsdiff(mainDolCsmmStr, mainDolStr, mainDolBsdiffStr);
+                }
             }
             if(itastBrsarCsmmInfo.exists()) {
-                // save the Itast.brsar changes that happened since last time CSMM touched it
-                //   (bsdiff Itast.brsar.csmm.bak <-> Itast.brsar)
-                ImportExportUtils::createBsdiff(itastBrsarCsmmStr, itastBrsarStr, itastBrsarBsdiffStr);
+                auto itastBrsarHash = ImportExportUtils::fileSha1(itastBrsarStr);
+                auto itastBrsarCsmmHash = ImportExportUtils::fileSha1(itastBrsarCsmmStr);
+                if(itastBrsarHash != itastBrsarCsmmHash) {
+                    qInfo() << "Calculating the user changes that happened since last time CSMM modified the Itast.brsar and store them in Itast.brsar.bsdiff";
+                    // save the Itast.brsar changes that happened since last time CSMM touched it
+                    //   (bsdiff Itast.brsar.csmm.bak <-> Itast.brsar)
+                    ImportExportUtils::createBsdiff(itastBrsarCsmmStr, itastBrsarStr, itastBrsarBsdiffStr);
+                }
                 // backup the current Itast.brsar -> Itast.brsar.temp.bak in case something goes wrong
+                qInfo() << "Backing up the current Itast.brsar into Itast.brsar.temp.bak in case something goes wrong during the patching process.";
                 itastBrsarFile.rename(itastBrsarTempStr);
-                // restore the Itast.brsar.csmm.bak -> Itast.brsar.bak
+                // restore the Itast.brsar.csmm.bak -> Itast.brsar
+                qInfo() << "Restoring the Itast.brsar from Itast.brsar.csmm.bak to use as base for the patching process";
                 itastBrsarCsmmFile.copy(itastBrsarStr);
             }
             if(mainDolVanillaInfo.exists()) {
+                qInfo() << "Restoring the original main.dol from main.dol.orig.bak to use as base for the patching process";
                 // restore the original main.dol
                 //   (main.dol -> main.dol.temp.bak)
                 //   (main.dol.orig.bak -> main.dol)
                 mainDolFile.rename(mainDolTempStr);
                 mainDolVanillaFile.copy(mainDolStr);
             } else {
+                qInfo() << "Backing up the original main.dol to main.dol.orig.bak";
                 // backup the original main.dol
                 //  (main.dol -> main.dol.orig.bak)
                 mainDolFile.copy(mainDolVanillaStr);
             }
         } else {
+            qInfo() << "Making backup of CSMM modified main.dol to main.dol.csmm.bak";
             // backup the csmm modified main.dol
             //  (main.dol -> main.dol.csmm.bak)
             if(mainDolCsmmInfo.exists())
                 mainDolCsmmFile.remove();
             mainDolFile.copy(mainDolCsmmStr);
 
+            qInfo() << "Making backup of CSMM modified Itast.brsar to Itast.brsar.csmm.bak";
             // backup the csmm modified Itast.brsar
             //  (Itast.brsar -> Itast.brsar.csmm.bak)
             if(itastBrsarCsmmInfo.exists())
@@ -208,21 +226,27 @@ public:
             // apply the saved main.dol changes that happened since last time CSMM touched it
             //   (bspatch main.dol)
             if(mainDolBsdiffInfo.exists()) {
+                qInfo() << "Re-apply user changes in main.dol.bsdiff to main.dol";
                 ImportExportUtils::applyBspatch(mainDolStr, mainDolStr, mainDolBsdiffStr);
             }
+
             // apply the saved Itast.brsar changes that happened since last time CSMM touched it
             //   (bspatch Itast.brsar)
             if(itastBrsarBsdiffInfo.exists()) {
+                qInfo() << "Re-apply user changes in Itast.brsar.bsdiff to Itast.brsar.dol";
                 ImportExportUtils::applyBspatch(itastBrsarStr, itastBrsarStr, itastBrsarBsdiffStr);
             }
 
-            if(mainDolTempInfo.exists()) {
-                // everything done -> delete main.dol.temp.bak
-                mainDolTempFile.remove();
-            }
-            if(itastBrsarTempInfo.exists()) {
-                // everything done -> delete Itast.brsar.temp.bak
-                itastBrsarTempFile.remove();
+            if(mainDolTempInfo.exists() || itastBrsarTempInfo.exists()) {
+                qInfo() << "Patching process was successful -> removing main.dol.temp.bak and Itast.brsar.temp.bak";
+                if(mainDolTempInfo.exists()) {
+                    // everything done -> delete main.dol.temp.bak
+                    mainDolTempFile.remove();
+                }
+                if(itastBrsarTempInfo.exists()) {
+                    // everything done -> delete Itast.brsar.temp.bak
+                    itastBrsarTempFile.remove();
+                }
             }
         }
     }
