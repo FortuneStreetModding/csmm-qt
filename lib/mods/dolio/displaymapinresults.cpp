@@ -28,29 +28,31 @@ void DisplayMapInResults::writeAsm(QDataStream &stream, const AddressMapper &add
 }
 
 static QVector<quint32> writeDesiredTextSubroutine(quint32 location, const AddressMapper &addressMapper) {
-    constexpr int N = 16; // the stack size
+    constexpr int N = 0x20; // the stack size
 
     // r4 will have the map name id.
     // The values of r0, r3, and r5 will be unchanged after this function is invoked.
 
-    return {
-        PowerPcAsm::stwu(1, -N, 1), // move stack pointer
-        PowerPcAsm::mflr(11), // store link register value in r11
-        PowerPcAsm::stw(11, N+4, 1), // put link register value in stack
-        PowerPcAsm::stw(0, N-4, 1), // save r0, etc. to stack
-        PowerPcAsm::stw(3, N-8, 1),
-        PowerPcAsm::stw(5, N-12, 1),
-        PowerPcAsm::bl(location, 6 /* asm.count */, addressMapper.boomStreetToStandard(0x8020cd78)), // r3 <- GetPlayMap()
-        PowerPcAsm::bl(location, 7 /* asm.count */, addressMapper.boomStreetToStandard(0x801cca6c)), // r3 <- GetStageNameId(r3)
-        PowerPcAsm::or_(4, 3, 3), // r4 <- r3
-        PowerPcAsm::lwz(5, N-12, 1), // pop r0, etc. from stack to restore values
-        PowerPcAsm::lwz(3, N-8, 1),
-        PowerPcAsm::lwz(0, N-4, 1),
-        PowerPcAsm::lwz(11, N+4, 1), // restore link register value from stack
-        PowerPcAsm::addi(1, 1, N), // reset stack pointer
-        PowerPcAsm::mtlr(11), // restore link register for return
-        PowerPcAsm::blr() // return
-    };
+    QVector<quint32> asm_;
+
+    asm_.append(PowerPcAsm::stwu(1, -N, 1)); // move stack pointer
+    asm_.append(PowerPcAsm::mflr(11)); // store link register value in r11
+    asm_.append(PowerPcAsm::stw(11, N+4, 1)); // put link register value in stack
+    asm_.append(PowerPcAsm::stw(0, N-4, 1)); // save r0, etc. to stack
+    asm_.append(PowerPcAsm::stw(3, N-8, 1));
+    asm_.append(PowerPcAsm::stw(5, N-12, 1));
+    asm_.append(PowerPcAsm::bl(location, asm_.size(), addressMapper.boomStreetToStandard(0x8020cd78))); // r3 <- GetPlayMap()
+    asm_.append(PowerPcAsm::bl(location, asm_.size(), addressMapper.boomStreetToStandard(0x801cca6c))); // r3 <- GetStageNameId(r3)
+    asm_.append(PowerPcAsm::or_(4, 3, 3)); // r4 <- r3
+    asm_.append(PowerPcAsm::lwz(5, N-12, 1)); // pop r0, etc. from stack to restore values
+    asm_.append(PowerPcAsm::lwz(3, N-8, 1));
+    asm_.append(PowerPcAsm::lwz(0, N-4, 1));
+    asm_.append(PowerPcAsm::lwz(11, N+4, 1)); // restore link register value from stack
+    asm_.append(PowerPcAsm::addi(1, 1, N)); // reset stack pointer
+    asm_.append(PowerPcAsm::mtlr(11)); // restore link register for return
+    asm_.append(PowerPcAsm::blr()); // return
+
+    return asm_;
 }
 
 
