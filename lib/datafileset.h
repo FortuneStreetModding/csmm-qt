@@ -3,6 +3,7 @@
 
 #include "fslocale.h"
 
+static const QString CSMM_VERSION_FILE = "csmm_version.txt";
 static const QString MAIN_DOL = "sys/main.dol";
 static const QString MAIN_DOL_TEMP_BACKUP = "sys/main.dol.temp.bak";
 static const QString MAIN_DOL_VANILLA_BACKUP = "sys/main.dol.orig.bak";

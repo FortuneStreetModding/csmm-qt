@@ -263,6 +263,14 @@ public:
 
         backupAndRestore(arcFilesDir, root, false);
 
+        // write the CSMM version
+        auto versionFilePath = QDir(root).filePath(CSMM_VERSION_FILE);
+        QSaveFile versionFile(versionFilePath);
+        if (versionFile.open(QFile::WriteOnly)) {
+            versionFile.write(QCoreApplication::applicationVersion().toUtf8());
+            versionFile.commit();
+        }
+
         for (auto &mod: modList) {
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {
