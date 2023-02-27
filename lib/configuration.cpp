@@ -6,7 +6,6 @@
 #include <fstream>
 #include <filesystem>
 #include <QRegularExpression>
-#include <QNetworkReply>
 #include "importexportutils.h"
 #include "lib/asyncfuture.h"
 #include "lib/await.h"

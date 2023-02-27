@@ -4,7 +4,6 @@
 #include <QDir>
 #include <QFuture>
 #include <QVector>
-#include <QNetworkAccessManager>
 #include "mapdescriptor.h"
 
 namespace ImportExportUtils {

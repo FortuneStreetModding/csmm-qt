@@ -44,7 +44,11 @@ QFuture<bool> downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                 if (reply->error() != QNetworkReply::NoError) {
                     auto errStr = reply->errorString();
                     reply->deleteLater();
-                    throw Exception("network error: " + errStr);
+                    QString fixSuggestion;
+                    if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
+                        fixSuggestion = "Check if your system time is set correctly and try again.";
+                    }
+                    throw Exception("network error: " + errStr + "\n" + fixSuggestion);
                 }
                 if (!file->commit()) {
                     reply->deleteLater();

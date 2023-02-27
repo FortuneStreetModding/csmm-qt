@@ -371,6 +371,18 @@ void MainWindow::exportToFolder(bool riivolution) {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
         return;
     }
+    // check if enough temporary disk space is available
+    QTemporaryDir tmp;
+    QStorageInfo storageInfo(tmp.path());
+    int availableMb = storageInfo.bytesAvailable()/1024/1024;
+    if(availableMb < 5000) {
+        if (QMessageBox::question(this, "Save",
+                              QString("There is less than 5 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
+                              QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
+            return;
+    }
+
+
     QString riivolutionName;
     if (riivolution) {
         bool riivolutionNameChosen;
@@ -483,6 +495,17 @@ void MainWindow::exportIsoWbfs() {
     if (!intermediateResults->isValid()) {
         QMessageBox::critical(this, "Export WBFS/ISO", "Could not create a temporary directory for patching");
         return;
+    }
+
+    // check if enough temporary disk space is available
+    QTemporaryDir tmp;
+    QStorageInfo storageInfo(tmp.path());
+    int availableMb = storageInfo.bytesAvailable()/1024/1024;
+    if(availableMb < 5000) {
+        if (QMessageBox::question(this, "Save",
+                              QString("There is less than 5 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
+                              QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
+            return;
     }
 
     if (!ui->tableWidget->dirty) {

@@ -117,16 +117,19 @@ void MapDescriptionTable::loadFiles(const QString &root, GameInstance *gameInsta
     DolIOTable::loadFiles(root, gameInstance, modList);
     if (!modpackDir().isEmpty()) {
         auto cfg = QDir(modpackDir()).filePath("mapDescriptionTable.yaml");
+        QFileInfo cfgInfo(cfg);
         QSaveFile cfgFile(cfg);
-        if (cfgFile.open(QFile::WriteOnly | QFile::NewOnly)) {
-            YAML::Emitter emitter;
-            emitter << YAML::BeginDoc;
-            emitter << YAML::BeginMap;
-            emitter << YAML::Key << "addAuthor" << YAML::Value << true;
-            emitter << YAML::EndMap;
-            emitter << YAML::EndDoc;
-            cfgFile.write(emitter.c_str());
-            cfgFile.commit();
+        if(!cfgInfo.exists()) {
+            if (cfgFile.open(QFile::OpenModeFlag::WriteOnly)) {
+                YAML::Emitter emitter;
+                emitter << YAML::BeginDoc;
+                emitter << YAML::BeginMap;
+                emitter << YAML::Key << "addAuthor" << YAML::Value << true;
+                emitter << YAML::EndMap;
+                emitter << YAML::EndDoc;
+                cfgFile.write(emitter.c_str());
+                cfgFile.commit();
+            }
         }
     }
 }

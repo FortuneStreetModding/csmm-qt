@@ -4,7 +4,6 @@
 #include <QFileInfo>
 #include <QTemporaryDir>
 #include <QCryptographicHash>
-#include <QNetworkReply>
 #include <filesystem>
 #include "lib/vanilladatabase.h"
 #include "lib/datafileset.h"
@@ -135,8 +134,8 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
         return 0;
     }, &extractedYamlFile);
     if (extractResult < 0) {
-        throw Exception(QString("Could not extract zip file to intermediate directory: %1")
-                        .arg(zip_strerror(extractResult)));
+        throw Exception(QString("Could not extract zip file to intermediate directory: %1\n Do you have enough disk space at %2?")
+                        .arg(zip_strerror(extractResult), intermediateDir.path()));
     }
     if (extractedYamlFile.isEmpty()) {
         throw Exception("Zip file has no map descriptor");
@@ -165,7 +164,7 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                         return 0;
                     }, &extractedCmpresFile);
                     if (extractResult < 0) {
-                        throw Exception(QString("Could not extract %1 to intermediate directory").arg(zipBackgroundStr));
+                        throw Exception(QString("Could not extract %1 to intermediate directory.\n Do you have enough disk space at %2?").arg(zipBackgroundStr, intermediateDir.path()));
                     }
                     if (extractedCmpresFile.isEmpty()) {
                         throw Exception(QString("%1 has no cmpres files").arg(zipBackgroundStr));
@@ -177,17 +176,21 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
         }
         // check if <MAPNAME>-Music.zip also needs to be extracted
         if(!descriptor.music.empty()) {
-            bool allBrstmsAvailable = true;
+            QVector<QString> missingBrstms;
             for (auto &mapEnt: descriptor.music) {
                 auto &musicEntry = mapEnt.second;
                 QString extractedBrstmFile = QFileInfo(extractedYamlFile).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
                 if(!QFileInfo::exists(extractedBrstmFile)) {
-                    allBrstmsAvailable = false;
-                    break;
+                    missingBrstms.append(musicEntry.brstmBaseFilename + ".brstm");
                 }
             }
+            QString missingBrstmsStr = "";
+            for(auto &missingBrstmStr: missingBrstms) {
+                missingBrstmsStr += QString("\n- %1").arg(missingBrstmStr);
+            }
+            qInfo() << "Looking for the following brstm files:" << missingBrstmsStr;
             // not all required brtsm files reside yet in the intermediate directory -> extract the music zip as well
-            if (!allBrstmsAvailable) {
+            if (missingBrstms.size() > 0) {
                 QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
                 QFileInfo zipMusic(zipMusicStr);
                 if(node["music"].IsDefined()
@@ -217,13 +220,13 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                         return 0;
                     }, &extractedBrstmFile);
                     if (extractResult < 0) {
-                        throw Exception(QString("Could not extract %1 to intermediate directory").arg(zipMusicStr));
+                        throw Exception(QString("Could not extract %1 to intermediate directory.\nDo you have enough disk space at %2?").arg(zipMusicStr, intermediateDir.path()));
                     }
                     if (extractedBrstmFile.isEmpty()) {
-                        throw Exception(QString("%1 has no brstm files").arg(zipMusicStr));
+                        throw Exception(QString("%1 has no brstm files.\nThe following .brstm files are still missing:\n%2").arg(zipMusicStr, missingBrstmsStr));
                     }
                 } else {
-                    throw Exception(QString("%1 could not be retrieved").arg(zipMusicStr));
+                    throw Exception(QString("%1 could not be retrieved.\nThe following .brstm files are still missing:\n%2").arg(zipMusicStr, missingBrstmsStr));
                 }
             }
         }
