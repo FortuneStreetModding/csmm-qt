@@ -1,5 +1,5 @@
-#ifndef MutatorShopPriceMultiplier_H
-#define MutatorShopPriceMultiplier_H
+#ifndef MUTATORSHOPPRICEMULTIPLIER_H
+#define MUTATORSHOPPRICEMULTIPLIER_H
 
 #include "doliomutator.h"
 
@@ -16,4 +16,4 @@ protected:
     QVector<quint32> writeRankPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine);
 };
 
-#endif // MutatorShopPriceMultiplier_H
+#endif // MUTATORSHOPPRICEMULTIPLIER_H

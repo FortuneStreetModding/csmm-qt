@@ -195,4 +195,36 @@ quint32 lmw(quint8 register1, qint16 value, quint8 register2) {
     return lmw_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }
 
+// See also https://mariokartwii.com/showthread.php?tid=1108
+QVector<quint32> backupLocalRegistersToStack(uint registerCount) {
+    if (registerCount == 0) throw ExeWrapper::Exception(QString("backupRegistersOnStack: registerCount must not be 0"));
+    // calculate size required for the stack frame
+    int requiredStackSize = (registerCount+2)*4;
+    // round to the next possible stack size (must be multiple of 0x10)
+    int stackSize = ((requiredStackSize+0xF)/0x10)*0x10;
+    QVector<quint32> asm_;
+
+    asm_.append(PowerPcAsm::stwu(1, -stackSize, 1));                       // move stack pointer, creating new stack frame
+    asm_.append(PowerPcAsm::stmw(32-registerCount, 0x8, 1));               // backup registers
+    asm_.append(PowerPcAsm::mflr(31));                                     // store link register value in r31
+    asm_.append(PowerPcAsm::stw(31, stackSize+4, 1));                      // put link register value into stack
+    asm_.append(PowerPcAsm::lwz(31, 0x4+registerCount*0x4, 1));            // restore r31 from stack
+    return asm_;
+}
+
+QVector<quint32> restoreLocalRegistersFromStack(uint registerCount) {
+    if (registerCount == 0) throw ExeWrapper::Exception(QString("backupRegistersOnStack: registerCount must not be 0"));
+    // calculate size required for the stack frame
+    int requiredStackSize = (registerCount+2)*4;
+    // round to the next possible stack size (must be multiple of 0x10)
+    int stackSize = ((requiredStackSize+0xF)/0x10)*0x10;
+    QVector<quint32> asm_;
+
+    asm_.append(PowerPcAsm::lwz(31, stackSize+0x4, 1));                    // restore link register from stack and put into r31
+    asm_.append(PowerPcAsm::mtlr(31));                                     // restore link register from r31
+    asm_.append(PowerPcAsm::lmw(32-registerCount, 0x8, 1));                // restore registers
+    asm_.append(PowerPcAsm::addi(1, 1, stackSize));                        // make sp point to old stack frame
+    return asm_;
+}
+
 }

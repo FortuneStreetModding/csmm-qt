@@ -111,6 +111,9 @@ namespace PowerPcAsm {
     quint32 stwu(quint8 register1, qint16 value, quint8 register2);
     quint32 stmw(quint8 register1, qint16 value, quint8 register2);
     quint32 lmw(quint8 register1, qint16 value, quint8 register2);
+
+    QVector<quint32> backupLocalRegistersToStack(uint registerCount);
+    QVector<quint32> restoreLocalRegistersFromStack(uint registerCount);
 }
 
 #endif // POWERPCASM_H
