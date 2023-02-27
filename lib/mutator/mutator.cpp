@@ -2,13 +2,15 @@
 
 #include "rollshoppricemultiplier.h"
 #include "shoppricemultiplier.h"
+#include "stockpricemultiplier.h"
 
 #include <QDataStream>
 #include <QMap>
 
 static const QMap<QString, MutatorType> stringToMutatorTypes = {
     {"rollShopPriceMultiplier",  RollShopPriceMultiplierType},
-    {"shopPriceMultiplier",  ShopPriceMultiplierType}
+    {"shopPriceMultiplier",  ShopPriceMultiplierType},
+    {"stockPriceMultiplier",  StockPriceMultiplierType},
 };
 QString mutatorTypeToString(MutatorType mutatorType) {
     return stringToMutatorTypes.key(mutatorType);
@@ -25,6 +27,7 @@ QSharedPointer<Mutator> Mutator::fromYaml(QString mutatorStr, const YAML::Node &
         case InvalidMutatorType: throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(yaml));
         case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(yaml));
+        case StockPriceMultiplierType: return QSharedPointer<Mutator>(new StockPriceMultiplier(yaml));
     }
     throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
 }
@@ -53,6 +56,7 @@ QSharedPointer<Mutator> Mutator::fromBytes(QDataStream &stream) {
         case InvalidMutatorType: return QSharedPointer<Mutator>();
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(stream));
         case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(stream));
+        case StockPriceMultiplierType: return QSharedPointer<Mutator>(new StockPriceMultiplier(stream));
     }
     throw MutatorException(QString("Invalid mutator %1").arg(mutatorType));
 }

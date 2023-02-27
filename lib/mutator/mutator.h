@@ -9,6 +9,7 @@ enum MutatorType : quint16 {
     InvalidMutatorType          = 0x00,
     RollShopPriceMultiplierType = 0x01,
     ShopPriceMultiplierType     = 0x02,
+    StockPriceMultiplierType    = 0x03,
 };
 QString mutatorTypeToString(MutatorType mutatorType);
 MutatorType stringToMutatorType(const QString &str);

@@ -34,6 +34,7 @@
 #include "dolio/mutatorrollshoppricemultiplier.h"
 #include "dolio/mutatortable.h"
 #include "dolio/mutatorshoppricemultiplier.h"
+#include "dolio/mutatorstockpricemultiplier.h"
 #include "dolio/expandmapsinzone.h"
 #include "freespace/districtnamefreespace.h"
 #include "freespace/initialfreespace.h"
@@ -90,7 +91,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<MutatorTable>());
     patches.append(CSMMModHolder::fromCppObj<MutatorRollShopPriceMultiplier>());
     patches.append(CSMMModHolder::fromCppObj<MutatorShopPriceMultiplier>());
-
+    patches.append(CSMMModHolder::fromCppObj<MutatorStockPriceMultiplier>());
 
     patches.append(CSMMModHolder::fromCppObj<ExpandMapsInZone>());
     patches.append(CSMMModHolder::fromCppObj<DefaultMinimapIcons>());
