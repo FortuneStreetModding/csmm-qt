@@ -36,6 +36,7 @@ static void initLogFile() {
             qWarning() << "could not create log file" << logFile.fileName() << "for writing";
             return;
         }
+        logFile.write(QString("Running CSMM %1\n").arg(QCoreApplication::applicationVersion()).toUtf8());
         if (!logFile.link(logFileDir.filePath("csmmgui-latest.log"))) {
             qWarning() << "could not symlink to latest log file" << logFile.fileName();
         }

@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     } else {
         QApplication app(argc, argv);
         QCoreApplication::setApplicationName("csmm");
+        QCoreApplication::setApplicationVersion(QString("%1").arg(CSMM_VERSION));
 
         setPyHome();
 
