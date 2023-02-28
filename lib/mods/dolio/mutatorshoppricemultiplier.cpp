@@ -51,19 +51,22 @@ QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const 
     auto returnAddr = addressMapper.boomStreetToStandard(0x8008eea0);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::li(3, ShopPriceMultiplierType));                                   // \.
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));  // /. get mutatorData
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                                      // \. if mutator != NULL
-    asm_.append(PowerPcAsm::bne(2));                                                           // /.   goto mutator
+    asm_.append(PowerPcAsm::bne(labels, "mutator", asm_));                                     // /.   goto mutator
                 // vanilla
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
                 // mutator stuff
+    labels.define("mutator", asm_);
     asm_.append(PowerPcAsm::lhz(5, 0x0, 3));                                                   // |. r5 <- numerator
     asm_.append(PowerPcAsm::mullw(0, 0, 5));                                                   // |. r4 <- r4 * r5
     asm_.append(PowerPcAsm::lhz(5, 0x2, 3));                                                   // |. r5 <- denominator
     asm_.append(PowerPcAsm::divwu(0, 0, 5));                                                   // |. r4 <- r4 / r5
     asm_.append(PowerPcAsm::stw(0, 0x28, 29));                                                 // |. base shop price <- r4
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -83,12 +86,13 @@ QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(cons
 
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::mr(6, 4));                                                         // |. save shop price
     asm_.append(PowerPcAsm::li(3, ShopPriceMultiplierType));                                   // \.
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));  // /. get mutatorData
     asm_.append(PowerPcAsm::mr(4, 6));                                                         // |. restore shop price
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                                      // \. if mutator == NULL
-    asm_.append(PowerPcAsm::beq(7));                                                           // /.   goto exit
+    asm_.append(PowerPcAsm::beq(labels, "exit", asm_));                                        // /.   goto exit
                 // mutator stuff
     asm_.append(PowerPcAsm::lhz(6, 0x0, 3));                                                   // |. r6 <- numerator
     asm_.append(PowerPcAsm::mullw(4, 4, 6));                                                   // |. r4 <- r4 * r6
@@ -97,9 +101,11 @@ QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(cons
     asm_.append(PowerPcAsm::stw(4, 0x28, 29));                                                 // |. base shop price <- r4
     asm_.append(PowerPcAsm::stw(4, 0x40, 29));                                                 // |. calculated shop price <- r4
                 // exit
+    labels.define("exit", asm_);
     asm_.append(PowerPcAsm::mr(3, 29));                                                        // |. restore Place*
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), Gm_Place_CalcRank));         // |. bl Gm_Place_CalcRank
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -116,6 +122,7 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     auto tableAddr = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x80453b38));
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::mr(6, 4));                                                         // |. save shop price
     asm_.append(PowerPcAsm::li(3, ShopPriceMultiplierType));                                   // \.
     asm_.append(PowerPcAsm::mflr(7));                                                          // |.
@@ -123,20 +130,22 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     asm_.append(PowerPcAsm::mtlr(7));                                                          // /.
     asm_.append(PowerPcAsm::mr(4, 6));                                                         // |. restore shop price
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                                      // \. if mutator != NULL
-    asm_.append(PowerPcAsm::bne(4));                                                           // /.   goto mutator
+    asm_.append(PowerPcAsm::bne(labels, "mutator", asm_));                                     // /.   goto mutator
                 // vanilla
-    asm_.append(PowerPcAsm::lis(3, tableAddr.upper));                                                   // \. replaced opcodes
-    asm_.append(PowerPcAsm::lwzu(0, tableAddr.lower, 3));                                               // /.
+    asm_.append(PowerPcAsm::lis(3, tableAddr.upper));                                          // \. replaced opcodes
+    asm_.append(PowerPcAsm::lwzu(0, tableAddr.lower, 3));                                      // /.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
                 // mutator stuff
+    labels.define("mutator", asm_);
     asm_.append(PowerPcAsm::addi(4, 4, 1));                                                    // |. r4 <- r4 + 1 (to account for rounding errors)
     asm_.append(PowerPcAsm::lhz(7, 0x2, 3));                                                   // |. r7 <- denominator
     asm_.append(PowerPcAsm::mullw(4, 4, 7));                                                   // |. r4 <- r4 * r7
     asm_.append(PowerPcAsm::lhz(7, 0x0, 3));                                                   // |. r7 <- numerator
     asm_.append(PowerPcAsm::divwu(4, 4, 7));                                                   // |. r4 <- r4 / r7
-    asm_.append(PowerPcAsm::lis(3, tableAddr.upper));                                                   // \. replaced opcodes
-    asm_.append(PowerPcAsm::lwzu(0, tableAddr.lower, 3));                                               // /.
+    asm_.append(PowerPcAsm::lis(3, tableAddr.upper));                                          // \. replaced opcodes
+    asm_.append(PowerPcAsm::lwzu(0, tableAddr.lower, 3));                                      // /.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
+    labels.checkProperlyLinked();
     return asm_;
 }
 

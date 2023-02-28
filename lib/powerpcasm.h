@@ -53,6 +53,70 @@ namespace PowerPcAsm {
         qint16 upper = 0, lower = 0;
     };
 
+    class PowerPcAsmException : public QException, public std::runtime_error {
+    public:
+        using std::runtime_error::runtime_error;
+        const char *what() const noexcept override { return std::runtime_error::what(); }
+        PowerPcAsmException(const QString &str) : std::runtime_error(str.toStdString()) {}
+        void raise() const override { throw *this; }
+        PowerPcAsmException *clone() const override { return new PowerPcAsmException(*this); }
+    };
+
+    class LabelTable {
+    public:
+        void define(QString label, QVector<quint32> &asmListing) {
+            labelToTarget[label] = asmListing.size();
+            // now that the label is defined, we can go back and fix all old opcodes
+            for (const auto& elem : offsetToLabel) {
+                if(elem.second == label) {
+                    quint32 opcode = asmListing.at(elem.first);
+                    quint32 offset = 4 * (asmListing.size() - elem.first);
+                    // what kind of opcode is it?
+                    if((opcode & b_opcode) == b_opcode) {
+                        // its a long branch -> clear the offset
+                        opcode = opcode & 0xFC000003;
+                        offset = offset & 0x03FFFFFC;
+                    } else {
+                        // its a short branch -> clear the offset
+                        opcode = opcode & 0xFFFF0003;
+                        offset = offset & 0x0000FFFC;
+                    }
+                    asmListing.replace(elem.first, opcode | offset);
+                }
+            }
+        }
+        void checkProperlyLinked() {
+            QString unlinkedLabels = "";
+            for (const auto& elem : offsetToLabel) {
+                if(labelToTarget.count(elem.second) == 0) {
+                    unlinkedLabels.append(elem.second + " ");
+                }
+            }
+            if(!unlinkedLabels.isEmpty()) {
+                throw PowerPcAsmException(QString("The following labels are undefined: %1").arg(unlinkedLabels));
+            }
+        }
+    private:
+        std::map<int, QString> offsetToLabel;
+        std::map<QString, int> labelToTarget;
+        quint32 reference(QString label, const QVector<quint32> &asmListing) {
+            if(labelToTarget.count(label) == 0) {
+                // label does not exist yet, set new reference to label and return 0 offset
+                offsetToLabel[asmListing.size()] = label;
+                return 0;
+            } else {
+                // label already exists, calculate offset to it and return it
+                return 4 * (labelToTarget[label] - asmListing.size());
+            }
+        }
+        friend quint32 b(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+        friend quint32 blt(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+        friend quint32 ble(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+        friend quint32 beq(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+        friend quint32 bge(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+        friend quint32 bne(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+    };
+
     quint32 make32bitValueFromPair(quint32 lisOpcode, quint32 addiOpcode);
     Pair16Bit make16bitValuePair(quint32 addr);
     qint16 getOpcodeParameter(quint32 opcode);
@@ -73,27 +137,23 @@ namespace PowerPcAsm {
     quint32 divwu(quint8 register1, quint8 register2, quint8 register3);
     quint32 cmplw(quint8 register1, quint8 register2);
     quint32 bl(quint32 startPos, quint32 targetPos);
-    quint32 bl(quint32 startPos, qint32 offset, quint32 targetPos);
+    quint32 bl(quint32 startPos, int offset, quint32 targetPos);
     quint32 b(quint32 startPos, quint32 targetPos);
-    quint32 b(quint32 startPos, qint32 offset, quint32 targetPos);
-    quint32 b(qint32 currentPos, qint32 targetPos);
-    quint32 b(qint32 offset);
-    quint32 blt(quint32 currentPos, quint32 targetPos);
-    quint32 blt(qint32 currentPos, qint32 targetPos);
-    quint32 blt(qint32 offset);
-    quint32 ble(quint32 currentPos, quint32 targetPos);
-    quint32 ble(qint32 currentPos, qint32 targetPos);
-    quint32 ble(qint32 offset);
-    quint32 beq(quint32 currentPos, quint32 targetPos);
-    quint32 beq(qint32 currentPos, qint32 targetPos);
-    quint32 beq(qint32 offset);
-    quint32 bge(qint32 currentPos, qint32 targetPos);
-    quint32 bge(qint32 offset);
-    quint32 bne(qint32 currentPos, qint32 targetPos);
-    quint32 bne(qint32 offset);
+    quint32 b(quint32 startPos, int offset, quint32 targetPos);
+    quint32 b(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+    quint32 blt(int offset);
+    quint32 blt(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+    quint32 ble(int offset);
+    quint32 ble(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+    quint32 beq(int offset);
+    quint32 beq(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+    quint32 bge(int offset);
+    quint32 bge(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+    quint32 bne(int offset);
+    quint32 bne(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
+    quint32 blr();
     quint32 cmpwi(quint8 reg, qint16 value);
     quint32 cmplwi(quint8 reg, quint16 value);
-    quint32 blr();
     quint32 nop();
     quint32 mflr(quint8 reg);
     quint32 mtlr(quint8 reg);

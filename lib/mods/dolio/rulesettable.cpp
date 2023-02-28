@@ -103,27 +103,27 @@ QVector<quint32> RuleSetTable::writeRuleSetFromMapRoutine(const AddressMapper &a
     // precondition: r7 is unused
     // precondition: r24 is mapId
     // precondition: r25 is global rule set which we are gonna use to store the linkreturn
-    return {
-        PowerPcAsm::mflr(25),
-        PowerPcAsm::mr(3, 24),                                                   // r3 <- r24
-        PowerPcAsm::bl(routineStartAddress, 2 /*asm.Count*/, Game_GetRuleFlag),  // r3 <- bl Game_GetRuleFlag(r3)
-        PowerPcAsm::stw(3, 0x53f4, 29),                                          // gameRule <- r3
-        //PowerPcAsm::mr(7, 3),                                                    // r7 <- r3
-        //PowerPcAsm::bl(routineStartAddress, 5 /*asm.Count*/, GetGameSelectInfo), // r3 <- bl GetGameSelectInfo()
-        //PowerPcAsm::stb(7, 0x226, 3),                                            // GetGameSelectInfo.easyRules = gameRule
-        PowerPcAsm::mtlr(25),
-        PowerPcAsm::blr()                                                        // return
-    };
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::mflr(25));
+    asm_.append(PowerPcAsm::mr(3, 24));                                                 // r3 <- r24
+    asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.size(), Game_GetRuleFlag));    // r3 <- bl Game_GetRuleFlag(r3)
+    asm_.append(PowerPcAsm::stw(3, 0x53f4, 29));                                        // gameRule <- r3
+    //asm_.append(PowerPcAsm::mr(7, 3));                                                // r7 <- r3
+    //asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.size(), GetGameSelectInfo)); // r3 <- bl GetGameSelectInfo()
+    //asm_.append(PowerPcAsm::stb(7, 0x226, 3));                                        // GetGameSelectInfo.easyRules = gameRule
+    asm_.append(PowerPcAsm::mtlr(25));
+    asm_.append(PowerPcAsm::blr());                                                     // return
+    return asm_;
 }
 
 QVector<quint32> RuleSetTable::writeGetRuleSetRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 routineReturnAddress) {
     PowerPcAsm::Pair16Bit EasyMode = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x8055240f));
 
-    return {
-        PowerPcAsm::lis(28, EasyMode.upper),             // |
-        PowerPcAsm::addi(28, 28, EasyMode.lower),        // / load address of global easy variable
-        PowerPcAsm::lbz(28, 0, 28),                      // r28 <- easyMode
-        PowerPcAsm::b(routineStartAddress, 3/*asm.count*/, routineReturnAddress)
-    };
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::lis(28, EasyMode.upper));             // |
+    asm_.append(PowerPcAsm::addi(28, 28, EasyMode.lower));        // / load address of global easy variable
+    asm_.append(PowerPcAsm::lbz(28, 0, 28));                      // r28 <- easyMode
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.size(), routineReturnAddress));
+    return asm_;
 }
 

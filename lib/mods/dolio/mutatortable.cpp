@@ -52,42 +52,44 @@ QVector<quint32> MutatorTable::writeGetMutatorDataSubroutine(const AddressMapper
     PowerPcAsm::Pair16Bit m = PowerPcAsm::make16bitValuePair(mapId);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     // precondition:  r3 - mutator type
     // postcondition: r3 - pointer to mutator data
     asm_.append(PowerPcAsm::backupLocalRegistersToStack(2));
-    asm_.append(PowerPcAsm::lis(31, m.upper));              // \.
-    asm_.append(PowerPcAsm::addi(31, 31, m.lower));         // |. r31 <- mapId
-    asm_.append(PowerPcAsm::lwz(31, 0x0, 31));              // /.
-    asm_.append(PowerPcAsm::cmpwi(31, 0));                  // \. if(r31 < 0)
-    asm_.append(PowerPcAsm::blt(8));                        // /.   goto retnone;
-    asm_.append(PowerPcAsm::li(30, 2));                     // \.
-    asm_.append(PowerPcAsm::slw(31, 31, 30));               // /. r31 <- r31 * 4
-    asm_.append(PowerPcAsm::lis(30, t.upper));              // \.
-    asm_.append(PowerPcAsm::addi(30, 30, t.lower));         // |. r30 <- tableAddr[mapId]
-    asm_.append(PowerPcAsm::lwzx(30, 31, 30));              // /.
-    asm_.append(PowerPcAsm::cmpwi(30, 0));                  // \. if(r30 == NULL)
-    asm_.append(PowerPcAsm::bne(7));                        // |.
-    int return_null = asm_.size();
-    asm_.append(PowerPcAsm::li(3, 0));                      // |.   return r3 <- NULL
-    int return_ = asm_.size();
+    asm_.append(PowerPcAsm::lis(31, m.upper));                    // \.
+    asm_.append(PowerPcAsm::addi(31, 31, m.lower));               // |. r31 <- mapId
+    asm_.append(PowerPcAsm::lwz(31, 0x0, 31));                    // /.
+    asm_.append(PowerPcAsm::cmpwi(31, 0));                        // \. if(r31 < 0)
+    asm_.append(PowerPcAsm::blt(labels, "returnNull", asm_));     // /.   goto retnone;
+    asm_.append(PowerPcAsm::li(30, 2));                           // \.
+    asm_.append(PowerPcAsm::slw(31, 31, 30));                     // /. r31 <- r31 * 4
+    asm_.append(PowerPcAsm::lis(30, t.upper));                    // \.
+    asm_.append(PowerPcAsm::addi(30, 30, t.lower));               // |. r30 <- tableAddr[mapId]
+    asm_.append(PowerPcAsm::lwzx(30, 31, 30));                    // /.
+    asm_.append(PowerPcAsm::cmpwi(30, 0));                        // \. if(r30 == NULL)
+    asm_.append(PowerPcAsm::bne(labels, "loop", asm_));
+    labels.define("returnNull", asm_);
+    asm_.append(PowerPcAsm::li(3, 0));                            // |.   return r3 <- NULL
+    labels.define("return", asm_);
     asm_.append(PowerPcAsm::restoreLocalRegistersFromStack(2));
     asm_.append(PowerPcAsm::blr());
-    int loop = asm_.size();
-    asm_.append(PowerPcAsm::lha(31, 0x0, 30));              // |. r31 <- mutator type
-    asm_.append(PowerPcAsm::cmpwi(31, 0));                  // \. if(r31 == NULL) {
-    asm_.append(PowerPcAsm::beq(asm_.size(), return_null)); // /.  return r3 <- NULL
-    asm_.append(PowerPcAsm::cmpw(3, 31));                   // \. if(r3 == r31) {
-    asm_.append(PowerPcAsm::bne(4));                        // |.
-    asm_.append(PowerPcAsm::mr(3, 30));                     // |.
-    asm_.append(PowerPcAsm::addi(3, 3, 0x4));               // |.   return r3 <- r30 + 0x4
-    asm_.append(PowerPcAsm::b(asm_.size(), return_));       // /. }
-    asm_.append(PowerPcAsm::lha(31, 0x2, 30));              // |. r31 <- mutator data size
-    asm_.append(PowerPcAsm::add(31, 31, 31));               // \.
-    asm_.append(PowerPcAsm::add(31, 31, 31));               // /. r31 <- 4*r31
-    asm_.append(PowerPcAsm::addi(31, 31, 4));               // /. r31 <- r31+4
-    asm_.append(PowerPcAsm::add(30, 31, 30));               // |. r30 <- r31 + r30
-    asm_.append(PowerPcAsm::b(asm_.size(), loop));          // |. goto loop
-
+    labels.define("loop", asm_);
+    asm_.append(PowerPcAsm::lha(31, 0x0, 30));                    // |. r31 <- mutator type
+    asm_.append(PowerPcAsm::cmpwi(31, 0));                        // \. if(r31 == NULL) {
+    asm_.append(PowerPcAsm::beq(labels, "returnNull", asm_));     // /.  return r3 <- NULL
+    asm_.append(PowerPcAsm::cmpw(3, 31));                         // \. if(r3 == r31) {
+    asm_.append(PowerPcAsm::bne(labels, "nextMutator", asm_));    // |.
+    asm_.append(PowerPcAsm::mr(3, 30));                           // |.
+    asm_.append(PowerPcAsm::addi(3, 3, 0x4));                     // |.   return r3 <- r30 + 0x4
+    asm_.append(PowerPcAsm::b(labels, "return", asm_));           // /. }
+    labels.define("nextMutator", asm_);
+    asm_.append(PowerPcAsm::lha(31, 0x2, 30));                    // |. r31 <- mutator data size
+    asm_.append(PowerPcAsm::add(31, 31, 31));                     // |.
+    asm_.append(PowerPcAsm::add(31, 31, 31));                     // |. r31 <- 4*r31
+    asm_.append(PowerPcAsm::addi(31, 31, 4));                     // |. r31 <- r31+4
+    asm_.append(PowerPcAsm::add(30, 31, 30));                     // |. r30 <- r31 + r30
+    asm_.append(PowerPcAsm::b(labels, "loop", asm_));             // |. goto loop
+    labels.checkProperlyLinked();
     return asm_;
 }
 

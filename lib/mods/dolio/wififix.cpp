@@ -158,24 +158,30 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
 
 QVector<quint32> WifiFix::writeSubroutineGetDefaultMapIdIntoR3(const AddressMapper &addressMapper, short defaultEasyMap, short defaultStandardMap, quint32 entryAddr, quint32 returnAddr) {
     quint32 Game_GameSequenceDataAdapter_GetWifiMatchingRule = addressMapper.boomStreetToStandard(0x8020ebe8);
-    return {
-        PowerPcAsm::bl(entryAddr, 0, Game_GameSequenceDataAdapter_GetWifiMatchingRule), // get rules, 1 = Standard Rules, 0 = Easy Rules
-        PowerPcAsm::cmpwi(3, 0),
-        PowerPcAsm::li(3, defaultEasyMap),        // easy rule default map
-        PowerPcAsm::beq(2),
-        PowerPcAsm::li(3, defaultStandardMap),    // standard rule default map
-        PowerPcAsm::b(entryAddr, 5/*asm.Count*/, returnAddr)
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::bl(entryAddr, 0, Game_GameSequenceDataAdapter_GetWifiMatchingRule)); // get rules, 1 = Standard Rules, 0 = Easy Rules
+    asm_.append(PowerPcAsm::cmpwi(3, 0));
+    asm_.append(PowerPcAsm::li(3, defaultEasyMap));        // easy rule default map
+    asm_.append(PowerPcAsm::beq(labels, "return", asm_));
+    asm_.append(PowerPcAsm::li(3, defaultStandardMap));    // standard rule default map
+    labels.define("return", asm_);
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnAddr));
+    labels.checkProperlyLinked();
+    return asm_;
 }
 
 QVector<quint32> WifiFix::writeSubroutineGetDefaultMapIdIntoR4(short defaultEasyMap, short defaultStandardMap, quint32 entryAddr, quint32 returnAddr) {
-    return {
-        // r5 is already ruleset at this point; 1 = Standard Rules, 0 = Easy Rules
-        PowerPcAsm::cmpwi(5, 0),
-        PowerPcAsm::li(4, defaultEasyMap),        // easy rule default map
-        PowerPcAsm::beq(2),
-        PowerPcAsm::li(4, defaultStandardMap),    // standard rule default map
-        PowerPcAsm::b(entryAddr, 4/*asm.Count*/, returnAddr)
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    // r5 is already ruleset at this point; 1 = Standard Rules, 0 = Easy Rules
+    asm_.append(PowerPcAsm::cmpwi(5, 0));
+    asm_.append(PowerPcAsm::li(4, defaultEasyMap));        // easy rule default map
+    asm_.append(PowerPcAsm::beq(labels, "return", asm_));
+    asm_.append(PowerPcAsm::li(4, defaultStandardMap));    // standard rule default map
+    labels.define("return", asm_);
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnAddr));
+    labels.checkProperlyLinked();
+    return asm_;
 }
 

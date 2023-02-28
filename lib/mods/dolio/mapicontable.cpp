@@ -107,7 +107,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     // --- Various Map UI Fixes ---
     // -- if the map index is over the map array size, do not loop around to the first map index again --
     // ble 0x80187e1c                                        ->  b 0x80187e1c
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80187dfc)); stream << PowerPcAsm::b(8);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80187dfc)); stream << PowerPcAsm::b(0x80187dfc, 0x80187e1c);
     // -- fix map selection going out of bounds in tour mode --
     // bne 0x80188258                                        ->  nop
     stream.device()->seek(addressMapper.boomToFileAddress(0x80188230)); stream << PowerPcAsm::nop();
@@ -232,15 +232,15 @@ QVector<quint32> MapIconTable::writeSubroutineInitMapIdsForMapIcons(const Addres
     //               r16 is the amount of map ids in the array (size / 4)
     //               r24 is unused
     // postcondition: r24 is the map icon array
-    return {
-        PowerPcAsm::mflr(24),                                        // save the link register
-        PowerPcAsm::li(4, -1),                                       // fill with 0xff
-        PowerPcAsm::rlwinm(5, 16, 0x3, 0x0, 0x1d),                   // get the size of the array
-        PowerPcAsm::bl(entryAddr, 3 /*asm.Count*/, JUtility_memset), // call JUtility_memset(array*, 0xff, array.size)
-        PowerPcAsm::mtlr(24),                                        // restore the link register
-        PowerPcAsm::mr(24, 3),                                       // move array* to r24
-        PowerPcAsm::blr()                                            // return
-    };
+    QVector<quint32> asm_;
+    asm_.append(PowerPcAsm::mflr(24));                                        // save the link register
+    asm_.append(PowerPcAsm::li(4, -1));                                       // fill with 0xff
+    asm_.append(PowerPcAsm::rlwinm(5, 16, 0x3, 0x0, 0x1d));                   // get the size of the array
+    asm_.append(PowerPcAsm::bl(entryAddr, asm_.size(), JUtility_memset));     // call JUtility_memset(array*, 0xff, array.size)
+    asm_.append(PowerPcAsm::mtlr(24));                                        // restore the link register
+    asm_.append(PowerPcAsm::mr(24, 3));                                       // move array* to r24
+    asm_.append(PowerPcAsm::blr());                                           // return
+    return asm_;
 }
 
 QVector<quint32> MapIconTable::writeSubroutineMakeNoneMapIconsInvisible(const AddressMapper &addressMapper, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnMakeInvisibleAddr) {
@@ -249,35 +249,41 @@ QVector<quint32> MapIconTable::writeSubroutineMakeNoneMapIconsInvisible(const Ad
     //                 r5  is unused
     // postcondition:  r0  is map icon type
     //                 r5  is 0
-    return {
-        PowerPcAsm::lwz(5, 0x188, 31),                                          // get current map id into r5
-        PowerPcAsm::cmpwi(5, -1),                                               // map id == -1 ?
-        PowerPcAsm::bne(8),                                                     // {
-        PowerPcAsm::lwz(3, 0x28, 31),                                           //   |
-        PowerPcAsm::li(5, 0),                                                   //   |
-        PowerPcAsm::lwz(4, -0x6600, 13),                                        //   | make "NEW" text invisible
-        PowerPcAsm::bl(entryAddr, 6/*asm.Count*/, Scene_Layout_Obj_SetVisible), //   |
-        PowerPcAsm::lwz(3, 0x28, 31),                                           //   |
-        PowerPcAsm::li(5, 0),                                                   //   | make Locked Map Icon "(?)" invisible
-        PowerPcAsm::b(entryAddr, 9/*asm.Count*/, returnMakeInvisibleAddr),      //   returnMakeInvisibleAddr
-                                                                                // } else {
-        PowerPcAsm::lwz(0, 0x184, 3),                                           //   get map icon type (replaced opcode)
-        PowerPcAsm::b(entryAddr, 11/*asm.Count*/, returnContinueAddr)           //   returnContinueAddr
-                                                                                // }
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::lwz(5, 0x188, 31));                                          // get current map id into r5
+    asm_.append(PowerPcAsm::cmpwi(5, -1));                                               // map id == -1 ?
+    asm_.append(PowerPcAsm::bne(labels, "return", asm_));                                // {
+    asm_.append(PowerPcAsm::lwz(3, 0x28, 31));                                           //   |
+    asm_.append(PowerPcAsm::li(5, 0));                                                   //   |
+    asm_.append(PowerPcAsm::lwz(4, -0x6600, 13));                                        //   | make "NEW" text invisible
+    asm_.append(PowerPcAsm::bl(entryAddr, asm_.size(), Scene_Layout_Obj_SetVisible));    //   |
+    asm_.append(PowerPcAsm::lwz(3, 0x28, 31));                                           //   |
+    asm_.append(PowerPcAsm::li(5, 0));                                                   //   | make Locked Map Icon "(?)" invisible
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnMakeInvisibleAddr));         //   returnMakeInvisibleAddr
+                                                                                         // } else {
+    labels.define("return", asm_);
+    asm_.append(PowerPcAsm::lwz(0, 0x184, 3));                                           //   get map icon type (replaced opcode)
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));              //   returnContinueAddr
+                                                                                         // }
+    labels.checkProperlyLinked();
+    return asm_;
 }
 
 QVector<quint32> MapIconTable::writeSubroutineSkipMapUnlockCheck(quint32 entryAddr, quint32 returnContinueAddr, quint32 returnSkipMapUnlockedCheckAddr) {
     // precondition:  r26  is mapid
     //                 r3  is unused
     // postcondition:  r3  is mapid
-    return {
-        PowerPcAsm::or_(3, 26, 26),                                                 // r3 <- mapid
-        PowerPcAsm::cmpwi(3, -1),                                                   // mapid == -1
-        PowerPcAsm::bne(2),                                                         // {
-        PowerPcAsm::b(entryAddr, 3/*asm.Count*/, returnSkipMapUnlockedCheckAddr),   //   goto returnSkipMapUnlockedCheckAddr
-        PowerPcAsm::b(entryAddr, 4/*asm.Count*/, returnContinueAddr),               // } else goto returnContinueAddr
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::or_(3, 26, 26));                                             // r3 <- mapid
+    asm_.append(PowerPcAsm::cmpwi(3, -1));                                               // mapid == -1
+    asm_.append(PowerPcAsm::bne(labels, "vanilla", asm_));                               // {
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnSkipMapUnlockedCheckAddr));  //   goto returnSkipMapUnlockedCheckAddr
+    labels.define("vanilla", asm_);
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));              // } else goto returnContinueAddr
+    labels.checkProperlyLinked();
+    return asm_;
 }
 
 QMap<QString, ArcFileInterface::ModifyArcFunction> MapIconTable::modifyArcFile() {

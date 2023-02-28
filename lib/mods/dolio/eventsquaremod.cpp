@@ -173,25 +173,27 @@ QVector<quint32> EventSquareMod::writeFontCharacterIdModifierRoutine(const Addre
     auto gameProgressAddr = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x80817908));
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::lis(3, gameProgressAddr.upper)),                                  //\.
     asm_.append(PowerPcAsm::addi(3, 3, gameProgressAddr.lower)),                              ///. r3 <- GameProgress**
     asm_.append(PowerPcAsm::lwz(3, 0, 3)),                                                    // r3 <- GameProgress*
     asm_.append(PowerPcAsm::lwz(3, 0x38, 3)),                                                 // r3 <- GameProgress->currentProgressMode
     asm_.append(PowerPcAsm::cmpwi(3, 0x1b)),                                                  // 0x1b is the game progress mode when a venture card description is being shown after been picked
-    asm_.append(PowerPcAsm::beq(11)),                                                         //
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_)),                                    //
     asm_.append(PowerPcAsm::cmpwi(3, 0x05)),                                                  // 0x05 is the game progress mode when you need to throw the dice to determine your fate (e.g. venture card #34)
-    asm_.append(PowerPcAsm::beq(9)),                                                          //
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_)),                                    //
     asm_.append(PowerPcAsm::cmpwi(3, 0x06)),                                                  // 0x06 is the game progress mode when you have thrown the dice and the animation is going
-    asm_.append(PowerPcAsm::beq(7)),                                                          //
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_)),                                    //
     asm_.append(PowerPcAsm::cmpwi(3, 0x1f)),                                                  // 0x1f is the game progress mode which determines what to do after a dice has been thrown
-    asm_.append(PowerPcAsm::beq(5)),                                                          //
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_)),                                    //
     asm_.append(PowerPcAsm::cmpwi(3, 0x1c)),                                                  // 0x1c is the game progress mode which executes the next action and hides the current menu after a dice has been thrown
-    asm_.append(PowerPcAsm::beq(3)),                                                          //
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_)),                                    //
     asm_.append(PowerPcAsm::addi(0, 4, 0xAD)),                                                // r0 <- r4 + 0xAD  (add 0xAD so that we get the other dice character set)
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                //
+    labels.define("vanilla", asm_);
     asm_.append(PowerPcAsm::addi(0, 4, 0x85)),                                                // r0 <- r4 + 0x85  (vanilla behavior)
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
-
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -199,35 +201,40 @@ QVector<quint32> EventSquareMod::writeGetDescriptionForCustomSquareRoutine(const
     quint32 gameUiTextGetString = addressMapper.boomStreetToStandard(0x800f78dc);
     quint32 gameUiTextGetCardMsg = addressMapper.boomStreetToStandard(0x800f837c);
     auto gameBoard = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x8054d018));
-    return {
-        PowerPcAsm::lis(7, gameBoard.upper),                                         //
-        PowerPcAsm::addi(7, 7, gameBoard.lower),                                     // r7 <- start of gameboard table containing all squares
-        PowerPcAsm::mulli(8, 24, 0x54),                                              // r8 <- squareId * 0x54 (the size of each square)
-        PowerPcAsm::add(6, 7, 8),                                                    // r6 <- the current square
-        PowerPcAsm::lbz(8, 0x4d, 6),                                                 // r8 <- square.squareType
-        PowerPcAsm::cmpwi(8, 0x2e),                                                  // if(square.squareType == 0x2e)
-        PowerPcAsm::bne(3),                                                          // {
-        PowerPcAsm::lbz(4, 0x18, 6),                                                 //   r4 <- square.district_color
-        PowerPcAsm::b(routineStartAddress, 8 /* asm.Count */, gameUiTextGetCardMsg), //   goto Game::uitext::get_card_message(r4)
-                                                                                     // }
-        PowerPcAsm::li(6, 0x0),                                                      // |
-        PowerPcAsm::li(7, 0x0),                                                      // | No message arguments
-        PowerPcAsm::li(8, 0x0),                                                      // |
-        PowerPcAsm::b(routineStartAddress, 12 /* asm.Count */, gameUiTextGetString)  // goto Game::uitext::get_string(r4, 0, 0, 0)
-    };
+
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::lis(7, gameBoard.upper));                                         //
+    asm_.append(PowerPcAsm::addi(7, 7, gameBoard.lower));                                     // r7 <- start of gameboard table containing all squares
+    asm_.append(PowerPcAsm::mulli(8, 24, 0x54));                                              // r8 <- squareId * 0x54 (the size of each square)
+    asm_.append(PowerPcAsm::add(6, 7, 8));                                                    // r6 <- the current square
+    asm_.append(PowerPcAsm::lbz(8, 0x4d, 6));                                                 // r8 <- square.squareType
+    asm_.append(PowerPcAsm::cmpwi(8, 0x2e));                                                  // if(square.squareType == 0x2e)
+    asm_.append(PowerPcAsm::bne(labels, "vanilla", asm_));                                    // {
+    asm_.append(PowerPcAsm::lbz(4, 0x18, 6));                                                 //   r4 <- square.district_color
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.size(), gameUiTextGetCardMsg)); //   goto Game::uitext::get_card_message(r4)
+    labels.define("vanilla", asm_);                                                           // }
+    asm_.append(PowerPcAsm::li(6, 0x0));                                                      // |
+    asm_.append(PowerPcAsm::li(7, 0x0));                                                      // | No message arguments
+    asm_.append(PowerPcAsm::li(8, 0x0));                                                      // |
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.size(), gameUiTextGetString));  // goto Game::uitext::get_string(r4, 0, 0, 0)
+    labels.checkProperlyLinked();
+    return asm_;
 }
 
 QVector<quint32> EventSquareMod::writeGetModelForCustomSquareRoutine(quint8 register_textureType, quint8 register_squareType) {
-    return {
-        PowerPcAsm::li(register_textureType, 0x1),    // textureType = 1
-        PowerPcAsm::cmpwi(register_squareType, 0x2e), // if(squareType == 0x2e)
-        PowerPcAsm::beq(2),                           // {
-        PowerPcAsm::blr(),                            //   return textureType;
-                                                      // } else {
-        PowerPcAsm::li(register_textureType, 0xa),    //   textureType = 10 (boon square model "obj_mass_lucky01")
-        PowerPcAsm::blr()                             //   return textureType;
-                                                      // }
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::li(register_textureType, 0x1));    // textureType = 1
+    asm_.append(PowerPcAsm::cmpwi(register_squareType, 0x2e)); // if(squareType == 0x2e)
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_));     // {
+    asm_.append(PowerPcAsm::blr());                            //   return textureType;
+    labels.define("vanilla", asm_);                            // } else {
+    asm_.append(PowerPcAsm::li(register_textureType, 0xa));    //   textureType = 10 (boon square model "obj_mass_lucky01")
+    asm_.append(PowerPcAsm::blr());                            //   return textureType;
+                                                               // }
+    labels.checkProperlyLinked();
+    return asm_;
 }
 
 QVector<quint32> EventSquareMod::writeGetMinimapTileIdForCustomSquareRoutine(const AddressMapper &addressMapper, quint32 routineStartAddress) {
@@ -242,6 +249,7 @@ QVector<quint32> EventSquareMod::writeGetMinimapTileIdForCustomSquareRoutine(con
     auto gameBoard = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x8054d018));
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::lis(3, gameBoard.upper)),                                         //
     asm_.append(PowerPcAsm::addi(3, 3, gameBoard.lower)),                                     // r3 <- start of gameboard table containing all squares
     asm_.append(PowerPcAsm::mulli(4, 30, 0x54)),                                              // r4 <- squareId * 0x54 (the size of each square)
@@ -249,14 +257,15 @@ QVector<quint32> EventSquareMod::writeGetMinimapTileIdForCustomSquareRoutine(con
     asm_.append(PowerPcAsm::lbz(31, 0x18, 3)),                                                // r31 <- square->district_color
     asm_.append(PowerPcAsm::addi(31, 31, 0x36)),                                              // r31 <- r31 + 0x36
 
-    asm_.append(PowerPcAsm::cmpwi(31, 0x80)),                                                 //\.
-    asm_.append(PowerPcAsm::bge(2)),                                                          //|. we actually need to add just +0x36. However, the game uses a
-    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                //|. different method when the minimapTileId is 0x80 and 0x85.
-                                                                                              //|. If that happens, we add another 6 so that we can skip over the
-                                                                                              //|. tiles which the game handels differently.
-    asm_.append(PowerPcAsm::addi(31, 31, 0x6)),                                               ///. r31 <- r31 + 0x6
+    asm_.append(PowerPcAsm::cmpwi(31, 0x80)),                                                 // \.
+    asm_.append(PowerPcAsm::bge(labels, "add6", asm_)),                                       // |. we actually need to add just +0x36. However, the game uses a
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                // |. different method when the minimapTileId is 0x80 and 0x85.
+                                                                                              // |. If that happens, we add another 6 so that we can skip over the
+                                                                                              // |. tiles which the game handels differently.
+    labels.define("add6", asm_);
+    asm_.append(PowerPcAsm::addi(31, 31, 0x6)),                                               // /. r31 <- r31 + 0x6
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
-
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -268,15 +277,19 @@ QVector<quint32> EventSquareMod::writeMinimapTileIdHandler(const AddressMapper &
     auto returnAddr = addressMapper.boomStreetToStandard(0x800b2718);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::cmplwi(5, 0xff)),
-    asm_.append(PowerPcAsm::beq(3));
+    asm_.append(PowerPcAsm::beq(labels, "handler0xff", asm_));
     asm_.append(PowerPcAsm::cmplwi(5, 0x86)),
-    asm_.append(PowerPcAsm::bge(3)),
+    asm_.append(PowerPcAsm::bge(labels, "handler>=0x86", asm_)),
+    labels.define("handler0xff", asm_);
     asm_.append(PowerPcAsm::cmplwi(5, 0x80)),
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    labels.define("handler>=0x86", asm_);
     asm_.append(PowerPcAsm::subi(5, 5, 0x6)),
     asm_.append(PowerPcAsm::cmplwi(5, 0x1000)),
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -314,12 +327,14 @@ QVector<quint32> EventSquareMod::writeGetTextureForCustomSquareRoutine(const Add
     PowerPcAsm::Pair16Bit x = PowerPcAsm::make16bitValuePair(obj_mass_lucky01);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::lwzx(6, 6, 0));                                          // |. replaced opcode: r6 <- newTextureName*
     asm_.append(PowerPcAsm::lwz(7, 0x74, 22));                                       // |. r7 <- square*
     asm_.append(PowerPcAsm::lbz(0, 0x4d, 7));                                        // |. r0 <- squareType
     asm_.append(PowerPcAsm::cmpwi(0, 0x2e));                                         // \. if (squareType != 0x2e) {
-    asm_.append(PowerPcAsm::beq(2));                                                 // |.
+    asm_.append(PowerPcAsm::beq(labels, "continue", asm_));                          // |.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));       // /.   return }
+    labels.define("continue", asm_);
     asm_.append(PowerPcAsm::mr(29, 3));                                              // \. save r3 in r29
     asm_.append(PowerPcAsm::mr(30, 5));                                              // /. save r5 in r30
     asm_.append(PowerPcAsm::lis(3, w.upper));                                        // \.
@@ -341,7 +356,7 @@ QVector<quint32> EventSquareMod::writeGetTextureForCustomSquareRoutine(const Add
     // addi       r4=>s_ui_chancecard_%03d_80426fbb,r4,offset s_
     // crxor      4*cr1+eq,4*cr1+eq,4*cr1+eq
     // bl         sprintf
-
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -375,24 +390,26 @@ QVector<quint32> EventSquareMod::writeSubroutineForceFetchFakeVentureCard(quint3
     // precondition: r3 is ChanceCardUI *
     // ChanceCardUI->field_0x34 is ChanceBoard *
     // ChanceBoard->field_0x158 is current venture card id
-
-    return {
-        PowerPcAsm::lis(6, v.upper),      // |
-        PowerPcAsm::addi(6, 6, v.lower),  // | r6 <- forceVentureCardVariable
-        PowerPcAsm::lwz(4, 0x0, 6),       // | r4 <- forceVentureCard
-        PowerPcAsm::cmpwi(4, 0x0),        // | if(forceVentureCard != 0)
-        PowerPcAsm::beq(7),               // | {
-        PowerPcAsm::lwz(5, 0x34, 3),      // |   r5 <- ChanceCardUI.ChanceBoard
-        PowerPcAsm::stw(4, 0x158, 5),     // |   ChanceBoard.currentVentureCardId <- r4
-        PowerPcAsm::li(5, 0),             // |   forceVentureCard <- 0
-        PowerPcAsm::stw(5, 0x0, 6),       // |
-        PowerPcAsm::li(8, 0x0),           // |   r8 <- 0 (the venture card is initialized)
-        PowerPcAsm::blr(),                // |   return r4 and r8
-                                          // | }
-        PowerPcAsm::li(4, -0x1),          // | r4 <- -1
-        PowerPcAsm::li(8, 0x3),           // | r8 <- 3 (the venture card is continued to be executed)
-        PowerPcAsm::blr()                 // | return r4 and r8
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::lis(6, v.upper));              // |
+    asm_.append(PowerPcAsm::addi(6, 6, v.lower));          // | r6 <- forceVentureCardVariable
+    asm_.append(PowerPcAsm::lwz(4, 0x0, 6));               // | r4 <- forceVentureCard
+    asm_.append(PowerPcAsm::cmpwi(4, 0x0));                // | if(forceVentureCard != 0)
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_)); // | {
+    asm_.append(PowerPcAsm::lwz(5, 0x34, 3));              // |   r5 <- ChanceCardUI.ChanceBoard
+    asm_.append(PowerPcAsm::stw(4, 0x158, 5));             // |   ChanceBoard.currentVentureCardId <- r4
+    asm_.append(PowerPcAsm::li(5, 0));                     // |   forceVentureCard <- 0
+    asm_.append(PowerPcAsm::stw(5, 0x0, 6));               // |
+    asm_.append(PowerPcAsm::li(8, 0x0));                   // |   r8 <- 0 (the venture card is initialized)
+    asm_.append(PowerPcAsm::blr());                        // |   return r4 and r8
+                                                           // | }
+    labels.define("vanilla", asm_);
+    asm_.append(PowerPcAsm::li(4, -0x1));                  // | r4 <- -1
+    asm_.append(PowerPcAsm::li(8, 0x3));                   // | r8 <- 3 (the venture card is continued to be executed)
+    asm_.append(PowerPcAsm::blr());                        // | return r4 and r8
+    labels.checkProperlyLinked();
+    return asm_;
 }
 
 

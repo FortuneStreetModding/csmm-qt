@@ -73,6 +73,7 @@ bool VentureCardTable::readIsVanilla(QDataStream &stream, const AddressMapper &a
 /// <param name="ventureCardDecompressedTableAddr">The address for the reserved memory space to store the decompressed venture card table in</param>
 QVector<quint32> VentureCardTable::writeSubroutine(quint32 ventureCardDecompressedTableAddr) {
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     PowerPcAsm::Pair16Bit ventureCardTableAddrPair = PowerPcAsm::make16bitValuePair(ventureCardDecompressedTableAddr);
     ///
     /// assume:
@@ -93,12 +94,12 @@ QVector<quint32> VentureCardTable::writeSubroutine(quint32 ventureCardDecompress
     asm_.append(PowerPcAsm::mr(5, 6));                                                      // r6 is ventureCardCompressedTableAddr at this point. Copy it to r5 with which we will be working
     asm_.append(PowerPcAsm::lis(6, ventureCardTableAddrPair.upper));                        // \ load the ventureCardDecompressedTableAddr into r6. This address is
     asm_.append(PowerPcAsm::addi(6, 6, ventureCardTableAddrPair.lower));                    // /  where we will store the decompressed venture card table.
-    int whileVentureCardIdSmaller128 = asm_.size();                                         // do {
+    labels.define("whileVentureCardIdSmaller128", asm_);                                    // do {
     {                                                                                       //
         asm_.append(PowerPcAsm::li(0, 0));                                                  //     \ load the next compressed word from ventureCardCompressedTableAddr
         asm_.append(PowerPcAsm::lwzx(7, 5, 0));                                             //     /  into r7. We will decompress the venture card table word by word.
         asm_.append(PowerPcAsm::li(8, 31));                                                 //     bitIndex = 31
-        int whileBitIndexGreaterEqual32 = asm_.size();                                      //     do
+        labels.define("whileBitIndexGreaterEqual32", asm_);                                 //     do
         {                                                                                   //     {
             asm_.append(PowerPcAsm::mr(0, 7));                                              //         get the current compressed word
             asm_.append(PowerPcAsm::srw(0, 0, 8));                                          //         shift it bitIndex times to the right
@@ -107,16 +108,17 @@ QVector<quint32> VentureCardTable::writeSubroutine(quint32 ventureCardDecompress
             asm_.append(PowerPcAsm::subi(8, 8, 1));                                         //         bitIndex--
             asm_.append(PowerPcAsm::addi(4, 4, 1));                                         //         ventureCardId++
             asm_.append(PowerPcAsm::cmpwi(8, 0));                                           //
-            asm_.append(PowerPcAsm::bge(asm_.size(), whileBitIndexGreaterEqual32));         //     } while(bitIndex >= 0)
+            asm_.append(PowerPcAsm::bge(labels, "whileBitIndexGreaterEqual32", asm_));      //     } while(bitIndex >= 0)
         }                                                                                   //
         asm_.append(PowerPcAsm::addi(5, 5, 4));                                             //     ventureCardCompressedTableAddr += 4
         asm_.append(PowerPcAsm::cmpwi(4, 128));                                             //
-        asm_.append(PowerPcAsm::blt(asm_.size(), whileVentureCardIdSmaller128));            // } while(ventureCardId < 128)
+        asm_.append(PowerPcAsm::blt(labels, "whileVentureCardIdSmaller128", asm_));         // } while(ventureCardId < 128)
     }                                                                                       //
     asm_.append(PowerPcAsm::li(4, 0));                                                      // \ reset r4 = 0
     asm_.append(PowerPcAsm::li(5, 0));                                                      // / reset r5 = 0
     asm_.append(PowerPcAsm::blr());                                                         // return
 
+    labels.checkProperlyLinked();
     return asm_;
 }
 

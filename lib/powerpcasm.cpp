@@ -72,73 +72,68 @@ quint32 divwu(quint8 register1, quint8 register2, quint8 register3) {
 quint32 cmplw(quint8 register1, quint8 register2) {
     return cmplw_opcode + ((quint32)register1 << 16) + ((quint32)register2 << 11);
 }
+// -- bl --
 quint32 bl(quint32 startPos, quint32 targetPos) {
-    quint32 offset = ((targetPos - startPos) >> 2) & 0x00FFFFFF;
-    return bl_opcode + (offset << 2);
+    quint32 addrOffset = (targetPos - startPos) & 0x03FFFFFC;
+    return bl_opcode + addrOffset;
 }
-quint32 bl(quint32 startPos, qint32 offset, quint32 targetPos) {
+quint32 bl(quint32 startPos, int offset, quint32 targetPos) {
     return bl(startPos + offset * 4, targetPos);
 }
+// -- b --
 quint32 b(quint32 startPos, quint32 targetPos) {
-    quint32 offset = ((targetPos - startPos) >> 2) & 0x00FFFFFF;
-    return b_opcode + (offset << 2);
+    quint32 addrOffset = (targetPos - startPos) & 0x03FFFFFC;
+    return b_opcode + addrOffset;
 }
-quint32 b(quint32 startPos, qint32 offset, quint32 targetPos) {
+quint32 b(quint32 startPos, int offset, quint32 targetPos) {
     return b(startPos + offset * 4, targetPos);
 }
-quint32 b(qint32 currentPos, qint32 targetPos) {
-    quint32 offset = (4 * (targetPos - currentPos) >> 2) & 0x00FFFFFF;
-    return b_opcode + (offset << 2);
+quint32 b(LabelTable &labels, QString label, const QVector<quint32> &asmListing) {
+    return b_opcode + (labels.reference(label, asmListing) & 0x03FFFFFC);
 }
-quint32 b(qint32 offset) {
-    return b_opcode + ((4 * offset) & 0x0000FFFF);
+// -- blt --
+quint32 blt(int offset) {
+    return blt_opcode + ((4*offset) & 0x0000FFFC);
 }
-quint32 blt(quint32 currentPos, quint32 targetPos) {
-    return blt_opcode + ((targetPos - currentPos) & 0x0000FFFF);
+quint32 blt(LabelTable &labels, QString label, const QVector<quint32> &asmListing) {
+    return blt_opcode + (labels.reference(label, asmListing) & 0x0000FFFC);
 }
-quint32 blt(qint32 currentPos, qint32 targetPos) {
-    return blt_opcode + ((4 * (targetPos - currentPos)) & 0x0000FFFF);
+// -- ble --
+quint32 ble(int offset) {
+    return ble_opcode + ((4*offset) & 0x0000FFFC);
 }
-quint32 blt(qint32 offset) {
-    return blt_opcode + ((4 * offset) & 0x0000FFFF);
+quint32 ble(LabelTable &labels, QString label, const QVector<quint32> &asmListing) {
+    return ble_opcode + (labels.reference(label, asmListing) & 0x0000FFFC);
 }
-quint32 ble(quint32 currentPos, quint32 targetPos) {
-    return ble_opcode + ((targetPos - currentPos) & 0x0000FFFF);
+// -- beq --
+quint32 beq(int offset) {
+    return beq_opcode + ((4*offset) & 0x0000FFFC);
 }
-quint32 ble(qint32 currentPos, qint32 targetPos) {
-    return ble_opcode + ((4 * (targetPos - currentPos)) & 0x0000FFFF);
+quint32 beq(LabelTable &labels, QString label, const QVector<quint32> &asmListing) {
+    return beq_opcode + (labels.reference(label, asmListing) & 0x0000FFFC);
 }
-quint32 ble(qint32 offset) {
-    return ble_opcode + ((4 * offset) & 0x0000FFFF);
+// -- bge --
+quint32 bge(int offset) {
+    return bge_opcode + ((4*offset) & 0x0000FFFC);
 }
-quint32 beq(quint32 currentPos, quint32 targetPos) {
-    return beq_opcode + ((targetPos - currentPos) & 0x0000FFFF);
+quint32 bge(LabelTable &labels, QString label, const QVector<quint32> &asmListing) {
+    return bge_opcode + (labels.reference(label, asmListing) & 0x0000FFFC);
 }
-quint32 beq(qint32 currentPos, qint32 targetPos) {
-    return beq(targetPos - currentPos);
+// -- bne --
+quint32 bne(int offset) {
+    return bne_opcode + ((4*offset) & 0x0000FFFC);
 }
-quint32 beq(qint32 offset) {
-    return beq_opcode + ((4 * offset) & 0x0000FFFF);
+quint32 bne(LabelTable &labels, QString label, const QVector<quint32> &asmListing) {
+    return bne_opcode + (labels.reference(label, asmListing) & 0x0000FFFC);
 }
-quint32 bge(qint32 currentPos, qint32 targetPos) {
-    return bge(targetPos - currentPos);
-}
-quint32 bge(qint32 offset) {
-    return bge_opcode + ((4 * offset) & 0x0000FFFF);
-}
-quint32 bne(qint32 currentPos, qint32 targetPos) {
-    return bne(targetPos - currentPos);
-}
-quint32 bne(qint32 offset) {
-    return bne_opcode + ((4 * offset) & 0x0000FFFF);
-}
+// -- blr --
+quint32 blr() { return blr_opcode; }
 quint32 cmpwi(quint8 reg, qint16 value) {
     return cmpwi_opcode + ((quint32)reg << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 cmplwi(quint8 reg, quint16 value) {
     return cmplwi_opcode + ((quint32)reg << 16) + ((quint32)value & 0x0000FFFF);
 }
-quint32 blr() { return blr_opcode; }
 quint32 nop() { return ori(0, 0, 0); }
 quint32 mflr(quint8 reg) {
     return mflr_opcode + ((quint32)reg << 21);

@@ -39,19 +39,21 @@ QVector<quint32> ForceSimulatedButtonPress::writeUploadSimulatedButtonPress(cons
     auto forceSimulatedButtonPress = PowerPcAsm::make16bitValuePair(forceSimulatedButtonPressAddr);
     auto pressedButtonsBitArray = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x8078C880));
 
-    return {
-        PowerPcAsm::lis(6, forceSimulatedButtonPress.upper),                // |
-        PowerPcAsm::addi(6, 6, forceSimulatedButtonPress.lower),            // | r6 <- &forceSimulatedButtonPress
-        PowerPcAsm::lis(7, pressedButtonsBitArray.upper),                   // |
-        PowerPcAsm::addi(7, 7, pressedButtonsBitArray.lower),               // | r7 <- &pressedButtonsBitArray
-        PowerPcAsm::lwz(0, 0x0, 6),                                         // r0 <- forceSimulatedButtonPress
-        PowerPcAsm::cmpwi(0, 0x0),                                          // if (forceSimulatedButtonPress != 0)
-        PowerPcAsm::beq(4),                                                 // {
-        PowerPcAsm::stw(0, 0x0, 7),                                         //   pressedButtonsBitArray <- forceSimulatedButtonPress
-        PowerPcAsm::li(0, 0x0),                                             //   |
-        PowerPcAsm::stw(0, 0x0, 6),                                         //   | forceSimulatedButtonPress <- 0
-                                                                            // }
-        PowerPcAsm::lwz(0, 0x4, 3),                                         // *replaced opcode*
-        PowerPcAsm::b(routineStartAddress, 11 /*asm.Count*/, returnAddr)    // return
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::lis(6, forceSimulatedButtonPress.upper));         // |
+    asm_.append(PowerPcAsm::addi(6, 6, forceSimulatedButtonPress.lower));     // | r6 <- &forceSimulatedButtonPress
+    asm_.append(PowerPcAsm::lis(7, pressedButtonsBitArray.upper));            // |
+    asm_.append(PowerPcAsm::addi(7, 7, pressedButtonsBitArray.lower));        // | r7 <- &pressedButtonsBitArray
+    asm_.append(PowerPcAsm::lwz(0, 0x0, 6));                                  // r0 <- forceSimulatedButtonPress
+    asm_.append(PowerPcAsm::cmpwi(0, 0x0));                                   // if (forceSimulatedButtonPress != 0)
+    asm_.append(PowerPcAsm::beq(labels, "return", asm_));                     // {
+    asm_.append(PowerPcAsm::stw(0, 0x0, 7));                                  //   pressedButtonsBitArray <- forceSimulatedButtonPress
+    asm_.append(PowerPcAsm::li(0, 0x0));                                      //   |
+    asm_.append(PowerPcAsm::stw(0, 0x0, 6));                                  //   | forceSimulatedButtonPress <- 0
+    labels.define("return", asm_);                                            // }
+    asm_.append(PowerPcAsm::lwz(0, 0x4, 3));                                  // *replaced opcode*
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.size(), returnAddr)); // return
+    labels.checkProperlyLinked();
+    return asm_;
 }

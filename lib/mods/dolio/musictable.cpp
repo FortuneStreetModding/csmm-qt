@@ -105,53 +105,57 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     PowerPcAsm::Pair16Bit t = PowerPcAsm::make16bitValuePair(tableAddr);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     // precondition:   r3 is bgmId
     //                 r4 is theme
     //        unused:  r0,r5,r6,r7,r31
     // postcondition:  r3 and r31 is bgmId
-    asm_.append(PowerPcAsm::mr(31, 3));             // r31 <- r3
-    asm_.append(PowerPcAsm::lis(3, g.upper));       // \.
-    asm_.append(PowerPcAsm::addi(3, 3, g.lower));   // |.
-    asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Game_Manager
-    asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0? (is a game Manager defined? if it is, that means a game is running, otherwise we are still in menu)
-    asm_.append(PowerPcAsm::bne(4));                // continue
-    asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
-    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));     // make the comparision again from the original function
+    asm_.append(PowerPcAsm::mr(31, 3));                                        // r31 <- r3
+    asm_.append(PowerPcAsm::lis(3, g.upper));                                  // \.
+    asm_.append(PowerPcAsm::addi(3, 3, g.lower));                              // |.
+    asm_.append(PowerPcAsm::lwz(5, 0x0, 3));                                   // /. r5 <- Game_Manager
+    asm_.append(PowerPcAsm::cmpwi(5, 0x0));                                    // r5 != 0? (is a game Manager defined? if it is, that means a game is running, otherwise we are still in menu)
+    asm_.append(PowerPcAsm::bne(labels, "continue", asm_));                    // continue
+    asm_.append(PowerPcAsm::mr(3, 31));                                        // r3 <- r31
+    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // make the comparision again from the original function
     asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
-    asm_.append(PowerPcAsm::lis(3, m.upper));       // \.
-    asm_.append(PowerPcAsm::addi(3, 3, m.lower));   // |.
-    asm_.append(PowerPcAsm::lwz(5, 0x0, 3));        // /. r5 <- Global_MapID
-    asm_.append(PowerPcAsm::li(3, 2));              // \.
-    asm_.append(PowerPcAsm::slw(5, 5, 3));          // /. r5 <- r5 * 4
-    asm_.append(PowerPcAsm::lis(3, t.upper));       // \.
-    asm_.append(PowerPcAsm::addi(3, 3, t.lower));   // |.
-    asm_.append(PowerPcAsm::lwzx(5, 5, 3));         // /. r5 <- MapMusicReplacementTable = MapBgmMePointerTable[r5]
-    asm_.append(PowerPcAsm::cmpwi(5, 0x0));         // r5 != 0?
-    asm_.append(PowerPcAsm::bne(4));                // continue
-    asm_.append(PowerPcAsm::mr(3, 31));             // r3 <- r31
-    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));     // make the comparision again from the original function
+    labels.define("continue", asm_);
+    asm_.append(PowerPcAsm::lis(3, m.upper));                                  // \.
+    asm_.append(PowerPcAsm::addi(3, 3, m.lower));                              // |.
+    asm_.append(PowerPcAsm::lwz(5, 0x0, 3));                                   // /. r5 <- Global_MapID
+    asm_.append(PowerPcAsm::li(3, 2));                                         // \.
+    asm_.append(PowerPcAsm::slw(5, 5, 3));                                     // /. r5 <- r5 * 4
+    asm_.append(PowerPcAsm::lis(3, t.upper));                                  // \.
+    asm_.append(PowerPcAsm::addi(3, 3, t.lower));                              // |.
+    asm_.append(PowerPcAsm::lwzx(5, 5, 3));                                    // /. r5 <- MapMusicReplacementTable = MapBgmMePointerTable[r5]
+    asm_.append(PowerPcAsm::cmpwi(5, 0x0));                                    // r5 != 0?
+    asm_.append(PowerPcAsm::bne(labels, "continue2", asm_));                   // continue2
+    asm_.append(PowerPcAsm::mr(3, 31));                                        // r3 <- r31
+    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // make the comparision again from the original function
     asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
-    asm_.append(PowerPcAsm::lwz(6, 0x0, 5));        // r6 <- size of MapMusicReplacementTable
-    asm_.append(PowerPcAsm::addi(5, 5, 0x4));       // r5+=4
-    int loop = asm_.size();
-    {
-        asm_.append(PowerPcAsm::lwz(3, 0x0, 5));    // r3 <- firstBgmId
-        asm_.append(PowerPcAsm::cmpw(3, 31));       // r3 == r31?
-        asm_.append(PowerPcAsm::bne(6));            // {
-        asm_.append(PowerPcAsm::addi(5, 5, 0x4));   // r5+=4
-        asm_.append(PowerPcAsm::lwz(31, 0x0, 5));   // r31 <- secondBgmId
-        asm_.append(PowerPcAsm::mr(3, 31));         // r3 <- r31
-        asm_.append(PowerPcAsm::cmplwi(3, 0xffff)); // make the comparision again from the original function
-        asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr));     // return returnBgmReplacedAddr
-                                                    // }
-        asm_.append(PowerPcAsm::addi(5, 5, 0x8));   // r5+=8
-        asm_.append(PowerPcAsm::subi(6, 6, 0x1));   // r6--
-        asm_.append(PowerPcAsm::cmpwi(6, 0x0));     // r6 != 0?
-        asm_.append(PowerPcAsm::bne(asm_.size(), loop));   // loop
-        asm_.append(PowerPcAsm::mr(3, 31));         // r3 <- r31
-        asm_.append(PowerPcAsm::cmplwi(3, 0xffff)); // make the comparision again from the original function
-        asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
-    }
+    labels.define("continue2", asm_);
+    asm_.append(PowerPcAsm::lwz(6, 0x0, 5));                                   // r6 <- size of MapMusicReplacementTable
+    asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5+=4
+    labels.define("loop", asm_);
+    asm_.append(PowerPcAsm::lwz(3, 0x0, 5));                                   // r3 <- firstBgmId
+    asm_.append(PowerPcAsm::cmpw(3, 31));                                      // r3 == r31?
+    asm_.append(PowerPcAsm::bne(labels, "continue3", asm_));                   // {
+    asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5+=4
+    asm_.append(PowerPcAsm::lwz(31, 0x0, 5));                                  // r31 <- secondBgmId
+    asm_.append(PowerPcAsm::mr(3, 31));                                        // r3 <- r31
+    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // make the comparision again from the original function
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr)); // return returnBgmReplacedAddr
+                                                                               // }
+    labels.define("continue3", asm_);
+    asm_.append(PowerPcAsm::addi(5, 5, 0x8));                                  // r5+=8
+    asm_.append(PowerPcAsm::subi(6, 6, 0x1));                                  // r6--
+    asm_.append(PowerPcAsm::cmpwi(6, 0x0));                                    // r6 != 0?
+    asm_.append(PowerPcAsm::bne(labels, "loop", asm_));                        // loop
+    asm_.append(PowerPcAsm::mr(3, 31));                                        // r3 <- r31
+    asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // make the comparision again from the original function
+    asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
+
+    labels.checkProperlyLinked();
     return asm_;
 }
 

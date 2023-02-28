@@ -88,14 +88,18 @@ QVector<quint32> TinyDistricts::writeSingleShopDistrictCheckRoutine(const Addres
     auto playDominationThemeReturnAddr = addressMapper.boomStreetToStandard(0x801c474c);
     auto returnAddr = addressMapper.boomStreetToStandard(0x801c4744);
 
-    return {
-        PowerPcAsm::cmpwi(0, 1),
-        PowerPcAsm::beq(3),
-        PowerPcAsm::cmpw(0, 3),
-        PowerPcAsm::ble(2),
-        PowerPcAsm::b(routineStartAddress, 4 /*asm.Count*/, returnAddr),
-        PowerPcAsm::b(routineStartAddress, 5 /*asm.Count*/, playDominationThemeReturnAddr),
-    };
+    QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
+    asm_.append(PowerPcAsm::cmpwi(0, 1));
+    asm_.append(PowerPcAsm::beq(labels, "doNotPlayDomination", asm_));
+    asm_.append(PowerPcAsm::cmpw(0, 3));
+    asm_.append(PowerPcAsm::ble(labels, "playDomination", asm_));
+    labels.define("doNotPlayDomination", asm_);
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.size(), returnAddr));
+    labels.define("playDomination", asm_);
+    asm_.append(PowerPcAsm::b(routineStartAddress, asm_.size(), playDominationThemeReturnAddr));
+    labels.checkProperlyLinked();
+    return asm_;
 }
 
 

@@ -125,11 +125,12 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     auto returnAddr = addressMapper.boomStreetToStandard(0x800fa7b8);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::li(3, RollShopPriceMultiplierType));
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));
     asm_.append(PowerPcAsm::cmpwi(3, 0));
-    asm_.append(PowerPcAsm::bne(7)); // goto mutator
-    int vanilla = asm_.size();
+    asm_.append(PowerPcAsm::bne(labels, "mutator", asm_)); // goto mutator
+    labels.define("vanilla", asm_);
                 // vanilla
     asm_.append(PowerPcAsm::lwz(3, 0x18, 20));
     asm_.append(PowerPcAsm::li(4, 0x19));
@@ -138,25 +139,26 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     asm_.append(PowerPcAsm::li(7, 0));
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
                 // mutator stuff
-    asm_.append(PowerPcAsm::lis(4, s.upper));           // \.
-    asm_.append(PowerPcAsm::addi(4, 4, s.lower));       // |.
-    asm_.append(PowerPcAsm::lwz(5, 0, 4));              // /. r5 <- lastShopPrice
-    asm_.append(PowerPcAsm::cmpwi(5, 0));               // \. if(lastShopPrice == 0)
-    asm_.append(PowerPcAsm::beq(asm_.size(), vanilla)); // /.   goto vanilla
+    labels.define("mutator", asm_);
+    asm_.append(PowerPcAsm::lis(4, s.upper));              // \.
+    asm_.append(PowerPcAsm::addi(4, 4, s.lower));          // |.
+    asm_.append(PowerPcAsm::lwz(5, 0, 4));                 // /. r5 <- lastShopPrice
+    asm_.append(PowerPcAsm::cmpwi(5, 0));                  // \. if(lastShopPrice == 0)
+    asm_.append(PowerPcAsm::beq(labels, "vanilla", asm_)); // /.   goto vanilla
 
-    asm_.append(PowerPcAsm::lis(4, d.upper));           // \.
-    asm_.append(PowerPcAsm::addi(4, 4, d.lower));       // |.
-    asm_.append(PowerPcAsm::lwz(5, 0, 4));              // /. r5 <- hasRolledDice
-    asm_.append(PowerPcAsm::cmpwi(5, 0));               // \. if(hasRolledDice)
-    asm_.append(PowerPcAsm::bne(asm_.size(), vanilla)); // /.   goto vanilla
+    asm_.append(PowerPcAsm::lis(4, d.upper));              // \.
+    asm_.append(PowerPcAsm::addi(4, 4, d.lower));          // |.
+    asm_.append(PowerPcAsm::lwz(5, 0, 4));                 // /. r5 <- hasRolledDice
+    asm_.append(PowerPcAsm::cmpwi(5, 0));                  // \. if(hasRolledDice)
+    asm_.append(PowerPcAsm::bne(labels, "vanilla", asm_)); // /.   goto vanilla
 
-    asm_.append(PowerPcAsm::li(5, 1));                  // \. hasRolledDice = true
-    asm_.append(PowerPcAsm::stw(5, 0, 4));              // /.
+    asm_.append(PowerPcAsm::li(5, 1));                     // \. hasRolledDice = true
+    asm_.append(PowerPcAsm::stw(5, 0, 4));                 // /.
 
-    asm_.append(PowerPcAsm::lbz(3, 0x0, 3));            // r3 <- maxDiceRoll
-    asm_.append(PowerPcAsm::lwz(4, 0x18, 20));          // r4 <- GameProgress*
-    asm_.append(PowerPcAsm::addis(4, 4, 0x2));          // \ GameProgress->MaxDiceRoll <- r4
-    asm_.append(PowerPcAsm::stw(3, 0x2814, 4));         // /
+    asm_.append(PowerPcAsm::lbz(3, 0x0, 3));               // r3 <- maxDiceRoll
+    asm_.append(PowerPcAsm::lwz(4, 0x18, 20));             // r4 <- GameProgress*
+    asm_.append(PowerPcAsm::addis(4, 4, 0x2));             // \ GameProgress->MaxDiceRoll <- r4
+    asm_.append(PowerPcAsm::stw(3, 0x2814, 4));            // /
 
     // asm_.append(PowerPcAsm::lis(3, b.upper));                                             // \.
     // asm_.append(PowerPcAsm::addi(3, 3, b.lower));                                         // |.
@@ -169,6 +171,7 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeRollDiceBeforePayingRoutin
     asm_.append(PowerPcAsm::li(6, -1));
     asm_.append(PowerPcAsm::li(7, 0));
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -192,14 +195,15 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const
     PowerPcAsm::Pair16Bit s = PowerPcAsm::make16bitValuePair(lastShopPrice);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::add(3, 0, 3));
     asm_.append(PowerPcAsm::cmpwi(10, 0x0));                                        // \.
-    asm_.append(PowerPcAsm::beq(4));                                                // |. if (squareType != PROPERTY_0x0 &&
+    asm_.append(PowerPcAsm::beq(labels, "shop", asm_));                              // |. if (squareType != PROPERTY_0x0 &&
     asm_.append(PowerPcAsm::cmpwi(10, 0x37));                                       // |.     squareType != VACANT_PLOT_3_STAR_SHOP_0x37) {
-    asm_.append(PowerPcAsm::beq(2));                                                // /.
+    asm_.append(PowerPcAsm::beq(labels, "shop", asm_));                              // /.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));      // |.   return vanilla shop price
                                                                                     // |. }
-                                                                                    // property or 3 star shop
+    labels.define("shop", asm_);                                                    // property or 3 star shop
     asm_.append(PowerPcAsm::lis(7, s.upper));                                       // \.
     asm_.append(PowerPcAsm::addi(7, 7, s.lower));                                   // /. r7 <- &lastShopPrice
     asm_.append(PowerPcAsm::stw(3, 0, 7));                                          // |. lastShopPrice = price
@@ -208,26 +212,28 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeCalculateGainRoutine(const
     asm_.append(PowerPcAsm::addi(7, 7, d.lower));                                   // /. r7 <- &hasRolledDice
     asm_.append(PowerPcAsm::lwz(7, 0, 7));                                          // |. r7 <- hasRolledDice
     asm_.append(PowerPcAsm::cmpwi(7, 1));                                           // \. if(!hasRolledDice) {
-    asm_.append(PowerPcAsm::beq(12));                                               // |.
+    asm_.append(PowerPcAsm::beq(labels, "mulDice", asm_));                          // |.
     asm_.append(PowerPcAsm::mr(6, 3));                                              // |.   remember shop price in r6
     asm_.append(PowerPcAsm::mflr(7));                                               // |.   remember link register value in r7
     asm_.append(PowerPcAsm::li(3, RollShopPriceMultiplierType));                    // \.
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine)); // /.   call getMutatorData()
     asm_.append(PowerPcAsm::mtlr(7));                                               // |.   restore link register value from r7
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                           // \.   if(mutator == NULL) {
-    asm_.append(PowerPcAsm::bne(3));                                                // |.
+    asm_.append(PowerPcAsm::bne(labels, "returnZero", asm_));                       // |.
     asm_.append(PowerPcAsm::mr(3, 6));                                              // |.     restore shop price from r6
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));      // /.     return vanilla shop price
-    asm_.append(PowerPcAsm::li(3, 0));                                              // \.   } else {
+    labels.define("returnZero", asm_);                                              // \.   } else {
+    asm_.append(PowerPcAsm::li(3, 0));                                              // |.
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));      // /.     return 0
                                                                                     // |.   }
-                                                                                    // /. } else {
+    labels.define("mulDice", asm_);                                                 // /. } else {
     asm_.append(PowerPcAsm::lis(7, v.upper));                                       // \.
     asm_.append(PowerPcAsm::addi(7, 7, v.lower));                                   // |.
     asm_.append(PowerPcAsm::lwz(7, 0, 7));                                          // |.   r7 <- dice value
     asm_.append(PowerPcAsm::lwz(7, 0x414, 7));                                      // /.
     asm_.append(PowerPcAsm::mullw(3, 7, 3));                                        // |    return r3 * r7
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));      // |. }
+    labels.checkProperlyLinked();
     return asm_;
 }
 
@@ -253,12 +259,13 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeDontShowQuestionBoxAgain(c
     PowerPcAsm::Pair16Bit d = PowerPcAsm::make16bitValuePair(hasRolledDice);
 
     QVector<quint32> asm_;
+    auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::lwz(0, 0x28, 20));                                       // |. r0 <- GPProcMoveStop.state
     asm_.append(PowerPcAsm::lis(26, d.upper));                                       // \.
     asm_.append(PowerPcAsm::addi(26, 26, d.lower));                                  // |. r26 <- hasRolledDice
     asm_.append(PowerPcAsm::lwz(26, 0, 26));                                         // /.
     asm_.append(PowerPcAsm::cmpwi(26, 0));                                           // \. if(!hasRolledDice) {
-    asm_.append(PowerPcAsm::bne(2));                                                 // |.   return
+    asm_.append(PowerPcAsm::bne(labels, "skipQuestionBox", asm_));                   // |.   return
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));       // /. }
     //asm_.append(PowerPcAsm::mr(3, 24));                                              // \.
     //asm_.append(PowerPcAsm::lwz(3, 0x404, 21));                                      // |.
@@ -267,8 +274,10 @@ QVector<quint32> MutatorRollShopPriceMultiplier::writeDontShowQuestionBoxAgain(c
     //asm_.append(PowerPcAsm::lwz(3, 0x188, 28));                                      // \.
     //asm_.append(PowerPcAsm::lwz(4, 0x18, 20));                                       // |. restore vanilla parameters
     //asm_.append(PowerPcAsm::lwz(3, 0x74, 3));                                        // /.
+    labels.define("skipQuestionBox", asm_);
     asm_.append(PowerPcAsm::li(0, 0x11c));                                           // |. r0 <- 0x11c  (state which is after confirming "yes")
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));       // |. return
+    labels.checkProperlyLinked();
     return asm_;
 }
 
