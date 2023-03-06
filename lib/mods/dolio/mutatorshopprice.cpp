@@ -1,8 +1,8 @@
-#include "mutatorshoppricemultiplier.h"
+#include "mutatorshopprice.h"
 #include "lib/powerpcasm.h"
 #include "lib/mutator/mutator.h"
 
-void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
+void MutatorShopPrice::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
     quint32 getMutatorDataSubroutine = mutatorTableRoutineAddr(modList());
 
     // --- Base Shop Price Multiplier ---
@@ -42,7 +42,7 @@ void MutatorShopPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapp
     }
 }
 
-QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
+QVector<quint32> MutatorShopPrice::writeBaseShopPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
     // precondition: r29 - Place*
     //                r0 - shop price
     // postcondition: r0 - dont care
@@ -52,7 +52,7 @@ QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const 
 
     QVector<quint32> asm_;
     auto labels = PowerPcAsm::LabelTable();
-    asm_.append(PowerPcAsm::li(3, ShopPriceMultiplierType));                                   // \.
+    asm_.append(PowerPcAsm::li(3, ShopPriceType));                                             // \.
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));  // /. get mutatorData
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                                      // \. if mutator != NULL
     asm_.append(PowerPcAsm::bne(labels, "mutator", asm_));                                     // /.   goto mutator
@@ -72,7 +72,7 @@ QVector<quint32> MutatorShopPriceMultiplier::writeBaseShopPriceMultiplier(const 
     return asm_;
 }
 
-QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
+QVector<quint32> MutatorShopPrice::write3StarHotelPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
     // precondition:  r4 <- shop price = 200?
     //               r29 <- Place*
     // postcondition: r0 <- dont care
@@ -90,7 +90,7 @@ QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(cons
     QVector<quint32> asm_;
     auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::mr(6, 4));                                                         // |. save shop price
-    asm_.append(PowerPcAsm::li(3, ShopPriceMultiplierType));                                   // \.
+    asm_.append(PowerPcAsm::li(3, ShopPriceType));                                             // \.
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));  // /. get mutatorData
     asm_.append(PowerPcAsm::mr(4, 6));                                                         // |. restore shop price
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                                      // \. if mutator == NULL
@@ -113,7 +113,7 @@ QVector<quint32> MutatorShopPriceMultiplier::write3StarHotelPriceMultiplier(cons
     return asm_;
 }
 
-QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
+QVector<quint32> MutatorShopPrice::writeRankPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
     // precondition:  r4 <- shop price
     // postcondition: r0 <- (r3)
     //                r3 <- 80453b38
@@ -127,7 +127,7 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     QVector<quint32> asm_;
     auto labels = PowerPcAsm::LabelTable();
     asm_.append(PowerPcAsm::mr(6, 4));                                                         // |. save shop price
-    asm_.append(PowerPcAsm::li(3, ShopPriceMultiplierType));                                   // \.
+    asm_.append(PowerPcAsm::li(3, ShopPriceType));                                             // \.
     asm_.append(PowerPcAsm::mflr(7));                                                          // |.
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));  // |. get mutatorData
     asm_.append(PowerPcAsm::mtlr(7));                                                          // /.
@@ -164,5 +164,5 @@ QVector<quint32> MutatorShopPriceMultiplier::writeRankPriceMultiplier(const Addr
     return asm_;
 }
 
-void MutatorShopPriceMultiplier::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
+void MutatorShopPrice::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
 

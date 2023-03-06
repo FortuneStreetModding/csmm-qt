@@ -1,12 +1,12 @@
-#ifndef MUTATORSHOPPRICEMULTIPLIER_H
-#define MUTATORSHOPPRICEMULTIPLIER_H
+#ifndef MUTATORSHOPPRICE_H
+#define MUTATORSHOPPRICE_H
 
 #include "doliomutator.h"
 
-class MutatorShopPriceMultiplier : public virtual DolIOMutator
+class MutatorShopPrice : public virtual DolIOMutator
 {
 public:
-    static constexpr std::string_view MODID = "mutatorShopPriceMultiplier";
+    static constexpr std::string_view MODID = "mutatorShopPrice";
     QString modId() const override { return MODID.data(); }
     void readAsm(QDataStream &stream, const AddressMapper &addressMapper, std::vector<MapDescriptor> &mapDescriptors) override;
 protected:
@@ -16,4 +16,4 @@ protected:
     QVector<quint32> writeRankPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine);
 };
 
-#endif // MUTATORSHOPPRICEMULTIPLIER_H
+#endif // MUTATORSHOPPRICE_H

@@ -1,8 +1,8 @@
-#include "stockpricemultiplier.h"
+#include "stockprice.h"
 
 #include <QDataStream>
 
-StockPriceMultiplier::StockPriceMultiplier(const YAML::Node &yaml) : Mutator(StockPriceMultiplierType) {
+StockPrice::StockPrice(const YAML::Node &yaml) : Mutator(StockPriceType) {
     if(yaml["numerator"])
         numerator = yaml["numerator"].as<quint16>();
     if(yaml["denominator"])
@@ -11,7 +11,7 @@ StockPriceMultiplier::StockPriceMultiplier(const YAML::Node &yaml) : Mutator(Sto
         constant = yaml["constant"].as<qint16>();
 }
 
-void StockPriceMultiplier::toYaml(YAML::Emitter& out) const {
+void StockPrice::toYaml(YAML::Emitter& out) const {
     out << YAML::BeginMap;
     out << YAML::Key << "numerator" << YAML::Value << numerator;
     out << YAML::Key << "denominator" << YAML::Value << denominator;
@@ -19,20 +19,20 @@ void StockPriceMultiplier::toYaml(YAML::Emitter& out) const {
     out << YAML::EndMap;
 }
 
-StockPriceMultiplier::StockPriceMultiplier(QDataStream &stream) : Mutator(StockPriceMultiplierType) {
+StockPrice::StockPrice(QDataStream &stream) : Mutator(StockPriceType) {
     stream >> numerator;
     stream >> denominator;
     stream >> constant;
 }
 
-void StockPriceMultiplier::toBytes_(QDataStream& stream) const {
+void StockPrice::toBytes_(QDataStream& stream) const {
     stream << numerator;
     stream << denominator;
     stream << constant;
 }
 
-bool StockPriceMultiplier::operator==(const Mutator &other) const {
-    const StockPriceMultiplier *o = dynamic_cast<const StockPriceMultiplier *>(&other);
+bool StockPrice::operator==(const Mutator &other) const {
+    const StockPrice *o = dynamic_cast<const StockPrice *>(&other);
     if (o) {
         return numerator==o->numerator &&
                denominator==o->denominator &&

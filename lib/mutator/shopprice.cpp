@@ -1,8 +1,8 @@
-#include "shoppricemultiplier.h"
+#include "shopprice.h"
 
 #include <QDataStream>
 
-ShopPriceMultiplier::ShopPriceMultiplier(const YAML::Node &yaml) : Mutator(ShopPriceMultiplierType) {
+ShopPrice::ShopPrice(const YAML::Node &yaml) : Mutator(ShopPriceType) {
     if(yaml["numerator"])
         numerator = yaml["numerator"].as<quint16>();
     if(yaml["denominator"])
@@ -13,7 +13,7 @@ ShopPriceMultiplier::ShopPriceMultiplier(const YAML::Node &yaml) : Mutator(ShopP
         affectShopRank = yaml["affectShopRank"].as<bool>();
 }
 
-void ShopPriceMultiplier::toYaml(YAML::Emitter& out) const {
+void ShopPrice::toYaml(YAML::Emitter& out) const {
     out << YAML::BeginMap;
     out << YAML::Key << "numerator" << YAML::Value << numerator;
     out << YAML::Key << "denominator" << YAML::Value << denominator;
@@ -22,22 +22,22 @@ void ShopPriceMultiplier::toYaml(YAML::Emitter& out) const {
     out << YAML::EndMap;
 }
 
-ShopPriceMultiplier::ShopPriceMultiplier(QDataStream &stream) : Mutator(ShopPriceMultiplierType) {
+ShopPrice::ShopPrice(QDataStream &stream) : Mutator(ShopPriceType) {
     stream >> numerator;
     stream >> denominator;
     stream >> constant;
     stream >> affectShopRank;
 }
 
-void ShopPriceMultiplier::toBytes_(QDataStream& stream) const {
+void ShopPrice::toBytes_(QDataStream& stream) const {
     stream << numerator;
     stream << denominator;
     stream << constant;
     stream << affectShopRank;
 }
 
-bool ShopPriceMultiplier::operator==(const Mutator &other) const {
-    const ShopPriceMultiplier *o = dynamic_cast<const ShopPriceMultiplier *>(&other);
+bool ShopPrice::operator==(const Mutator &other) const {
+    const ShopPrice *o = dynamic_cast<const ShopPrice *>(&other);
     if (o) {
         return numerator==o->numerator &&
                denominator==o->denominator &&

@@ -1,13 +1,13 @@
-#ifndef SHOPPRICEMULTIPLIER_H
-#define SHOPPRICEMULTIPLIER_H
+#ifndef SHOPPRICE_H
+#define SHOPPRICE_H
 
 #include "mutator.h"
 
-struct ShopPriceMultiplier : Mutator {
+struct ShopPrice : Mutator {
     void toYaml(YAML::Emitter& out) const override;
     void toBytes_(QDataStream& data) const override;
-    ShopPriceMultiplier(const YAML::Node &yaml);
-    ShopPriceMultiplier(QDataStream &stream);
+    ShopPrice(const YAML::Node &yaml);
+    ShopPrice(QDataStream &stream);
     bool operator==(const Mutator &other) const override;
 
     quint16 numerator = 1;
@@ -16,4 +16,4 @@ struct ShopPriceMultiplier : Mutator {
     bool affectShopRank = true;
 };
 
-#endif // SHOPPRICEMULTIPLIER_H
+#endif // SHOPPRICE_H

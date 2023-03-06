@@ -120,10 +120,10 @@ set(LIB_SOURCES
     lib/mods/dolio/musictable.h
     lib/mods/dolio/mutatorrollshoppricemultiplier.cpp
     lib/mods/dolio/mutatorrollshoppricemultiplier.h
-    lib/mods/dolio/mutatorshoppricemultiplier.cpp
-    lib/mods/dolio/mutatorshoppricemultiplier.h
-    lib/mods/dolio/mutatorstockpricemultiplier.cpp
-    lib/mods/dolio/mutatorstockpricemultiplier.h
+    lib/mods/dolio/mutatorshopprice.cpp
+    lib/mods/dolio/mutatorshopprice.h
+    lib/mods/dolio/mutatorstockprice.cpp
+    lib/mods/dolio/mutatorstockprice.h
     lib/mods/dolio/mutatortable.cpp
     lib/mods/dolio/mutatortable.h
     lib/mods/dolio/nameddistricts.cpp
@@ -165,10 +165,10 @@ set(LIB_SOURCES
     lib/mutator/mutator.h
     lib/mutator/rollshoppricemultiplier.cpp
     lib/mutator/rollshoppricemultiplier.h
-    lib/mutator/shoppricemultiplier.cpp
-    lib/mutator/shoppricemultiplier.h
-    lib/mutator/stockpricemultiplier.cpp
-    lib/mutator/stockpricemultiplier.h
+    lib/mutator/shopprice.cpp
+    lib/mutator/shopprice.h
+    lib/mutator/stockprice.cpp
+    lib/mutator/stockprice.h
     lib/orderedmap.h
     lib/powerpcasm.cpp
     lib/powerpcasm.h

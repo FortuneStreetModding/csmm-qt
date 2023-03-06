@@ -1,8 +1,8 @@
-#include "mutatorstockpricemultiplier.h"
+#include "mutatorstockprice.h"
 #include "lib/powerpcasm.h"
 #include "lib/mutator/mutator.h"
 
-void MutatorStockPriceMultiplier::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
+void MutatorStockPrice::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &) {
     quint32 getMutatorDataSubroutine = mutatorTableRoutineAddr(modList());
 
     quint32 hijackAddr = addressMapper.boomStreetToStandard(0x80092384);
@@ -15,12 +15,12 @@ void MutatorStockPriceMultiplier::writeAsm(QDataStream &stream, const AddressMap
     stream << PowerPcAsm::b(hijackAddr, procStockPriceMultiplier);
 }
 
-QVector<quint32> MutatorStockPriceMultiplier::writeStockPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
+QVector<quint32> MutatorStockPrice::writeStockPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
     auto returnAddr = addressMapper.boomStreetToStandard(0x80092388);
 
     QVector<quint32> asm_;
     auto labels = PowerPcAsm::LabelTable();
-    asm_.append(PowerPcAsm::li(3, StockPriceMultiplierType));                                  // \.
+    asm_.append(PowerPcAsm::li(3, StockPriceType));                                            // \.
     asm_.append(PowerPcAsm::bl(routineStartAddress, asm_.count(), getMutatorDataSubroutine));  // /. get mutatorData
     asm_.append(PowerPcAsm::cmpwi(3, 0));                                                      // \. if mutator != NULL
     asm_.append(PowerPcAsm::bne(labels, "mutator", asm_));                                     // /.   goto mutator
@@ -41,5 +41,5 @@ QVector<quint32> MutatorStockPriceMultiplier::writeStockPriceMultiplier(const Ad
     return asm_;
 }
 
-void MutatorStockPriceMultiplier::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
+void MutatorStockPrice::readAsm(QDataStream &, const AddressMapper &, std::vector<MapDescriptor> &) { /* crab nothing to do crab */ }
 

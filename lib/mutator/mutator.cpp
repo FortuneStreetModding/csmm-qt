@@ -1,16 +1,16 @@
 #include "mutator.h"
 
 #include "rollshoppricemultiplier.h"
-#include "shoppricemultiplier.h"
-#include "stockpricemultiplier.h"
+#include "shopprice.h"
+#include "stockprice.h"
 
 #include <QDataStream>
 #include <QMap>
 
 static const QMap<QString, MutatorType> stringToMutatorTypes = {
     {"rollShopPriceMultiplier",  RollShopPriceMultiplierType},
-    {"shopPriceMultiplier",  ShopPriceMultiplierType},
-    {"stockPriceMultiplier",  StockPriceMultiplierType},
+    {"shopPrice",  ShopPriceType},
+    {"stockPrice",  StockPriceType},
 };
 QString mutatorTypeToString(MutatorType mutatorType) {
     return stringToMutatorTypes.key(mutatorType);
@@ -26,8 +26,8 @@ QSharedPointer<Mutator> Mutator::fromYaml(QString mutatorStr, const YAML::Node &
     switch(mutatorType) {
         case InvalidMutatorType: throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(yaml));
-        case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(yaml));
-        case StockPriceMultiplierType: return QSharedPointer<Mutator>(new StockPriceMultiplier(yaml));
+        case ShopPriceType: return QSharedPointer<Mutator>(new ShopPrice(yaml));
+        case StockPriceType: return QSharedPointer<Mutator>(new StockPrice(yaml));
     }
     throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
 }
@@ -55,8 +55,8 @@ QSharedPointer<Mutator> Mutator::fromBytes(QDataStream &stream) {
     switch(mutatorType) {
         case InvalidMutatorType: return QSharedPointer<Mutator>();
         case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(stream));
-        case ShopPriceMultiplierType: return QSharedPointer<Mutator>(new ShopPriceMultiplier(stream));
-        case StockPriceMultiplierType: return QSharedPointer<Mutator>(new StockPriceMultiplier(stream));
+        case ShopPriceType: return QSharedPointer<Mutator>(new ShopPrice(stream));
+        case StockPriceType: return QSharedPointer<Mutator>(new StockPrice(stream));
     }
     throw MutatorException(QString("Invalid mutator %1").arg(mutatorType));
 }
