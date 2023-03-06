@@ -3,7 +3,7 @@
 #include <QDataStream>
 
 RollShopPriceMultiplier::RollShopPriceMultiplier(const YAML::Node &yaml) : Mutator(RollShopPriceMultiplierType) {
-    maxRoll = yaml["maxRoll"].as<quint32>();
+    maxRoll = yaml["maxRoll"].as<quint8>();
 }
 
 void RollShopPriceMultiplier::toYaml(YAML::Emitter& out) const {

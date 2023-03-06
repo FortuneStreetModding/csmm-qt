@@ -30,6 +30,7 @@ namespace PowerPcAsm {
     static constexpr quint32 mullw_opcode = 0x7c0001d6;
     static constexpr quint32 divwu_opcode = 0x7c000396;
     static constexpr quint32 add_opcode = 0x7c000214;
+    static constexpr quint32 subf_opcode = 0x7c000050;
     static constexpr quint32 lha_opcode = 0xa8000000;
     static constexpr quint32 lhz_opcode = 0xa0000000;
 
@@ -128,6 +129,7 @@ namespace PowerPcAsm {
     quint32 addi(quint8 register1, quint8 register2, qint16 value);
     quint32 addis(quint8 register1, quint8 register2, qint16 value);
     quint32 add(quint8 register1, quint8 register2, quint8 register3);
+    quint32 subf(quint8 register1, quint8 register2, quint8 register3);
     quint32 ori(quint8 register1, quint8 register2, qint16 value);
     quint32 or_(quint8 register1, quint8 register2, quint8 register3);
     quint32 mr(quint8 register1, quint8 register2);

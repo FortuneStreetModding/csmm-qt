@@ -10,8 +10,10 @@ struct ShopPriceMultiplier : Mutator {
     ShopPriceMultiplier(QDataStream &stream);
     bool operator==(const Mutator &other) const override;
 
-    quint16 numerator;
-    quint16 denominator;
+    quint16 numerator = 1;
+    quint16 denominator = 1;
+    qint16 constant = 0;
+    bool affectShopRank = true;
 };
 
 #endif // SHOPPRICEMULTIPLIER_H

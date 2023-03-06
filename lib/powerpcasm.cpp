@@ -48,6 +48,9 @@ quint32 addis(quint8 register1, quint8 register2, qint16 value) {
 quint32 add(quint8 register1, quint8 register2, quint8 register3) {
     return add_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
 }
+quint32 subf(quint8 register1, quint8 register2, quint8 register3) {
+    return subf_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)register3 << 11);
+}
 quint32 ori(quint8 register1, quint8 register2, qint16 value) {
     return ori_opcode + ((quint32)register1 << 21) + ((quint32)register2 << 16) + ((quint32)value & 0x0000FFFF);
 }

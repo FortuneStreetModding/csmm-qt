@@ -16,11 +16,6 @@ void MutatorStockPriceMultiplier::writeAsm(QDataStream &stream, const AddressMap
 }
 
 QVector<quint32> MutatorStockPriceMultiplier::writeStockPriceMultiplier(const AddressMapper &addressMapper, quint32 routineStartAddress, quint32 getMutatorDataSubroutine) {
-    // precondition: r29 - Place*
-    //                r0 - shop price
-    // postcondition: r0 - dont care
-    //                r3 - dont care
-    //                r4 - dont care
     auto returnAddr = addressMapper.boomStreetToStandard(0x80092388);
 
     QVector<quint32> asm_;
@@ -38,7 +33,9 @@ QVector<quint32> MutatorStockPriceMultiplier::writeStockPriceMultiplier(const Ad
     asm_.append(PowerPcAsm::mullw(4, 4, 5));                                                   // |. r4 <- r4 * r5
     asm_.append(PowerPcAsm::lhz(5, 0x2, 3));                                                   // |. r5 <- denominator
     asm_.append(PowerPcAsm::divwu(4, 4, 5));                                                   // |. r4 <- r4 / r5
-    asm_.append(PowerPcAsm::cmpwi(4,0x0));                                                     // |. replaced opcode
+    asm_.append(PowerPcAsm::lha(5, 0x4, 3));                                                   // |. r5 <- constant
+    asm_.append(PowerPcAsm::add(4, 5, 4));                                                     // |. r4 <- r4 + r5
+    asm_.append(PowerPcAsm::cmpwi(4, 0x0));                                                    // |. replaced opcode
     asm_.append(PowerPcAsm::b(routineStartAddress, asm_.count(), returnAddr));                 // |. return
     labels.checkProperlyLinked();
     return asm_;
