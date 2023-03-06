@@ -9,6 +9,7 @@
 #include "importexportutils.h"
 #include "lib/asyncfuture.h"
 #include "lib/await.h"
+#include "lib/exewrapper.h"
 #include "lib/csmmnetworkmanager.h"
 
 namespace Configuration {
@@ -361,14 +362,24 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
             qInfo() << "attempting to download background" << it.key();
             for (auto &url: it.value()) {
                 auto dest = dir.filePath(it.key() + ".background.zip");
+                auto progressCb = [&](double progress) {
+                    progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
+                };
                 try {
-                    await(CSMMNetworkManager::downloadFileIfUrl(url, dest, [&](double progress) {
-                        progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
-                    }));
+                    await(CSMMNetworkManager::downloadFile(url, dest, progressCb));
                     break;
                 } catch (const std::runtime_error &e) {
                     qWarning() << "warning:" << e.what();
-                    continue; // try next url
+                    #ifdef WIN32
+                        // download failed, try with cli
+                        try {
+                            await(ExeWrapper::downloadCli(url, dest, progressCb));
+                            break;
+                        } catch (const std::runtime_error &e) {
+                            qWarning() << "warning:" << e.what();
+                            // download failed, try next url
+                        }
+                    #endif
                 }
             }
             ++i;
@@ -386,10 +397,19 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
                 qInfo() << "trying to download map descriptor to" << descPath;
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
-                        await(CSMMNetworkManager::downloadFileIfUrl(url, descPath));
+                        await(CSMMNetworkManager::downloadFile(url, descPath));
                     } catch (const std::runtime_error &e) {
                         qWarning() << "warning:" << e.what();
-                        continue;
+                        #ifdef WIN32
+                            // download failed, try with cli
+                            try {
+                                await(ExeWrapper::downloadCli(url, descPath));
+                                break;
+                            } catch (const std::runtime_error &e) {
+                                qWarning() << "warning:" << e.what();
+                                // download failed, try next url
+                            }
+                        #endif
                     }
                 }
             }

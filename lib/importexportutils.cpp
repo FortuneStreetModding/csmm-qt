@@ -7,7 +7,6 @@
 #include <filesystem>
 #include "lib/vanilladatabase.h"
 #include "lib/datafileset.h"
-#include "qnetworkaccessmanager.h"
 #include "zip/zip.h"
 #include "bsdiff/bspatchlib.h"
 #include "bsdiff/bsdifflib.h"
@@ -15,6 +14,7 @@
 #include "lib/await.h"
 #include "lib/asyncfuture.h"
 #include "lib/csmmnetworkmanager.h"
+#include "lib/exewrapper.h"
 
 namespace ImportExportUtils {
 
@@ -117,15 +117,22 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
     }
 }
 
-static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &importDir,
+static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, const QDir &importDir,
                           const std::function<void(double)> &progressCallback,
                           const QString &backgroundZipDir) {
     QTemporaryDir intermediateDir;
     if (!intermediateDir.isValid()) {
         throw Exception("Could not create an intermediate directory");
     }
+    QFileInfo yamlFileZipInfo(yamlZipSrc);
+    if(!yamlFileZipInfo.exists()) {
+        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive does not exist.").arg(yamlZipSrc, intermediateDir.path()));
+    }
+    if(yamlFileZipInfo.size() < 100) {
+        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(yamlZipSrc, intermediateDir.path()));
+    }
     QString extractedYamlFile;
-    int extractResult = zip_extract(yamlFileSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
+    int extractResult = zip_extract(yamlZipSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
         auto yamlFilePtr = (QString *)arg;
         QFileInfo fi(candidate);
         if (fi.suffix() == "yaml" && !fi.completeBaseName().startsWith(".")) {
@@ -134,8 +141,7 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
         return 0;
     }, &extractedYamlFile);
     if (extractResult < 0) {
-        throw Exception(QString("Could not extract zip file to intermediate directory: %1\n Do you have enough disk space at %2?")
-                        .arg(zip_strerror(extractResult), intermediateDir.path()));
+        throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(yamlZipSrc, intermediateDir.path(), zip_strerror(extractResult)));
     }
     if (extractedYamlFile.isEmpty()) {
         throw Exception("Zip file has no map descriptor");
@@ -144,16 +150,18 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
     std::ifstream yamlStream(std::filesystem::path(extractedYamlFile.toStdU16String()));
     auto node = YAML::Load(yamlStream);
     if (descriptor.fromYaml(node)) {
-        QFileInfo yamlFileZipInfo(yamlFileSrc);
         // check if <BACKGROUNDNAME>-Background.zip also needs to be extracted
         if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
             QString extractedCmpresFile = QFileInfo(extractedYamlFile).dir().filePath(descriptor.background + ".cmpres");
             // the background.cmpres file is missing -> extract the background zip as well
             if (!QFileInfo::exists(extractedCmpresFile)) {
-                QString zipBackgroundStr = (backgroundZipDir.isEmpty() ? QFileInfo(yamlFileSrc).dir() : QDir(backgroundZipDir))
+                QString zipBackgroundStr = (backgroundZipDir.isEmpty() ? QFileInfo(yamlZipSrc).dir() : QDir(backgroundZipDir))
                         .filePath(descriptor.background + ".background.zip");
                 QFileInfo zipBackground(zipBackgroundStr);
                 if(zipBackground.exists()) {
+                    if(zipBackground.size() < 100) {
+                        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(zipBackgroundStr, intermediateDir.path()));
+                    }
                     QString extractedCmpresFile;
                     int extractResult = zip_extract(zipBackgroundStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
                         auto cmpresFilePtr = (QString *)arg;
@@ -164,7 +172,7 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                         return 0;
                     }, &extractedCmpresFile);
                     if (extractResult < 0) {
-                        throw Exception(QString("Could not extract %1 to intermediate directory.\n Do you have enough disk space at %2?").arg(zipBackgroundStr, intermediateDir.path()));
+                        throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(zipBackgroundStr, intermediateDir.path(), zip_strerror(extractResult)));
                     }
                     if (extractedCmpresFile.isEmpty()) {
                         throw Exception(QString("%1 has no cmpres files").arg(zipBackgroundStr));
@@ -191,7 +199,7 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
             qInfo() << "Looking for the following brstm files:" << missingBrstmsStr;
             // not all required brtsm files reside yet in the intermediate directory -> extract the music zip as well
             if (missingBrstms.size() > 0) {
-                QString zipMusicStr = QFileInfo(yamlFileSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
+                QString zipMusicStr = QFileInfo(yamlZipSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
                 QFileInfo zipMusic(zipMusicStr);
                 if(node["music"].IsDefined()
                         && node["music"]["download"].IsSequence()
@@ -199,17 +207,30 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                     qInfo() << "Attempting to download music for" << yamlFileZipInfo.fileName();
                     auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
                     for (auto &url: urlsList) {
+                        QString urlStr = QString::fromStdString(url);
                         try {
-                            await(CSMMNetworkManager::downloadFileIfUrl(QString::fromStdString(url), zipMusicStr, progressCallback));
+                            await(CSMMNetworkManager::downloadFile(urlStr, zipMusicStr, progressCallback));
                             break;
                         } catch (const std::runtime_error &e) {
                             qWarning() << "warning:" << e.what();
-                            // download failed, try next url
+                            #ifdef WIN32
+                                // download failed, try with cli
+                                try {
+                                    await(ExeWrapper::downloadCli(urlStr, zipMusicStr, progressCallback));
+                                    break;
+                                } catch (const std::runtime_error &e) {
+                                    qWarning() << "warning:" << e.what();
+                                    // download failed, try next url
+                                }
+                            #endif
                         }
                     }
                 }
                 zipMusic = QFileInfo(zipMusicStr);
                 if(zipMusic.exists()) {
+                    if(zipMusic.size() < 100) {
+                        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(zipMusicStr, intermediateDir.path()));
+                    }
                     QString extractedBrstmFile;
                     int extractResult = zip_extract(zipMusicStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
                         auto brstmFilePtr = (QString *)arg;
@@ -220,7 +241,7 @@ static void importYamlZip(const QString &yamlFileSrc, MapDescriptor &descriptor,
                         return 0;
                     }, &extractedBrstmFile);
                     if (extractResult < 0) {
-                        throw Exception(QString("Could not extract %1 to intermediate directory.\nDo you have enough disk space at %2?").arg(zipMusicStr, intermediateDir.path()));
+                        throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(zipMusicStr, intermediateDir.path(), zip_strerror(extractResult)));
                     }
                     if (extractedBrstmFile.isEmpty()) {
                         throw Exception(QString("%1 has no brstm files.\nThe following .brstm files are still missing:\n%2").arg(zipMusicStr, missingBrstmsStr));

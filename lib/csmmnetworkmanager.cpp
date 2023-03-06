@@ -5,7 +5,10 @@
 #include <QApplication>
 #include <QStandardPaths>
 #include <QNetworkReply>
+#include <QProcess>
 #include "lib/asyncfuture.h"
+#include "exewrapper.h"
+#include <QtConcurrent>
 
 namespace CSMMNetworkManager {
 
@@ -17,6 +20,12 @@ QNetworkAccessManager *instance() {
         diskCache->setCacheDirectory(networkCacheDir());
         diskCache->setMaximumCacheSize(4LL << 30); // 4 GB cache
         theInstance->setCache(diskCache);
+        QObject::connect(theInstance, &QNetworkAccessManager::sslErrors, [=](QNetworkReply *reply, const QList<QSslError> &errors) {
+            for (const QSslError &error : errors) {
+                qWarning() << "SSL error:" << error.errorString();
+            }
+            reply->ignoreSslErrors(errors);
+        });
     }
     return theInstance;
 }
@@ -26,42 +35,53 @@ QString networkCacheDir() {
     return applicationCacheDir.filePath("networkCache");
 }
 
-QFuture<bool> downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
+QFuture<bool> downloadFileUsingQt(const QUrl &toDownloadFrom, const QString &dest,
                                 const std::function<void(double)> &progressCallback) {
-    if (!toDownloadFrom.isLocalFile()) {
-        auto file = QSharedPointer<QSaveFile>::create(dest);
-        if (file->open(QFile::WriteOnly)) {
-            QNetworkRequest request(toDownloadFrom);
-            request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
-            auto reply = instance()->get(request);
-            QObject::connect(reply, &QNetworkReply::readyRead, instance(), [=]() {
-                file->write(reply->readAll());
-            });
-            QObject::connect(reply, &QNetworkReply::downloadProgress, [=](qint64 elapsed, qint64 total) {
-                progressCallback(total == 0 ? 1 : (double)elapsed / total);
-            });
-            return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() {
-                if (reply->error() != QNetworkReply::NoError) {
-                    auto errStr = reply->errorString();
-                    reply->deleteLater();
-                    QString fixSuggestion;
-                    if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
-                        fixSuggestion = "Check if your system time is set correctly and try again.";
-                    }
-                    throw Exception("network error: " + errStr + "\n" + fixSuggestion);
-                }
-                if (!file->commit()) {
-                    reply->deleteLater();
-                    throw Exception("write failed to " + dest);
-                }
+    auto file = QSharedPointer<QSaveFile>::create(dest);
+    if (file->open(QFile::WriteOnly)) {
+        QNetworkRequest request(toDownloadFrom);
+        request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
+        auto reply = instance()->get(request);
+        QObject::connect(reply, &QNetworkReply::readyRead, instance(), [=]() {
+            file->write(reply->readAll());
+        });
+        QObject::connect(reply, &QNetworkReply::downloadProgress, [=](qint64 elapsed, qint64 total) {
+            progressCallback(total == 0 ? 1 : (double)elapsed / total);
+        });
+        return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> bool {
+            if (reply->error() != QNetworkReply::NoError) {
+                auto errStr = reply->errorString();
                 reply->deleteLater();
-                return true;
-            }).future();
-        } else {
-            throw Exception("failed to create file for downloading");
+                QString fixSuggestion;
+                if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
+                    fixSuggestion = "Check if your system time is set correctly.";
+                }
+                throw Exception("network error: " + errStr + "\n" + fixSuggestion);
+            }
+            if (!file->commit()) {
+                reply->deleteLater();
+                throw Exception("write failed to " + dest);
+            }
+            reply->deleteLater();
+            return true;
+        }).future();
+    } else {
+        throw Exception("failed to create file for downloading");
+    }
+}
+
+QFuture<bool> downloadFile(const QUrl &toDownloadFrom, const QString &dest,
+                           const std::function<void(double)> &progressCallback) {
+    if (!toDownloadFrom.isLocalFile()) {
+        QFuture<bool> future = downloadFileUsingQt(toDownloadFrom, dest, progressCallback);
+        try {
+            return downloadFileUsingQt(toDownloadFrom, dest, progressCallback);
+        } catch (const std::runtime_error &e) {
+            qWarning() << "warning:" << e.what();
+            // download failed, try using cli
+            return ExeWrapper::downloadCli(toDownloadFrom, dest, progressCallback);
         }
     }
-
     auto def = AsyncFuture::deferred<bool>();
     def.complete(false);
     return def.future();
