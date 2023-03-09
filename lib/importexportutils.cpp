@@ -196,7 +196,6 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
             for(auto &missingBrstmStr: missingBrstms) {
                 missingBrstmsStr += QString("\n- %1").arg(missingBrstmStr);
             }
-            qInfo() << "Looking for the following brstm files:" << missingBrstmsStr;
             // not all required brtsm files reside yet in the intermediate directory -> extract the music zip as well
             if (missingBrstms.size() > 0) {
                 QString zipMusicStr = QFileInfo(yamlZipSrc).dir().filePath(yamlFileZipInfo.baseName() + ".music.zip");
