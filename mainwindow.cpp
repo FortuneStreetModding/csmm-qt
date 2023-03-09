@@ -154,6 +154,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // show progress messages in progress dialog
     qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+        // filter this specific message since it is littering the whole console output
+        if(msg == "QFutureWatcher::connect: connecting after calling setFuture() is likely to produce race")
+            return;
         static QTextStream cerr(stderr);
         static QTextStream logFileStream(&logFile);
         cerr << msg << Qt::endl;
