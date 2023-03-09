@@ -6,8 +6,8 @@
 struct RollShopPriceMultiplier : Mutator {
     void toYaml(YAML::Emitter& out) const override;
     void toBytes_(QDataStream& data) const override;
-    RollShopPriceMultiplier(const YAML::Node &yaml);
-    RollShopPriceMultiplier(QDataStream &stream);
+    RollShopPriceMultiplier(const YAML::Node &yaml, bool enabled);
+    RollShopPriceMultiplier(QDataStream &stream, bool enabled);
     bool operator==(const Mutator &other) const override;
 
     quint8 maxRoll;

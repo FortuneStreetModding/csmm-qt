@@ -2,7 +2,7 @@
 
 #include <QDataStream>
 
-ShopPrice::ShopPrice(const YAML::Node &yaml) : Mutator(ShopPriceType) {
+ShopPrice::ShopPrice(const YAML::Node &yaml, bool enabled) : Mutator(ShopPriceType, enabled) {
     if(yaml["numerator"])
         numerator = yaml["numerator"].as<quint16>();
     if(yaml["denominator"])
@@ -22,7 +22,7 @@ void ShopPrice::toYaml(YAML::Emitter& out) const {
     out << YAML::EndMap;
 }
 
-ShopPrice::ShopPrice(QDataStream &stream) : Mutator(ShopPriceType) {
+ShopPrice::ShopPrice(QDataStream &stream, bool enabled) : Mutator(ShopPriceType, enabled) {
     stream >> numerator;
     stream >> denominator;
     stream >> constant;

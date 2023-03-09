@@ -16,18 +16,21 @@ QString mutatorTypeToString(MutatorType mutatorType) {
     return stringToMutatorTypes.key(mutatorType);
 }
 MutatorType stringToMutatorType(const QString &str) {
-    return stringToMutatorTypes.value(str);
+    return stringToMutatorTypes.value(str, InvalidMutatorType);
 }
 
 QSharedPointer<Mutator> Mutator::fromYaml(QString mutatorStr, const YAML::Node &yaml) {
     if(!stringToMutatorTypes.contains(mutatorStr))
         throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
     auto mutatorType = stringToMutatorType(mutatorStr);
+    bool enabled = true;
+    if(yaml["enabled"])
+        enabled = yaml["enabled"].as<bool>();
     switch(mutatorType) {
         case InvalidMutatorType: throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
-        case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(yaml));
-        case ShopPriceType: return QSharedPointer<Mutator>(new ShopPrice(yaml));
-        case StockPriceType: return QSharedPointer<Mutator>(new StockPrice(yaml));
+        case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(yaml, enabled));
+        case ShopPriceType: return QSharedPointer<Mutator>(new ShopPrice(yaml, enabled));
+        case StockPriceType: return QSharedPointer<Mutator>(new StockPrice(yaml, enabled));
     }
     throw MutatorException(QString("Invalid mutator %1").arg(mutatorStr));
 }
@@ -42,21 +45,28 @@ void Mutator::toBytes(QDataStream& stream) const {
         bodyDataStream.writeRawData(padding, padding.size());
     }
     // save the mutator type and the size of the body in the header
+    if(enabled) {
+        stream << (quint16) (type | 0x8000);
+    } else {
+        stream << (quint16) type;
+    }
     stream << (quint16) type;
     stream << (quint16) (body.size() / 4);
     stream.writeRawData(body, body.size());
 }
 
 QSharedPointer<Mutator> Mutator::fromBytes(QDataStream &stream) {
-    MutatorType mutatorType;
-    stream >> mutatorType;
+    quint16 mutatorTypeAndEnabled;
+    stream >> mutatorTypeAndEnabled;
+    bool enabled = (mutatorTypeAndEnabled & 0x8000) == 0x8000;
+    MutatorType mutatorType = (MutatorType) (mutatorTypeAndEnabled & 0x7FFF);
     quint16 size;
     stream >> size;
     switch(mutatorType) {
         case InvalidMutatorType: return QSharedPointer<Mutator>();
-        case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(stream));
-        case ShopPriceType: return QSharedPointer<Mutator>(new ShopPrice(stream));
-        case StockPriceType: return QSharedPointer<Mutator>(new StockPrice(stream));
+        case RollShopPriceMultiplierType: return QSharedPointer<Mutator>(new RollShopPriceMultiplier(stream, enabled));
+        case ShopPriceType: return QSharedPointer<Mutator>(new ShopPrice(stream, enabled));
+        case StockPriceType: return QSharedPointer<Mutator>(new StockPrice(stream, enabled));
     }
     throw MutatorException(QString("Invalid mutator %1").arg(mutatorType));
 }

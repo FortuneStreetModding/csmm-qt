@@ -6,8 +6,8 @@
 struct ShopPrice : Mutator {
     void toYaml(YAML::Emitter& out) const override;
     void toBytes_(QDataStream& data) const override;
-    ShopPrice(const YAML::Node &yaml);
-    ShopPrice(QDataStream &stream);
+    ShopPrice(const YAML::Node &yaml, bool enabled);
+    ShopPrice(QDataStream &stream, bool enabled);
     bool operator==(const Mutator &other) const override;
 
     quint16 numerator = 1;
