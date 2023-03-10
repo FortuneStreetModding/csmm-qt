@@ -23,7 +23,6 @@ QNetworkAccessManager *instance() {
             for (const QSslError &error : errors) {
                 qWarning() << "SSL error:" << error.errorString();
             }
-            reply->ignoreSslErrors(errors);
         });
     }
     return theInstance;
