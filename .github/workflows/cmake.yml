@@ -165,7 +165,6 @@ jobs:
       run: |
         mkdir "csmm-$VERSION_NAME"
         mv "csmm.exe" "csmm-$VERSION_NAME/csmm.exe"
-        mv "wget.exe" "csmm-$VERSION_NAME/wget.exe"
         mv "wit" "csmm-$VERSION_NAME/wit"
         mv "szs" "csmm-$VERSION_NAME/szs"
         mv "csmmpython.exe" "csmm-$VERSION_NAME/csmmpython.exe"

@@ -10,14 +10,6 @@
 
 namespace ExeWrapper {
 
-static const QString &getWgetPath() {
-    static QString witPath;
-    if (witPath.isEmpty()) {
-        witPath = QDir(QApplication::applicationDirPath()).filePath("wget");
-    }
-    return witPath;
-}
-
 static const QString &getWitPath() {
     static QString witPath;
     if (witPath.isEmpty()) {
@@ -74,25 +66,6 @@ static QFuture<bool> observeProcess(QProcess *proc, bool deleteProcAfterSuccess 
         if (deleteProcAfterSuccess) delete proc;
         return true;
     }).future();
-}
-
-QFuture<bool> downloadCli(const QUrl &toDownloadFrom, const QString &dest,
-                          const std::function<void(double)> &progressCallback) {
-    QProcess *proc = new QProcess();
-    proc->setEnvironment(getWiimmsEnv());
-#ifdef WIN32
-    QString downloadTool = getWgetPath();
-    QStringList args{toDownloadFrom.toString(), "-O", dest};
-#endif
-#ifndef WIN32
-    QString downloadTool = "curl";
-    QStringList args{"-o", dest, toDownloadFrom.toString()};
-#endif
-    proc->start(downloadTool, args);
-    AsyncFuture::observe(proc, &QProcess::readyReadStandardOutput).subscribe([=]() {
-        qWarning() << QString::fromUtf8(proc->readAllStandardOutput());
-    });
-    return observeProcess(proc, false);
 }
 
 QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {

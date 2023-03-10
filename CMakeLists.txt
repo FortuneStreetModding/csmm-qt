@@ -297,7 +297,6 @@ elseif(WIN32)
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.33a-r8773-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/szs
     )
-    file(DOWNLOAD https://eternallybored.org/misc/wget/1.21.3/32/wget.exe ${CMAKE_CURRENT_BINARY_DIR}/wget.exe)
 else()
     add_executable(csmm ${MAIN_SOURCES})
     add_executable(csmmpython ${PY_SOURCES})

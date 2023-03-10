@@ -212,16 +212,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                             break;
                         } catch (const std::runtime_error &e) {
                             qWarning() << "warning:" << e.what();
-                            #ifdef WIN32
-                                // download failed, try with cli
-                                try {
-                                    await(ExeWrapper::downloadCli(urlStr, zipMusicStr, progressCallback));
-                                    break;
-                                } catch (const std::runtime_error &e) {
-                                    qWarning() << "warning:" << e.what();
-                                    // download failed, try next url
-                                }
-                            #endif
+                            // download failed, try with cli
                         }
                     }
                 }

@@ -370,16 +370,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
                     break;
                 } catch (const std::runtime_error &e) {
                     qWarning() << "warning:" << e.what();
-                    #ifdef WIN32
-                        // download failed, try with cli
-                        try {
-                            await(ExeWrapper::downloadCli(url, dest, progressCb));
-                            break;
-                        } catch (const std::runtime_error &e) {
-                            qWarning() << "warning:" << e.what();
-                            // download failed, try next url
-                        }
-                    #endif
+                    // download failed, try with cli
                 }
             }
             ++i;
@@ -400,16 +391,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
                         await(CSMMNetworkManager::downloadFile(url, descPath));
                     } catch (const std::runtime_error &e) {
                         qWarning() << "warning:" << e.what();
-                        #ifdef WIN32
-                            // download failed, try with cli
-                            try {
-                                await(ExeWrapper::downloadCli(url, descPath));
-                                break;
-                            } catch (const std::runtime_error &e) {
-                                qWarning() << "warning:" << e.what();
-                                // download failed, try next url
-                            }
-                        #endif
+                        // download failed, try with cli
                     }
                 }
             }

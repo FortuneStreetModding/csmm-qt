@@ -7,7 +7,6 @@
 #include <QNetworkReply>
 #include <QProcess>
 #include "lib/asyncfuture.h"
-#include "exewrapper.h"
 #include <QtConcurrent>
 
 namespace CSMMNetworkManager {
@@ -74,13 +73,7 @@ QFuture<bool> downloadFile(const QUrl &toDownloadFrom, const QString &dest,
                            const std::function<void(double)> &progressCallback) {
     if (!toDownloadFrom.isLocalFile()) {
         QFuture<bool> future = downloadFileUsingQt(toDownloadFrom, dest, progressCallback);
-        try {
-            return downloadFileUsingQt(toDownloadFrom, dest, progressCallback);
-        } catch (const std::runtime_error &e) {
-            qWarning() << "warning:" << e.what();
-            // download failed, try using cli
-            return ExeWrapper::downloadCli(toDownloadFrom, dest, progressCallback);
-        }
+        return downloadFileUsingQt(toDownloadFrom, dest, progressCallback);
     }
     auto def = AsyncFuture::deferred<bool>();
     def.complete(false);

@@ -17,7 +17,6 @@
 namespace ExeWrapper {
     QFuture<QVector<AddressSection>> readSections(const QString &inputFile);
     QFuture<bool> extractArcFile(const QString &arcFile, const QString &dFolder);
-    QFuture<bool> downloadCli(const QUrl &toDownloadFrom, const QString &dest, const std::function<void(double)> &progressCallback = [](double){});
     QFuture<bool> packDfolderToArc(const QString &dFolder, const QString &arcFile);
     QFuture<bool> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile);
     QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile);
