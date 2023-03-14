@@ -40,6 +40,7 @@ void Mutator::toBytes(QDataStream& stream) const {
     QDataStream bodyDataStream(&body, QIODevice::WriteOnly);
     bodyDataStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     toBytes_(bodyDataStream);
+    // add padding
     if((body.size()%4) != 0) {
         QByteArray padding(4 - (body.size()%4), '\0');
         bodyDataStream.writeRawData(padding, padding.size());
@@ -50,7 +51,6 @@ void Mutator::toBytes(QDataStream& stream) const {
     } else {
         stream << (quint16) type;
     }
-    stream << (quint16) type;
     stream << (quint16) (body.size() / 4);
     stream.writeRawData(body, body.size());
 }

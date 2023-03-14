@@ -74,7 +74,12 @@ QVector<quint32> MutatorTable::writeGetMutatorDataSubroutine(const AddressMapper
     asm_.append(PowerPcAsm::restoreLocalRegistersFromStack(2));
     asm_.append(PowerPcAsm::blr());
     labels.define("loop", asm_);
-    asm_.append(PowerPcAsm::lha(31, 0x0, 30));                    // |. r31 <- mutator type
+    asm_.append(PowerPcAsm::lha(31, 0x0, 30));                    // |. r31 <- mutator type + enabled bit
+    asm_.append(PowerPcAsm::andi(31, 31, 0x8000));                // |. r31 <- enabled bit
+    asm_.append(PowerPcAsm::cmpwi(31, 0));                        // \. if(r31 == NULL) {
+    asm_.append(PowerPcAsm::beq(labels, "returnNull", asm_));     // /.  return r3 <- NULL
+    asm_.append(PowerPcAsm::lha(31, 0x0, 30));                    // |. r31 <- mutator type + enabled bit
+    asm_.append(PowerPcAsm::andi(31, 31, 0x7FFF));                // |. r31 <- mutator type
     asm_.append(PowerPcAsm::cmpwi(31, 0));                        // \. if(r31 == NULL) {
     asm_.append(PowerPcAsm::beq(labels, "returnNull", asm_));     // /.  return r3 <- NULL
     asm_.append(PowerPcAsm::cmpw(3, 31));                         // \. if(r3 == r31) {
