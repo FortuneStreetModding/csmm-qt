@@ -6,7 +6,6 @@
 #include <QDataStream>
 #include <QProcess>
 #include <QStandardPaths>
-#include <QUrl>
 
 namespace ExeWrapper {
 
@@ -46,13 +45,13 @@ static const QStringList &getWiimmsEnv() {
     return witEnv;
 }
 
-static QFuture<bool> observeProcess(QProcess *proc, bool deleteProcAfterSuccess = true) {
+static QFuture<void> observeProcess(QProcess *proc, bool deleteProcAfterSuccess = true) {
     auto program = proc->program();
     if (proc->error() == QProcess::FailedToStart) {
         delete proc;
         auto def = AsyncFuture::deferred<void>();
         def.complete();
-        return def.subscribe([=] () -> bool { throw Exception(QString("Process '%1' failed to start").arg(program)); }).future();
+        return def.subscribe([=] { throw Exception(QString("Process '%1' failed to start").arg(program)); }).future();
     }
     AsyncFuture::observe(proc, &QProcess::readyReadStandardError).subscribe([=]() {
         qWarning() << proc->readAllStandardError();
@@ -64,7 +63,6 @@ static QFuture<bool> observeProcess(QProcess *proc, bool deleteProcAfterSuccess 
             throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
         }
         if (deleteProcAfterSuccess) delete proc;
-        return true;
     }).future();
 }
 
@@ -110,38 +108,38 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
     }).future();
 }
 
-QFuture<bool> extractArcFile(const QString &arcFile, const QString &dFolder) {
+QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"EXTRACT", "--overwrite", arcFile, "--dest", dFolder});
     return observeProcess(proc);
 }
-QFuture<bool> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
+QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
     return observeProcess(proc);
 }
-QFuture<bool> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile) {
+QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     // wszst CREATE --overwrite --u8 --no-compress --pt-dir=REMOVE --transform TPL.CMPR --n-mipmaps 0 game_turnlot_BG.d
     proc->start(getWszstPath(), {"CREATE", "--overwrite", "--u8", "--no-compress", "--pt-dir=REMOVE", "--transform", "TPL.CMPR", "--n-mipmaps", "0", dFolder, "--dest", arcFile});
     return observeProcess(proc);
 }
-QFuture<bool> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
+QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWimgtPath(), {"ENCODE", "--overwrite", pngFile, "--dest", tplFile});
     return observeProcess(proc);
 }
-QFuture<bool> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {
+QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->start(getWitPath(), {"COPY", "--psel", "data", "--preserve", "--overwrite", "--fst", wbfsFile, extractDir});
     return observeProcess(proc);
 }
-QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame) {
+QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     QString discId = separateSaveGame? "K" : ".";
@@ -149,7 +147,7 @@ QFuture<bool> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, c
     proc->start(getWitPath(), args);
     return observeProcess(proc);
 }
-QFuture<bool> patchWiimmfi(const QString &wbfsFile) {
+QFuture<void> patchWiimmfi(const QString &wbfsFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     QStringList args{"EDIT", "--wiimmfi", wbfsFile};

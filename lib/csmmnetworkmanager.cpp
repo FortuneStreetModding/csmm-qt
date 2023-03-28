@@ -5,7 +5,6 @@
 #include <QApplication>
 #include <QStandardPaths>
 #include <QNetworkReply>
-#include <QProcess>
 #include "lib/asyncfuture.h"
 #include <QtConcurrent>
 
@@ -33,47 +32,42 @@ QString networkCacheDir() {
     return applicationCacheDir.filePath("networkCache");
 }
 
-QFuture<bool> downloadFileUsingQt(const QUrl &toDownloadFrom, const QString &dest,
+QFuture<bool> downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                                 const std::function<void(double)> &progressCallback) {
-    auto file = QSharedPointer<QSaveFile>::create(dest);
-    if (file->open(QFile::WriteOnly)) {
-        QNetworkRequest request(toDownloadFrom);
-        request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
-        auto reply = instance()->get(request);
-        QObject::connect(reply, &QNetworkReply::readyRead, instance(), [=]() {
-            file->write(reply->readAll());
-        });
-        QObject::connect(reply, &QNetworkReply::downloadProgress, [=](qint64 elapsed, qint64 total) {
-            progressCallback(total == 0 ? 1 : (double)elapsed / total);
-        });
-        return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() -> bool {
-            if (reply->error() != QNetworkReply::NoError) {
-                auto errStr = reply->errorString();
-                reply->deleteLater();
-                QString fixSuggestion;
-                if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
-                    fixSuggestion = "Check if your system time is set correctly.";
-                }
-                throw Exception("network error: " + errStr + "\n" + fixSuggestion);
-            }
-            if (!file->commit()) {
-                reply->deleteLater();
-                throw Exception("write failed to " + dest);
-            }
-            reply->deleteLater();
-            return true;
-        }).future();
-    } else {
-        throw Exception("failed to create file for downloading");
-    }
-}
-
-QFuture<bool> downloadFile(const QUrl &toDownloadFrom, const QString &dest,
-                           const std::function<void(double)> &progressCallback) {
     if (!toDownloadFrom.isLocalFile()) {
-        QFuture<bool> future = downloadFileUsingQt(toDownloadFrom, dest, progressCallback);
-        return downloadFileUsingQt(toDownloadFrom, dest, progressCallback);
+        auto file = QSharedPointer<QSaveFile>::create(dest);
+        if (file->open(QFile::WriteOnly)) {
+            QNetworkRequest request(toDownloadFrom);
+            request.setRawHeader("User-Agent", "CSMM (github.com/FortuneStreetModding/csmm-qt)");
+            auto reply = instance()->get(request);
+            QObject::connect(reply, &QNetworkReply::readyRead, instance(), [=]() {
+                file->write(reply->readAll());
+            });
+            QObject::connect(reply, &QNetworkReply::downloadProgress, [=](qint64 elapsed, qint64 total) {
+                progressCallback(total == 0 ? 1 : (double)elapsed / total);
+            });
+            return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() {
+                if (reply->error() != QNetworkReply::NoError) {
+                    auto errStr = reply->errorString();
+                    reply->deleteLater();
+                    QString fixSuggestion;
+                    if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
+                        fixSuggestion = "Check if your system time is set correctly and try again.";
+                    }
+                    throw Exception("network error: " + errStr + "\n" + fixSuggestion);
+                }
+                if (!file->commit()) {
+                    reply->deleteLater();
+                    throw Exception("write failed to " + dest);
+                }
+                reply->deleteLater();
+                return true;
+            }).future();
+        } else {
+            throw Exception("failed to create file for downloading");
+        }
     }
+
     auto def = AsyncFuture::deferred<bool>();
     def.complete(false);
     return def.future();

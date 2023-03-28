@@ -208,11 +208,11 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                     for (auto &url: urlsList) {
                         QString urlStr = QString::fromStdString(url);
                         try {
-                            await(CSMMNetworkManager::downloadFile(urlStr, zipMusicStr, progressCallback));
+                            await(CSMMNetworkManager::downloadFileIfUrl(urlStr, zipMusicStr, progressCallback));
                             break;
                         } catch (const std::runtime_error &e) {
                             qWarning() << "warning:" << e.what();
-                            // download failed, try with cli
+                            // download failed, try next url
                         }
                     }
                 }

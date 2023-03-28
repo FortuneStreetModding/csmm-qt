@@ -538,10 +538,10 @@ void MainWindow::exportIsoWbfs() {
         return !error;
     });
     auto fut = AsyncFuture::observe(copyTask)
-            .subscribe([=](bool result) -> bool {
+            .subscribe([=](bool result) {
         if (!result) {
-            auto def = AsyncFuture::deferred<bool>();
-            def.complete(false);
+            auto def = AsyncFuture::deferred<void>();
+            def.complete();
             return def.future();
         }
         progress->setValue(20);
@@ -562,16 +562,16 @@ void MainWindow::exportIsoWbfs() {
             PyErr_Clear();
             throw exception;
         }
-    }).subscribe([=]() -> bool {
+    }).subscribe([=]() {
         progress->setValue(90);
         if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
             qInfo() << "patching wiimmfi";
             return ExeWrapper::patchWiimmfi(saveFile);
         }
-        auto def = AsyncFuture::deferred<bool>();
-        def.complete(true);
+        auto def = AsyncFuture::deferred<void>();
+        def.complete();
         return def.future();
-    }).subscribe([=]() -> bool {
+    }).subscribe([=]() {
         (void)intermediateResults; // keep temporary directory active while creating wbfs/iso
 
         progress->setValue(100);
@@ -582,7 +582,6 @@ void MainWindow::exportIsoWbfs() {
         for (auto &descriptor: *descriptors) {
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
         }
-        return true;
     });
 }
 

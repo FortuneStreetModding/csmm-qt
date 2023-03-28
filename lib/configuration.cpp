@@ -9,7 +9,6 @@
 #include "importexportutils.h"
 #include "lib/asyncfuture.h"
 #include "lib/await.h"
-#include "lib/exewrapper.h"
 #include "lib/csmmnetworkmanager.h"
 
 namespace Configuration {
@@ -362,15 +361,14 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
             qInfo() << "attempting to download background" << it.key();
             for (auto &url: it.value()) {
                 auto dest = dir.filePath(it.key() + ".background.zip");
-                auto progressCb = [&](double progress) {
-                    progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
-                };
                 try {
-                    await(CSMMNetworkManager::downloadFile(url, dest, progressCb));
+                    await(CSMMNetworkManager::downloadFileIfUrl(url, dest, [&](double progress) {
+                        progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
+                    }));
                     break;
                 } catch (const std::runtime_error &e) {
                     qWarning() << "warning:" << e.what();
-                    // download failed, try with cli
+                    continue; // try next url
                 }
             }
             ++i;
@@ -388,10 +386,11 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
                 qInfo() << "trying to download map descriptor to" << descPath;
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
-                        await(CSMMNetworkManager::downloadFile(url, descPath));
+                        await(CSMMNetworkManager::downloadFileIfUrl(url, descPath));
                     } catch (const std::runtime_error &e) {
                         qWarning() << "warning:" << e.what();
-                        // download failed, try with cli
+                        // download failed, try next url
+                        continue;
                     }
                 }
             }
