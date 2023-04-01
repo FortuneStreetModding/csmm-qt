@@ -46,20 +46,25 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
     QFile mainDolFile(mainDol);
     if (mainDolFile.open(QFile::ReadOnly)) {
         QDataStream stream(&mainDolFile);
+
         stream.device()->seek(addressMapperVal.toFileAddress(0x8007a314));
         quint32 boomInst;
         stream >> boomInst;
+
         stream.device()->seek(addressMapperVal.toFileAddress(0x8007a2c0));
         quint32 fortuneInst;
         stream >> fortuneInst;
+
+        stream.device()->seek(addressMapperVal.toFileAddress(0x8007A280));
+        quint32 itadakiInst;
+        stream >> itadakiInst;
+
         quint32 opcode = PowerPcAsm::lwz(0, -0x547c, 13);
         if (boomInst == opcode) {
             // Boom Street detected
             addressMapperVal.setVersionMapper(AddressSectionMapper({ AddressSection() }), GameVersion::BOOM);
         } else if (fortuneInst == opcode) {
             // Fortune Street
-            stream.device()->seek(addressMapperVal.toFileAddress(0x8007a2c0));
-            // check PowerPcAsm::lwz(0, -0x547c, 13)?
             addressMapperVal.setVersionMapper(AddressSectionMapper({
                 {0x80000100, 0x8007a283, 0x0, ".text, .data0, .data1 and beginning of .text1 until InitSoftLanguage"},
                 {0x8007a2f4, 0x80268717, 0x54, "continuation of .text1 until AIRegisterDMACallback"},
@@ -69,6 +74,17 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
                 {0x8044ec00, 0x804ac804, 0x1A0, ".data5"},
                 {0x804ac880, 0x8081f013, 0x200, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
             }), GameVersion::FORTUNE);
+        } else if (itadakiInst == opcode) {
+            // Itadaki Street
+            addressMapperVal.setVersionMapper(AddressSectionMapper({
+                {0x80000100, 0x8007A244, 0x0, ".text, .data0, .data1 and beginning of .text1 until InitSoftLanguage"},
+                {0x8007A2F4, 0x80268717, 0x94, "continuation of .text1 until AIRegisterDMACallback"},
+                {0x8026871F, 0x8040D97B, 0x90, "continuation of .text1"},
+                {0x8040D97F, 0x80410278, 0x80, ".data2, .data3 and beginning of .data4 until Boom Street / Fortune Street strings"},
+                {0x80410578, 0x8044EBE3, 0x2A8, "continuation of .data4"},
+                {0x8044EBFF, 0x804AC804, 0x2C0, ".data5"},
+                {0x804AC880, 0x8081F013, 0x300, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
+            }), GameVersion::ITADAKI);
         } else {
             throw std::runtime_error("could not determine the Fortune Street region in the main.dol file of "+dir.toStdString()+" Is this a proper Fortune Street directory?"); // TODO use a QException subclass
         }

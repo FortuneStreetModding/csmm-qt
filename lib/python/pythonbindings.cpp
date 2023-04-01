@@ -420,7 +420,8 @@ void init_pycsmm(pybind11::module_ &m) {
     The game region.
 )pycsmmdoc")
             .value("BOOM", GameVersion::BOOM)
-            .value("FORTUNE", GameVersion::FORTUNE);
+            .value("FORTUNE", GameVersion::FORTUNE)
+            .value("ITADAKI", GameVersion::ITADAKI);
 
     pybind11::class_<AddressMapper>(m, "AddressMapper", R"pycsmmdoc(
     Class for mapping between different types of addresses in the main.dol.

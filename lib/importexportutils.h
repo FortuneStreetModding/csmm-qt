@@ -34,7 +34,11 @@ namespace ImportExportUtils {
     QString createBsdiff(const QString &oldfileStr, const QString &newfileStr, const QString &patchfileStr);
     QString applyBspatch(const QString &oldfileStr, const QString &newfileStr, const QString &patchfileStr);
 
-    const QString SHA1_VANILLA_MAIN_DOLS[] = {"6c7ed3015c1aed62686d09cc068e57789cfbecd0", "327fe0460c0b5497c5b8fe17bb4b4475b6cdeed3"};
+    const QString SHA1_VANILLA_MAIN_DOLS[] = {
+        "6c7ed3015c1aed62686d09cc068e57789cfbecd0",
+        "327fe0460c0b5497c5b8fe17bb4b4475b6cdeed3",
+        "1aa5a4e1a149142ae17b9d564af8bb499a67e95d"
+    };
     bool isMainDolVanilla(const QDir &dir);
 
     bool hasWiimmfiText(const QDir &dir);
