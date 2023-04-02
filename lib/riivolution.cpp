@@ -38,7 +38,18 @@ static bool fileContentsEqual(const QString &filePath0, const QString &filePath1
 }
 
 void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &addressMapper, const QString &riivolutionName) {
-    auto discId = addressMapper.getVersion() == GameVersion::BOOM ? "ST7P" : "ST7E";
+    const char *discId;
+    switch (addressMapper.getVersion()) {
+    case GameVersion::BOOM:
+        discId = "ST7P";
+        break;
+    case GameVersion::FORTUNE:
+        discId = "ST7E";
+        break;
+    case GameVersion::ITADAKI:
+        discId = "ST7J";
+        break;
+    }
 
     if (!fullPatchDir.mkdir("riivolution")) {
         throw Exception("could not create riivolution dir in " + fullPatchDir.path());

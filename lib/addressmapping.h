@@ -6,7 +6,7 @@
 #include <QVector>
 
 enum class GameVersion {
-    BOOM, FORTUNE
+    BOOM, FORTUNE, ITADAKI
 };
 
 struct AddressSection {
