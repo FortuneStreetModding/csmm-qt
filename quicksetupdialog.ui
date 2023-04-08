@@ -20,10 +20,13 @@
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_5">
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="riivolutionPatchName">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
-      <string>Marker Code</string>
+      <string>csmm</string>
      </property>
     </widget>
    </item>
@@ -37,20 +40,34 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="markerCode"/>
-   </item>
-   <item row="0" column="2">
-    <widget class="QPushButton" name="chooseInputGameFolder">
+   <item row="2" column="2" colspan="2">
+    <widget class="QPushButton" name="chooseMapListFile">
      <property name="text">
-      <string>Choose Folder</string>
+      <string>Choose Map List File</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Modpack file</string>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="markerCode"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="outputGameLoc">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="modpackFile">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="mapListFile">
+     <property name="enabled">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -68,76 +85,6 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="2" colspan="2">
-    <widget class="QPushButton" name="chooseMapListFile">
-     <property name="text">
-      <string>Choose Map List File</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="modpackFile">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="3">
-    <widget class="QPushButton" name="chooseOutputWbfsIso">
-     <property name="text">
-      <string>Choose WBFS/ISO</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Game Folder/WBFS/ISO</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="outputGameLoc">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="inputGameLoc">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="mapListFile">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="2">
-    <widget class="QPushButton" name="chooseOutputFolder">
-     <property name="text">
-      <string>Choose Folder</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Maplist file</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QPushButton" name="chooseInputWbfsIso">
-     <property name="text">
-      <string>Choose WBFS/ISO</string>
-     </property>
-    </widget>
-   </item>
    <item row="4" column="0">
     <widget class="QLabel" name="riivolutionPatchNameLabel">
      <property name="enabled">
@@ -145,6 +92,34 @@
      </property>
      <property name="text">
       <string>Riivolution Patch Name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2" colspan="2">
+    <widget class="QCheckBox" name="separateSaveGame">
+     <property name="text">
+      <string>Separate Save Game</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Marker Code</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Modpack file</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Game Folder/WBFS/ISO</string>
      </property>
     </widget>
    </item>
@@ -158,20 +133,45 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="riivolutionPatchName">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>csmm</string>
+      <string>Maplist file</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="2" colspan="2">
-    <widget class="QCheckBox" name="separateSaveGame">
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="inputGameLoc">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QPushButton" name="chooseOutputWbfsIso">
      <property name="text">
-      <string>Separate Save Game</string>
+      <string>Choose WBFS/ISO</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QPushButton" name="chooseOutputFolder">
+     <property name="text">
+      <string>Choose Extracted Folder</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QPushButton" name="chooseInputWbfsIso">
+     <property name="text">
+      <string>Choose WBFS/ISO</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="chooseInputGameFolder">
+     <property name="text">
+      <string>Choose Extracted Folder</string>
      </property>
     </widget>
    </item>

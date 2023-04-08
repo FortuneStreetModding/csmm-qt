@@ -125,10 +125,10 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionOpen"/>
     <addaction name="actionImport_WBFS_ISO"/>
-    <addaction name="actionExport_to_Folder"/>
+    <addaction name="actionOpen"/>
     <addaction name="actionExport_to_WBFS_ISO"/>
+    <addaction name="actionExport_to_Folder"/>
     <addaction name="actionExport_to_Riivolution"/>
     <addaction name="actionShow_CSMM_Network_Cache_In_File_System"/>
     <addaction name="actionOpen_Log_Folder"/>
@@ -175,7 +175,7 @@
   </action>
   <action name="actionOpen">
    <property name="text">
-    <string>Open Game Folder</string>
+    <string>Open Extracted Game Folder</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -186,7 +186,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Export to Folder</string>
+    <string>Export to Extracted Folder</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+E</string>
