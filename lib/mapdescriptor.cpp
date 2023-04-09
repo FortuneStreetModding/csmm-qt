@@ -157,8 +157,10 @@ QString MapDescriptor::toYaml() const {
         out << YAML::Key << "music" << YAML::Value << YAML::BeginMap;
         for (auto &musicTypeEnt: music) {
             auto &musicType = musicTypeEnt.first;
-            auto &musicEntry = musicTypeEnt.second;
-            out << YAML::Key << Music::musicTypeToString(musicType).toStdString() << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
+            for (auto &musicEntry: musicTypeEnt.second) {
+                out << YAML::Key << Music::musicTypeToString(musicType).toStdString()
+                    << YAML::Value << musicEntry.brstmBaseFilename.toStdString();
+            }
         }
         out << YAML::EndMap;
     }
@@ -429,26 +431,35 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             if(!Music::isMusicType(musicTypeStr)) {
                 continue;
             }
-            QString brstmBaseFilename = QString::fromStdString(it->second.as<std::string>());
-            if(brstmBaseFilename.length() > 48) {
-                throw ImportExportUtils::Exception(QString("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.").arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
-            }
-            MusicEntry entry;
-            entry.brstmBaseFilename = brstmBaseFilename;
-            // get the volume out of the file name
-            QFileInfo fileInfo(brstmBaseFilename);
-            QString suffix = fileInfo.suffix();
-            if(!suffix.isEmpty()) {
-                bool ok;
-                auto volume = suffix.toInt(&ok);
-                if(ok && volume >= 0 && volume <= 255) {
-                    entry.volume = volume;
+            QVector<QString> brstmBaseFilenames;
+            if (it->second.IsSequence()) {
+                for (auto &val: it->second) {
+                    brstmBaseFilenames.append(QString::fromStdString(val.as<std::string>()));
                 }
+            } else {
+                brstmBaseFilenames = { QString::fromStdString(it->second.as<std::string>()) };
             }
-            auto musicType = Music::stringToMusicType(musicTypeStr);
-            music[musicType] = entry;
-            if(musicType == MusicType::map) {
-                bgmId = BGM_MAP_CIRCUIT;
+            for (auto &brstmBaseFilename: brstmBaseFilenames) {
+                if(brstmBaseFilename.length() > 48) {
+                    throw ImportExportUtils::Exception(QString("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.").arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
+                }
+                MusicEntry entry;
+                entry.brstmBaseFilename = brstmBaseFilename;
+                // get the volume out of the file name
+                QFileInfo fileInfo(brstmBaseFilename);
+                QString suffix = fileInfo.suffix();
+                if(!suffix.isEmpty()) {
+                    bool ok;
+                    auto volume = suffix.toInt(&ok);
+                    if(ok && volume >= 0 && volume <= 255) {
+                        entry.volume = volume;
+                    }
+                }
+                auto musicType = Music::stringToMusicType(musicTypeStr);
+                music[musicType].push_back(entry);
+                if(musicType == MusicType::map) {
+                    bgmId = BGM_MAP_CIRCUIT;
+                }
             }
         }
     }

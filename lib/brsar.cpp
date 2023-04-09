@@ -295,8 +295,18 @@ int read(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
     Brsar::File brsar;
     stream >> brsar;
 
-    if(stream.status() == QDataStream::ReadCorruptData)
+    if(stream.status() == QDataStream::ReadCorruptData) {
         return -1;
+    }
+
+    QMultiHash<int, std::reference_wrapper<MusicEntry>> brsarIndexToEntry;
+    for (auto &descriptor: descriptors) {
+        for (auto it=descriptor.music.begin(); it!=descriptor.music.end(); ++it) {
+            for (auto &entry: it->second) {
+                brsarIndexToEntry.insert(entry.brsarIndex, entry);
+            }
+        }
+    }
 
     for(int brsarIndex = 0; brsarIndex < brsar.entries.length(); brsarIndex++) {
         auto &entry = brsar.entries[brsarIndex];
@@ -306,16 +316,12 @@ int read(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
             auto fileName = entry.collectionEntry->externalFileName;
             QFileInfo fileNameInfo(fileName);
             QString brstmBaseFileName = fileNameInfo.completeBaseName();
-            for (int i=0; i<descriptors.size(); i++) {
-                auto &descriptor = descriptors[i];
-                for (auto it=descriptor.music.begin(); it!=descriptor.music.end(); ++it) {
-                    if(it->second.brsarIndex == brsarIndex) {
-                        it->second.brsarIndex = brsarIndex;
-                        it->second.brstmBaseFilename = brstmBaseFileName;
-                        it->second.brstmFileSize = fileLength;
-                        it->second.volume = volume;
-                    }
-                }
+            auto entries = brsarIndexToEntry.equal_range(brsarIndex);
+            for (auto it = entries.first; it != entries.second; ++it) {
+                it.value().get().brsarIndex = brsarIndex;
+                it.value().get().brstmBaseFilename = brstmBaseFileName;
+                it.value().get().brstmFileSize = fileLength;
+                it.value().get().volume = volume;
             }
         }
     }
@@ -348,45 +354,46 @@ int patch(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
 
         for (auto &musicTypeEnt: descriptor.music) {
             auto &musicType = musicTypeEnt.first;
-            auto &musicEntry = musicTypeEnt.second;
-            if(mapBrstmBaseFilenameToBrsarIndex.contains(musicEntry.brstmBaseFilename)) {
-                // reuse the brsar index and set it to the map descriptor
-                musicEntry.brsarIndex = mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename];
-            } else {
-                if(brsarIndex > brsarIndex_max) {
-                    return -2;
-                }
-                // map the brstm filename to the current brsar index
-                mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename] = brsarIndex;
-                // determine music type (if its ME or BGM)
-
-                bool isBgm = Music::musicTypeIsBgm(musicType);
-                quint32 playerId;
-                quint8 playerPriority;
-                if(isBgm) {
-                    playerId = 0;
-                    playerPriority = 110;
+            for (auto &musicEntry: musicTypeEnt.second) {
+                if(mapBrstmBaseFilenameToBrsarIndex.contains(musicEntry.brstmBaseFilename)) {
+                    // reuse the brsar index and set it to the map descriptor
+                    musicEntry.brsarIndex = mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename];
                 } else {
-                    playerId = 1;
-                    playerPriority = 127;
+                    if(brsarIndex > brsarIndex_max) {
+                        return -2;
+                    }
+                    // map the brstm filename to the current brsar index
+                    mapBrstmBaseFilenameToBrsarIndex[musicEntry.brstmBaseFilename] = brsarIndex;
+                    // determine music type (if its ME or BGM)
+
+                    bool isBgm = Music::musicTypeIsBgm(musicType);
+                    quint32 playerId;
+                    quint8 playerPriority;
+                    if(isBgm) {
+                        playerId = 0;
+                        playerPriority = 110;
+                    } else {
+                        playerId = 1;
+                        playerPriority = 127;
+                    }
+                    // patch sound data entry
+                    stream.device()->seek(brsar.entries[brsarIndex].soundDataEntry->entryStart);
+                    stream.device()->skip(8);
+                    stream << playerId;
+                    stream.device()->skip(8);
+                    stream << musicEntry.volume;
+                    stream << playerPriority;
+                    // patch collection entry
+                    stream.device()->seek(brsar.entries[brsarIndex].collectionEntry->entryStart);
+                    stream << musicEntry.brstmFileSize;
+                    stream.device()->seek(brsar.entries[brsarIndex].collectionEntry->header->sectionStart + brsar.entries[brsarIndex].collectionEntry->externalFileNameOffset);
+                    QByteArray data(QString("stream/%1.brstm").arg(musicEntry.brstmBaseFilename).toUtf8());
+                    data = data.leftJustified(7 + 48 + 6, '\0', true);
+                    stream.writeRawData(data, data.size());
+                    // set the brsar index of the map descriptor
+                    musicEntry.brsarIndex = brsarIndex;
+                    brsarIndex++;
                 }
-                // patch sound data entry
-                stream.device()->seek(brsar.entries[brsarIndex].soundDataEntry->entryStart);
-                stream.device()->skip(8);
-                stream << playerId;
-                stream.device()->skip(8);
-                stream << musicEntry.volume;
-                stream << playerPriority;
-                // patch collection entry
-                stream.device()->seek(brsar.entries[brsarIndex].collectionEntry->entryStart);
-                stream << musicEntry.brstmFileSize;
-                stream.device()->seek(brsar.entries[brsarIndex].collectionEntry->header->sectionStart + brsar.entries[brsarIndex].collectionEntry->externalFileNameOffset);
-                QByteArray data(QString("stream/%1.brstm").arg(musicEntry.brstmBaseFilename).toUtf8());
-                data = data.leftJustified(7 + 48 + 6, '\0', true);
-                stream.writeRawData(data, data.size());
-                // set the brsar index of the map descriptor
-                musicEntry.brsarIndex = brsarIndex;
-                brsarIndex++;
             }
         }
     }
