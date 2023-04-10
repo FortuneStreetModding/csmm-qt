@@ -42,6 +42,7 @@
 #include "freespace/venturecardfreespace.h"
 #include "freespace/wififreespace.h"
 #include "freespace/tinydistrictsfreespace.h"
+#include "dolio/changemusiconswitch.h"
 #include "misc/readfrbfileinfo.h"
 #include "misc/defaultmiscpatches.h"
 #include "dolio/arbitrarynumswitchstates.h"
@@ -86,6 +87,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<ArbitraryNumSwitchStates>());
     patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(false));
     patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(true));
+    patches.append(CSMMModHolder::fromCppObj<ChangeMusicOnSwitch>());
 
     // mutators
     patches.append(CSMMModHolder::fromCppObj<MutatorTable>());

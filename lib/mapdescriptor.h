@@ -76,7 +76,7 @@ struct MapDescriptor {
     QString background;
     BgmId bgmId = BGM_MAP_CIRCUIT;
     QString mapIcon;
-    std::map<MusicType, MusicEntry> music;
+    std::map<MusicType, std::vector<MusicEntry>> music;
     LoopingMode loopingMode = None;
     float loopingModeRadius = 0;
     float loopingModeHorizontalPadding = 0;

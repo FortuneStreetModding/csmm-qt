@@ -270,8 +270,12 @@ void init_pycsmm(pybind11::module_ &m) {
     A list-like type of switch rotation origins.
 )pycsmmdoc");
 
-    pybind11::bind_map<std::map<MusicType, MusicEntry>>(m, "MusicEntryTable", R"pycsmmdoc(
-    A dict-like type mapping MusicTypes to MusicEntries.
+    pybind11::bind_map<std::map<MusicType, std::vector<MusicEntry>>>(m, "MusicEntryTable", R"pycsmmdoc(
+    A dict-like type mapping MusicTypes to a list of MusicEntries.
+)pycsmmdoc");
+
+    pybind11::bind_vector<std::vector<MusicEntry>>(m, "MusicEntryList", R"pycsmmdoc(
+    A list of MusicEntries.
 )pycsmmdoc");
 
     bindStdArray<Character, 3>(m, "TourCharacters", R"pycsmmdoc(

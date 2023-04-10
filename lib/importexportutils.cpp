@@ -186,10 +186,11 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
         if(!descriptor.music.empty()) {
             QVector<QString> missingBrstms;
             for (auto &mapEnt: descriptor.music) {
-                auto &musicEntry = mapEnt.second;
-                QString extractedBrstmFile = QFileInfo(extractedYamlFile).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
-                if(!QFileInfo::exists(extractedBrstmFile)) {
-                    missingBrstms.append(musicEntry.brstmBaseFilename + ".brstm");
+                for (auto &musicEntry: mapEnt.second) {
+                    QString extractedBrstmFile = QFileInfo(extractedYamlFile).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
+                    if(!QFileInfo::exists(extractedBrstmFile)) {
+                        missingBrstms.append(musicEntry.brstmBaseFilename + ".brstm");
+                    }
                 }
             }
             QString missingBrstmsStr = "";
@@ -302,15 +303,16 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             }
             // import music if needed
             for (auto &mapEnt: descriptor.music) {
-                auto &musicEntry = mapEnt.second;
-                auto brstmFileFrom = QFileInfo(yamlFileSrc).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
-                QFileInfo brstmFileInfo(brstmFileFrom);
-                if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
-                    throw Exception(QString("File %1 does not exist").arg(brstmFileFrom));
+                for (auto &musicEntry: mapEnt.second) {
+                    auto brstmFileFrom = QFileInfo(yamlFileSrc).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
+                    QFileInfo brstmFileInfo(brstmFileFrom);
+                    if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
+                        throw Exception(QString("File %1 does not exist").arg(brstmFileFrom));
+                    }
+                    auto frbFileTo = importDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
+                    QFile(frbFileTo).remove();
+                    QFile::copy(brstmFileFrom, frbFileTo);
                 }
-                auto frbFileTo = importDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
-                QFile(frbFileTo).remove();
-                QFile::copy(brstmFileFrom, frbFileTo);
             }
             // import background if needed
             if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {

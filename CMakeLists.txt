@@ -200,6 +200,7 @@ set(LIB_SOURCES
     lib/mods/dolio/customshopnames.h lib/mods/dolio/customshopnames.cpp
     lib/riivolution.h lib/riivolution.cpp
     lib/mods/misc/copymapfiles.h lib/mods/misc/copymapfiles.cpp
+    lib/mods/dolio/changemusiconswitch.h lib/mods/dolio/changemusiconswitch.cpp
 )
 
 qt_add_big_resources(LIB_SOURCES csmm.qrc)

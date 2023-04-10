@@ -20,10 +20,15 @@ quint32 MusicTable::writeBgmTable(const std::vector<MapDescriptor> &descriptors)
         // write the size of the table first
         mapMusicTable.append(bgmOnlyMusicTypes.size());
         for (auto &musicType: bgmOnlyMusicTypes) {
+            auto &musicEntries = descriptor.music.at(musicType);
             // write the original bgmid (the value to look for)
             mapMusicTable.append(musicType);
+            // write # of entries
+            mapMusicTable.append(musicEntries.size());
             // write the new brsar index (the value which shall be replaced)
-            mapMusicTable.append(descriptor.music.at(musicType).brsarIndex);
+            for (auto &musicEntry: musicEntries) {
+                mapMusicTable.append(musicEntry.brsarIndex);
+            }
         }
         if(bgmOnlyMusicTypes.empty()) {
             table.append(0);
@@ -49,10 +54,15 @@ quint32 MusicTable::writeMeTable(const std::vector<MapDescriptor> &descriptors) 
         // write the size of the table first
         mapMusicTable.append(meOnlyMusicTypes.size());
         for (auto &musicType: meOnlyMusicTypes) {
+            auto &musicEntries = descriptor.music.at(musicType);
             // write the original meId (the value to look for)
             mapMusicTable.append(musicType);
+            // write # of entries
+            mapMusicTable.append(musicEntries.size());
             // write the new brsar index (the value which shall be replaced)
-            mapMusicTable.append(descriptor.music.at(musicType).brsarIndex);
+            for (auto &musicEntry: musicEntries) {
+                mapMusicTable.append(musicEntry.brsarIndex);
+            }
         }
         if(meOnlyMusicTypes.empty()) {
             table.append(0);
@@ -100,9 +110,11 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
 QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &addressMapper, quint32 tableAddr, quint32 entryAddr, quint32 returnContinueAddr, quint32 returnBgmReplacedAddr) {
     quint32 Game_Manager = addressMapper.boomStreetToStandard(0x8081794c);
     quint32 Global_MapID = addressMapper.boomStreetToStandard(0x80552408);
+    quint32 Switch_State = addressMapper.boomStreetToStandard(0x80552410);
     PowerPcAsm::Pair16Bit g = PowerPcAsm::make16bitValuePair(Game_Manager);
     PowerPcAsm::Pair16Bit m = PowerPcAsm::make16bitValuePair(Global_MapID);
     PowerPcAsm::Pair16Bit t = PowerPcAsm::make16bitValuePair(tableAddr);
+    PowerPcAsm::Pair16Bit s = PowerPcAsm::make16bitValuePair(Switch_State);
 
     QVector<quint32> asm_;
     auto labels = PowerPcAsm::LabelTable();
@@ -138,16 +150,29 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5+=4
     labels.define("loop", asm_);
     asm_.append(PowerPcAsm::lwz(3, 0x0, 5));                                   // r3 <- firstBgmId
+    asm_.append(PowerPcAsm::lwz(7, 0x4, 5));                                   // r7 <- numMusicEntries
     asm_.append(PowerPcAsm::cmpw(3, 31));                                      // r3 == r31?
     asm_.append(PowerPcAsm::bne(labels, "continue3", asm_));                   // {
-    asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5+=4
-    asm_.append(PowerPcAsm::lwz(31, 0x0, 5));                                  // r31 <- secondBgmId
+    asm_.append(PowerPcAsm::lis(6, s.upper));                                  // \.
+    asm_.append(PowerPcAsm::addi(6, 6, s.lower));                              // |.
+    asm_.append(PowerPcAsm::lwz(7, 0x0, 6));                                   // /. r7 <- switchState
+    asm_.append(PowerPcAsm::lwz(6, 0x4, 5));                                   // r6 <- numMusicEntries
+    asm_.append(PowerPcAsm::subi(6, 6, 1));                                    // r6 -= 1
+    asm_.append(PowerPcAsm::cmplw(6, 7));                                      // r6 <= r7?
+    asm_.append(PowerPcAsm::ble(labels, "min", asm_));
+    asm_.append(PowerPcAsm::mr(6, 7));                                         // r6 <- min(r6, r7)
+    labels.define("min", asm_);
+    asm_.append(PowerPcAsm::mulli(6, 6, 4));                                   // r6 *= 4
+    asm_.append(PowerPcAsm::add(5, 5, 6));                                     // r5 += r6
+    asm_.append(PowerPcAsm::lwz(31, 0x8, 5));                                  // r31 <- secondBgmId
     asm_.append(PowerPcAsm::mr(3, 31));                                        // r3 <- r31
     asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // make the comparision again from the original function
     asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr)); // return returnBgmReplacedAddr
                                                                                // }
     labels.define("continue3", asm_);
     asm_.append(PowerPcAsm::addi(5, 5, 0x8));                                  // r5+=8
+    asm_.append(PowerPcAsm::mulli(7, 7, 4));                                   // r7 *= 4
+    asm_.append(PowerPcAsm::addi(5, 5, 7));                                    // r5 += r7
     asm_.append(PowerPcAsm::subi(6, 6, 0x1));                                  // r6--
     asm_.append(PowerPcAsm::cmpwi(6, 0x0));                                    // r6 != 0?
     asm_.append(PowerPcAsm::bne(labels, "loop", asm_));                        // loop
@@ -175,12 +200,18 @@ void readTable(QDataStream &stream, const AddressMapper &addressMapper, MapDescr
     stream >> tableSize;
     for(int i=0; i<tableSize; i++) {
         MusicType musicType;
-        MusicEntry musicEntry;
+        quint32 numEntries;
+
         // read the original bgmid (the value to look for)
         stream >> musicType;
-        // read the new brsar index (the value which shall be replaced)
-        stream >> musicEntry.brsarIndex;
-        descriptor.music[musicType] = musicEntry;
+        stream >> numEntries;
+
+        for (int i=0; i<numEntries; ++i) {
+            MusicEntry musicEntry;
+            // read the new brsar index (the value which shall be replaced)
+            stream >> musicEntry.brsarIndex;
+            descriptor.music[musicType].push_back(musicEntry);
+        }
     }
 }
 
@@ -233,13 +264,14 @@ void MusicTable::loadFiles(const QString &root, GameInstance *gameInstance, cons
 void MusicTable::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
     for (auto &descriptor: gameInstance->mapDescriptors()) {
         for (auto &mapEnt: descriptor.music) {
-            auto &musicEntry = mapEnt.second;
-            QFileInfo brstmFileInfo(QDir(root).filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename+".brstm"));
-            if (!brstmFileInfo.exists()) {
-                throw ModException(QString("file %1 doesn't exist").arg(brstmFileInfo.absoluteFilePath()));
+            for (auto &musicEntry: mapEnt.second) {
+                QFileInfo brstmFileInfo(QDir(root).filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename+".brstm"));
+                if (!brstmFileInfo.exists()) {
+                    throw ModException(QString("file %1 doesn't exist").arg(brstmFileInfo.absoluteFilePath()));
+                }
+                // update the file size -> needed for patching the brsar
+                musicEntry.brstmFileSize = brstmFileInfo.size();
             }
-            // update the file size -> needed for patching the brsar
-            musicEntry.brstmFileSize = brstmFileInfo.size();
         }
     }
 
