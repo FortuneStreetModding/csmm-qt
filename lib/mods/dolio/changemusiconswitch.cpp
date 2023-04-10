@@ -43,9 +43,9 @@ QVector<quint32> ChangeMusicOnSwitch::lookAtSwitchStateSubroutine(const AddressM
 
     // proceed to 0x800d31bc if old comparison <
     asm_.push_back(blt(labels, "proceed", asm_));
-    // or if r3 == r4
+    // proceed to 0x800d31e0 if r3 != r4 (to verify that the new music is unequal)
     asm_.push_back(cmplw(3, 4));
-    asm_.push_back(bne(labels, "proceed", asm_));
+    asm_.push_back(bne(labels, "proceed2", asm_));
 
     // otherwise jump to 0x800d31d0
     asm_.push_back(b(startAddr, asm_.size(), addressMapper.boomStreetToStandard(0x800d31d0)));
@@ -54,6 +54,11 @@ QVector<quint32> ChangeMusicOnSwitch::lookAtSwitchStateSubroutine(const AddressM
     // update oldSwitchState
     asm_.push_back(stw(3, 0x0, 5));
     asm_.push_back(b(startAddr, asm_.size(), addressMapper.boomStreetToStandard(0x800d31bc)));
+
+    labels.define("proceed2", asm_);
+    // update oldSwitchState
+    asm_.push_back(stw(3, 0x0, 5));
+    asm_.push_back(b(startAddr, asm_.size(), addressMapper.boomStreetToStandard(0x800d31e0)));
 
     return asm_;
 }
