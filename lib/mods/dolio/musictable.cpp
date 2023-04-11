@@ -196,11 +196,11 @@ void readTable(QDataStream &stream, const AddressMapper &addressMapper, MapDescr
     if(tableAddr == 0)
         return;
     stream.device()->seek(addressMapper.toFileAddress(tableAddr));
-    quint32 tableSize;
+    quint16 tableSize;
     stream >> tableSize;
-    for(int i=0; i<tableSize; i++) {
+    for (int i=0; i<tableSize; i++) {
         MusicType musicType;
-        quint32 numEntries;
+        quint16 numEntries;
 
         // read the original bgmid (the value to look for)
         stream >> musicType;
@@ -209,7 +209,8 @@ void readTable(QDataStream &stream, const AddressMapper &addressMapper, MapDescr
         for (int i=0; i<numEntries; ++i) {
             MusicEntry musicEntry;
             // read the new brsar index (the value which shall be replaced)
-            stream >> musicEntry.brsarIndex;
+            quint16 brsarIndex; stream >> brsarIndex;
+            musicEntry.brsarIndex = brsarIndex;
             descriptor.music[musicType].push_back(musicEntry);
         }
     }
