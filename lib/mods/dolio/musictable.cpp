@@ -8,7 +8,7 @@
 quint32 MusicTable::writeBgmTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
-        QVector<quint32> mapMusicTable;
+        QVector<quint16> mapMusicTable;
         // get the BGM music types only
         QVector<MusicType> bgmOnlyMusicTypes;
         for (auto &ent: descriptor.music) {
@@ -42,7 +42,7 @@ quint32 MusicTable::writeBgmTable(const std::vector<MapDescriptor> &descriptors)
 quint32 MusicTable::writeMeTable(const std::vector<MapDescriptor> &descriptors) {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
-        QVector<quint32> mapMusicTable;
+        QVector<quint16> mapMusicTable;
         // get the ME music types only
         QVector<MusicType> meOnlyMusicTypes;
         for (auto &ent: descriptor.music) {
@@ -146,32 +146,32 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // make the comparision again from the original function
     asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnContinueAddr));    // else return returnContinueAddr
     labels.define("continue2", asm_);
-    asm_.append(PowerPcAsm::lwz(6, 0x0, 5));                                   // r6 <- size of MapMusicReplacementTable
-    asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5+=4
+    asm_.append(PowerPcAsm::lhz(6, 0x0, 5));                                   // r6 <- size of MapMusicReplacementTable
+    asm_.append(PowerPcAsm::addi(5, 5, 0x2));                                  // r5+=4
     labels.define("loop", asm_);
-    asm_.append(PowerPcAsm::lwz(3, 0x0, 5));                                   // r3 <- firstBgmId
-    asm_.append(PowerPcAsm::lwz(7, 0x4, 5));                                   // r7 <- numMusicEntries
+    asm_.append(PowerPcAsm::lhz(3, 0x0, 5));                                   // r3 <- firstBgmId
+    asm_.append(PowerPcAsm::lhz(7, 0x2, 5));                                   // r7 <- numMusicEntries
     asm_.append(PowerPcAsm::cmpw(3, 31));                                      // r3 == r31?
     asm_.append(PowerPcAsm::bne(labels, "continue3", asm_));                   // {
     asm_.append(PowerPcAsm::lis(6, s.upper));                                  // \.
     asm_.append(PowerPcAsm::addi(6, 6, s.lower));                              // |.
     asm_.append(PowerPcAsm::lwz(7, 0x0, 6));                                   // /. r7 <- switchState
-    asm_.append(PowerPcAsm::lwz(6, 0x4, 5));                                   // r6 <- numMusicEntries
+    asm_.append(PowerPcAsm::lhz(6, 0x2, 5));                                   // r6 <- numMusicEntries
     asm_.append(PowerPcAsm::subi(6, 6, 1));                                    // r6 -= 1
     asm_.append(PowerPcAsm::cmplw(6, 7));                                      // r6 <= r7?
     asm_.append(PowerPcAsm::ble(labels, "min", asm_));
     asm_.append(PowerPcAsm::mr(6, 7));                                         // r6 <- min(r6, r7)
     labels.define("min", asm_);
-    asm_.append(PowerPcAsm::mulli(6, 6, 4));                                   // r6 *= 4
+    asm_.append(PowerPcAsm::mulli(6, 6, 2));                                   // r6 *= 2
     asm_.append(PowerPcAsm::add(5, 5, 6));                                     // r5 += r6
-    asm_.append(PowerPcAsm::lwz(31, 0x8, 5));                                  // r31 <- secondBgmId
+    asm_.append(PowerPcAsm::lhz(31, 0x4, 5));                                  // r31 <- secondBgmId
     asm_.append(PowerPcAsm::mr(3, 31));                                        // r3 <- r31
     asm_.append(PowerPcAsm::cmplwi(3, 0xffff));                                // make the comparision again from the original function
     asm_.append(PowerPcAsm::b(entryAddr, asm_.size(), returnBgmReplacedAddr)); // return returnBgmReplacedAddr
                                                                                // }
     labels.define("continue3", asm_);
-    asm_.append(PowerPcAsm::addi(5, 5, 0x8));                                  // r5+=8
-    asm_.append(PowerPcAsm::mulli(7, 7, 4));                                   // r7 *= 4
+    asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5 += 4
+    asm_.append(PowerPcAsm::mulli(7, 7, 2));                                   // r7 *= 2
     asm_.append(PowerPcAsm::addi(5, 5, 7));                                    // r5 += r7
     asm_.append(PowerPcAsm::subi(6, 6, 0x1));                                  // r6--
     asm_.append(PowerPcAsm::cmpwi(6, 0x0));                                    // r6 != 0?
