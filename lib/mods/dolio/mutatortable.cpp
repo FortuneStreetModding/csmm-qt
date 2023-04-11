@@ -151,7 +151,7 @@ quint32 MutatorTable::readTableAddr(QDataStream &stream, const AddressMapper &ad
     if (vanilla) {
         return 0;
     }
-    stream.device()->seek(addressMapper.boomToFileAddress(mutatorTableStorageAddr));
+    stream.device()->seek(addressMapper.toFileAddress(mutatorTableStorageAddr));
     quint32 addr;
     stream >> addr;
     return addr;
