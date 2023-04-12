@@ -360,6 +360,10 @@ public:
                 ++i;
             }
         }
+
+        auto remFreeSpace = gameInstance.get().freeSpaceManager().calculateTotalRemainingFreeSpace();
+        auto totalFreeSpace = gameInstance.get().freeSpaceManager().calculateTotalFreeSpace();
+        qInfo() << "Remaining free space:" << remFreeSpace << "/" << totalFreeSpace << "bytes";
     }
 private:
     std::reference_wrapper<GameInstance> gameInstance;

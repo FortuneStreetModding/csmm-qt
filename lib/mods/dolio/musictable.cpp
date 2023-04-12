@@ -172,7 +172,7 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     labels.define("continue3", asm_);
     asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5 += 4
     asm_.append(PowerPcAsm::mulli(7, 7, 2));                                   // r7 *= 2
-    asm_.append(PowerPcAsm::addi(5, 5, 7));                                    // r5 += r7
+    asm_.append(PowerPcAsm::add(5, 5, 7));                                    // r5 += r7
     asm_.append(PowerPcAsm::subi(6, 6, 0x1));                                  // r6--
     asm_.append(PowerPcAsm::cmpwi(6, 0x0));                                    // r6 != 0?
     asm_.append(PowerPcAsm::bne(labels, "loop", asm_));                        // loop
