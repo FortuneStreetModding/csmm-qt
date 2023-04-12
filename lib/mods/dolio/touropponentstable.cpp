@@ -31,6 +31,7 @@ void TourOpponentsTable::writeAsm(QDataStream &stream, const AddressMapper &addr
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020cf74)); stream << PowerPcAsm::mulli(3, 0, 6);
     // lwz r0,0xc(r3)                                     ->  lhz r0,0x0(r3)
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020cf8c)); stream << PowerPcAsm::lhz(0, 0x0, 3);
+    // addi r29, r29, 4                                   ->  addi r29, r29, 2
     stream.device()->seek(addressMapper.boomToFileAddress(0x8020cf80)); stream << PowerPcAsm::addi(29, 29, 2);
 
     // subi r4,r4,0x15                                   ->  nop
@@ -48,7 +49,8 @@ void TourOpponentsTable::writeAsm(QDataStream &stream, const AddressMapper &addr
     stream.device()->seek(addressMapper.boomToFileAddress(0x80211ba0)); stream << PowerPcAsm::mulli(3, 3, 6);
     // lwz r0,0xc(r3)                                     ->  lhz r0,0x0(r3)
     stream.device()->seek(addressMapper.boomToFileAddress(0x80211bb8)); stream << PowerPcAsm::lhz(0, 0x0, 3);
-    stream.device()->seek(addressMapper.boomToFileAddress(0x80211bac));
+    // addi r30, r30, 4                                   ->  addi r30, r30, 2
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80211bac)); stream << PowerPcAsm::addi(30, 30, 2);
 }
 
 void TourOpponentsTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &, bool isVanilla) {
