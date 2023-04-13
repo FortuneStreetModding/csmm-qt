@@ -6,11 +6,11 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTextStream>
-#include <QProgressDialog>
 #include "lib/datafileset.h"
 #include "lib/importexportutils.h"
 #include "lib/getordefault.h"
 #include "venturecarddialog.h"
+#include "csmmprogressdialog.h"
 
 // Internal types for table items
 static constexpr int MAP_SET_TYPE = QTableWidgetItem::UserType;
@@ -79,7 +79,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            QProgressDialog dialog("Importing yaml", QString(), 0, 100);
+            CSMMProgressDialog dialog("Importing yaml", QString(), 0, 100);
             ImportExportUtils::importYaml(openYaml, newDescriptor, getImportDirectory(), [&](double progress) {
                 dialog.setValue(100 * progress);
             });

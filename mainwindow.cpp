@@ -5,7 +5,6 @@
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QProgressDialog>
 #include <QtConcurrent>
 #include <QInputDialog>
 #include "lib/configuration.h"
@@ -19,6 +18,7 @@
 #include "lib/mods/modloader.h"
 #include "lib/riivolution.h"
 #include "quicksetupdialog.h"
+#include "csmmprogressdialog.h"
 
 static constexpr int MAX_LOGS = 10;
 
@@ -163,7 +163,7 @@ MainWindow::MainWindow(QWidget *parent)
         if (logFile.isOpen()) {
             logFileStream << msg << Qt::endl;
         }
-        auto progressDialog = dynamic_cast<QProgressDialog *>(QApplication::activeModalWidget());
+        auto progressDialog = dynamic_cast<CSMMProgressDialog *>(QApplication::activeModalWidget());
         if (type != QtMsgType::QtDebugMsg && progressDialog != nullptr) {
             progressDialog->setLabelText(msg);
         }
@@ -210,7 +210,7 @@ void MainWindow::loadMapList() {
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
     ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
     ui->statusbar->repaint();
-    QProgressDialog progressDialog("Importing map list", QString(), 0, 100);
+    CSMMProgressDialog progressDialog("Importing map list", QString(), 0, 100);
     progressDialog.setWindowModality(Qt::ApplicationModal);
     try {
         Configuration::load(openFile, descriptors, importDir->path(), [&](double progress) {
@@ -267,7 +267,7 @@ void MainWindow::openDir() {
         return;
     }
 
-    auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
+    auto progress = QSharedPointer<QSharedPointer<CSMMProgressDialog>>::create(nullptr);
 
     auto copyTask = QtConcurrent::run([=]() {
         std::error_code error;
@@ -284,7 +284,7 @@ void MainWindow::openDir() {
     }
 
     try {
-        *progress = QSharedPointer<QProgressDialog>::create("Importing folder", QString(), 0, 2);
+        *progress = QSharedPointer<CSMMProgressDialog>::create("Importing folder", QString(), 0, 2);
         (*progress)->setWindowModality(Qt::WindowModal);
         (*progress)->setValue(0);
 
@@ -319,9 +319,9 @@ void MainWindow::openIsoWbfs() {
     QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
     if (isoWbfs.isEmpty()) return;
 
-    auto progress = QSharedPointer<QSharedPointer<QProgressDialog>>::create(nullptr);
+    auto progress = QSharedPointer<QSharedPointer<CSMMProgressDialog>>::create(nullptr);
 
-    *progress = QSharedPointer<QProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
+    *progress = QSharedPointer<CSMMProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
     (*progress)->setWindowModality(Qt::WindowModal);
     (*progress)->setValue(0);
     AsyncFuture::observe(ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path())).subscribe([=]() {
@@ -406,7 +406,7 @@ void MainWindow::exportToFolder(bool riivolution) {
 
     if (!riivolution && !ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
+            auto progress = QSharedPointer<CSMMProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
 
@@ -442,7 +442,7 @@ void MainWindow::exportToFolder(bool riivolution) {
         wiiSaveDir = QDir(saveDir).filePath(riivolutionName);
     }
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
+    auto progress = QSharedPointer<CSMMProgressDialog>::create("Saving…", QString(), 0, 100);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 
@@ -514,7 +514,7 @@ void MainWindow::exportIsoWbfs() {
 
     if (!ui->tableWidget->dirty) {
         if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?") == QMessageBox::Yes) {
-            auto progress = QSharedPointer<QProgressDialog>::create("Saving…", QString(), 0, 100);
+            auto progress = QSharedPointer<CSMMProgressDialog>::create("Saving…", QString(), 0, 100);
             progress->setWindowModality(Qt::WindowModal);
             progress->setValue(0);
             auto fut = AsyncFuture::observe(ExeWrapper::createWbfsIso(windowFilePath(), saveFile, "01", false)).subscribe([=]() {
@@ -527,7 +527,7 @@ void MainWindow::exportIsoWbfs() {
 
     auto descriptors = QSharedPointer<std::vector<MapDescriptor>>::create();
 
-    auto progress = QSharedPointer<QProgressDialog>::create("Exporting to image…", QString(), 0, 100, this);
+    auto progress = QSharedPointer<CSMMProgressDialog>::create("Exporting to image…", QString(), 0, 100, this);
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
 

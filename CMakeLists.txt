@@ -223,6 +223,8 @@ set(MAIN_SOURCES
     venturecarddialog.cpp
     venturecarddialog.h
     venturecarddialog.ui
+    csmmprogressdialog.h
+    csmmprogressdialog.cpp
 )
 
 set(PY_SOURCES

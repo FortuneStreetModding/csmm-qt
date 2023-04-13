@@ -3,7 +3,6 @@
 
 #include <QtConcurrent>
 #include <QFileDialog>
-#include <QProgressDialog>
 #include <QMessageBox>
 #include <filesystem>
 
@@ -13,6 +12,7 @@
 #include "lib/mods/csmmmodpack.h"
 #include "lib/configuration.h"
 #include "lib/riivolution.h"
+#include "csmmprogressdialog.h"
 
 QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, QWidget *parent) :
     QDialog(parent),
@@ -156,7 +156,7 @@ void QuickSetupDialog::accept()
             QMessageBox::critical(this, "Cannot save game", "Cannot create temporary directory.");
             return;
         }
-        QProgressDialog dialog("Saving game to ROM", QString(), 0, 100);
+        CSMMProgressDialog dialog("Saving game to ROM", QString(), 0, 100);
         dialog.setWindowModality(Qt::ApplicationModal);
         // copy directory if folder, extract wbfs/iso if file
         if (QFileInfo(ui->inputGameLoc->text()).isDir()) {
