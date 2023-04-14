@@ -136,10 +136,11 @@ QString MapDescriptor::toYaml() const {
     out << YAML::Key << "baseSalary" << YAML::Value << baseSalary;
     out << YAML::Key << "salaryIncrement" << YAML::Value << salaryIncrement;
     out << YAML::Key << "maxDiceRoll" << YAML::Value << maxDiceRoll;
-    for (int i=0; i<4; ++i) {
-        if(!frbFiles[i].isEmpty())
-            out << YAML::Key << QString("frbFile%1").arg(i+1).toStdString() << YAML::Value << frbFiles[i].toStdString();
+    out << YAML::Key << "frbFiles" << YAML::BeginSeq;
+    for (int i=0; i<frbFiles.size(); ++i) {
+        out << frbFiles[i].toStdString();
     }
+    out << YAML::EndSeq;
 
     out << YAML::Key << "background" << YAML::Value << background.toStdString();
     if(!VanillaDatabase::hasDefaultMapIcon(background) || VanillaDatabase::getDefaultMapIcon(background) != mapIcon)
@@ -272,7 +273,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && salaryIncrement == other.salaryIncrement
             && maxDiceRoll == other.maxDiceRoll
             && std::equal(std::begin(ventureCards), std::end(ventureCards), std::begin(other.ventureCards))
-            && std::equal(std::begin(frbFiles), std::end(frbFiles), std::begin(other.frbFiles))
+            && frbFiles == other.frbFiles
             && switchRotationOrigins == other.switchRotationOrigins
             && theme == other.theme
             && background == other.background
@@ -366,12 +367,19 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
     baseSalary = yaml["baseSalary"].as<quint32>();
     salaryIncrement = yaml["salaryIncrement"].as<quint32>();
     maxDiceRoll = yaml["maxDiceRoll"].as<quint32>();
-    for (int i=0; i<4; ++i) {
-        auto key = QString("frbFile%1").arg(i+1).toStdString();
-        if(yaml[key] || i==0) {
-            frbFiles[i] = QString::fromStdString(yaml[key].as<std::string>());
-        } else {
-            frbFiles[i] = "";
+    frbFiles.clear();
+    if (yaml["frbFiles"]) {
+        for (auto &frbFile: yaml["frbFiles"]) {
+            frbFiles.push_back(QString::fromStdString(frbFile.as<std::string>()));
+        }
+    } else {
+        for (int i=0; i<4; ++i) {
+            auto key = QString("frbFile%1").arg(i+1).toStdString();
+            if (yaml[key] || i==0) {
+                frbFiles.push_back(QString::fromStdString(yaml[key].as<std::string>()));
+            } else {
+                break;
+            }
         }
     }
     switchRotationOrigins.clear();

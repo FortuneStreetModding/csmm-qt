@@ -70,7 +70,7 @@ struct MapDescriptor {
     quint32 salaryIncrement = 0;
     quint32 maxDiceRoll = 0;
     std::array<bool, 128> ventureCards = {false};
-    std::array<QString, 4> frbFiles;
+    std::vector<QString> frbFiles;
     std::vector<OriginPoint> switchRotationOrigins;
     BoardTheme theme = Mario;
     QString background;

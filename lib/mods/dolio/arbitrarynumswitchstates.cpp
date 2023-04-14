@@ -8,6 +8,7 @@ void ArbitraryNumSwitchStates::readAsm(QDataStream &stream, const AddressMapper 
 
 void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors)
 {
+    // Allow switch button district/destination ID to handle # of states other than 2 or 4
     stream.device()->seek(addressMapper.boomToFileAddress(0x8007f120));
 
     // cmpwi r4, 4 -> cmpwi r4, 0
@@ -18,4 +19,8 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
     stream.skipRawData(4);
     // li r5, 4 -> li r5, 2
     stream << PowerPcAsm::li(5, 2);
+
+
+    // Allow >4 states
+    // TODO add implementation of this
 }
