@@ -150,17 +150,17 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
     asm_.append(PowerPcAsm::addi(5, 5, 0x2));                                  // r5 += 2
     labels.define("loop", asm_);
     asm_.append(PowerPcAsm::lhz(3, 0x0, 5));                                   // r3 <- firstBgmId
-    asm_.append(PowerPcAsm::lhz(7, 0x2, 5));                                   // r7 <- numMusicEntries
     asm_.append(PowerPcAsm::cmpw(3, 31));                                      // r3 == r31?
+    asm_.append(PowerPcAsm::lhz(3, 0x2, 5));                                   // r3 <- numMusicEntries
     asm_.append(PowerPcAsm::bne(labels, "continue3", asm_));                   // {
     asm_.append(PowerPcAsm::lis(6, s.upper));                                  // \.
     asm_.append(PowerPcAsm::addi(6, 6, s.lower));                              // |.
-    asm_.append(PowerPcAsm::lwz(7, 0x0, 6));                                   // /. r7 <- switchState
+    asm_.append(PowerPcAsm::lwz(3, 0x0, 6));                                   // /. r3 <- switchState
     asm_.append(PowerPcAsm::lhz(6, 0x2, 5));                                   // r6 <- numMusicEntries
     asm_.append(PowerPcAsm::subi(6, 6, 1));                                    // r6 -= 1
-    asm_.append(PowerPcAsm::cmplw(6, 7));                                      // r6 <= r7?
+    asm_.append(PowerPcAsm::cmplw(6, 3));                                      // r6 <= r3?
     asm_.append(PowerPcAsm::ble(labels, "min", asm_));
-    asm_.append(PowerPcAsm::mr(6, 7));                                         // r6 <- min(r6, r7)
+    asm_.append(PowerPcAsm::mr(6, 3));                                         // r6 <- min(r6, r3)
     labels.define("min", asm_);
     asm_.append(PowerPcAsm::mulli(6, 6, 2));                                   // r6 *= 2
     asm_.append(PowerPcAsm::add(5, 5, 6));                                     // r5 += r6
@@ -171,8 +171,8 @@ QVector<quint32> MusicTable::writeSubroutineReplaceBgmId(const AddressMapper &ad
                                                                                // }
     labels.define("continue3", asm_);
     asm_.append(PowerPcAsm::addi(5, 5, 0x4));                                  // r5 += 4
-    asm_.append(PowerPcAsm::mulli(7, 7, 2));                                   // r7 *= 2
-    asm_.append(PowerPcAsm::add(5, 5, 7));                                    // r5 += r7
+    asm_.append(PowerPcAsm::mulli(3, 3, 2));                                   // r3 *= 2
+    asm_.append(PowerPcAsm::add(5, 5, 3));                                     // r5 += r7
     asm_.append(PowerPcAsm::subi(6, 6, 0x1));                                  // r6--
     asm_.append(PowerPcAsm::cmpwi(6, 0x0));                                    // r6 != 0?
     asm_.append(PowerPcAsm::bne(labels, "loop", asm_));                        // loop
