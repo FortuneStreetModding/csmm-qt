@@ -17,6 +17,15 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
 
     moveMapDataArray(stream, addressMapper, mapDescriptors, maxStates);
     increaseGameManagerStorage(stream, addressMapper, mapDescriptors, maxStates);
+
+    // Expand Comparisons to go past 4 states
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800cccc8));
+    // cmpwi cr1, r17, 0x4 -> cmpwi cr1, r17, 0x7FFF
+    stream << PowerPcAsm::cmpwi(17, 0x7FFF, 1);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800cefb4));
+    // cmpwi r29, 0x4 -> cmpwi r29, 0x7FFF
+    stream << PowerPcAsm::cmpwi(29, 0x7FFF);
 }
 
 void ArbitraryNumSwitchStates::support3State(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors)
@@ -43,8 +52,6 @@ void ArbitraryNumSwitchStates::support3State(QDataStream &stream, const AddressM
     stream.skipRawData(8);
     // mr r5, r7 -> li r5, 2
     stream << PowerPcAsm::li(5, 2);
-
-
 }
 
 void ArbitraryNumSwitchStates::moveMapDataArray(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, size_t maxStates)
@@ -105,22 +112,21 @@ void ArbitraryNumSwitchStates::moveMapDataArray(QDataStream &stream, const Addre
     stream << PowerPcAsm::lis(4, newMapDataArrayPair.upper);
     stream.skipRawData(8);
     stream << PowerPcAsm::addi(4, 4, newMapDataArrayPair.lower);
-
-    stream.device()->seek(addressMapper.boomToFileAddress(0x800cccc8));
-    // cmpwi cr1, r17, 0x4 -> cmpwi cr1, r17, 0x7FFF
-    stream << PowerPcAsm::cmpwi(17, 0x7FFF, 1);
-
-    stream.device()->seek(addressMapper.boomToFileAddress(0x800cefb4));
-    // cmpwi r29, 0x4 -> cmpwi r29, 0x7FFF
-    stream << PowerPcAsm::cmpwi(29, 0x7FFF);
 }
 
 void ArbitraryNumSwitchStates::increaseGameManagerStorage(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, size_t maxStates)
 {
+    // There's a set of fields in GameManager that store some map data for each state.
+    // The idea is to enlarge the set of fields to support the desired # of states
+    // and move the fields to the end of the expanded GameManager object (as originally,
+    // the fields were sandwiched in the middle starting at offset 0x48).
+
     stream.device()->seek(addressMapper.boomToFileAddress(0x80016e88));
+    // below expands the memory allocated for the GameManager
     // li r3, 0x4f8 -> li r3, (0x4f8 + 8*maxStates + 8)
     stream << PowerPcAsm::li(3, 0x4f8 + maxStates * 8 + 8);
 
+    // The following lines shift the fields from starting at 0x48 to starting at 0x4f8.
     stream.device()->seek(addressMapper.boomToFileAddress(0x800ccc64));
     stream << PowerPcAsm::lwz(0, 0x4f8, 4);
     stream.skipRawData(4);
