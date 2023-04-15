@@ -8,8 +8,19 @@ void ArbitraryNumSwitchStates::readAsm(QDataStream &stream, const AddressMapper 
 
 void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors)
 {
-    // Allow switch button district/destination ID to handle # of states other than 2 or 4
+    support3State(stream, addressMapper, mapDescriptors);
 
+    size_t maxStates = 0;
+    for (auto &descriptor: mapDescriptors) {
+        maxStates = qMax(maxStates, descriptor.frbFiles.size());
+    }
+
+    moveMapDataArray(stream, addressMapper, mapDescriptors, maxStates);
+    increaseGameManagerStorage(stream, addressMapper, mapDescriptors, maxStates);
+}
+
+void ArbitraryNumSwitchStates::support3State(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors)
+{
     // StopSwitch
     stream.device()->seek(addressMapper.boomToFileAddress(0x8007f120));
 
@@ -33,11 +44,11 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
     // mr r5, r7 -> li r5, 2
     stream << PowerPcAsm::li(5, 2);
 
-    // Allow >4 states
-    size_t maxStates = 0;
-    for (auto &descriptor: mapDescriptors) {
-        maxStates = qMax(maxStates, descriptor.frbFiles.size());
-    }
+
+}
+
+void ArbitraryNumSwitchStates::moveMapDataArray(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, size_t maxStates)
+{
     quint32 newMapDataArrayAddr = allocate(QByteArray(4 * maxStates, '\0'), "Map Data Array", false);
     auto newMapDataArrayPair = PowerPcAsm::make16bitValuePair(newMapDataArrayAddr);
 
@@ -102,4 +113,26 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
     stream.device()->seek(addressMapper.boomToFileAddress(0x800cefb4));
     // cmpwi r29, 0x4 -> cmpwi r29, 0x7FFF
     stream << PowerPcAsm::cmpwi(29, 0x7FFF);
+}
+
+void ArbitraryNumSwitchStates::increaseGameManagerStorage(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, size_t maxStates)
+{
+    stream.device()->seek(addressMapper.boomToFileAddress(0x80016e88));
+    // li r3, 0x4f8 -> li r3, (0x4f8 + 8*maxStates)
+    stream << PowerPcAsm::li(3, 0x4f8 + maxStates * 8);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800ccc64));
+    stream << PowerPcAsm::lwz(0, 0x4f8, 4);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::stw(5, 0x4f8, 4);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::lwz(3, 0x4fc, 4);
+    stream.skipRawData(12);
+    stream << PowerPcAsm::stw(5, 0x4fc, 4);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800ccca8));
+    stream << PowerPcAsm::lwz(3, 0x4f8, 3);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800cef50));
+    stream << PowerPcAsm::lwz(3, 0x4f8, 28);
 }
