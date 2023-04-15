@@ -118,8 +118,8 @@ void ArbitraryNumSwitchStates::moveMapDataArray(QDataStream &stream, const Addre
 void ArbitraryNumSwitchStates::increaseGameManagerStorage(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, size_t maxStates)
 {
     stream.device()->seek(addressMapper.boomToFileAddress(0x80016e88));
-    // li r3, 0x4f8 -> li r3, (0x4f8 + 8*maxStates)
-    stream << PowerPcAsm::li(3, 0x4f8 + maxStates * 8);
+    // li r3, 0x4f8 -> li r3, (0x4f8 + 8*maxStates + 8)
+    stream << PowerPcAsm::li(3, 0x4f8 + maxStates * 8 + 8);
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x800ccc64));
     stream << PowerPcAsm::lwz(0, 0x4f8, 4);
