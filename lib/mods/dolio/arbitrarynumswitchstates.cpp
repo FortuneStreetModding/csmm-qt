@@ -18,4 +18,15 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
     stream.skipRawData(4);
     // li r5, 4 -> li r5, 2
     stream << PowerPcAsm::li(5, 2);
+
+    // StopPlace
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007f5a0));
+    // li r5, 2 -> mr r5, r0
+    stream << PowerPcAsm::mr(5, 0);
+    stream.skipRawData(4);
+    // cmpwi r0, 4 -> cmpwi r0, 0
+    stream << PowerPcAsm::cmpwi(0, 0);
+    stream.skipRawData(8);
+    // mr r5, r7 -> li r5, 2
+    stream << PowerPcAsm::li(5, 2);
 }
