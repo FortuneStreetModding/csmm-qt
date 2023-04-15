@@ -261,11 +261,11 @@ void init_pycsmm(pybind11::module_ &m) {
     bindStdArray<bool, 128>(m, "VentureCardTable", R"pycsmmdoc(
     A boolean array-like type such that venture card x is enabled iff VentureCardTable[x-1] is enabled.
 )pycsmmdoc");
-
+    /*
     bindStdArray<QString, 4>(m, "FrbFiles", R"pycsmmdoc(
     An array-like type containing the frb file names.
 )pycsmmdoc");
-
+    */
     pybind11::bind_vector<std::vector<OriginPoint>>(m, "OriginPoints", R"pycsmmdoc(
     A list-like type of switch rotation origins.
 )pycsmmdoc");
