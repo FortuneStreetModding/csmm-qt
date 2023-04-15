@@ -34,5 +34,72 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
     stream << PowerPcAsm::li(5, 2);
 
     // Allow >4 states
-    // TODO add implementation of this
+    size_t maxStates = 0;
+    for (auto &descriptor: mapDescriptors) {
+        maxStates = qMax(maxStates, descriptor.frbFiles.size());
+    }
+    quint32 newMapDataArrayAddr = allocate(QByteArray(4 * maxStates, '\0'), "Map Data Array", false);
+    auto newMapDataArrayPair = PowerPcAsm::make16bitValuePair(newMapDataArrayAddr);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007dde8));
+    // r3 <- &s_map_data_array -> r3 <- newMapDataArrayAddr
+    stream << PowerPcAsm::lis(3, newMapDataArrayPair.upper);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::addi(3, 3, newMapDataArrayPair.lower);
+    stream.skipRawData(4);
+    // li r5, 10 -> li r5, 4*maxStates
+    stream << PowerPcAsm::li(5, 4 * maxStates);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e048));
+    // r3 <- &s_map_data_array -> r3 <- newMapDataArrayAddr
+    stream << PowerPcAsm::lis(3, newMapDataArrayPair.upper);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::addi(3, 3, newMapDataArrayPair.lower);
+    stream.skipRawData(4);
+    // li r5, 10 -> li r5, 4*maxStates
+    stream << PowerPcAsm::li(5, 4 * maxStates);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e0d4));
+    // r3 <- &s_map_data_array -> r3 <- newMapDataArrayAddr
+    stream << PowerPcAsm::lis(28, newMapDataArrayPair.upper);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::addi(3, 28, newMapDataArrayPair.lower);
+    stream.skipRawData(4);
+    // li r5, 10 -> li r5, 4*maxStates
+    stream << PowerPcAsm::li(5, 4 * maxStates);
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e108));
+    // s_map_data_array <- r0 -> *newMapDataArrayAddr <- r0
+    stream << PowerPcAsm::stw(0, newMapDataArrayPair.lower, 28);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e480));
+    // r3 <- &s_map_data_array -> r3 <- newMapDataArrayAddr
+    stream << PowerPcAsm::lis(3, newMapDataArrayPair.upper);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::addi(3, 3, newMapDataArrayPair.lower);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007f138));
+    // r4 <- &s_map_data_array -> r4 <- newMapDataArrayAddr
+    stream << PowerPcAsm::lis(4, newMapDataArrayPair.upper);
+    stream.skipRawData(8);
+    stream << PowerPcAsm::addi(4, 4, newMapDataArrayPair.lower);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007f18c));
+    // r4 <- &s_map_data_array -> r4 <- newMapDataArrayAddr
+    stream << PowerPcAsm::lis(4, newMapDataArrayPair.upper);
+    stream.skipRawData(12);
+    stream << PowerPcAsm::addi(4, 4, newMapDataArrayPair.lower);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007f5bc));
+    // r4 <- &s_map_data_array -> r4 <- newMapDataArrayAddr
+    stream << PowerPcAsm::lis(4, newMapDataArrayPair.upper);
+    stream.skipRawData(8);
+    stream << PowerPcAsm::addi(4, 4, newMapDataArrayPair.lower);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800cccc8));
+    // cmpwi cr1, r17, 0x4 -> cmpwi cr1, r17, 0x7FFF
+    stream << PowerPcAsm::cmpwi(17, 0x7FFF, 1);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800cefb4));
+    // cmpwi r29, 0x4 -> cmpwi r29, 0x7FFF
+    stream << PowerPcAsm::cmpwi(29, 0x7FFF);
 }
