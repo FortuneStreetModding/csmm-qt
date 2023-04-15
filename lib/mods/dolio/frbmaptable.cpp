@@ -9,6 +9,7 @@ quint32 FrbMapTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
         for (auto &frbFile: descriptor.frbFiles) {
             subTable.append(allocate(frbFile));
         }
+        subTable.append(0);
         table.append(allocate(subTable, "FrbMapSubTable"));
     }
     return allocate(table, "FrbMapTable");

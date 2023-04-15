@@ -131,8 +131,8 @@ quint32 bne(LabelTable &labels, QString label, const QVector<quint32> &asmListin
 }
 // -- blr --
 quint32 blr() { return blr_opcode; }
-quint32 cmpwi(quint8 reg, qint16 value) {
-    return cmpwi_opcode + ((quint32)reg << 16) + ((quint32)value & 0x0000FFFF);
+quint32 cmpwi(quint8 reg, qint16 value, quint8 cr) {
+    return cmpwi_opcode + ((quint32)cr << 23) + ((quint32)reg << 16) + ((quint32)value & 0x0000FFFF);
 }
 quint32 cmplwi(quint8 reg, quint16 value) {
     return cmplwi_opcode + ((quint32)reg << 16) + ((quint32)value & 0x0000FFFF);

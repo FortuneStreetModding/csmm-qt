@@ -154,7 +154,7 @@ namespace PowerPcAsm {
     quint32 bne(int offset);
     quint32 bne(LabelTable &labels, QString label, const QVector<quint32> &asmListing);
     quint32 blr();
-    quint32 cmpwi(quint8 reg, qint16 value);
+    quint32 cmpwi(quint8 reg, qint16 value, quint8 cr = 0);
     quint32 cmplwi(quint8 reg, quint16 value);
     quint32 nop();
     quint32 mflr(quint8 reg);
