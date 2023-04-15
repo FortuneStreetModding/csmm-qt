@@ -136,7 +136,7 @@ QString MapDescriptor::toYaml() const {
     out << YAML::Key << "baseSalary" << YAML::Value << baseSalary;
     out << YAML::Key << "salaryIncrement" << YAML::Value << salaryIncrement;
     out << YAML::Key << "maxDiceRoll" << YAML::Value << maxDiceRoll;
-    out << YAML::Key << "frbFiles" << YAML::BeginSeq;
+    out << YAML::Key << "frbFiles" << YAML::Value << YAML::BeginSeq;
     for (int i=0; i<frbFiles.size(); ++i) {
         out << frbFiles[i].toStdString();
     }
