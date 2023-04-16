@@ -103,7 +103,7 @@
        <item>
         <widget class="QPushButton" name="importModPack">
          <property name="text">
-          <string>Import Mod Pack</string>
+          <string>Import Mod List</string>
          </property>
         </widget>
        </item>

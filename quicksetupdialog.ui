@@ -74,7 +74,7 @@
    <item row="1" column="2" colspan="2">
     <widget class="QPushButton" name="chooseModpackFile">
      <property name="text">
-      <string>Choose Modpack File</string>
+      <string>Choose Mod List File</string>
      </property>
     </widget>
    </item>
@@ -112,7 +112,7 @@
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Modpack file</string>
+      <string>Modlist file</string>
      </property>
     </widget>
    </item>
