@@ -17,6 +17,7 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
 
     moveMapDataArray(stream, addressMapper, mapDescriptors, maxStates);
     increaseGameManagerStorage(stream, addressMapper, mapDescriptors, maxStates);
+    expandedAnimations(stream, addressMapper, mapDescriptors, maxStates);
 
     // Expand Comparisons to go past 4 states
     stream.device()->seek(addressMapper.boomToFileAddress(0x800cccc8));
@@ -141,4 +142,33 @@ void ArbitraryNumSwitchStates::increaseGameManagerStorage(QDataStream &stream, c
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x800cef50));
     stream << PowerPcAsm::lwz(3, 0x4f8, 28);
+}
+
+void ArbitraryNumSwitchStates::expandedAnimations(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, size_t maxStates)
+{
+    QVector<quint32> vMoveTable, vStopTable;
+    for (int i=1; i<=maxStates; ++i) {
+        vMoveTable.append(allocate(QString("V_MOVE%1").arg(i)));
+        vStopTable.append(allocate(QString("V_STOP%1").arg(i)));
+    }
+    quint32 vMoveTableAddr = allocate(vMoveTable, "V_MOVE table");
+    quint32 vStopTableAddr = allocate(vStopTable, "V_STOP table");
+
+    auto vMoveTableAddrPair = PowerPcAsm::make16bitValuePair(vMoveTableAddr);
+    auto vStopTableAddrPair = PowerPcAsm::make16bitValuePair(vStopTableAddr);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800d2354));
+    stream << PowerPcAsm::lis(30, vMoveTableAddrPair.upper);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::addi(30, 30, vMoveTableAddrPair.lower);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800d23f0));
+    stream << PowerPcAsm::lis(30, vStopTableAddrPair.upper);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::addi(30, 30, vStopTableAddrPair.lower);
+
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800d2514));
+    stream << PowerPcAsm::lis(30, vMoveTableAddrPair.upper);
+    stream.skipRawData(4);
+    stream << PowerPcAsm::addi(30, 30, vMoveTableAddrPair.lower);
 }

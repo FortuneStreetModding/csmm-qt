@@ -42,6 +42,7 @@
 #include "freespace/venturecardfreespace.h"
 #include "freespace/wififreespace.h"
 #include "freespace/tinydistrictsfreespace.h"
+#include "freespace/vmovestopfreespace.h"
 #include "dolio/changemusiconswitch.h"
 #include "misc/readfrbfileinfo.h"
 #include "misc/defaultmiscpatches.h"
@@ -105,6 +106,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<InitialFreeSpace>());
     patches.append(CSMMModHolder::fromCppObj<MapDataFreeSpace>());
     patches.append(CSMMModHolder::fromCppObj<TinyDistrictsFreeSpace>());
+    patches.append(CSMMModHolder::fromCppObj<VMoveStopFreeSpace>());
 
     patches.append(CSMMModHolder::fromCppObj<DefaultMiscPatches>());
     patches.append(CSMMModHolder::fromCppObj<ReadFrbFileInfo>());
