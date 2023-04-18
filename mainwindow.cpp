@@ -145,8 +145,9 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
-        QuickSetupDialog dialog(getMarkerCode(), getSeparateSaveGame());
-        dialog.exec();
+        auto dialog = new QuickSetupDialog(getMarkerCode(), getSeparateSaveGame());
+        dialog->show();
+        close();
     });
     updateModListWidget();
 

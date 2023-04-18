@@ -51,7 +51,11 @@
    <item row="2" column="0">
     <widget class="QCheckBox" name="dontAskAgain">
      <property name="text">
-      <string>Don't ask me again</string>
+      <string>Set choice as default and don't ask me again
+(can still be changed in preferences/options)</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

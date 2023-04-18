@@ -1,9 +1,12 @@
 #include "choosemode.h"
 #include "darkdetect.h"
+#include "csmmmode.h"
 #include <QApplication>
 #include <QDir>
 
 #include "lib/python/pythonbindings.h"
+#include "mainwindow.h"
+#include "quicksetupdialog.h"
 #include <pybind11/embed.h>
 #include <iostream>
 
@@ -66,7 +69,19 @@ int main(int argc, char *argv[])
         }
 #endif
         initDarkThemeSettings();
-        auto *w = new ChooseMode();
+        QSettings settings;
+        QWidget *w;
+        switch (settings.value("csmmMode", INDETERMINATE).toInt()) {
+        case INDETERMINATE:
+            w = new ChooseMode();
+            break;
+        case EXPRESS:
+            w = new QuickSetupDialog("02", false);
+            break;
+        case ADVANCED:
+            w = new MainWindow();
+            break;
+        }
 #ifdef Q_OS_LINUX
         auto iconPath = QDir(QApplication::applicationDirPath()).filePath("../../AppIcon.png");
         if (QFile::exists(iconPath)) {

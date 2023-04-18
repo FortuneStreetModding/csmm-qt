@@ -229,6 +229,7 @@ set(MAIN_SOURCES
     choosemode.h
     choosemode.cpp
     choosemode.ui
+    csmmmode.h
 )
 
 set(PY_SOURCES

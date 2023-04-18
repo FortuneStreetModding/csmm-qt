@@ -1,6 +1,7 @@
 #ifndef CHOOSEMODE_H
 #define CHOOSEMODE_H
 
+#include <QSettings>
 #include <QDialog>
 
 namespace Ui {
@@ -17,6 +18,7 @@ public:
 
 private:
     Ui::ChooseMode *ui;
+    QSettings settings;
 };
 
 #endif // CHOOSEMODE_H
