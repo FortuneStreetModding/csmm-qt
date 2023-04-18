@@ -142,7 +142,7 @@ QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir)
 QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    QString discId = separateSaveGame? "K" : ".";
+    QString discId = separateSaveGame ? "K" : ".";
     QStringList args{"COPY", "--id", QString("%1...%2").arg(discId, markerCode), "--overwrite", sourceDir, wbfsFile};
     proc->start(getWitPath(), args);
     return observeProcess(proc);

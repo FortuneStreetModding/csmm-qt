@@ -1,7 +1,7 @@
-#include "mainwindow.h"
-
+#include "choosemode.h"
 #include "darkdetect.h"
 #include <QApplication>
+#include <QDir>
 
 #include "lib/python/pythonbindings.h"
 #include <pybind11/embed.h>
@@ -64,14 +64,13 @@ int main(int argc, char *argv[])
         }
 #endif
         initDarkThemeSettings();
-        MainWindow *w = new MainWindow;
+        auto *w = new ChooseMode();
 #ifdef Q_OS_LINUX
         auto iconPath = QDir(QApplication::applicationDirPath()).filePath("../../AppIcon.png");
         if (QFile::exists(iconPath)) {
             w->setWindowIcon(QIcon(iconPath));
         }
 #endif
-        w->setWindowTitle(QString("CSMM %1").arg(CSMM_VERSION));
         w->show();
         int e = app.exec();
         exit( e ); // needed to exit the hidden console
