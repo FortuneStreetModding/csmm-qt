@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
         return 0;
     } else {
         QApplication app(argc, argv);
+        QCoreApplication::setOrganizationName("Custom Street");
+        QCoreApplication::setOrganizationDomain("fortunestreetmodding.github.io");
         QCoreApplication::setApplicationName("csmm");
         QCoreApplication::setApplicationVersion(QString("%1").arg(CSMM_VERSION));
 
@@ -59,7 +61,7 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_WIN
         // hide console window under Windows but only if the first argument is the full path to the executable
         //  -> this indicates that the exe file has been started by mouse double click
-        if(QCoreApplication::applicationFilePath().replace("/", "\\") == QApplication::arguments().front()) {
+        if(QCoreApplication::applicationFilePath().replace("/", "\\") == QApplication::arguments().at(0)) {
             ::ShowWindow( ::GetConsoleWindow(), SW_HIDE );
         }
 #endif
