@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "preferencesdialog.h"
 #include "ui_mainwindow.h"
 
 #include <filesystem>
@@ -115,6 +116,10 @@ MainWindow::MainWindow(QWidget *parent)
         auto dialog = new QuickSetupDialog(getMarkerCode(), getSeparateSaveGame());
         dialog->show();
         close();
+    });
+    connect(ui->actionPreferences, &QAction::triggered, this, [&]() {
+        PreferencesDialog dialog;
+        dialog.exec();
     });
     updateModListWidget();
 }

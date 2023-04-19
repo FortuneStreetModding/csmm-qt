@@ -230,6 +230,9 @@ set(MAIN_SOURCES
     choosemode.cpp
     choosemode.ui
     csmmmode.h
+    preferencesdialog.h
+    preferencesdialog.cpp
+    preferencesdialog.ui
 )
 
 set(PY_SOURCES
