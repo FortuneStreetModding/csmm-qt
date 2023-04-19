@@ -1,6 +1,7 @@
 #ifndef QUICKSETUPDIALOG_H
 #define QUICKSETUPDIALOG_H
 
+#include <QAbstractButton>
 #include <QThreadPool>
 #include <QDialog>
 #include <QSharedPointer>
@@ -17,13 +18,14 @@ public:
     explicit QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, QWidget *parent = nullptr);
     ~QuickSetupDialog();
 private:
-    void updateRiivolutionEnabled();
     bool shouldPatchRiivolution();
     Ui::QuickSetupDialog *ui;
     QString defaultMarkerCode;
     bool defaultSeparateSaveGame;
-    // QDialog interface
-public Q_SLOTS:
+    QPushButton *exportToExtractedFolder, *exportToWbfsIso;
+    void onResultClick(QAbstractButton *button);
+    void updateButtonBoxEnabled();
+private Q_SLOTS:
     void accept() override;
 };
 
