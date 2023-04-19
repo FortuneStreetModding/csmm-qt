@@ -226,6 +226,13 @@ set(MAIN_SOURCES
     venturecarddialog.ui
     csmmprogressdialog.h
     csmmprogressdialog.cpp
+    choosemode.h
+    choosemode.cpp
+    choosemode.ui
+    csmmmode.h
+    preferencesdialog.h
+    preferencesdialog.cpp
+    preferencesdialog.ui
 )
 
 set(PY_SOURCES

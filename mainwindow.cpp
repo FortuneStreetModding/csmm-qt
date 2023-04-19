@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "preferencesdialog.h"
 #include "ui_mainwindow.h"
 
 #include <filesystem>
@@ -19,39 +20,6 @@
 #include "lib/riivolution.h"
 #include "quicksetupdialog.h"
 #include "csmmprogressdialog.h"
-
-static constexpr int MAX_LOGS = 10;
-
-static QFile logFile;
-
-static void initLogFile() {
-    if (!logFile.isOpen()) {
-        QDir logFileDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-        if (!logFileDir.mkpath(".")) {
-            qWarning() << "could not create directory" << logFileDir.path();
-            return;
-        }
-        logFile.setFileName(logFileDir.filePath(QString("csmmgui-%0.log").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd-HH-mm-ss"))));
-        if (!logFile.open(QFile::WriteOnly)) {
-            qWarning() << "could not create log file" << logFile.fileName() << "for writing";
-            return;
-        }
-        logFile.write(QString("Running CSMM %1\n").arg(QCoreApplication::applicationVersion()).toUtf8());
-        if (!logFile.link(logFileDir.filePath("csmmgui-latest.log"))) {
-            qWarning() << "could not symlink to latest log file" << logFile.fileName();
-        }
-        auto pastLogs = logFileDir.entryInfoList({"csmmgui*.log"}, QDir::Files);
-        std::sort(pastLogs.begin(), pastLogs.end(), [](const QFileInfo &A, const QFileInfo &B) {
-            return A.fileTime(QFile::FileBirthTime) > B.fileTime(QFile::FileBirthTime);
-        });
-        while (pastLogs.size() > MAX_LOGS) {
-            if (!QFile::remove(pastLogs.back().absoluteFilePath())) {
-                qWarning() << "could not remove old log file" << pastLogs.back().absoluteFilePath();
-            }
-            pastLogs.pop_back();
-        }
-    }
-}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -145,29 +113,15 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
-        QuickSetupDialog dialog(getMarkerCode(), getSeparateSaveGame());
+        auto dialog = new QuickSetupDialog(getMarkerCode(), getSeparateSaveGame());
+        dialog->show();
+        close();
+    });
+    connect(ui->actionPreferences, &QAction::triggered, this, [&]() {
+        PreferencesDialog dialog;
         dialog.exec();
     });
     updateModListWidget();
-
-    initLogFile();
-
-    // show progress messages in progress dialog
-    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
-        // filter this specific message since it is littering the whole console output
-        if(msg == "QFutureWatcher::connect: connecting after calling setFuture() is likely to produce race")
-            return;
-        static QTextStream cerr(stderr);
-        static QTextStream logFileStream(&logFile);
-        cerr << msg << Qt::endl;
-        if (logFile.isOpen()) {
-            logFileStream << msg << Qt::endl;
-        }
-        auto progressDialog = dynamic_cast<CSMMProgressDialog *>(QApplication::activeModalWidget());
-        if (type != QtMsgType::QtDebugMsg && progressDialog != nullptr) {
-            progressDialog->setLabelText(msg);
-        }
-    });
 }
 
 QString MainWindow::getMarkerCode() {

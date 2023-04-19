@@ -13,6 +13,7 @@
 #include "lib/configuration.h"
 #include "lib/riivolution.h"
 #include "csmmprogressdialog.h"
+#include "mainwindow.h"
 
 QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, QWidget *parent) :
     QDialog(parent),
@@ -27,49 +28,42 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
         auto dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory");
         if (!dirname.isEmpty()) {
             ui->inputGameLoc->setText(dirname);
+            updateButtonBoxEnabled();
         }
     });
     connect(ui->chooseInputWbfsIso, &QPushButton::clicked, this, [this](bool){
         auto isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
         if (!isoWbfs.isEmpty()) {
             ui->inputGameLoc->setText(isoWbfs);
+            updateButtonBoxEnabled();
         }
     });
-    connect(ui->chooseModpackFile, &QPushButton::clicked, this, [this](bool){
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt;*.zip)");
+    connect(ui->chooseModpackZip, &QPushButton::clicked, this, [this](bool){
+        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "Modpack zip file (*.zip)");
         if (!file.isEmpty()) {
-            ui->modpackFile->setText(file);
+            ui->modpackZip->setText(file);
+            updateButtonBoxEnabled();
         }
     });
-    connect(ui->chooseMapListFile, &QPushButton::clicked, this, [this](bool) {
-        auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)");
-        if (!openFile.isEmpty()) {
-            ui->mapListFile->setText(openFile);
-        }
+
+    exportToWbfsIso = new QPushButton("Export to WBFS/ISO");
+    exportToWbfsIso->setEnabled(false);
+    exportToWbfsIso->setDefault(true);
+    ui->buttonBox->addButton(exportToWbfsIso, QDialogButtonBox::AcceptRole);
+
+    exportToExtractedFolder = new QPushButton("Export to Extracted Folder");
+    exportToExtractedFolder->setEnabled(false);
+    ui->buttonBox->addButton(exportToExtractedFolder, QDialogButtonBox::AcceptRole);
+
+    toAdvancedMode = new QPushButton("Switch to Advanced CSMM");
+    toAdvancedMode->setAutoDefault(false);
+    ui->buttonBox->addButton(toAdvancedMode, QDialogButtonBox::ResetRole);
+
+    connect(ui->enableRiivolution, &QCheckBox::toggled, this, [this](bool checked) {
+        updateButtonBoxEnabled();
     });
-    connect(ui->chooseOutputFolder, &QPushButton::clicked, this, [this](bool){
-        auto dirname = QFileDialog::getExistingDirectory(this, "Save Fortune Street Directory");
-        if (!dirname.isEmpty()) {
-            if (!QDir(dirname).isEmpty()) {
-                QMessageBox::critical(this, "Cannot select Fortune Street directory for saving", "Directory is not empty");
-                return;
-            }
-            ui->outputGameLoc->setText(dirname);
-            ui->enableRiivolution->setEnabled(true);
-            updateRiivolutionEnabled();
-        }
-    });
-    connect(ui->chooseOutputWbfsIso, &QPushButton::clicked, this, [this](bool){
-        auto saveFile = QFileDialog::getSaveFileName(this, "Save WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
-        if (!saveFile.isEmpty()) {
-            ui->outputGameLoc->setText(saveFile);
-            ui->enableRiivolution->setEnabled(false);
-            updateRiivolutionEnabled();
-        }
-    });
-    connect(ui->enableRiivolution, &QCheckBox::toggled, this, [this](bool) {
-        updateRiivolutionEnabled();
-    });
+
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &QuickSetupDialog::onResultClick);
 }
 
 QuickSetupDialog::~QuickSetupDialog()
@@ -77,18 +71,9 @@ QuickSetupDialog::~QuickSetupDialog()
     delete ui;
 }
 
-void QuickSetupDialog::updateRiivolutionEnabled()
-{
-    bool riivolutionCheckboxEnabled = ui->enableRiivolution->isEnabled();
-    bool riivolutionCheckboxChecked = ui->enableRiivolution->isChecked();
-    bool riivolutionNameEnabled = riivolutionCheckboxEnabled && riivolutionCheckboxChecked;
-    ui->riivolutionPatchName->setEnabled(riivolutionNameEnabled);
-    ui->riivolutionPatchNameLabel->setEnabled(riivolutionNameEnabled);
-}
-
 bool QuickSetupDialog::shouldPatchRiivolution()
 {
-    return ui->enableRiivolution->isEnabled() && ui->enableRiivolution->isChecked();
+    return ui->enableRiivolution->isChecked();
 }
 
 namespace csmm_quicksetup_detail {
@@ -108,43 +93,60 @@ private:
 };
 }
 
-void QuickSetupDialog::accept()
+void QuickSetupDialog::onResultClick(QAbstractButton *button)
 {
-    bool shouldPatchRiivolutionVar = shouldPatchRiivolution();
+    if (button == toAdvancedMode) {
+        auto w = new MainWindow;
+        w->show();
+        close();
+        return;
+    }
+
     csmm_quicksetup_detail::ProcessingGuard guard(this);
-    if (ui->inputGameLoc->text().isEmpty()) {
-        QMessageBox::critical(this, "Cannot save game", "Input game ROM not specified");
-        return;
-    }
-    if (ui->mapListFile->text().isEmpty()) {
-        QMessageBox::critical(this, "Cannot save game", "Map list file not specified");
-        return;
-    }
-    if (ui->outputGameLoc->text().isEmpty()) {
-        QMessageBox::critical(this, "Cannot save game", "Output game ROM not specified");
-        return;
-    }
+
+    bool shouldPatchRiivolutionVar = shouldPatchRiivolution();
+
     if (!Riivolution::validateRiivolutionName(ui->riivolutionPatchName->text())) {
         QMessageBox::critical(this, "Cannot save game", "Invalid Riivolution name: " + ui->riivolutionPatchName->text());
         return;
     }
 
+    QString outputLoc;
+    if (button == exportToWbfsIso) {
+        outputLoc = QFileDialog::getSaveFileName(this, "Save WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
+    } else {
+        outputLoc = QFileDialog::getExistingDirectory(this, "Save Fortune Street Directory");
+        if (!outputLoc.isEmpty()) {
+            if (!QDir(outputLoc).isEmpty()) {
+                QMessageBox::critical(this, "Cannot select Fortune Street directory for saving", "Directory is not empty");
+                return;
+            }
+        }
+    }
+
+    if (outputLoc.isEmpty()) {
+        return;
+    }
+
     // check if enough temporary disk space is available
-    QTemporaryDir tmp;
-    QStorageInfo storageInfo(tmp.path());
-    int availableMb = storageInfo.bytesAvailable()/1024/1024;
-    if(availableMb < 5000) {
-        if (QMessageBox::question(this, "Save",
-                              QString("There is less than 5 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
-                              QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
-            return;
+    {
+        QTemporaryDir tmp;
+        QStorageInfo storageInfo(tmp.path());
+        int availableMb = storageInfo.bytesAvailable()/1024/1024;
+        if (availableMb < 5000) {
+            if (QMessageBox::question(this, "Save",
+                                  QString("There is less than 5 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
+                                  QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
+                return;
+        }
     }
 
     try {
         QTemporaryDir importDir;
         QTemporaryDir intermediateDir;
-        QString targetGameDir = QFileInfo(ui->outputGameLoc->text()).isDir()
-                ? ui->outputGameLoc->text() : intermediateDir.path();
+
+        QString targetGameDir = QFileInfo(outputLoc).isDir()
+                ? outputLoc : intermediateDir.path();
         if (shouldPatchRiivolutionVar) {
             if (!QDir(targetGameDir).mkdir(ui->riivolutionPatchName->text())) {
                 QMessageBox::critical(this, "Cannot save game", "Cannot create directory for putting patch files");
@@ -179,14 +181,21 @@ void QuickSetupDialog::accept()
         }
         dialog.setValue(10);
 
-        auto mods = ModLoader::importModpackFile(ui->modpackFile->text());
+        auto mods = ModLoader::importModpackFile(ui->modpackZip->text());
         auto gameInstance = GameInstance::fromGameDirectory(targetGameDir, importDir.path());
         CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
         modpack.load(targetGameDir);
 
         dialog.setValue(20);
 
-        Configuration::load(ui->mapListFile->text(), gameInstance.mapDescriptors(), QDir(importDir.path()), [&](double progress) {
+        auto mapListFileIt = QDirIterator(mods.second->path(), {"map[Ll]ist.yaml", "map[Ll]ist.yml"}, QDir::Files, QDirIterator::Subdirectories);
+        if (!mapListFileIt.hasNext()) {
+            QMessageBox::critical(this, "Cannot save game", "Map list yaml not found in modpack zip");
+            return;
+        }
+
+        mapListFileIt.next();
+        Configuration::load(mapListFileIt.fileInfo().absoluteFilePath(), gameInstance.mapDescriptors(), QDir(importDir.path()), [&](double progress) {
             dialog.setValue(20 + (60 - 20) * progress);
         });
 
@@ -200,12 +209,12 @@ void QuickSetupDialog::accept()
         qInfo() << "writing ROM";
 
         // create wbfs/iso if file
-        if (!QFileInfo(ui->outputGameLoc->text()).isDir()) {
-            await(ExeWrapper::createWbfsIso(targetGameDir, ui->outputGameLoc->text(), ui->markerCode->text(), ui->separateSaveGame->isChecked()));
+        if (!QFileInfo(outputLoc).isDir()) {
+            await(ExeWrapper::createWbfsIso(targetGameDir, outputLoc, ui->markerCode->text(), ui->separateSaveGame->isChecked()));
             if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
                 qInfo() << "patching wiimmfi";
                 dialog.setValue(95);
-                await(ExeWrapper::patchWiimmfi(ui->outputGameLoc->text()));
+                await(ExeWrapper::patchWiimmfi(outputLoc));
             }
         }
 
@@ -213,15 +222,27 @@ void QuickSetupDialog::accept()
         if (shouldPatchRiivolutionVar) {
             qInfo() << "patching riivolution";
             dialog.setValue(95);
-            Riivolution::write(intermediateDir.path(), ui->outputGameLoc->text(), gameInstance.addressMapper(), ui->riivolutionPatchName->text());
+            Riivolution::write(intermediateDir.path(), outputLoc, gameInstance.addressMapper(), ui->riivolutionPatchName->text());
         }
 
         dialog.setValue(100);
 
         QMessageBox::information(this, "Quick setup successful", "Save was successful.");
 
-        QDialog::accept(); // fall back to parent accept which closes this dialog
+        close();
     } catch (const std::runtime_error &ex) {
         QMessageBox::critical(this, "Cannot save game", ex.what());
     }
+}
+
+void QuickSetupDialog::updateButtonBoxEnabled()
+{
+    bool enable = !ui->inputGameLoc->text().isEmpty() && !ui->modpackZip->text().isEmpty();
+    exportToWbfsIso->setEnabled(enable && !ui->enableRiivolution->isChecked());
+    exportToExtractedFolder->setEnabled(enable);
+}
+
+void QuickSetupDialog::accept()
+{
+    // no-op
 }

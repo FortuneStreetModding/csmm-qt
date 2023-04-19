@@ -161,6 +161,8 @@
     <addaction name="actionValidate"/>
     <addaction name="separator"/>
     <addaction name="actionExport_default_modlists_txt"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
@@ -293,6 +295,11 @@
    </property>
    <property name="text">
     <string>Separate Save Game</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences</string>
    </property>
   </action>
  </widget>
