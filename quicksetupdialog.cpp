@@ -13,6 +13,7 @@
 #include "lib/configuration.h"
 #include "lib/riivolution.h"
 #include "csmmprogressdialog.h"
+#include "mainwindow.h"
 
 QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, QWidget *parent) :
     QDialog(parent),
@@ -50,37 +51,22 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
             updateButtonBoxEnabled();
         }
     });
-    /*
-    connect(ui->chooseOutputFolder, &QPushButton::clicked, this, [this](bool){
-        auto dirname = QFileDialog::getExistingDirectory(this, "Save Fortune Street Directory");
-        if (!dirname.isEmpty()) {
-            if (!QDir(dirname).isEmpty()) {
-                QMessageBox::critical(this, "Cannot select Fortune Street directory for saving", "Directory is not empty");
-                return;
-            }
-            ui->outputGameLoc->setText(dirname);
-            ui->enableRiivolution->setEnabled(true);
-            updateRiivolutionEnabled();
-        }
-    });
-    connect(ui->chooseOutputWbfsIso, &QPushButton::clicked, this, [this](bool){
-        auto saveFile = QFileDialog::getSaveFileName(this, "Save WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
-        if (!saveFile.isEmpty()) {
-            ui->outputGameLoc->setText(saveFile);
-            ui->enableRiivolution->setEnabled(false);
-            updateRiivolutionEnabled();
-        }
-    });*/
 
     exportToWbfsIso = new QPushButton("Export to WBFS/ISO");
+    exportToWbfsIso->setEnabled(false);
     exportToWbfsIso->setDefault(true);
     ui->buttonBox->addButton(exportToWbfsIso, QDialogButtonBox::AcceptRole);
 
     exportToExtractedFolder = new QPushButton("Export to Extracted Folder");
+    exportToExtractedFolder->setEnabled(false);
     ui->buttonBox->addButton(exportToExtractedFolder, QDialogButtonBox::AcceptRole);
 
+    toAdvancedMode = new QPushButton("Switch to Advanced CSMM");
+    toAdvancedMode->setAutoDefault(false);
+    ui->buttonBox->addButton(toAdvancedMode, QDialogButtonBox::ResetRole);
+
     connect(ui->enableRiivolution, &QCheckBox::toggled, this, [this](bool checked) {
-        exportToWbfsIso->setEnabled(!checked);
+        updateButtonBoxEnabled();
     });
 
     connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &QuickSetupDialog::onResultClick);
@@ -115,6 +101,13 @@ private:
 
 void QuickSetupDialog::onResultClick(QAbstractButton *button)
 {
+    if (button == toAdvancedMode) {
+        auto w = new MainWindow;
+        w->show();
+        close();
+        return;
+    }
+
     csmm_quicksetup_detail::ProcessingGuard guard(this);
 
     bool shouldPatchRiivolutionVar = shouldPatchRiivolution();
@@ -240,7 +233,9 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
 void QuickSetupDialog::updateButtonBoxEnabled()
 {
-    ui->buttonBox->setEnabled(!ui->inputGameLoc->text().isEmpty() && !ui->mapListFile->text().isEmpty());
+    bool enable = !ui->inputGameLoc->text().isEmpty() && !ui->mapListFile->text().isEmpty();
+    exportToWbfsIso->setEnabled(enable && !ui->enableRiivolution->isChecked());
+    exportToExtractedFolder->setEnabled(enable);
 }
 
 void QuickSetupDialog::accept()
