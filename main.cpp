@@ -3,6 +3,7 @@
 #include "csmmmode.h"
 #include <QApplication>
 #include <QDir>
+#include <QProgressDialog>
 
 #include "lib/python/pythonbindings.h"
 #include "mainwindow.h"
@@ -26,6 +27,39 @@ static void setPyHome() {
 #else
     Py_SetPythonHome(QDir(QApplication::applicationDirPath()).filePath("py").toStdWString().c_str());
 #endif
+}
+
+static constexpr int MAX_LOGS = 10;
+
+static QFile logFile;
+
+static void initLogFile() {
+    if (!logFile.isOpen()) {
+        QDir logFileDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+        if (!logFileDir.mkpath(".")) {
+            qWarning() << "could not create directory" << logFileDir.path();
+            return;
+        }
+        logFile.setFileName(logFileDir.filePath(QString("csmmgui-%0.log").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd-HH-mm-ss"))));
+        if (!logFile.open(QFile::WriteOnly)) {
+            qWarning() << "could not create log file" << logFile.fileName() << "for writing";
+            return;
+        }
+        logFile.write(QString("Running CSMM %1\n").arg(QCoreApplication::applicationVersion()).toUtf8());
+        if (!logFile.link(logFileDir.filePath("csmmgui-latest.log"))) {
+            qWarning() << "could not symlink to latest log file" << logFile.fileName();
+        }
+        auto pastLogs = logFileDir.entryInfoList({"csmmgui*.log"}, QDir::Files);
+        std::sort(pastLogs.begin(), pastLogs.end(), [](const QFileInfo &A, const QFileInfo &B) {
+            return A.fileTime(QFile::FileBirthTime) > B.fileTime(QFile::FileBirthTime);
+        });
+        while (pastLogs.size() > MAX_LOGS) {
+            if (!QFile::remove(pastLogs.back().absoluteFilePath())) {
+                qWarning() << "could not remove old log file" << pastLogs.back().absoluteFilePath();
+            }
+            pastLogs.pop_back();
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -60,6 +94,25 @@ int main(int argc, char *argv[])
         setPyHome();
 
         pybind11::scoped_interpreter guard{}; // start the python interpreter
+
+        initLogFile();
+
+        // show progress messages in progress dialog
+        qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+            // filter this specific message since it is littering the whole console output
+            if(msg == "QFutureWatcher::connect: connecting after calling setFuture() is likely to produce race")
+                return;
+            static QTextStream cerr(stderr);
+            static QTextStream logFileStream(&logFile);
+            cerr << msg << Qt::endl;
+            if (logFile.isOpen()) {
+                logFileStream << msg << Qt::endl;
+            }
+            auto progressDialog = dynamic_cast<QProgressDialog *>(QApplication::activeModalWidget());
+            if (type != QtMsgType::QtDebugMsg && progressDialog != nullptr) {
+                progressDialog->setLabelText(msg);
+            }
+        });
 
 #ifdef Q_OS_WIN
         // hide console window under Windows but only if the first argument is the full path to the executable

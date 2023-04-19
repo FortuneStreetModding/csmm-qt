@@ -38,16 +38,10 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
             updateButtonBoxEnabled();
         }
     });
-    connect(ui->chooseModpackFile, &QPushButton::clicked, this, [this](bool){
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt;*.zip)");
+    connect(ui->chooseModpackZip, &QPushButton::clicked, this, [this](bool){
+        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "Modpack zip file (*.zip)");
         if (!file.isEmpty()) {
-            ui->modpackFile->setText(file);
-        }
-    });
-    connect(ui->chooseMapListFile, &QPushButton::clicked, this, [this](bool) {
-        auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)");
-        if (!openFile.isEmpty()) {
-            ui->mapListFile->setText(openFile);
+            ui->modpackZip->setText(file);
             updateButtonBoxEnabled();
         }
     });
@@ -135,19 +129,22 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
     }
 
     // check if enough temporary disk space is available
-    QTemporaryDir tmp;
-    QStorageInfo storageInfo(tmp.path());
-    int availableMb = storageInfo.bytesAvailable()/1024/1024;
-    if(availableMb < 5000) {
-        if (QMessageBox::question(this, "Save",
-                              QString("There is less than 5 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
-                              QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
-            return;
+    {
+        QTemporaryDir tmp;
+        QStorageInfo storageInfo(tmp.path());
+        int availableMb = storageInfo.bytesAvailable()/1024/1024;
+        if (availableMb < 5000) {
+            if (QMessageBox::question(this, "Save",
+                                  QString("There is less than 5 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
+                                  QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
+                return;
+        }
     }
 
     try {
         QTemporaryDir importDir;
         QTemporaryDir intermediateDir;
+
         QString targetGameDir = QFileInfo(outputLoc).isDir()
                 ? outputLoc : intermediateDir.path();
         if (shouldPatchRiivolutionVar) {
@@ -184,14 +181,21 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         }
         dialog.setValue(10);
 
-        auto mods = ModLoader::importModpackFile(ui->modpackFile->text());
+        auto mods = ModLoader::importModpackFile(ui->modpackZip->text());
         auto gameInstance = GameInstance::fromGameDirectory(targetGameDir, importDir.path());
         CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
         modpack.load(targetGameDir);
 
         dialog.setValue(20);
 
-        Configuration::load(ui->mapListFile->text(), gameInstance.mapDescriptors(), QDir(importDir.path()), [&](double progress) {
+        auto mapListFileIt = QDirIterator(mods.second->path(), {"map[Ll]ist.yaml", "map[Ll]ist.yml"}, QDir::Files, QDirIterator::Subdirectories);
+        if (!mapListFileIt.hasNext()) {
+            QMessageBox::critical(this, "Cannot save game", "Map list yaml not found in modpack zip");
+            return;
+        }
+
+        mapListFileIt.next();
+        Configuration::load(mapListFileIt.fileInfo().absoluteFilePath(), gameInstance.mapDescriptors(), QDir(importDir.path()), [&](double progress) {
             dialog.setValue(20 + (60 - 20) * progress);
         });
 
@@ -233,7 +237,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
 void QuickSetupDialog::updateButtonBoxEnabled()
 {
-    bool enable = !ui->inputGameLoc->text().isEmpty() && !ui->mapListFile->text().isEmpty();
+    bool enable = !ui->inputGameLoc->text().isEmpty() && !ui->modpackZip->text().isEmpty();
     exportToWbfsIso->setEnabled(enable && !ui->enableRiivolution->isChecked());
     exportToExtractedFolder->setEnabled(enable);
 }
