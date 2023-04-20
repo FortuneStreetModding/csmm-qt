@@ -32,6 +32,7 @@
 #include "dolio/tinydistricts.h"
 #include "dolio/nameddistricts.h"
 #include "dolio/mutatorrollshoppricemultiplier.h"
+#include "dolio/mutatorgenerichook.h"
 #include "dolio/mutatortable.h"
 #include "dolio/mutatorshopprice.h"
 #include "dolio/mutatorstockprice.h"
@@ -95,6 +96,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<MutatorRollShopPriceMultiplier>());
     patches.append(CSMMModHolder::fromCppObj<MutatorShopPrice>());
     patches.append(CSMMModHolder::fromCppObj<MutatorStockPrice>());
+    patches.append(CSMMModHolder::fromCppObj<MutatorGenericHook>());
 
     patches.append(CSMMModHolder::fromCppObj<ExpandMapsInZone>());
     patches.append(CSMMModHolder::fromCppObj<DefaultMinimapIcons>());

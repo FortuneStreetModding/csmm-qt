@@ -124,6 +124,8 @@ set(LIB_SOURCES
     lib/mods/dolio/mutatorshopprice.h
     lib/mods/dolio/mutatorstockprice.cpp
     lib/mods/dolio/mutatorstockprice.h
+    lib/mods/dolio/mutatorgenerichook.cpp
+    lib/mods/dolio/mutatorgenerichook.h
     lib/mods/dolio/mutatortable.cpp
     lib/mods/dolio/mutatortable.h
     lib/mods/dolio/nameddistricts.cpp
@@ -169,6 +171,22 @@ set(LIB_SOURCES
     lib/mutator/shopprice.h
     lib/mutator/stockprice.cpp
     lib/mutator/stockprice.h
+    lib/hook/generichook.cpp
+    lib/hook/generichook.h
+    lib/hook/abstractoperation.cpp
+    lib/hook/abstractoperation.h
+    lib/hook/abstractcondition.cpp
+    lib/hook/abstractcondition.h
+    lib/hook/abstractcomparison.cpp
+    lib/hook/abstractcomparison.h
+    lib/hook/abstractaction.cpp
+    lib/hook/abstractaction.h
+    lib/hook/triggerventurecard.cpp
+    lib/hook/triggerventurecard.h
+    lib/hook/conditionlogic.h
+    lib/hook/conditionlogic.cpp
+    lib/hook/comparisonlogic.h
+    lib/hook/comparisonlogic.cpp
     lib/orderedmap.h
     lib/powerpcasm.cpp
     lib/powerpcasm.h

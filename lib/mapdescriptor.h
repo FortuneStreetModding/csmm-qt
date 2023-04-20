@@ -8,6 +8,7 @@
 #include <QVector>
 #include <yaml-cpp/yaml.h>
 #include "fortunestreetdata.h"
+#include "lib/hook/generichook.h"
 #include "lib/python/pyobjcopywrapper.h"
 #include "music.h"
 #include "mutator/mutator.h"
@@ -94,6 +95,7 @@ struct MapDescriptor {
     std::map<QString, std::vector<QString>> districtNames;
     std::vector<quint32> districtNameIds;
     std::map<QString, QSharedPointer<Mutator>> mutators;
+    std::map<QString, QSharedPointer<GenericHook>> hooks;
     std::vector<QString> authors;
     /**
      * shopNames[locale][shopModel - 1] == shopName

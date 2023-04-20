@@ -209,6 +209,14 @@ QString MapDescriptor::toYaml() const {
         }
         out << YAML::EndMap;
     }
+    if(!hooks.empty()) {
+        out << YAML::Key << "hooks" << YAML::Value << YAML::BeginMap;
+        for (auto &hook: hooks) {
+            out << YAML::Key << hook.first.toStdString() << YAML::Value;
+            hook.second->toYaml(out);
+        }
+        out << YAML::EndMap;
+    }
 
     if(!VanillaDatabase::isDefaultVentureCards(ventureCards, ruleSet)) {
         out << YAML::Key << "ventureCards" << YAML::Value << YAML::BeginSeq;
@@ -258,6 +266,17 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
         auto mutator = mutators.at(mutatorName);
         auto otherMutator = other.mutators.at(mutatorName);
         if (*mutator != *otherMutator) {
+            return false;
+        }
+    }
+    for (auto &hookEnt: hooks) {
+        auto &hookName = hookEnt.first;
+        if (!other.hooks.count(hookName)) {
+            return false;
+        }
+        auto hook = hooks.at(hookName);
+        auto otherHook = other.hooks.at(hookName);
+        if (*hook != *otherHook) {
             return false;
         }
     }
@@ -476,6 +495,13 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         for (auto it=yaml["mutators"].begin(); it!=yaml["mutators"].end(); ++it) {
             auto mutatorStr = QString::fromStdString(it->first.as<std::string>());
             mutators.emplace(mutatorStr, Mutator::fromYaml(mutatorStr, it->second));
+        }
+    }
+    hooks.clear();
+    if (yaml["hooks"]) {
+        for (auto it=yaml["hooks"].begin(); it!=yaml["hooks"].end(); ++it) {
+            auto hookStr = QString::fromStdString(it->first.as<std::string>());
+            hooks.emplace(hookStr, GenericHook::fromYaml(hookStr, it->second));
         }
     }
     if (yaml["ventureCards"]) {
