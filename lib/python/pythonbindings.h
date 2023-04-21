@@ -178,7 +178,7 @@ struct qstring_caster {
         size_t length = (size_t) PYBIND11_BYTES_SIZE(utf16Bytes.ptr()) / sizeof(QChar);
 
         // Skip BOM for UTF-16/32
-        if (PYBIND11_SILENCE_MSVC_C4127(true)) {
+        if (true) {
             buffer++;
             length--;
         }

@@ -20,31 +20,27 @@
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="2" colspan="2">
-    <widget class="QCheckBox" name="separateSaveGame">
-     <property name="text">
-      <string>Separate Save Game</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Modpack .zip</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="riivolutionPatchName">
-     <property name="text">
-      <string>csmm</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="2" colspan="2">
+   <item row="5" column="2" colspan="2">
     <widget class="QCheckBox" name="enableRiivolution">
      <property name="text">
       <string>Enable Riivolution</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="inputGameLoc">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="additionalModLabel">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Additional Mods (optional)</string>
      </property>
     </widget>
    </item>
@@ -55,45 +51,10 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Marker Code</string>
-     </property>
-    </widget>
+   <item row="4" column="1">
+    <widget class="QListWidget" name="additionalMods"/>
    </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="markerCode"/>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="inputGameLoc">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Game Folder/WBFS/ISO</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="riivolutionPatchNameLabel">
-     <property name="text">
-      <string>Riivolution Patch Name</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2" colspan="2">
-    <widget class="QPushButton" name="chooseModpackZip">
-     <property name="text">
-      <string>Choose Modpack .zip</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="4">
+   <item row="7" column="0" colspan="4">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="enabled">
       <bool>true</bool>
@@ -106,10 +67,31 @@
      </property>
     </widget>
    </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Modpack .zip</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Marker Code</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="2">
     <widget class="QPushButton" name="chooseInputWbfsIso">
      <property name="text">
       <string>Choose WBFS/ISO</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2" colspan="2">
+    <widget class="QPushButton" name="chooseModpackZip">
+     <property name="text">
+      <string>Choose Modpack .zip</string>
      </property>
     </widget>
    </item>
@@ -119,6 +101,56 @@
       <bool>false</bool>
      </property>
     </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="markerCode"/>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="riivolutionPatchName">
+     <property name="text">
+      <string>csmm</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="2" colspan="2">
+    <widget class="QCheckBox" name="separateSaveGame">
+     <property name="text">
+      <string>Separate Save Game</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Game Folder/WBFS/ISO</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="riivolutionPatchNameLabel">
+     <property name="text">
+      <string>Riivolution Patch Name
+(only if Riivolution enabled)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2" colspan="2">
+    <layout class="QVBoxLayout" name="additionalModButtons">
+     <item>
+      <widget class="QPushButton" name="addModZip">
+       <property name="text">
+        <string>Add Mod Zip...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="removeModZip">
+       <property name="text">
+        <string>Remove Selected Mod Zip(s)</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

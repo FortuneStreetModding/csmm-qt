@@ -313,6 +313,8 @@ public:
             auto &mod = modList[i];
             qInfo() << "saving mod" << mod->modId();
 
+            auto remFreeSpaceModStart = gameInstance.get().freeSpaceManager().calculateTotalRemainingFreeSpace();
+
             progressCallback((1 + (double)i / modList.size()) / 3);
 
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
@@ -339,6 +341,10 @@ public:
                     it.value()(root, &gameInstance.get(), modList, arcFilesDir.filePath(it.key()));
                 }
             }
+
+            auto remFreeSpaceModEnd = gameInstance.get().freeSpaceManager().calculateTotalRemainingFreeSpace();
+
+            qDebug() << "Free space usage for mod" << mod->modId() << ":" << (remFreeSpaceModStart - remFreeSpaceModEnd);
         }
 
         backupAndRestore(arcFilesDir, root, true);

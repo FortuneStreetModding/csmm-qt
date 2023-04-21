@@ -45,6 +45,19 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
             updateButtonBoxEnabled();
         }
     });
+    connect(ui->addModZip, &QPushButton::clicked, this, [this](bool) {
+        auto file = QFileDialog::getOpenFileName(this, "Import additional mod pack", QString(), "Modpack zip file (*.zip)");
+        if (!file.isEmpty()) {
+            ui->additionalMods->addItem(file);
+            updateButtonBoxEnabled();
+        }
+    });
+    connect(ui->removeModZip, &QPushButton::clicked, this, [this](bool) {
+        for (auto item: ui->additionalMods->selectedItems()) {
+            delete item;
+        }
+    });
+
 
     exportToWbfsIso = new QPushButton("Export to WBFS/ISO");
     exportToWbfsIso->setEnabled(false);
@@ -64,6 +77,8 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
     });
 
     connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &QuickSetupDialog::onResultClick);
+
+    updateButtonBoxEnabled();
 }
 
 QuickSetupDialog::~QuickSetupDialog()
@@ -181,14 +196,18 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         }
         dialog.setValue(10);
 
-        auto mods = ModLoader::importModpackFile(ui->modpackZip->text());
+        QVector<QString> modpackZips{ui->modpackZip->text()};
+        for (int i=0; i<ui->additionalMods->count(); ++i) {
+            modpackZips.append(ui->additionalMods->item(i)->text());
+        }
+        auto mods = ModLoader::importModpackCollection(modpackZips);
         auto gameInstance = GameInstance::fromGameDirectory(targetGameDir, importDir.path());
         CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
         modpack.load(targetGameDir);
 
         dialog.setValue(20);
 
-        auto mapListFileIt = QDirIterator(mods.second->path(), {"map[Ll]ist.yaml", "map[Ll]ist.yml"}, QDir::Files, QDirIterator::Subdirectories);
+        auto mapListFileIt = QDirIterator(mods.second[0].path(), {"map[Ll]ist.yaml", "map[Ll]ist.yml"}, QDir::Files, QDirIterator::Subdirectories);
         if (!mapListFileIt.hasNext()) {
             QMessageBox::critical(this, "Cannot save game", "Map list yaml not found in modpack zip");
             return;
