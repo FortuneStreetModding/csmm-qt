@@ -70,7 +70,7 @@
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Modpack .zip</string>
+      <string>Primary modpack .zip</string>
      </property>
     </widget>
    </item>
@@ -139,7 +139,7 @@
      <item>
       <widget class="QPushButton" name="addModZip">
        <property name="text">
-        <string>Add Mod Zip...</string>
+        <string>Add Additional Mod Zip...</string>
        </property>
       </widget>
      </item>
