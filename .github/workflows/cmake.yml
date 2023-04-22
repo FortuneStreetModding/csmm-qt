@@ -29,7 +29,7 @@ jobs:
         chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
     
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v3
       with:
         version: 5.15.2
         target: desktop
@@ -73,7 +73,7 @@ jobs:
         brew install ninja
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v3
       with:
         version: 5.15.2
         target: desktop
@@ -127,7 +127,7 @@ jobs:
         submodules: true
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v3
       with:
         version: 5.15.2
         target: desktop
