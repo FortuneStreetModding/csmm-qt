@@ -35,6 +35,13 @@ protected:
         return allocate(data, purpose, reuse);
     };
     quint32 allocate(const QString &str, bool reuse = true);
+    /**
+     * @param stream the main.dol stream
+     * @param fn function taking the address to allocate at (or 0 if called just for calculating allocated memory size) and returning the memory content
+     * @param purpose the reason for allocating the memory
+     * @return the subroutine start addr
+     */
+    quint32 writeSubroutine(QDataStream &stream, const std::function<QVector<quint32>(quint32)> &fn, const QString &purpose);
     const ModListType &modList();
     QString resolveAddressToString(quint32 virtualAddress, QDataStream &stream, const AddressMapper &addressMapper);
 private:

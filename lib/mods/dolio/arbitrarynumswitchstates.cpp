@@ -18,6 +18,7 @@ void ArbitraryNumSwitchStates::writeAsm(QDataStream &stream, const AddressMapper
     moveMapDataArray(stream, addressMapper, mapDescriptors, maxStates);
     increaseGameManagerStorage(stream, addressMapper, mapDescriptors, maxStates);
     expandedAnimations(stream, addressMapper, mapDescriptors, maxStates);
+    increaseFrbBuffer(stream, addressMapper, mapDescriptors, maxStates);
 
     // Expand Comparisons to go past 4 states
     stream.device()->seek(addressMapper.boomToFileAddress(0x800cccc8));
@@ -171,4 +172,115 @@ void ArbitraryNumSwitchStates::expandedAnimations(QDataStream &stream, const Add
     stream << PowerPcAsm::lis(30, vMoveTableAddrPair.upper);
     stream.skipRawData(4);
     stream << PowerPcAsm::addi(30, 30, vMoveTableAddrPair.lower);
+}
+
+static constexpr quint32 FRB_BUFFER_SIZE_NEW = 1U << 18;
+
+void ArbitraryNumSwitchStates::increaseFrbBuffer(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors, size_t maxStates)
+{
+    using namespace std::placeholders;
+
+    auto oldBufAddrPair = PowerPcAsm::make16bitValuePair(addressMapper.boomStreetToStandard(0x80552758));
+    auto value_bufsz = PowerPcAsm::make16bitValuePair(FRB_BUFFER_SIZE_NEW);
+    auto operatorNewAddr = addressMapper.boomStreetToStandard(0x800084d8);
+
+    auto getBufferPtrSubroutine = [&](quint32 subroutineAddr, quint32 destAddr, int destReg, int unusedReg) {
+        QVector<quint32> asm_;
+        auto labels = PowerPcAsm::LabelTable();
+        // rU <- 0x80552758
+        asm_.append(PowerPcAsm::lis(unusedReg, oldBufAddrPair.upper));
+        asm_.append(PowerPcAsm::addi(unusedReg, unusedReg, oldBufAddrPair.lower));
+        // rD <- *rU
+        asm_.append(PowerPcAsm::lwz(destReg, 0x0, unusedReg));
+        // if (rD != 0) goto already_initialized
+        asm_.append(PowerPcAsm::cmplwi(destReg, 0));
+        asm_.append(PowerPcAsm::bne(labels, "already_initialized", asm_));
+
+        for (int regToSave = 3; regToSave <= 5; ++regToSave) {
+            if (regToSave != destReg) {
+                asm_.append(PowerPcAsm::stw(regToSave, 0x4 * (regToSave - 2), unusedReg));
+            }
+        }
+        // r3 <- FRB_BUFFER_SIZE_NEW
+        asm_.append(PowerPcAsm::lis(3, value_bufsz.upper));
+        asm_.append(PowerPcAsm::addi(3, 3, value_bufsz.lower));
+        // r3 <- operator new(size = r3)
+        asm_.append(PowerPcAsm::bl(subroutineAddr, asm_.size(), operatorNewAddr));
+        // rD <- r3
+        asm_.append(PowerPcAsm::mr(destReg, 3));
+        // rU <- 0x80552758
+        asm_.append(PowerPcAsm::lis(unusedReg, oldBufAddrPair.upper));
+        asm_.append(PowerPcAsm::addi(unusedReg, unusedReg, oldBufAddrPair.lower));
+        // *rU <- rD
+        asm_.append(PowerPcAsm::stw(destReg, 0x0, unusedReg));
+
+        for (int regToSave = 3; regToSave <= 5; ++regToSave) {
+            if (regToSave != destReg) {
+                asm_.append(PowerPcAsm::lwz(regToSave, 0x4 * (regToSave - 2), unusedReg));
+            }
+        }
+
+        labels.define("already_initialized", asm_);
+        // return to original function
+        asm_.append(PowerPcAsm::b(subroutineAddr, asm_.size(), destAddr));
+
+        labels.checkProperlyLinked();
+        return asm_;
+    };
+
+    // Board
+    // -----
+    auto hijackAddr = addressMapper.boomStreetToStandard(0x8007dcd0);
+    auto subroutineAddr = writeSubroutine(stream, std::bind(getBufferPtrSubroutine, _1, hijackAddr+4, 4, 15), "FRB Buffer Pointer Subroutine");
+    // r4 <- 0x80552758 -> bl getBufferPtrSubroutine
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(hijackAddr, subroutineAddr);
+
+    // Clear
+    // -----
+    hijackAddr = addressMapper.boomStreetToStandard(0x8007ddcc);
+    subroutineAddr = writeSubroutine(stream, std::bind(getBufferPtrSubroutine, _1, hijackAddr+4, 31, 15), "FRB Buffer Pointer Subroutine");
+    // r31 <- UPPER16(0x80552758) -> bl getBufferPtrSubroutine
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(hijackAddr, subroutineAddr);
+
+    // r3 <- 0x80552758 -> r3 <- r31
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007dddc));
+    stream << PowerPcAsm::mr(3, 31);
+
+    // r0 <- 0x80552758 -> r0 <- r31
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007dde4));
+    stream << PowerPcAsm::mr(0, 31);
+
+    // Init
+    // ----
+    hijackAddr = addressMapper.boomStreetToStandard(0x8007e020);
+    subroutineAddr = writeSubroutine(stream, std::bind(getBufferPtrSubroutine, _1, hijackAddr+4, 31, 15), "FRB Buffer Pointer Subroutine");
+    // r31 <- UPPER16(0x80552758) -> bl getBufferPtrSubroutine
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(hijackAddr, subroutineAddr);
+
+    // r3 <- 0x80552758 -> r3 <- r31
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e034));
+    stream << PowerPcAsm::mr(3, 31);
+
+    // r0 <- 0x80552758 -> r0 <- r31
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e044));
+    stream << PowerPcAsm::mr(0, 31);
+
+    // Load
+    // ----
+    hijackAddr = addressMapper.boomStreetToStandard(0x8007e0a4);
+    subroutineAddr = writeSubroutine(stream, std::bind(getBufferPtrSubroutine, _1, hijackAddr+4, 28, 15), "FRB Buffer Pointer Subroutine");
+    // r28 <- UPPER16(0x80552758) -> bl getBufferPtrSubroutine
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    stream << PowerPcAsm::b(hijackAddr, subroutineAddr);
+
+    // r3 <- 0x80552758 -> r3 <- r28
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e0c8));
+    stream << PowerPcAsm::mr(3, 28);
+
+    // r0 <- 0x80552758 -> r0 <- r28
+    stream.device()->seek(addressMapper.boomToFileAddress(0x8007e0d0));
+    stream << PowerPcAsm::mr(0, 28);
 }

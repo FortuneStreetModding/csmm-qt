@@ -50,6 +50,16 @@ quint32 DolIO::allocate(const QString &str, bool reuse) {
     return allocate(data, "", reuse);
 }
 
+quint32 DolIO::writeSubroutine(QDataStream &stream, const std::function<QVector<quint32>(quint32)> &fn, const QString &purpose) {
+    auto addr = allocate(fn(0), purpose, false);
+    stream.device()->seek(mapperPtr->toFileAddress(addr));
+    auto newSubroutine = fn(addr);
+    for (auto word: qAsConst(newSubroutine)) {
+        stream << word;
+    }
+    return addr;
+}
+
 const ModListType &DolIO::modList() {
     return *modListPtr;
 }
