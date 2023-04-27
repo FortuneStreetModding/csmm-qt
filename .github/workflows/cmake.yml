@@ -16,20 +16,20 @@ jobs:
   linux:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: true
     
     - name: Install dependencies
       run: |
-        sudo apt-get install -y libyaml-cpp-dev libarchive-dev wget ninja-build
+        sudo apt-get install -y libyaml-cpp-dev libarchive-dev wget ninja-build libxkbcommon0 libxkbcommon-x11-0
         wget https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20220822-1/linuxdeploy-x86_64.AppImage
         chmod +x linuxdeploy-x86_64.AppImage
         wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
         chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
     
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v3
       with:
         version: 5.15.2
         target: desktop
@@ -57,7 +57,7 @@ jobs:
   macos:
     runs-on: macos-11
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: true
     
@@ -73,7 +73,7 @@ jobs:
         brew install ninja
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v3
       with:
         version: 5.15.2
         target: desktop
@@ -122,12 +122,12 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: true
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2.14.0
+      uses: jurplel/install-qt-action@v3
       with:
         version: 5.15.2
         target: desktop
