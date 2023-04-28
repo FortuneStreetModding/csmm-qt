@@ -238,15 +238,17 @@ void MainWindow::openDir() {
     }
 
     try {
-        *progress = QSharedPointer<CSMMProgressDialog>::create("Importing folder", QString(), 0, 2);
+        *progress = QSharedPointer<CSMMProgressDialog>::create("Importing folder", QString(), 0, 2, Qt::WindowFlags(), true);
         (*progress)->setWindowModality(Qt::WindowModal);
         (*progress)->setValue(0);
 
         auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
         CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
         modpack.load(dirname);
+        (*progress)->checkCancel();
         (*progress)->setValue(1);
         auto errorCode = await(copyTask);
+        (*progress)->checkCancel();
         (*progress)->setValue(2);
         if (errorCode) {
             QMessageBox::critical(this, "Error loading game", QString::fromStdString("Error copying files to temporary working directory: " + errorCode.message()));
@@ -256,6 +258,8 @@ void MainWindow::openDir() {
         setWindowFilePath(newTempGameDir->path());
         tempGameDir = newTempGameDir;
         importDir = newTempImportDir;
+    } catch (const ProgressCanceled &) {
+        // nothing to do
     } catch (const std::runtime_error &e) {
         *progress = nullptr;
         QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
@@ -275,11 +279,15 @@ void MainWindow::openIsoWbfs() {
 
     auto progress = QSharedPointer<QSharedPointer<CSMMProgressDialog>>::create(nullptr);
 
-    *progress = QSharedPointer<CSMMProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this);
+    *progress = QSharedPointer<CSMMProgressDialog>::create("Importing WBFS/ISO…", QString(), 0, 2, this, Qt::WindowFlags(), true);
     (*progress)->setWindowModality(Qt::WindowModal);
     (*progress)->setValue(0);
-    AsyncFuture::observe(ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path())).subscribe([=]() {
+    try {
+        await(ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path()));
+
+        (*progress)->checkCancel();
         (*progress)->setValue(1);
+
         if (!ImportExportUtils::isMainDolVanilla(newTempGameDir->path())) {
             auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
                                  "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
@@ -290,21 +298,23 @@ void MainWindow::openIsoWbfs() {
         }
         auto dirname = newTempGameDir->path();
 
-        try {
-            auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
-            CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
-            modpack.load(dirname);
-            (*progress)->setValue(2);
-            loadDescriptors(gameInstance.mapDescriptors());
-            setWindowFilePath(newTempGameDir->path());
-            tempGameDir = newTempGameDir;
-            importDir = newTempImportDir;
-        } catch (const std::runtime_error &e) {
-            *progress = nullptr;
-            QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
-            PyErr_Clear();
-        }
-    });
+        auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
+        CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
+        modpack.load(dirname);
+        (*progress)->checkCancel();
+        (*progress)->setValue(2);
+
+        loadDescriptors(gameInstance.mapDescriptors());
+        setWindowFilePath(newTempGameDir->path());
+        tempGameDir = newTempGameDir;
+        importDir = newTempImportDir;
+    } catch (const ProgressCanceled &) {
+        // nothing to do
+    } catch (const std::runtime_error &e) {
+        *progress = nullptr;
+        QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+        PyErr_Clear();
+    }
 }
 
 void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) {

@@ -5,8 +5,16 @@ CSMMProgressDialog::CSMMProgressDialog(QWidget *parent, Qt::WindowFlags flags) :
     setWindowFlag(Qt::WindowCloseButtonHint, false);
 }
 
-CSMMProgressDialog::CSMMProgressDialog(const QString &labelText, const QString &cancelButtonText, int minimum, int maximum, QWidget *parent, Qt::WindowFlags f)
+CSMMProgressDialog::CSMMProgressDialog(const QString &labelText, const QString &cancelButtonText, int minimum, int maximum, QWidget *parent, Qt::WindowFlags f, bool cancelable)
     : QProgressDialog(labelText, cancelButtonText, minimum, maximum, parent, f) {
 
     setWindowFlag(Qt::WindowCloseButtonHint, false);
+    if (cancelable) setCancelButtonText("Cancel");
+}
+
+void CSMMProgressDialog::checkCancel()
+{
+    if (wasCanceled()) {
+        throw ProgressCanceled("Canceled");
+    }
 }
