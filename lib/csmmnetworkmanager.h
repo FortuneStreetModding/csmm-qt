@@ -10,7 +10,7 @@ namespace CSMMNetworkManager {
     /**
      * @returns a future that resolves to whether the url is an internet url
      */
-    QFuture<bool> downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
+    bool downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                                     const std::function<void (double)> &progressCallback = [](double){});
 
     class Exception : public QException, public std::runtime_error {

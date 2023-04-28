@@ -10,6 +10,7 @@
 #include "lib/asyncfuture.h"
 #include "lib/await.h"
 #include "lib/csmmnetworkmanager.h"
+#include "lib/progresscanceled.h"
 
 namespace Configuration {
 
@@ -362,10 +363,12 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
             for (auto &url: it.value()) {
                 auto dest = dir.filePath(it.key() + ".background.zip");
                 try {
-                    await(CSMMNetworkManager::downloadFileIfUrl(url, dest, [&](double progress) {
+                    CSMMNetworkManager::downloadFileIfUrl(url, dest, [&](double progress) {
                         progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
-                    }));
+                    });
                     break;
+                } catch (const ProgressCanceled &e) {
+                    throw e;
                 } catch (const std::runtime_error &e) {
                     qWarning() << "warning:" << e.what();
                     continue; // try next url
@@ -386,7 +389,9 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
                 qInfo() << "trying to download map descriptor to" << descPath;
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
-                        await(CSMMNetworkManager::downloadFileIfUrl(url, descPath));
+                        CSMMNetworkManager::downloadFileIfUrl(url, descPath);
+                    } catch (const ProgressCanceled &e) {
+                        throw e;
                     } catch (const std::runtime_error &e) {
                         qWarning() << "warning:" << e.what();
                         // download failed, try next url

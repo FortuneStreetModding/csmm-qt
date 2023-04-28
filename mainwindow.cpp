@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "lib/progresscanceled.h"
 #include "preferencesdialog.h"
 #include "ui_mainwindow.h"
 
@@ -238,17 +239,15 @@ void MainWindow::openDir() {
     }
 
     try {
-        *progress = QSharedPointer<CSMMProgressDialog>::create("Importing folder", QString(), 0, 2, Qt::WindowFlags(), true);
+        *progress = QSharedPointer<CSMMProgressDialog>::create("Importing folder", QString(), 0, 2, this, Qt::WindowFlags(), true);
         (*progress)->setWindowModality(Qt::WindowModal);
         (*progress)->setValue(0);
 
         auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
         CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
         modpack.load(dirname);
-        (*progress)->checkCancel();
         (*progress)->setValue(1);
         auto errorCode = await(copyTask);
-        (*progress)->checkCancel();
         (*progress)->setValue(2);
         if (errorCode) {
             QMessageBox::critical(this, "Error loading game", QString::fromStdString("Error copying files to temporary working directory: " + errorCode.message()));
@@ -285,7 +284,6 @@ void MainWindow::openIsoWbfs() {
     try {
         await(ExeWrapper::extractWbfsIso(isoWbfs, newTempGameDir->path()));
 
-        (*progress)->checkCancel();
         (*progress)->setValue(1);
 
         if (!ImportExportUtils::isMainDolVanilla(newTempGameDir->path())) {
@@ -301,7 +299,6 @@ void MainWindow::openIsoWbfs() {
         auto gameInstance = GameInstance::fromGameDirectory(dirname, newTempImportDir->path());
         CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
         modpack.load(dirname);
-        (*progress)->checkCancel();
         (*progress)->setValue(2);
 
         loadDescriptors(gameInstance.mapDescriptors());

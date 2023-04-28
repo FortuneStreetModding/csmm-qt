@@ -1,4 +1,5 @@
 #include "quicksetupdialog.h"
+#include "lib/progresscanceled.h"
 #include "ui_quicksetupdialog.h"
 
 #include <QtConcurrent>
@@ -173,7 +174,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
             QMessageBox::critical(this, "Cannot save game", "Cannot create temporary directory.");
             return;
         }
-        CSMMProgressDialog dialog("Saving game to ROM", QString(), 0, 100);
+        CSMMProgressDialog dialog("Saving game to ROM", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
         dialog.setWindowModality(Qt::ApplicationModal);
         // copy directory if folder, extract wbfs/iso if file
         if (QFileInfo(ui->inputGameLoc->text()).isDir()) {
@@ -249,6 +250,8 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         QMessageBox::information(this, "Quick setup successful", "Save was successful.");
 
         close();
+    } catch (const ProgressCanceled &) {
+        // nothing to do
     } catch (const std::runtime_error &ex) {
         QMessageBox::critical(this, "Cannot save game", ex.what());
     }

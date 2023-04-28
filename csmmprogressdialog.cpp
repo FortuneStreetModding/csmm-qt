@@ -1,4 +1,5 @@
 #include "csmmprogressdialog.h"
+#include "lib/progresscanceled.h"
 
 
 CSMMProgressDialog::CSMMProgressDialog(QWidget *parent, Qt::WindowFlags flags) : QProgressDialog(parent, flags) {
@@ -12,9 +13,11 @@ CSMMProgressDialog::CSMMProgressDialog(const QString &labelText, const QString &
     if (cancelable) setCancelButtonText("Cancel");
 }
 
-void CSMMProgressDialog::checkCancel()
+void CSMMProgressDialog::setValue(int progress)
 {
     if (wasCanceled()) {
         throw ProgressCanceled("Canceled");
     }
+    QProgressDialog::setValue(progress);
 }
+
