@@ -8,6 +8,7 @@ class InternalNameTable : public virtual DolIOTable
 public:
     static constexpr std::string_view MODID = "internalNameTable";
     static constexpr std::string_view ADDRESS_FILE = "files/internalNameTable.dat";
+    static constexpr std::string_view NAME_LIST = "files/internalNameTable.txt";
     QString modId() const override { return MODID.data(); }
     QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     void loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;

@@ -2,13 +2,26 @@
 #include "lib/powerpcasm.h"
 #include <cstring>
 
+static const QRegularExpression CLEAN_INTERNAL_NAME("[<>:/\\|?*\"]+");
+
 void InternalNameTable::loadFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
-    QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
-    if (addrFile.open(QFile::ReadOnly)) {
-        QDataStream addrStream(&addrFile);
-        addrStream >> internalNameDataAddr;
+    QFile nameListFile(QDir(root).filePath(NAME_LIST.data()));
+    if (nameListFile.exists() && nameListFile.open(QFile::ReadOnly)) {
+        QTextStream listStream(&nameListFile);
+        listStream.setCodec("UTF-8");
+        for (auto &descriptor: gameInstance->mapDescriptors()) {
+            descriptor.internalName = listStream.readLine();
+            // clear the internal name of characters which are not allowed in a file system
+            descriptor.internalName.replace(CLEAN_INTERNAL_NAME, "");
+        }
+    } else {
+        QFile addrFile(QDir(root).filePath(ADDRESS_FILE.data()));
+        if (addrFile.open(QFile::ReadOnly)) {
+            QDataStream addrStream(&addrFile);
+            addrStream >> internalNameDataAddr;
+        }
+        DolIOTable::loadFiles(root, gameInstance, modList);
     }
-    DolIOTable::loadFiles(root, gameInstance, modList);
 }
 
 void InternalNameTable::saveFiles(const QString &root, GameInstance *gameInstance, const ModListType &modList) {
@@ -20,6 +33,15 @@ void InternalNameTable::saveFiles(const QString &root, GameInstance *gameInstanc
         addrStream << internalNameDataAddr;
         addrFile.commit();
     }
+    QSaveFile nameListFile(QDir(root).filePath(NAME_LIST.data()));
+    if (nameListFile.open(QFile::WriteOnly)) {
+        QTextStream listStream(&nameListFile);
+        listStream.setCodec("UTF-8");
+        for (auto &descriptor: gameInstance->mapDescriptors()) {
+            listStream << descriptor.internalName << Qt::endl;
+        }
+        nameListFile.commit();
+    }
 }
 
 quint32 InternalNameTable::writeTable(const std::vector<MapDescriptor> &descriptors) {
@@ -29,19 +51,8 @@ quint32 InternalNameTable::writeTable(const std::vector<MapDescriptor> &descript
 }
 
 void InternalNameTable::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, const std::vector<MapDescriptor> &mapDescriptors) {
-    quint32 tableAddr = writeTable(mapDescriptors);
-    PowerPcAsm::Pair16Bit v = PowerPcAsm::make16bitValuePair(tableAddr);
-
-    QByteArray internalNameInfo;
-    QDataStream infoStream(&internalNameInfo, QFile::WriteOnly);
-
-    // Store the pointer to the table to some unused address. The game does not use the internal name, but CSMM uses it for the name of the map descriptor file.
-    infoStream << PowerPcAsm::lis(5, v.upper) << PowerPcAsm::addi(5, 5, v.lower);
-
-    internalNameDataAddr = allocate(internalNameInfo, "Internal Name Pointer");
+    internalNameDataAddr = 0;
 }
-
-static const QRegularExpression CLEAN_INTERNAL_NAME("[<>:/\\|?*\"]+");
 
 void InternalNameTable::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla) {
     if (isVanilla) {
