@@ -202,6 +202,7 @@ set(LIB_SOURCES
     lib/mods/misc/copymapfiles.h lib/mods/misc/copymapfiles.cpp
     lib/mods/dolio/changemusiconswitch.h lib/mods/dolio/changemusiconswitch.cpp
     lib/mods/freespace/vmovestopfreespace.h lib/mods/freespace/vmovestopfreespace.cpp
+    lib/progresscanceled.h
 )
 
 qt_add_big_resources(LIB_SOURCES csmm.qrc)

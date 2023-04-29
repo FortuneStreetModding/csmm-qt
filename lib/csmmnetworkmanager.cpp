@@ -6,6 +6,8 @@
 #include <QStandardPaths>
 #include <QNetworkReply>
 #include "lib/asyncfuture.h"
+#include "lib/await.h"
+#include "lib/progresscanceled.h"
 #include <QtConcurrent>
 
 namespace CSMMNetworkManager {
@@ -32,7 +34,7 @@ QString networkCacheDir() {
     return applicationCacheDir.filePath("networkCache");
 }
 
-QFuture<bool> downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
+bool downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                                 const std::function<void(double)> &progressCallback) {
     if (!toDownloadFrom.isLocalFile()) {
         auto file = QSharedPointer<QSaveFile>::create(dest);
@@ -44,25 +46,32 @@ QFuture<bool> downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                 file->write(reply->readAll());
             });
             QObject::connect(reply, &QNetworkReply::downloadProgress, [=](qint64 elapsed, qint64 total) {
-                progressCallback(total == 0 ? 1 : (double)elapsed / total);
+                try {
+                    progressCallback(total == 0 ? 1 : (double)elapsed / total);
+                } catch (const ProgressCanceled &) {
+                    reply->abort();
+                }
             });
-            return AsyncFuture::observe(reply, &QNetworkReply::finished).subscribe([=]() {
-                if (reply->error() != QNetworkReply::NoError) {
-                    auto errStr = reply->errorString();
-                    reply->deleteLater();
-                    QString fixSuggestion;
-                    if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
-                        fixSuggestion = "Check if your system time is set correctly and try again.";
-                    }
-                    throw Exception("network error: " + errStr + "\n" + fixSuggestion);
+            await(AsyncFuture::observe(reply, &QNetworkReply::finished).future());
+            if (reply->error() != QNetworkReply::NoError) {
+                auto errStr = reply->errorString();
+                if (reply->error() == QNetworkReply::OperationCanceledError) {
+                    delete reply;
+                    throw ProgressCanceled("Canceled");
                 }
-                if (!file->commit()) {
-                    reply->deleteLater();
-                    throw Exception("write failed to " + dest);
+                delete reply;
+                QString fixSuggestion;
+                if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
+                    fixSuggestion = "Check if your system time is set correctly and try again.";
                 }
-                reply->deleteLater();
-                return true;
-            }).future();
+                throw Exception("network error: " + errStr + "\n" + fixSuggestion);
+            }
+            if (!file->commit()) {
+                delete reply;
+                throw Exception("write failed to " + dest);
+            }
+            delete reply;
+            return true;
         } else {
             throw Exception("failed to create file for downloading");
         }

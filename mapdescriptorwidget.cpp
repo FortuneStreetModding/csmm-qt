@@ -9,6 +9,7 @@
 #include "lib/datafileset.h"
 #include "lib/importexportutils.h"
 #include "lib/getordefault.h"
+#include "lib/progresscanceled.h"
 #include "venturecarddialog.h"
 #include "csmmprogressdialog.h"
 
@@ -79,7 +80,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            CSMMProgressDialog dialog("Importing yaml", QString(), 0, 100);
+            CSMMProgressDialog dialog("Importing yaml", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
             ImportExportUtils::importYaml(openYaml, newDescriptor, getImportDirectory(), [&](double progress) {
                 dialog.setValue(100 * progress);
             });
@@ -87,6 +88,8 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
             descriptorPtr->mapDescriptorFilePath = openYaml;
             dirty = true;
             loadRowWithMapDescriptor(descriptors.indexOf(descriptorPtr), *descriptorPtr);
+        } catch (const ProgressCanceled &) {
+            // nothing to do
         } catch (const std::runtime_error &exception) {
             QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
         }

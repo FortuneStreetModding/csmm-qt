@@ -5,6 +5,7 @@
 #include <QTemporaryDir>
 #include <QCryptographicHash>
 #include <filesystem>
+#include "lib/progresscanceled.h"
 #include "lib/vanilladatabase.h"
 #include "lib/datafileset.h"
 #include "zip/zip.h"
@@ -209,8 +210,10 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                     for (auto &url: urlsList) {
                         QString urlStr = QString::fromStdString(url);
                         try {
-                            await(CSMMNetworkManager::downloadFileIfUrl(urlStr, zipMusicStr, progressCallback));
+                            CSMMNetworkManager::downloadFileIfUrl(urlStr, zipMusicStr, progressCallback);
                             break;
+                        } catch (const ProgressCanceled &e) {
+                            throw e;
                         } catch (const std::runtime_error &e) {
                             qWarning() << "warning:" << e.what();
                             // download failed, try next url
