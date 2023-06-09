@@ -35,7 +35,7 @@ static const quint16 PRICE_MULTIPLIER_TABLE[8*9] = {
 static const quint16 VALUE_MULTIPLIER_TABLE[8*9] = {
     0, 0x200,     0,     0,     0,     0,     0,     0,     0,
     0, 0x180, 0x300,     0,     0,     0,     0,     0,     0,
-    0, 0x180, 0x200, 0x600,     0,     0,     0,     0,     0,
+    0, 0x180, 0x240, 0x600,     0,     0,     0,     0,     0,
     0, 0x180, 0x200, 0x400, 0xA00,     0,     0,     0,     0,
     0, 0x180, 0x200, 0x400, 0xA00, 0xC00,     0,     0,     0,
     0, 0x180, 0x200, 0x400, 0xA00, 0xC00 ,0xE00,     0,     0,
