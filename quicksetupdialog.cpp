@@ -149,9 +149,9 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         QTemporaryDir tmp;
         QStorageInfo storageInfo(tmp.path());
         int availableMb = storageInfo.bytesAvailable()/1024/1024;
-        if (availableMb < 5000) {
+        if (availableMb < 10000) {
             if (QMessageBox::question(this, "Save",
-                                  QString("There is less than 5 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
+                                  QString("There is less than 10 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
                                   QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
                 return;
         }
