@@ -1,4 +1,4 @@
-# csmm-qt - The cross-platform port of Custom Street Map Manager
+# csmm-qt
 ## Table of Contents
 * [Summary](#summary)
 * [Getting Started](#getting-started)
