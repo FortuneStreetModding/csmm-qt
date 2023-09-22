@@ -1,6 +1,9 @@
 # csmm-qt
+## Summary
+`csmm-qt` is the cross-platform port of the Custom Street Map Manager (CSMM). This tool allows modification of Boom Street, Fortune Street, and Itadaki Street Wii disc images. 
 ## Table of Contents
 * [Summary](#summary)
+* [Table of Contents](#table-of-contents)
 * [Getting Started](#getting-started)
     * [Installing](#installing)
     * [Using CSMM](#using-csmm)
@@ -11,9 +14,6 @@
     * [MacOS](#macos)
     * [Linux](#linux)
 * [Contributing](#contributing)
-## Summary
-`csmm-qt` is the cross-platform port of the Custom Street Map Manager (CSMM). This tool allows modification of Boom Street, Fortune Street, and Itadaki Street Wii disc images. 
-
 ## Getting Started
 ### Installing
 Go to the [Releases](https://github.com/FortuneStreetModding/csmm-qt/releases) page and download the latest version for your system. Linux users will also need to install [libssl](https://packages.ubuntu.com/focal-updates/libssl1.1) for network functionality. 
