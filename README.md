@@ -44,11 +44,9 @@ Windows uses the `yaml-cpp` and `libbecquerel` submodules in this repo, so there
 Just open `CMakeLists.txt` with Qt Creator and build the project with CMake.
 
 ### MacOS
-Mac users can most easily install `csmm-qt`'s dependencies using Homebrew:
+Mac users can most easily install `csmm-qt`'s dependencies using [Homebrew](https://brew.sh/):
 
-`brew install yaml-cpp` 
-
-`brew install libarchive`
+`brew install libarchive yaml-cpp`
 
 `libbecquerel` does not need to be installed, as the submodule linked in this repo is used instead.
 
