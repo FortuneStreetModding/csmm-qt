@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    
+
     - name: Install dependencies
       run: |
         sudo apt-get install -y libyaml-cpp-dev libarchive-dev wget ninja-build libxkbcommon0 libxkbcommon-x11-0
@@ -27,13 +27,13 @@ jobs:
         chmod +x linuxdeploy-x86_64.AppImage
         wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
         chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
-    
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
         version: 5.15.2
         target: desktop
-    
+
     - name: Configure CMake
       working-directory: ${{github.workspace}}
       run: cmake -DCMAKE_BUILD_TYPE=Release . -G Ninja
@@ -41,30 +41,30 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
-    
+
     - name: Deploy
       run: |
         ./linuxdeploy-x86_64.AppImage --appdir=csmm-x86_64 -e csmm -d csmm.desktop -i AppIcon.png -p qt
         cp -r -t csmm-x86_64/usr/bin wit szs py csmmpython
         ARCH=x86_64 ./linuxdeploy-x86_64.AppImage --appdir=csmm-x86_64 -p qt -o appimage
         mv csmm*.AppImage csmm-$VERSION_NAME-linux.AppImage
-    
+
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
   macos:
-    runs-on: macos-11
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    
+
     - name: Symlink Python framework to desired location
       run: |
-        cmake -E make_directory /usr/local/opt/python@3.11/lib
-        ln -s /usr/local/Frameworks/Python.framework /usr/local/opt/python@3.11/lib/Python.framework
+        sudo mkdir /Library/lib
+        sudo ln -s /Library/Frameworks/Python.framework /Library/lib/Python.framework
 
     - name: Install dependencies
       run: |
@@ -85,17 +85,17 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
-    
+
     - name: Install Pip in CSMM
       working-directory: ${{github.workspace}}
       run: |
         wget https://bootstrap.pypa.io/get-pip.py
         csmm.app/Contents/MacOS/csmmpython get-pip.py
-    
+
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
       run: csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==5.0.2 pillow
-    
+
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
       run: |
@@ -106,7 +106,7 @@ jobs:
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: macdeployqt 'csmm.app' -dmg
+      run: macdeployqt 'csmm.app' -dmg -verbose=3
 
     - name: Rename
       working-directory: ${{github.workspace}}
@@ -132,10 +132,10 @@ jobs:
         version: 5.15.2
         target: desktop
         arch: win64_msvc2019_64
-    
+
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@master
-    
+
     - name: Setup VS Environment
       uses: seanmiddleditch/gha-setup-vsdevenv@master
 
@@ -147,14 +147,14 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
-    
+
     - name: Install Pip in CSMM
       working-directory: ${{github.workspace}}
       shell: pwsh
       run: |
         Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
         ./csmmpython get-pip.py
-    
+
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
       run: ./csmmpython -m pip install pillow
@@ -183,14 +183,14 @@ jobs:
         cp "C:\Program Files\OpenSSL\bin\libcrypto-1_1-x64.dll" "csmm-$VERSION_NAME"
         cp "C:\Program Files\OpenSSL\bin\libssl-1_1-x64.dll" "csmm-$VERSION_NAME"
         cp "C:/hostedtoolcache/windows/Python/$PYVER/x64/python$CONDENSEDPYVER.dll" "csmm-$VERSION_NAME"
-    
+
     - name: Copy Python stdlib
       working-directory: ${{github.workspace}}
       shell: bash
       run: |
         mkdir "csmm-$VERSION_NAME/py"
         cp -R "py/Lib" "csmm-$VERSION_NAME/py"
-    
+
     - name: Archive
       uses: thedoctor0/zip-release@main
       with:
