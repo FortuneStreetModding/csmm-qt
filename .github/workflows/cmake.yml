@@ -103,10 +103,14 @@ jobs:
         make html
         cd _build
         zip -r "csmm-$VERSION_NAME-pydocs.zip" html
+    
+    - name: Shut down XProtectBehaviorService, which interferes with macdeployqt
+      working-directory: ${{github.workspace}}
+      run: sudo pkill -9 XProtect >/dev/null
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: macdeployqt 'csmm.app' -dmg -verbose=3
+      run: macdeployqt 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}
