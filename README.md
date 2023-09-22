@@ -1,6 +1,6 @@
-# csmm-qt
+# csmm-qt - Custom Street Map Manager
 ## Summary
-`csmm-qt` is the cross-platform port of the Custom Street Map Manager (CSMM). This tool allows modification of Boom Street, Fortune Street, and Itadaki Street Wii disc images. 
+`csmm-qt` is the cross-platform port of Custom Street Map Manager (CSMM). This tool allows modification of Boom Street, Fortune Street, and Itadaki Street Wii disc images. 
 ## Table of Contents
 * [Summary](#summary)
 * [Table of Contents](#table-of-contents)
