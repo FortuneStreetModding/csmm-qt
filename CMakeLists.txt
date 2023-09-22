@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.5)
 
 add_compile_definitions(QT_NO_KEYWORDS)
 add_compile_definitions(UNICODE)
@@ -13,7 +13,7 @@ if(WIN32)
     add_definitions(/wd4267)
 endif()
 
-set(PROJECT_VERSION 6.3.1)
+set(PROJECT_VERSION 6.3.2)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
 
@@ -256,7 +256,8 @@ file(MAKE_DIRECTORY ${PYTHON_STDLIB_DESTFOLDER})
 file(COPY "${Python_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
     PATTERN "config-*/*" EXCLUDE
     PATTERN ".DS_Store" EXCLUDE
-    PATTERN "site-packages" EXCLUDE)
+    PATTERN "site-packages" EXCLUDE
+    PATTERN "test" EXCLUDE)
 
 if (WIN32)
     file(COPY "${Python_STDLIB}/../DLLs" DESTINATION ${PYTHON_STDLIB_DESTFOLDER})
@@ -344,12 +345,13 @@ target_compile_definitions(csmm PUBLIC CSMM_VERSION="${PROJECT_VERSION}")
 
 if(NOT WIN32)
     find_package(yaml-cpp REQUIRED)
-    if (NOT YAML_CPP_INCLUDE_DIR)
-        set(YAML_CPP_INCLUDE_DIR "/usr/local/include")
-    endif()
-    if (NOT YAML_CPP_LIBRARIES)
+
+    if(APPLE)
+        set(YAML_CPP_LIBRARIES "yaml-cpp::yaml-cpp")
+    else()
         set(YAML_CPP_LIBRARIES "yaml-cpp")
     endif()
+
     target_include_directories(csmm PRIVATE ${YAML_CPP_INCLUDE_DIR})
     target_link_libraries(csmm PRIVATE ${YAML_CPP_LIBRARIES})
     target_include_directories(csmmpython PRIVATE ${YAML_CPP_INCLUDE_DIR})
