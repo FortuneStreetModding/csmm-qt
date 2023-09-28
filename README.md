@@ -55,7 +55,7 @@ Once the dependencies are installed, you can proceed to open `CMakeLists.txt` wi
 ### Linux
 Ubuntu, Linux Mint, and Debian users can most easily install `csmm-qt`'s dependencies with `apt-get`:
 
-`sudo apt-get install -y libyaml-cpp-dev libarchive-dev wget ninja-build libxkbcommon0 libxkbcommon-x11-0`
+`sudo apt-get install libyaml-cpp-dev libarchive-dev wget ninja-build libxkbcommon0 libxkbcommon-x11-0`
 
 Users of other Linux distributions should install the above dependencies with thier favorite package manager. Just as it is with Mac OS, the Linux build process also uses the `libbecquerel` submodule linked in this repo, so it does not need to be installed separately.
 
