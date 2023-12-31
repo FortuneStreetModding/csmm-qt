@@ -76,7 +76,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     auto importYamlButton = new QPushButton("Import .yaml or .zip");
     connect(importYamlButton, &QPushButton::clicked, this, [=](bool) {
-        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml;*.zip)");
+        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml *.zip)");
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {

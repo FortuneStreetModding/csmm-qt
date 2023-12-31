@@ -14,7 +14,7 @@ env:
 
 jobs:
   linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -27,6 +27,8 @@ jobs:
         chmod +x linuxdeploy-x86_64.AppImage
         wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
         chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+        sudo add-apt-repository universe
+        sudo apt install libfuse2
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -55,22 +57,14 @@ jobs:
       with:
         files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
   macos:
-    runs-on: macos-13
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: true
 
-    - name: Symlink Python framework to desired location
-      run: |
-        sudo mkdir /Library/lib
-        sudo ln -s /Library/Frameworks/Python.framework /Library/lib/Python.framework
-
     - name: Install dependencies
-      run: |
-        brew install libarchive
-        brew install yaml-cpp
-        brew install ninja
+      run: brew install libarchive ninja yaml-cpp
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -86,15 +80,21 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
+    - name: Configure Python virtual environment
+      working-directory: ${{github.workspace}}
+      run: |
+        python -m venv ./csmm-venv
+        source ./csmm-venv/bin/activate
+
     - name: Install Pip in CSMM
       working-directory: ${{github.workspace}}
       run: |
         wget https://bootstrap.pypa.io/get-pip.py
-        csmm.app/Contents/MacOS/csmmpython get-pip.py
+        ./csmm.app/Contents/MacOS/csmmpython -m get-pip --break-system-packages
 
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
-      run: csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==5.0.2 pillow
+      run: ./csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==7.2.6 pillow==10.1.0 --break-system-packages
 
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
@@ -103,14 +103,20 @@ jobs:
         make html
         cd _build
         zip -r "csmm-$VERSION_NAME-pydocs.zip" html
-    
+
     - name: Shut down XProtectBehaviorService, which interferes with macdeployqt
       working-directory: ${{github.workspace}}
-      run: sudo pkill -9 XProtect >/dev/null
+      run: |
+        echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+        echo waiting...; while pgrep XProtect; do sleep 3; done;
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: macdeployqt 'csmm.app' -dmg
+      run: |
+        mkdir -p /usr/local/opt/python@3.12/lib/Python.framework/Versions/3.12/
+        sudo ln -s $HOMEBREW_PREFIX/opt/python@3.12/libexec/bin/ /usr/local/opt/python@3.12/lib/Python.framework/Versions/3.12/
+
+        sudo macdeployqt 'csmm.app' -dmg -verbose=3
 
     - name: Rename
       working-directory: ${{github.workspace}}
@@ -152,16 +158,23 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
+    - name: Configure Python virtual environment
+      working-directory: ${{github.workspace}}
+      run: |
+        py -m venv .venv
+        .\.venv\Scripts\activate
+
     - name: Install Pip in CSMM
       working-directory: ${{github.workspace}}
       shell: pwsh
       run: |
+        .\.venv\Scripts\activate
         Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
-        ./csmmpython get-pip.py
+        .\.venv\Scripts\python -m get-pip --break-system-packages
 
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
-      run: ./csmmpython -m pip install pillow
+      run: .\.venv\Scripts\pip install pillow==10.1.0 --break-system-packages
 
     - name: Rename
       working-directory: ${{github.workspace}}
