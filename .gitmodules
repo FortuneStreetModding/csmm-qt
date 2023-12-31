@@ -10,3 +10,4 @@
 	path = lib/pybind11
 	url = https://github.com/pybind/pybind11
 	ignore = dirty
+	branch = stable
