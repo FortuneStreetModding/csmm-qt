@@ -13,7 +13,7 @@ if(WIN32)
     add_definitions(/wd4267)
 endif()
 
-set(PROJECT_VERSION 6.3.2)
+set(PROJECT_VERSION 6.3.3)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
 
@@ -285,11 +285,11 @@ if(APPLE)
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/wit
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/wit-v3.05a-r8638-mac ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/wit
     )
-    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.39a-r8904-mac64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
+    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.40a-r8917-mac64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/szs
-        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.39a-r8904-mac64 ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/szs
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40a-r8917-mac64 ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/szs
     )
     add_custom_command(TARGET csmmpython POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/csmmpython ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/csmmpython
@@ -305,11 +305,11 @@ elseif(WIN32)
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/wit
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/wit-v3.05a-r8638-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/wit
     )
-    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.39a-r8904-cygwin64.zip ${CMAKE_CURRENT_BINARY_DIR}/szs.zip)
+    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.40a-r8917-cygwin64.zip ${CMAKE_CURRENT_BINARY_DIR}/szs.zip)
     add_custom_command(TARGET csmm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_CURRENT_BINARY_DIR}/szs.zip
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
-        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.39a-r8904-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/szs
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40a-r8917-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/szs
     )
 else()
     add_executable(csmm ${MAIN_SOURCES})
@@ -321,11 +321,11 @@ else()
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/wit
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/wit-v3.05a-r8638-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/wit
     )
-    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.39a-r8904-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
+    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.40a-r8917-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
-        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.39a-r8904-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/szs
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40a-r8917-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/szs
     )
 endif()
 
