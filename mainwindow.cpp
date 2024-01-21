@@ -480,7 +480,7 @@ void MainWindow::exportIsoWbfs() {
                 QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(e.what()));
             }
 
-            QMessageBox::information(this, "Export", "Exported successfuly.");
+            QMessageBox::information(this, "Export", "Exported successfully.");
             return;
         }
     }
@@ -521,7 +521,7 @@ void MainWindow::exportIsoWbfs() {
         }
 
         progress.setValue(100);
-        QMessageBox::information(this, "Export", "Exported successfuly.");
+        QMessageBox::information(this, "Export", "Exported successfully.");
 
         // reload map descriptors
         int idx = 0;
