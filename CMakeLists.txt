@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 add_compile_definitions(QT_NO_KEYWORDS)
 add_compile_definitions(UNICODE)
@@ -13,7 +13,7 @@ if(WIN32)
     add_definitions(/wd4267)
 endif()
 
-set(PROJECT_VERSION 6.3.3)
+set(PROJECT_VERSION 6.4.0)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
 
@@ -321,11 +321,11 @@ else()
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/wit
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/wit-v3.05a-r8638-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/wit
     )
-    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.40a-r8917-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
+    file(DOWNLOAD https://szs.wiimm.de/download/szs-v2.40b-r8923-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/szs.tar.gz
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
-        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40a-r8917-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/szs
+        COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40b-r8923-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/szs
     )
 endif()
 
