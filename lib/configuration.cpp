@@ -386,7 +386,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
             auto descPath = dir.filePath(entry.mapDescriptorRelativePath);
             if (!entry.mapDescriptorUrls.empty()) {
-                qInfo() << "Downloading map descriptor:" << entry.name;
+                qInfo() << "Downloading board:" << entry.name;
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
                         CSMMNetworkManager::downloadFileIfUrl(url, descPath);

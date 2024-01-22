@@ -54,29 +54,35 @@ static QFuture<void> observeProcess(QProcess *proc) {
     QObject::connect(proc, &QProcess::readyReadStandardError, [proc]() {
         qWarning() << proc->readAllStandardError();
     });
+    //Currently working, borderline synchronous
+    auto deferred = AsyncFuture::deferred<void>();
+    QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [&](int code, QProcess::ExitStatus status) {
+        if(code != 0){
+            throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
+        }
+        deferred.complete();
+    });
 
-    using Args = std::tuple<int, QProcess::ExitStatus>;
-    QFuture<Args> future = QtFuture::connect(proc, &QProcess::finished);
-    return AsyncFuture::observe(future)
-        .subscribe([=](int code, QProcess::ExitStatus status) {
-            if (code != 0) {
-                throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
-            }
-        }).future();
+    proc->start();
+    proc->waitForFinished();
 
-    // Currently working state in Qt5
+    auto subscribeCalled = std::make_shared<bool>(false);
+    deferred.subscribe([subscribeCalled]() {
+        *subscribeCalled = true;
+    });
 
-    // return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-    //         .subscribe([=](int code) {
-    //     if (code != 0) {
-    //         delete proc;
-    //         throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
-    //     }
-    // }).future();
+    return deferred.future();
 
+    //Qt6 syntax:
 
-    // Playground for new handling of things
-
+    // using Args = std::tuple<int, QProcess::ExitStatus>;
+    // QFuture<Args> future = QtFuture::connect(proc, &QProcess::finished);
+    // return AsyncFuture::observe(future)
+    //     .subscribe([=](int code, QProcess::ExitStatus status) {
+    //         if (code != 0) {
+    //             throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
+    //         }
+    //     }).future();
 }
 
 QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {

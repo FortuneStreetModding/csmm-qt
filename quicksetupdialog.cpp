@@ -228,15 +228,15 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         dialog.setValue(90);
         qInfo() << "writing ROM";
 
-        // // create wbfs/iso if file
-        // if (!QFileInfo(outputLoc).isDir()) {
-        //     await(ExeWrapper::createWbfsIso(targetGameDir, outputLoc, ui->markerCode->text(), ui->separateSaveGame->isChecked()));
-        //     if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
-        //         qInfo() << "patching wiimmfi";
-        //         dialog.setValue(95);
-        //         await(ExeWrapper::patchWiimmfi(outputLoc));
-        //     }
-        // }
+        // create wbfs/iso if file
+        if (!QFileInfo(outputLoc).isDir()) {
+            await(ExeWrapper::createWbfsIso(targetGameDir, outputLoc, ui->markerCode->text(), ui->separateSaveGame->isChecked()));
+            if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != mods.first.end()) {
+                qInfo() << "patching wiimmfi";
+                dialog.setValue(95);
+                await(ExeWrapper::patchWiimmfi(outputLoc));
+            }
+        }
 
         // riivolution stuff
         if (shouldPatchRiivolutionVar) {

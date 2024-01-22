@@ -97,7 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
         fileObj.commit();
     });
     connect(ui->importModPack, &QPushButton::clicked, this, [&](bool) {
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt;*.zip)");
+        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt *.zip)");
 
         if (file.isEmpty()) {
             return;
@@ -381,9 +381,9 @@ void MainWindow::exportToFolder(bool riivolution) {
         }
     }
 
-    // if (std::find_if(modList.begin(), modList.end(), [](const CSMMModHolder &mod) {return mod->modId() == "wifiFix";})) {
-    //     ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
-    // }
+    if (std::find_if(modList.begin(), modList.end(), [](const CSMMModHolder &mod) {return mod->modId() == "wifiFix";}) != modList.end()) {
+        ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
+    }
 
 
 
@@ -514,10 +514,10 @@ void MainWindow::exportIsoWbfs() {
         await(ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode(), getSeparateSaveGame()));
 
         progress.setValue(90);
-        // if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
-        //     qInfo() << "patching wiimmfi";
-        //     await(ExeWrapper::patchWiimmfi(saveFile));
-        // }
+        if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != modList.end()) {
+            qInfo() << "patching wiimmfi";
+            await(ExeWrapper::patchWiimmfi(saveFile));
+        }
 
         progress.setValue(100);
         QMessageBox::information(this, "Export", "Exported successfully.");
