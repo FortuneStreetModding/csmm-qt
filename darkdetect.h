@@ -46,9 +46,8 @@ inline void initDarkThemeSettings() {
     QPalette darkPalette = buildDarkPalette();
     qApp->setPalette(darkPalette);
     qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
-}
 #endif
-
+}
 inline bool isDarkMode() {
     return QApplication::palette().color(QPalette::Base).lightnessF() < 0.5;
 }
