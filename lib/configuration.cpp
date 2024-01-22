@@ -359,7 +359,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
              it != configFile.backgroundPaths.end();
              ++it) {
 
-            qInfo() << "attempting to download background" << it.key();
+            qInfo() << "Downloading background:" << it.key();
             for (auto &url: it.value()) {
                 auto dest = dir.filePath(it.key() + ".background.zip");
                 try {
@@ -386,7 +386,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
             auto descPath = dir.filePath(entry.mapDescriptorRelativePath);
             if (!entry.mapDescriptorUrls.empty()) {
-                qInfo() << "trying to download map descriptor to" << descPath;
+                qInfo() << "Downloading map descriptor:" << entry.name;
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
                         CSMMNetworkManager::downloadFileIfUrl(url, descPath);

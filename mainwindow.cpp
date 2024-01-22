@@ -429,7 +429,7 @@ void MainWindow::exportToFolder(bool riivolution) {
         }
 
         progress.setValue(100);
-        QMessageBox::information(this, "Save", "Saved successfuly.");
+        QMessageBox::information(this, "Save", "Saved successfully.");
 
         // reload map descriptors
         int idx = 0;
