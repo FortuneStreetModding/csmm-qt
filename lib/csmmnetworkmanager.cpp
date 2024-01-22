@@ -76,7 +76,9 @@ bool downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
             throw Exception("failed to create file for downloading");
         }
     }
-    return false;
+    auto def = AsyncFuture::deferred<bool>();
+    def.complete(false);
+    return def.future().result();
 }
 
 }

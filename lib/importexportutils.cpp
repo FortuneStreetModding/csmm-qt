@@ -254,7 +254,9 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
 void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &importDir,
                 const std::function<void(double)> &progressCallback,
                 const QString &backgroundZipDir) {
-    qInfo() << "importing map at" <<  yamlFileSrc;
+    if(descriptor.names["en"] != ""){
+        qInfo() << "Importing:" <<  descriptor.names["en"];
+    }
 
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         importYamlZip(yamlFileSrc, descriptor, importDir, progressCallback, backgroundZipDir);
