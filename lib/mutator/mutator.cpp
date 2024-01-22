@@ -5,6 +5,7 @@
 #include "stockprice.h"
 
 #include <QDataStream>
+#include <QIODevice>
 #include <QMap>
 
 static const QMap<QString, MutatorType> stringToMutatorTypes = {

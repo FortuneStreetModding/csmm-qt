@@ -15,7 +15,7 @@ struct ParsedModList {
 
 static ParsedModList parseModListFile(QFile *file) {
     QTextStream stream(file);
-    stream.setCodec("UTF-8");
+    stream.setEncoding(QStringConverter::Utf8);
 
     ParsedModList result;
     result.relative = -1;

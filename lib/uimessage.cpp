@@ -4,19 +4,19 @@
 
 UiMessage fileToMessage(QFile *file) {
     QTextStream stream(file);
-    stream.setCodec("UTF-8");
+    stream.setEncoding(QStringConverter::Utf8);
     UiMessage result;
     QString line;
     while (stream.readLineInto(&line)) {
         int splitOn = line.indexOf(',');
-        result[line.leftRef(splitOn).trimmed().toUInt()] = line.midRef(splitOn+1).trimmed().toString().replace("\"", "");
+        result[line.left(splitOn).trimmed().toUInt()] = line.mid(splitOn+1).trimmed().replace("\"", "");
     }
     return result;
 }
 
 void messageToFile(QFile *file, const UiMessage &message) {
     QTextStream stream(file);
-    stream.setCodec("UTF-8");
+    stream.setEncoding(QStringConverter::Utf8);
     for (auto it=message.begin(); it!=message.end(); ++it) {
         stream << QString("%1,\"%2\"\n").arg(it->first).arg(it->second);
     }
