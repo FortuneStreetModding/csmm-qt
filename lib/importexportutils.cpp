@@ -205,7 +205,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                 if(node["music"].IsDefined()
                         && node["music"]["download"].IsSequence()
                         && node["music"]["download"].size() > 0) {
-                    qInfo() << "Attempting to download music for" << yamlFileZipInfo.fileName();
+                    qInfo() << "Downloading music:" << yamlFileZipInfo.baseName() + ".music.zip";
                     auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
                     for (auto &url: urlsList) {
                         QString urlStr = QString::fromStdString(url);
