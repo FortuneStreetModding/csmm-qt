@@ -54,35 +54,20 @@ static QFuture<void> observeProcess(QProcess *proc) {
     QObject::connect(proc, &QProcess::readyReadStandardError, [proc]() {
         qWarning() << proc->readAllStandardError();
     });
-    //Currently working, borderline synchronous
-    auto deferred = AsyncFuture::deferred<void>();
-    QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [&](int code, QProcess::ExitStatus status) {
-        if(code != 0){
-            throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
-        }
-        deferred.complete();
-    });
+
+    using Args = std::tuple<int, QProcess::ExitStatus>;
+    QFuture<Args> future = QtFuture::connect(proc, &QProcess::finished);
 
     proc->start();
-    proc->waitForFinished();
 
-    auto subscribeCalled = std::make_shared<bool>(false);
-    deferred.subscribe([subscribeCalled]() {
-        *subscribeCalled = true;
-    });
-
-    return deferred.future();
-
-    //Qt6 syntax:
-
-    // using Args = std::tuple<int, QProcess::ExitStatus>;
-    // QFuture<Args> future = QtFuture::connect(proc, &QProcess::finished);
-    // return AsyncFuture::observe(future)
-    //     .subscribe([=](int code, QProcess::ExitStatus status) {
-    //         if (code != 0) {
-    //             throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
-    //         }
-    //     }).future();
+    return AsyncFuture::observe(future)
+        .subscribe([=](Args args) {
+            const auto code = std::get<0>(args);
+            const auto status = std::get<1>(args);
+            if (code != 0) {
+                throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
+            }
+        }).future();
 }
 
 QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
@@ -92,61 +77,39 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
     proc->setProgram(getWitPath());
     proc->setArguments({"DUMP", "-l", inputFile});
 
-    auto program = proc->program();
-    if (proc->error() == QProcess::FailedToStart) {
-        throw Exception(QString("Process '%1' failed to start").arg(program));
-    }
-    AsyncFuture::observe(proc, &QProcess::readyReadStandardError).subscribe([=]() {
-        qWarning() << proc->readAllStandardError();
-    });
+    return AsyncFuture::observe(observeProcess(proc))
+        .subscribe([=]() -> QVector<AddressSection> {
+            QVector<AddressSection> result;
+            QString line;
+            QTextStream stream(proc);
 
-    auto deferred = AsyncFuture::deferred<QVector<AddressSection>>();
-    QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [&](int code, QProcess::ExitStatus status) {
-        if(code != 0){
-            throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
-        }
-
-        QVector<AddressSection> result;
-        QString line;
-        QTextStream stream(proc);
-
-        while (stream.readLineInto(&line)) {
-            if (line.contains("Delta between file offset and virtual address:")) {
-                stream.readLine();
-                stream.readLine();
-                stream.readLine();
-                break;
+            while (stream.readLineInto(&line)) {
+                if (line.contains("Delta between file offset and virtual address:")) {
+                    stream.readLine();
+                    stream.readLine();
+                    stream.readLine();
+                    break;
+                }
             }
-        }
-        while (stream.readLineInto(&line)) {
-            auto columns = line.split(':');
-            if (columns.size() == 5) {
-                // unused = columns[0]
-                auto offsets = columns[1].split("..");
-                QDataStream offsetStream0(QByteArray::fromHex(offsets[0].trimmed().toLatin1()));
-                QDataStream offsetStream1(QByteArray::fromHex(offsets[1].trimmed().toLatin1()));
-                quint32 offsetBeg, offsetEnd;
-                offsetStream0 >> offsetBeg;
-                offsetStream1 >> offsetEnd;
-                // size = columns[2]
-                QDataStream fileDeltaStream(QByteArray::fromHex(columns[3].trimmed().toLatin1()));
-                quint32 fileDelta;
-                fileDeltaStream >> fileDelta;
-                result.append({offsetBeg, offsetEnd, fileDelta, columns[4].trimmed()});
+            while (stream.readLineInto(&line)) {
+                auto columns = line.split(':');
+                if (columns.size() == 5) {
+                    // unused = columns[0]
+                    auto offsets = columns[1].split("..");
+                    QDataStream offsetStream0(QByteArray::fromHex(offsets[0].trimmed().toLatin1()));
+                    QDataStream offsetStream1(QByteArray::fromHex(offsets[1].trimmed().toLatin1()));
+                    quint32 offsetBeg, offsetEnd;
+                    offsetStream0 >> offsetBeg;
+                    offsetStream1 >> offsetEnd;
+                    // size = columns[2]
+                    QDataStream fileDeltaStream(QByteArray::fromHex(columns[3].trimmed().toLatin1()));
+                    quint32 fileDelta;
+                    fileDeltaStream >> fileDelta;
+                    result.append({offsetBeg, offsetEnd, fileDelta, columns[4].trimmed()});
+                }
             }
-        }
-        deferred.complete(result);
-    });
-
-    proc->start();
-    proc->waitForFinished();
-
-    auto subscribeCalled = std::make_shared<bool>(false);
-    deferred.subscribe([subscribeCalled]() {
-        *subscribeCalled = true;
-    });
-
-    return deferred.future();
+            return result;
+        }).future();
 }
 
 QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder) {
