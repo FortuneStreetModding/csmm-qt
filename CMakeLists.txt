@@ -26,11 +26,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
-find_package(Qt5 COMPONENTS Gui REQUIRED)
-find_package(Qt5 COMPONENTS Network REQUIRED)
-find_package(Qt5 COMPONENTS Concurrent REQUIRED)
+find_package(Qt6 COMPONENTS Core REQUIRED)
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Gui REQUIRED)
+find_package(Qt6 COMPONENTS Network REQUIRED)
+find_package(Qt6 COMPONENTS Concurrent REQUIRED)
 
 set(LIB_SOURCES
     lib/addressmapping.cpp
@@ -378,16 +378,16 @@ add_subdirectory(lib/libbecquerel)
 target_link_libraries(csmm PRIVATE becquerel)
 target_link_libraries(csmmpython PRIVATE becquerel)
 
-target_link_libraries(csmm PRIVATE Qt5::Core)
-target_link_libraries(csmm PRIVATE Qt5::Widgets)
-target_link_libraries(csmm PRIVATE Qt5::Gui)
-target_link_libraries(csmm PRIVATE Qt5::Network)
-target_link_libraries(csmm PRIVATE Qt5::Concurrent)
-target_link_libraries(csmmpython PRIVATE Qt5::Core)
-target_link_libraries(csmmpython PRIVATE Qt5::Widgets)
-target_link_libraries(csmmpython PRIVATE Qt5::Gui)
-target_link_libraries(csmmpython PRIVATE Qt5::Network)
-target_link_libraries(csmmpython PRIVATE Qt5::Concurrent)
+target_link_libraries(csmm PRIVATE Qt6::Core)
+target_link_libraries(csmm PRIVATE Qt6::Widgets)
+target_link_libraries(csmm PRIVATE Qt6::Gui)
+target_link_libraries(csmm PRIVATE Qt6::Network)
+target_link_libraries(csmm PRIVATE Qt6::Concurrent)
+target_link_libraries(csmmpython PRIVATE Qt6::Core)
+target_link_libraries(csmmpython PRIVATE Qt6::Widgets)
+target_link_libraries(csmmpython PRIVATE Qt6::Gui)
+target_link_libraries(csmmpython PRIVATE Qt6::Network)
+target_link_libraries(csmmpython PRIVATE Qt6::Concurrent)
 
 set_target_properties(csmm PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER com.fortunestreetmodding

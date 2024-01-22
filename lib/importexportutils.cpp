@@ -104,7 +104,7 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
     QFile saveMdToFile(yamlFileDest);
     if (saveMdToFile.open(QIODevice::WriteOnly)) {
         QTextStream stream(&saveMdToFile);
-        stream.setCodec("UTF-8");
+        stream.setEncoding(QStringConverter::Utf8);
         stream << descriptor.toYaml();
 
         // export frb files

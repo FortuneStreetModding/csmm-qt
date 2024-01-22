@@ -50,26 +50,19 @@ static QFuture<void> observeProcess(QProcess *proc) {
     if (proc->error() == QProcess::FailedToStart) {
         throw Exception(QString("Process '%1' failed to start").arg(program));
     }
-    AsyncFuture::observe(proc, &QProcess::readyReadStandardError).subscribe([=]() {
+
+    QObject::connect(proc, &QProcess::readyReadStandardError, [proc]() {
         qWarning() << proc->readAllStandardError();
     });
-    auto deferred = AsyncFuture::deferred<void>();
-    QObject::connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [&](int code, QProcess::ExitStatus status) {
-        if(code != 0){
-            throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
-        }
-        deferred.complete();
-     });
 
-    proc->start();
-    proc->waitForFinished();
-
-    auto subscribeCalled = std::make_shared<bool>(false);
-    deferred.subscribe([subscribeCalled]() {
-        *subscribeCalled = true;
-    });
-
-    return deferred.future();
+    using Args = std::tuple<int, QProcess::ExitStatus>;
+    QFuture<Args> future = QtFuture::connect(proc, &QProcess::finished);
+    return AsyncFuture::observe(future)
+        .subscribe([=](int code, QProcess::ExitStatus status) {
+            if (code != 0) {
+                throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
+            }
+        }).future();
 
     // Currently working state in Qt5
 
@@ -120,7 +113,7 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
             }
         }
         while (stream.readLineInto(&line)) {
-            auto columns = line.splitRef(':');
+            auto columns = line.split(':');
             if (columns.size() == 5) {
                 // unused = columns[0]
                 auto offsets = columns[1].split("..");
@@ -133,7 +126,7 @@ QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
                 QDataStream fileDeltaStream(QByteArray::fromHex(columns[3].trimmed().toLatin1()));
                 quint32 fileDelta;
                 fileDeltaStream >> fileDelta;
-                result.append({offsetBeg, offsetEnd, fileDelta, columns[4].trimmed().toString()});
+                result.append({offsetBeg, offsetEnd, fileDelta, columns[4].trimmed()});
             }
         }
         deferred.complete(result);
