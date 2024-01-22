@@ -20,8 +20,8 @@ static constexpr int ORDER_TYPE = QTableWidgetItem::UserType + 2;
 static constexpr int UNLOCK_ID_TYPE = QTableWidgetItem::UserType + 3;
 
 MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
-    QStringList labels{"", "", "Name", "MapSet [Editable]", "Zone [Editable]", "Order [Editable]",
-                       "Is Practice Board [Editable]", "Unlock ID [Editable]", "Ruleset", "Initial Cash", "Target Amount",
+    QStringList labels{"", "", "Name", "MapSet [E]", "Zone [E]", "Order [E]",
+                       "Tut. Map? [E]", "Unlock ID [E]", "Ruleset", "Initial Cash", "Target Amount",
                        "Base Salary", "Salary Increment", "Max. Dice Roll",
                        "Venture Cards", "FRB Files", "Switch Origin Points",
                        "Board Theme", "Background", "Background Music ID",
@@ -76,7 +76,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     auto importYamlButton = new QPushButton("Import .yaml or .zip");
     connect(importYamlButton, &QPushButton::clicked, this, [=](bool) {
-        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml *.zip)");
+        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml *.zip)", nullptr, QFileDialog::DontUseNativeDialog);
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
@@ -99,7 +99,7 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     auto exportYamlButton = new QPushButton("Export .yaml");
     connect(exportYamlButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)");
+        auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)", nullptr, QFileDialog::DontUseNativeDialog);
         if (saveYamlTo.isEmpty()) return;
         try {
             ImportExportUtils::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
