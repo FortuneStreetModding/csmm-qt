@@ -30,10 +30,10 @@ jobs:
         sudo add-apt-repository universe
         sudo apt install libfuse2
 
-    - name: Switch to Python 3.12
+    - name: Switch to Python 3.11
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.11'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -62,14 +62,14 @@ jobs:
       with:
         files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
   macos:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
 
     - name: Install dependencies
-      run: brew install libarchive ninja python@3.12 yaml-cpp
+      run: brew install libarchive ninja python@3.11 yaml-cpp
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -85,10 +85,10 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Switch to Python 3.12
+    - name: Switch to Python 3.11
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.11'
 
     - name: Configure Python virtual environment
       working-directory: ${{github.workspace}}
@@ -123,7 +123,7 @@ jobs:
     - name: Deploy
       working-directory: ${{github.workspace}}
       run: |
-        HOMEBREW_PREFIX=$(brew --prefix python@3.12)
+        HOMEBREW_PREFIX=$(brew --prefix python@3.11)
         echo $HOMEBREW_PREFIX
         mkdir -p $HOMEBREW_PREFIX/lib/Python.framework/
         sudo cp -a $HOMEBREW_PREFIX/Frameworks/Python.framework/. $HOMEBREW_PREFIX/lib/Python.framework/
@@ -169,10 +169,10 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Switch to Python 3.12
+    - name: Switch to Python 3.11
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.11'
 
     - name: Configure Python virtual environment
       working-directory: ${{github.workspace}}

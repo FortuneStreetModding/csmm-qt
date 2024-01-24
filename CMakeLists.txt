@@ -366,7 +366,7 @@ else()
 endif()
 
 set(PYBIND11_FINDPYTHON ON)
-set (PYBIND11_PYTHON_VERSION "3.12")
+set(PYBIND11_PYTHON_VERSION "3.11")
 add_subdirectory(lib/pybind11)
 target_link_libraries(csmm PRIVATE pybind11::embed)
 target_link_libraries(csmm PRIVATE pybind11::windows_extras)
