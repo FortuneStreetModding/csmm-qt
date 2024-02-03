@@ -99,13 +99,15 @@ jobs:
 
     - name: Install Pip in CSMM
       working-directory: ${{github.workspace}}
-      run: wget https://bootstrap.pypa.io/pip/pip.pyz
+      run: |
+        source ./csmm-venv/bin/activate
+        ./csmm.app/Contents/MacOS/csmmpython -m ensurepip
 
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
       run: |
         source ./csmm-venv/bin/activate
-        ./csmm.app/Contents/MacOS/csmmpython -m pip.pyz install sphinx==7.2.6 pillow==10.1.0 --break-system-packages
+        ./csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==7.2.6 pillow==10.1.0 --break-system-packages
 
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
@@ -187,13 +189,13 @@ jobs:
       shell: pwsh
       run: |
         .\.venv\Scripts\activate
-        Invoke-WebRequest -Uri https://bootstrap.pypa.io/pip/pip.pyz -OutFile pip.pyz
+        .\csmmpython -m ensurepip
 
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
       run: |
         .\.venv\Scripts\activate
-        .\csmmpython -m pip.pyz install pillow==10.1.0 --break-system-packages
+        .\csmmpython -m pip install pillow==10.1.0 --break-system-packages
 
     - name: Rename
       working-directory: ${{github.workspace}}
