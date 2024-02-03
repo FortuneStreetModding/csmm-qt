@@ -265,7 +265,7 @@ file(COPY "${Python_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
     PATTERN "test" EXCLUDE)
 
 if (WIN32)
-    add_custom_command(TARGET csmm PRE-BUILD
+    add_custom_command(TARGET csmm PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${Python_RUNTIME_LIBRARY_DIRS}/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
     )
