@@ -97,6 +97,12 @@ jobs:
         python -m venv ./csmm-venv
         source ./csmm-venv/bin/activate
 
+    - name: Install Pip in CSMM
+      working-directory: ${{github.workspace}}
+      run: |
+        wget https://bootstrap.pypa.io/get-pip.py
+        ./csmm.app/Contents/MacOS/csmmpython -m get-pip --break-system-packages
+
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
       run: ./csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==7.2.6 pillow==10.1.0 --break-system-packages
@@ -163,6 +169,14 @@ jobs:
       run: |
         py -m venv .venv
         .\.venv\Scripts\activate
+
+    - name: Install Pip in CSMM
+      working-directory: ${{github.workspace}}
+      shell: pwsh
+      run: |
+        .\.venv\Scripts\activate
+        Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
+        .\csmmpython -m get-pip --break-system-packages
 
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
