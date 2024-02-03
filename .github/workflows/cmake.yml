@@ -78,6 +78,11 @@ jobs:
         version: 6.6.1
         target: desktop
 
+    - name: Switch to Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
     - name: Configure CMake
       working-directory: ${{github.workspace}}
       run: cmake -DCMAKE_BUILD_TYPE=Release . -G Ninja
@@ -85,11 +90,6 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
-
-    - name: Switch to Python 3.12
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
 
     - name: Configure Python virtual environment
       working-directory: ${{github.workspace}}
@@ -114,6 +114,12 @@ jobs:
         make html
         cd _build
         zip -r "csmm-$VERSION_NAME-pydocs.zip" html
+
+    - name: Shut down XProtectBehaviorService, which interferes with macdeployqt
+      working-directory: ${{github.workspace}}
+      run: |
+        echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+        echo waiting...; while pgrep XProtect; do sleep 3; done;
 
     - name: Deploy
       working-directory: ${{github.workspace}}
@@ -150,6 +156,11 @@ jobs:
     - name: Setup VS Environment
       uses: seanmiddleditch/gha-setup-vsdevenv@master
 
+    - name: Switch to Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
     - name: Configure CMake
       working-directory: ${{github.workspace}}
       shell: bash
@@ -158,11 +169,6 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
-
-    - name: Switch to Python 3.12
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
 
     - name: Configure Python virtual environment
       working-directory: ${{github.workspace}}
