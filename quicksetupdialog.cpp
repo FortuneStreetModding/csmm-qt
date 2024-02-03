@@ -26,28 +26,28 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
     ui->separateSaveGame->setChecked(defaultSeparateSaveGame);
 
     connect(ui->chooseInputGameFolder, &QPushButton::clicked, this, [this](bool){
-        auto dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory", nullptr, QFileDialog::DontUseNativeDialog);
+        auto dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory", nullptr);
         if (!dirname.isEmpty()) {
             ui->inputGameLoc->setText(dirname);
             updateButtonBoxEnabled();
         }
     });
     connect(ui->chooseInputWbfsIso, &QPushButton::clicked, this, [this](bool){
-        auto isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr, QFileDialog::DontUseNativeDialog);
+        auto isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
         if (!isoWbfs.isEmpty()) {
             ui->inputGameLoc->setText(isoWbfs);
             updateButtonBoxEnabled();
         }
     });
     connect(ui->chooseModpackZip, &QPushButton::clicked, this, [this](bool){
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "Modpack zip file (*.zip)", nullptr, QFileDialog::DontUseNativeDialog);
+        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "Modpack zip file (*.zip)", nullptr);
         if (!file.isEmpty()) {
             ui->modpackZip->setText(file);
             updateButtonBoxEnabled();
         }
     });
     connect(ui->addModZip, &QPushButton::clicked, this, [this](bool) {
-        auto file = QFileDialog::getOpenFileName(this, "Import additional mod pack", QString(), "Modpack zip file (*.zip)", nullptr, QFileDialog::DontUseNativeDialog);
+        auto file = QFileDialog::getOpenFileName(this, "Import additional mod pack", QString(), "Modpack zip file (*.zip)", nullptr);
         if (!file.isEmpty()) {
             ui->additionalMods->addItem(file);
             updateButtonBoxEnabled();
@@ -129,9 +129,9 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
     QString outputLoc;
     if (button == exportToWbfsIso) {
-        outputLoc = QFileDialog::getSaveFileName(this, "Save WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr, QFileDialog::DontUseNativeDialog);
+        outputLoc = QFileDialog::getSaveFileName(this, "Save WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
     } else {
-        outputLoc = QFileDialog::getExistingDirectory(this, "Save Fortune Street Directory", nullptr, QFileDialog::DontUseNativeDialog);
+        outputLoc = QFileDialog::getExistingDirectory(this, "Save Fortune Street Directory", nullptr);
         if (!outputLoc.isEmpty()) {
             if (!QDir(outputLoc).isEmpty()) {
                 QMessageBox::critical(this, "Cannot select Fortune Street directory for saving", "Directory is not empty");

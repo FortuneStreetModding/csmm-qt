@@ -1,6 +1,7 @@
 #ifndef CSMMNETWORKMANAGER_H
 #define CSMMNETWORKMANAGER_H
 
+#include "qabstractnetworkcache.h"
 #include <QFuture>
 #include <QNetworkAccessManager>
 
@@ -21,6 +22,10 @@ namespace CSMMNetworkManager {
         void raise() const override { throw *this; }
         Exception *clone() const override { return new Exception(*this); }
     };
+
+    inline void clearNetworkCache(){
+        instance()->cache()->clear();
+    }
 }
 
 #endif // CSMMNETWORKMANAGER_H

@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionPatch_MarkerCode->setChecked(getMarkerCode() != "01");
     });
     connect(ui->actionExport_default_modlists_txt, &QAction::triggered, this, [&]() {
-        auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)", nullptr, QFileDialog::DontUseNativeDialog);
+        auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)", nullptr);
         QSaveFile fileObj(saveFile);
 
         if (!fileObj.open(QFile::WriteOnly)) {
@@ -96,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent)
         fileObj.commit();
     });
     connect(ui->importModPack, &QPushButton::clicked, this, [&](bool) {
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt *.zip)", nullptr, QFileDialog::DontUseNativeDialog);
+        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt *.zip)", nullptr);
 
         if (file.isEmpty()) {
             return;
@@ -139,7 +139,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::saveMapList() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.yaml", "CSMM Map List (*.yaml)", nullptr, QFileDialog::DontUseNativeDialog);
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.yaml", "CSMM Map List (*.yaml)", nullptr);
     if (saveFile.isEmpty()) return;
     std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
@@ -152,7 +152,7 @@ void MainWindow::saveMapList() {
 }
 
 void MainWindow::loadMapList() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)", nullptr, QFileDialog::DontUseNativeDialog);
+    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)", nullptr);
     if (openFile.isEmpty()) return;
     QFileInfo openFileInfo(openFile);
     if(!openFileInfo.exists()) {
@@ -188,7 +188,7 @@ void MainWindow::updateModListWidget() {
 }
 
 void MainWindow::saveCleanItastCsmmBrsar() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Open vanilla Itast.brsar", "Itast.brsar", "Vanilla Fortune Street Binary Sound Archive (*.brsar)", nullptr, QFileDialog::DontUseNativeDialog);
+    auto openFile = QFileDialog::getOpenFileName(this, "Open vanilla Itast.brsar", "Itast.brsar", "Vanilla Fortune Street Binary Sound Archive (*.brsar)", nullptr);
     if (openFile.isEmpty()) return;
     //QFileInfo openFileInfo(openFile);
 
@@ -197,7 +197,7 @@ void MainWindow::saveCleanItastCsmmBrsar() {
         return;
     }
 
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)", nullptr, QFileDialog::DontUseNativeDialog);
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)", nullptr);
     if (saveFile.isEmpty()) return;
 
     QString errors = ImportExportUtils::applyBspatch(openFile, saveFile, ":/" + ITAST_BRSAR + ".bsdiff");
@@ -215,7 +215,7 @@ void MainWindow::openDir() {
         QMessageBox::critical(this, "Open Game Directory", "The temporary directory used for copying the game directory could not be created");
         return;
     }
-    QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory", nullptr, QFileDialog::DontUseNativeDialog);
+    QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory", nullptr);
     if (dirname.isEmpty()) {
         return;
     }
@@ -268,7 +268,7 @@ void MainWindow::openIsoWbfs() {
         QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
         return;
     }
-    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr, QFileDialog::DontUseNativeDialog);
+    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
     if (isoWbfs.isEmpty()) return;
 
     try {
@@ -323,7 +323,7 @@ void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) 
 }
 
 void MainWindow::exportToFolder(bool riivolution) {
-    auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory", nullptr, QFileDialog::DontUseNativeDialog);
+    auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory", nullptr);
     if (saveDir.isEmpty()) return;
     if (!QDir(saveDir).isEmpty()) {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
@@ -443,7 +443,7 @@ void MainWindow::exportToFolder(bool riivolution) {
 }
 
 void MainWindow::exportIsoWbfs() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr, QFileDialog::DontUseNativeDialog);
+    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
     if (saveFile.isEmpty()) return;
 
     QTemporaryDir intermediateResults;
