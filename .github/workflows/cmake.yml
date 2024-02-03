@@ -30,10 +30,10 @@ jobs:
         sudo add-apt-repository universe
         sudo apt install libfuse2
 
-    - name: Switch to Python 3.11
+    - name: Switch to Python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -56,11 +56,11 @@ jobs:
         ARCH=x86_64 ./linuxdeploy-x86_64.AppImage --appdir=csmm-x86_64 -p qt -o appimage
         mv csmm*.AppImage csmm-$VERSION_NAME-linux.AppImage
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
+    # - name: Release
+    #   uses: softprops/action-gh-release@v1
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
   macos:
     runs-on: macos-13
     steps:
@@ -69,7 +69,7 @@ jobs:
         submodules: true
 
     - name: Install dependencies
-      run: brew install libarchive ninja python@3.11 yaml-cpp
+      run: brew install libarchive ninja python@3.12 yaml-cpp
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -85,22 +85,16 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Switch to Python 3.11
+    - name: Switch to Python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
 
     - name: Configure Python virtual environment
       working-directory: ${{github.workspace}}
       run: |
         python -m venv ./csmm-venv
         source ./csmm-venv/bin/activate
-
-    - name: Install Pip in CSMM
-      working-directory: ${{github.workspace}}
-      run: |
-        wget https://bootstrap.pypa.io/get-pip.py
-        ./csmm.app/Contents/MacOS/csmmpython -m get-pip --break-system-packages
 
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
@@ -123,23 +117,23 @@ jobs:
     - name: Deploy
       working-directory: ${{github.workspace}}
       run: |
-        HOMEBREW_PREFIX=$(brew --prefix python@3.11)
+        HOMEBREW_PREFIX=$(brew --prefix python@3.12)
         echo $HOMEBREW_PREFIX
         mkdir -p $HOMEBREW_PREFIX/lib/Python.framework/
         sudo cp -a $HOMEBREW_PREFIX/Frameworks/Python.framework/. $HOMEBREW_PREFIX/lib/Python.framework/
-        macdeployqt 'csmm.app' -dmg
+        macdeployqt6 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}
       run: mv 'csmm.dmg' "csmm-$VERSION_NAME-macos.dmg"
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: |
-          ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-macos.dmg
-          ${{github.workspace}}/docs/_build/csmm-${{github.event.release.tag_name}}-pydocs.zip
+    # - name: Release
+    #   uses: softprops/action-gh-release@v1
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     files: |
+    #       ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-macos.dmg
+    #       ${{github.workspace}}/docs/_build/csmm-${{github.event.release.tag_name}}-pydocs.zip
   windows:
     runs-on: windows-latest
     steps:
@@ -169,10 +163,10 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Switch to Python 3.11
+    - name: Switch to Python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
 
     - name: Configure Python virtual environment
       working-directory: ${{github.workspace}}
@@ -215,7 +209,6 @@ jobs:
         CONDENSEDPYVER=$(echo $PYVER | sed 's/\([0-9]*\)\.\([0-9]*\).*/\1\2/')
         cp "C:\Program Files\OpenSSL\bin\libcrypto-1_1-x64.dll" "csmm-$VERSION_NAME"
         cp "C:\Program Files\OpenSSL\bin\libssl-1_1-x64.dll" "csmm-$VERSION_NAME"
-        cp "C:/hostedtoolcache/windows/Python/$PYVER/x64/python$CONDENSEDPYVER.dll" "csmm-$VERSION_NAME"
 
     - name: Copy Python stdlib
       working-directory: ${{github.workspace}}
@@ -232,11 +225,11 @@ jobs:
         filename: csmm-${{github.event.release.tag_name}}-windows.zip
         path: ./csmm-${{github.event.release.tag_name}}/
 
-    - name: Release
-      uses: svenstaro/upload-release-action@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-windows.zip
-        tag: ${{ github.ref }}
-        overwrite: true
+    # - name: Release
+    #   uses: svenstaro/upload-release-action@v2
+    #   if: startsWith(github.ref, 'refs/tags/')
+    #   with:
+    #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+    #     file: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-windows.zip
+    #     tag: ${{ github.ref }}
+    #     overwrite: true

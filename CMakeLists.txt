@@ -241,7 +241,12 @@ set(PY_SOURCES
     pymain.cpp
 )
 
-find_package(Python REQUIRED COMPONENTS Interpreter Development)
+# helps with GHA and setup-python on Mac and Windows
+if (NOT DEFINED Python_FIND_REGISTRY)
+  set(Python_FIND_REGISTRY "LAST")
+endif ()
+
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 # copy over python libraries
 if(APPLE)
@@ -260,7 +265,10 @@ file(COPY "${Python_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
     PATTERN "test" EXCLUDE)
 
 if (WIN32)
-    file(COPY "${Python_STDLIB}/../DLLs" DESTINATION ${PYTHON_STDLIB_DESTFOLDER})
+    add_custom_command(TARGET csmm PRE-BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${Python_RUNTIME_LIBRARY_DIRS}/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
+    )
 endif()
 
 if(APPLE)
@@ -365,8 +373,6 @@ else()
     target_link_libraries(csmmpython PRIVATE yaml-cpp)
 endif()
 
-set(PYBIND11_FINDPYTHON ON)
-set(PYBIND11_PYTHON_VERSION "3.11")
 add_subdirectory(lib/pybind11)
 target_link_libraries(csmm PRIVATE pybind11::embed)
 target_link_libraries(csmm PRIVATE pybind11::windows_extras)
