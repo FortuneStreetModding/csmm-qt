@@ -242,11 +242,11 @@ set(PY_SOURCES
 )
 
 # helps with GHA and setup-python on Mac and Windows
-if (NOT DEFINED Python_FIND_REGISTRY)
-  set(Python_FIND_REGISTRY "LAST")
+if (NOT DEFINED Python3_FIND_REGISTRY)
+  set(Python3_FIND_REGISTRY "LAST")
 endif ()
 
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 # copy over python libraries
 if(APPLE)
@@ -258,18 +258,12 @@ else()
 endif()
 
 file(MAKE_DIRECTORY ${PYTHON_STDLIB_DESTFOLDER})
-file(COPY "${Python_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
+file(COPY "${Python3_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
     PATTERN "config-*/*" EXCLUDE
     PATTERN ".DS_Store" EXCLUDE
     PATTERN "site-packages" EXCLUDE
-    PATTERN "test" EXCLUDE)
-
-if (WIN32)
-    add_custom_command(TARGET csmm PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${Python_RUNTIME_LIBRARY_DIRS}/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
-    )
-endif()
+    PATTERN "test" EXCLUDE
+    PATTERN "__pycache__" EXCLUDE)
 
 if(APPLE)
     set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
@@ -277,7 +271,7 @@ if(APPLE)
     set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
     # copy python library files to bundle
-    file(GLOB_RECURSE PY_STDLIB_FILES "${PYTHON_STDLIB_DESTFOLDER}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/*")
+    file(GLOB_RECURSE PY_STDLIB_FILES "${PYTHON_STDLIB_DESTFOLDER}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/*")
     foreach (PY_STDLIB_FILE ${PY_STDLIB_FILES})
         file(RELATIVE_PATH PY_STDLIB_FILE_REL "${PYTHON_STDLIB_DESTFOLDER}" ${PY_STDLIB_FILE})
         get_filename_component(PY_STDLIB_FILE_REL_DIR ${PY_STDLIB_FILE_REL} DIRECTORY)
@@ -318,6 +312,10 @@ elseif(WIN32)
         COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_CURRENT_BINARY_DIR}/szs.zip
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40b-r8923-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/szs
+    )
+    add_custom_command(TARGET csmm PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
     )
 else()
     add_executable(csmm ${MAIN_SOURCES})
