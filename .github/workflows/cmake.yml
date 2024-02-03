@@ -123,6 +123,12 @@ jobs:
         echo killing...; sudo pkill -9 XProtect >/dev/null || true;
         echo waiting...; while pgrep XProtect; do sleep 3; done;
 
+    - name: Symlink Python framework to desired location
+      run: |
+        HOMEBREW_PREFIX=$(brew --prefix python@3.12)
+        cmake -E make_directory /Library/lib/Python.framework/Versions/3.12/
+        ln -s $HOMEBREW_PREFIX/Frameworks/Python.framework/Versions/3.12/ /Library/lib/Python.framework/Versions/3.12/
+
     - name: Deploy
       working-directory: ${{github.workspace}}
       run: macdeployqt6 'csmm.app' -dmg
