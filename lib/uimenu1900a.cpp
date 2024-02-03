@@ -53,7 +53,7 @@ bool injectMapIconsLayout(const QString &brlytFile, const QMap<QString, QString>
     auto texIt = std::remove_if(texs.begin(), texs.end(), [](const std::string &s) { return isMapTpl(QString::fromStdString(s)); });
     texs.erase(texIt, texs.end());
     auto newTplNames = mapIconToTplName.values();
-    for (auto &tplName: qAsConst(newTplNames)) {
+    for (auto &tplName: std::as_const(newTplNames)) {
         texs.push_back(tplName.toStdString());
     }
 
@@ -116,7 +116,7 @@ bool injectMapIconsLayout(const QString &brlytFile, const QMap<QString, QString>
     mapIconParent->children.erase(picIt, mapIconParent->children.end());
 
     auto mapIcons = mapIconToTplName.keys();
-    for (auto &icon: qAsConst(mapIcons)) {
+    for (auto &icon: std::as_const(mapIcons)) {
         auto newPic = std::make_shared<bq::brlyt::Pic1>(*templatePic);
         newPic->material = mapIconToMaterial[icon];
         newPic->name = icon.toStdString();
@@ -166,7 +166,7 @@ bool injectMapIconsAnimation(const QString &brlanFile, const QMap<QString, QStri
     entries.erase(entriesIt, entries.end());
 
     auto mapIcons = mapIconToTplName.keys();
-    for (auto &icon: qAsConst(mapIcons)) {
+    for (auto &icon: std::as_const(mapIcons)) {
         auto newEntry = templateEntry;
         newEntry.name = icon.toStdString();
         entries.push_back(newEntry);

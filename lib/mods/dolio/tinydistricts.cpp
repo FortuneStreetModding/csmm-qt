@@ -76,7 +76,7 @@ void TinyDistricts::writeAsm(QDataStream &stream, const AddressMapper &addressMa
     quint32 procSingleShopDistrictCheckRoutine = allocate(writeSingleShopDistrictCheckRoutine(addressMapper, 0), "procSingleShopDistrictCheckRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procSingleShopDistrictCheckRoutine));
     auto routineCode = writeSingleShopDistrictCheckRoutine(addressMapper, procSingleShopDistrictCheckRoutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // cmpw r0,r3       ->  b procSingleShopDistrictCheckRoutine
     stream << PowerPcAsm::b(hijackAddr, procSingleShopDistrictCheckRoutine);

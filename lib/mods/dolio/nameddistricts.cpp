@@ -81,7 +81,7 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> NamedDistricts::loadUiMe
         result[uiMessageCsv(locale)] = [&](const QString &, GameInstance *instance, const ModListType &, const UiMessage *messages) {
             for (auto &descriptor: instance->mapDescriptors()) {
                 descriptor.districtNames[locale].clear();
-                for (int distNameId: qAsConst(descriptor.districtNameIds)) {
+                for (int distNameId: std::as_const(descriptor.districtNameIds)) {
                     auto distName = messages->at(distNameId);
                     // add district word in front of vanilla district names
                     if (5454 <= distNameId && distNameId <= 5760) {

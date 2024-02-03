@@ -25,7 +25,7 @@ void RuleSetTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     auto ruleSetFromMapRoutine = allocate(writeRuleSetFromMapRoutine(addressMapper, 0), "writeRuleSetFromMapRoutine");
     stream.device()->seek(addressMapper.toFileAddress(ruleSetFromMapRoutine));
     auto insts = writeRuleSetFromMapRoutine(addressMapper, ruleSetFromMapRoutine); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     quint32 virtualPos = addressMapper.boomStreetToStandard(0x8007e13c);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
     // lha r3,0x3c(r30)  -> bl ruleSetFromMapRoutine
@@ -46,7 +46,7 @@ void RuleSetTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     auto getRuleSetRoutine = allocate(writeGetRuleSetRoutine(addressMapper, 0, returnAddr), "writeRuleSetFromMapRoutine");
     stream.device()->seek(addressMapper.toFileAddress(getRuleSetRoutine));
     insts = writeGetRuleSetRoutine(addressMapper, getRuleSetRoutine, returnAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     virtualPos = addressMapper.boomStreetToStandard(0x801c468c);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
     // lha r3,0x3c(r30)  -> bl ruleSetFromMapRoutine
