@@ -114,8 +114,7 @@ jobs:
 
     - name: Install docs dependencies
       working-directory: ${{github.workspace}}
-      run: |
-        pipx install sphinx==7.2.6 pillow==10.2.0 --break-system-packages
+      run: pipx install sphinx==7.2.6 pillow==10.2.0
 
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
