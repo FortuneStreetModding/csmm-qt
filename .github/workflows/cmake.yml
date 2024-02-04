@@ -70,7 +70,9 @@ jobs:
         submodules: true
 
     - name: Install dependencies
-      run: brew install libarchive ninja yaml-cpp
+      run: |
+        brew install libarchive ninja pipx yaml-cpp
+        pipx ensurepath
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -91,28 +93,34 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Configure Python virtual environment
-      working-directory: ${{github.workspace}}
-      run: |
-        python -m venv ./csmm-venv
-        source ./csmm-venv/bin/activate
+    # - name: Configure Python virtual environment
+    #   working-directory: ${{github.workspace}}
+    #   run: |
+    #     python -m venv ./csmm-venv
+    #     source ./csmm-venv/bin/activate
 
-    - name: Install Pip in CSMM
-      working-directory: ${{github.workspace}}
-      run: |
-        source ./csmm-venv/bin/activate
-        ./csmm.app/Contents/MacOS/csmmpython -m ensurepip
+    # - name: Install Pip in CSMM
+    #   working-directory: ${{github.workspace}}
+    #   run: |
+    #     source ./csmm-venv/bin/activate
+    #     ./csmm.app/Contents/MacOS/csmmpython -m ensurepip
 
-    - name: Install Pip Modules In Embedded Python
+    # - name: Install Pip Modules In Embedded Python
+    #   working-directory: ${{github.workspace}}
+    #   run: |
+    #     source ./csmm-venv/bin/activate
+    #     ./csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==7.2.6 pillow==10.2.0 --break-system-packages
+
+
+    - name: Install docs dependencies
       working-directory: ${{github.workspace}}
       run: |
-        source ./csmm-venv/bin/activate
-        ./csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==7.2.6 pillow==10.1.0 --break-system-packages
+        pipx install sphinx==7.2.6 pillow==10.2.0 --break-system-packages
 
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
       run: |
-        export SPHINXBUILD="${{github.workspace}}/csmm.app/Contents/MacOS/csmmpython -m sphinx"
+        export SPHINXBUILD="python -m sphinx"
         make html
         cd _build
         zip -r "csmm-$VERSION_NAME-pydocs.zip" html
@@ -127,7 +135,7 @@ jobs:
       run: |
         HOMEBREW_PREFIX=$(brew --prefix python@3.12)
         sudo mkdir -p /Library/lib/Python.framework/Versions/3.12/
-        sudo ln -s $HOMEBREW_PREFIX/Frameworks/Python.framework/Versions/3.12/ /Library/lib/Python.framework/Versions/3.12/
+        sudo ln -s $HOMEBREW_PREFIX/Frameworks/Python.framework/Versions/3.12/Python /Library/lib/Python.framework/Versions/3.12/Python
 
     - name: Deploy
       working-directory: ${{github.workspace}}
@@ -178,16 +186,18 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Install Pip in CSMM
-      working-directory: ${{github.workspace}}
-      shell: pwsh
-      run: |
-        Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
-        .\csmmpython -m get-pip --break-system-packages
+    # - name: Install Pip in CSMM
+    #   working-directory: ${{github.workspace}}
+    #   shell: pwsh
+    #   run: |
+    #     PYVER=$(py --version | sed 's/Python //')
+    #     CONDENSEDPYVER=$(echo $PYVER | sed 's/\([0-9]*\)\.\([0-9]*\).*/\1\2/')
+    #     Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
+    #     .\csmmpython -m get-pip --break-system-packages
 
-    - name: Install Pip Modules In Embedded Python
-      working-directory: ${{github.workspace}}
-      run: .\csmmpython -m pip install pillow==10.1.0 --break-system-packages
+    # - name: Install Pip Modules In Embedded Python
+    #   working-directory: ${{github.workspace}}
+    #   run: .\csmmpython -m pip install pillow==10.2.0 --break-system-packages
 
     - name: Rename
       working-directory: ${{github.workspace}}
