@@ -118,7 +118,10 @@ jobs:
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: macdeployqt6 'csmm.app' -dmg
+      run: |
+        install_name_tool -change /Library/Frameworks/Python.framework/Versions/3.12/Python @executable_path/../Frameworks/Python.framework/Python csmm.app/contents/MacOs/csmm
+        install_name_tool -change /Library/Frameworks/Python.framework/Versions/3.12/Python @executable_path/../Frameworks/Python.framework/Python csmm.app/contents/MacOs/csmmpython
+        macdeployqt6 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}
@@ -188,6 +191,7 @@ jobs:
         CONDENSEDPYVER=$(echo $PYVER | sed 's/\([0-9]*\)\.\([0-9]*\).*/\1\2/')
         cp "C:\Program Files\OpenSSL\bin\libcrypto-1_1-x64.dll" "csmm-$VERSION_NAME"
         cp "C:\Program Files\OpenSSL\bin\libssl-1_1-x64.dll" "csmm-$VERSION_NAME"
+        cp "C:/hostedtoolcache/windows/Python/$PYVER/x64/python$CONDENSEDPYVER.dll" "csmm-$VERSION_NAME"
 
     - name: Copy Python stdlib
       working-directory: ${{github.workspace}}
