@@ -114,8 +114,8 @@ jobs:
     - name: Symlink Python framework to desired location
       run: |
         HOMEBREW_PREFIX=$(brew --prefix python@3.12)
-        sudo mkdir -p /Library/lib/Python.framework/Versions/3.12
-        sudo ln -s $HOMEBREW_PREFIX/Frameworks/Python.framework/Versions/3.12/lib /Library/lib/Python.framework/Versions/3.12/lib
+        sudo mkdir -p /Library/lib/
+        sudo ln -s $HOMEBREW_PREFIX/Frameworks/Python.framework/ /Library/lib/
 
     - name: Deploy
       working-directory: ${{github.workspace}}
