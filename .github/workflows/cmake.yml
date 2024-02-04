@@ -120,9 +120,10 @@ jobs:
     - name: Deploy
       working-directory: ${{github.workspace}}
       run: |
-        macdeployqt6 'csmm.app' -dmg
+        macdeployqt6 'csmm.app'
         install_name_tool -change /Library/Frameworks/Python.framework/Versions/3.12/Python @executable_path/../Frameworks/Python.framework/Python csmm.app/contents/MacOs/csmm
         install_name_tool -change /Library/Frameworks/Python.framework/Versions/3.12/Python @executable_path/../Frameworks/Python.framework/Python csmm.app/contents/MacOs/csmmpython
+        macdeployqt6 'csmm.app' -dmg
 
     # - name: Rename
     #   working-directory: ${{github.workspace}}
