@@ -126,7 +126,7 @@ jobs:
     - name: Symlink Python framework to desired location
       run: |
         HOMEBREW_PREFIX=$(brew --prefix python@3.12)
-        cmake -E make_directory /Library/lib/Python.framework/Versions/3.12/
+        mkdir -p /Library/lib/Python.framework/Versions/3.12/
         ln -s $HOMEBREW_PREFIX/Frameworks/Python.framework/Versions/3.12/ /Library/lib/Python.framework/Versions/3.12/
 
     - name: Deploy
@@ -189,13 +189,12 @@ jobs:
       shell: pwsh
       run: |
         .\.venv\Scripts\activate
-        .\csmmpython -m ensurepip
+        Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
+        .\csmmpython -m get-pip --break-system-packages
 
     - name: Install Pip Modules In Embedded Python
       working-directory: ${{github.workspace}}
-      run: |
-        .\.venv\Scripts\activate
-        .\csmmpython -m pip install pillow==10.1.0 --break-system-packages
+      run: .\csmmpython -m pip install pillow==10.1.0 --break-system-packages
 
     - name: Rename
       working-directory: ${{github.workspace}}
