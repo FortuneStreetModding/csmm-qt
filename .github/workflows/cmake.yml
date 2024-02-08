@@ -104,7 +104,7 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake -DPython3_ROOT_DIR=~/miniconda3/envs/x86_env/ -DCMAKE_BUILD_TYPE=Release . -G Ninja
+      run: conda activate x86_env && cmake -DPython3_ROOT_DIR=~/miniconda3/envs/x86_env/ -DCMAKE_BUILD_TYPE=Release . -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}
@@ -127,7 +127,7 @@ jobs:
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: macdeployqt6 'csmm.app' -dmg
+      run: conda activate x86_env && macdeployqt6 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}
