@@ -62,16 +62,16 @@ jobs:
       with:
         files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
   macos:
-    runs-on: macos-13
+    runs-on: macos-14
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
-
     - name: Install dependencies
-      run: |
-        brew install libarchive ninja pipx yaml-cpp
-        pipx ensurepath
+      run: brew install libarchive ninja
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -79,26 +79,41 @@ jobs:
         version: 6.6.1
         target: desktop
 
-    - name: Switch to Python 3.12
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
+    - name: Install x86_64 Homebrew
+      run: arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    - name: Install x86_64 yaml-cpp
+      run: arch -x86_64 /usr/local/bin/brew install yaml-cpp
+
+    - name: Install miniconda
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir -p ~/miniconda3
+        curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -o ~/miniconda3/miniconda.sh
+        bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+        rm -rf ~/miniconda3/miniconda.sh
+        source ~/miniconda3/bin/activate
+        conda init bash
+    - name: Set up x86_64 conda env
+      run: |
+        conda create -n x86_env -y
+        conda activate x86_env
+        conda config --env --set subdir osx-64
+        conda install -p ~/miniconda3/envs/x86_env python=3.12
+        pip install sphinx==7.2.6 pillow==10.2.0
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake -DCMAKE_BUILD_TYPE=Release . -G Ninja
+      run: conda activate x86_env && cmake -DPython3_ROOT_DIR=/Users/runner/miniconda3/envs/x86_env/ -DCMAKE_BUILD_TYPE=Release . -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Install docs dependencies
-      working-directory: ${{github.workspace}}
-      run: python -m pip install sphinx==7.2.6 pillow==10.2.0 --break-system-packages
-
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
       run: |
+        conda activate x86_env
         export SPHINXBUILD="python -m sphinx"
         make html
         cd _build
@@ -110,18 +125,9 @@ jobs:
         echo killing...; sudo pkill -9 XProtect >/dev/null || true;
         echo waiting...; while pgrep XProtect; do sleep 3; done;
 
-    - name: Symlink Python framework to desired location
-      run: |
-        HOMEBREW_PREFIX=$(brew --prefix python@3.12)
-        sudo mkdir -p /Library/lib/Python.framework/Versions/3.12/
-        sudo ln -s $HOMEBREW_PREFIX/Frameworks/Python.framework/Versions/3.12/Python /Library/lib/Python.framework/Versions/3.12/Python
-
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: |
-        install_name_tool -change /Library/Frameworks/Python.framework/Versions/3.12/Python @executable_path/../Frameworks/Python.framework/Python csmm.app/contents/MacOs/csmm
-        install_name_tool -change /Library/Frameworks/Python.framework/Versions/3.12/Python @executable_path/../Frameworks/Python.framework/Python csmm.app/contents/MacOs/csmmpython
-        macdeployqt6 'csmm.app' -dmg
+      run: conda activate x86_env && macdeployqt6 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}

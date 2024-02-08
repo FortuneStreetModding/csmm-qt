@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21.1)
 
 add_compile_definitions(QT_NO_KEYWORDS)
 add_compile_definitions(UNICODE)
 add_compile_definitions(_UNICODE)
 
 if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64")
+    set(Python3_FIND_VIRTUALENV "ONLY")
 endif()
 
 if(WIN32)
@@ -26,11 +28,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 COMPONENTS Core REQUIRED)
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
-find_package(Qt6 COMPONENTS Gui REQUIRED)
-find_package(Qt6 COMPONENTS Network REQUIRED)
-find_package(Qt6 COMPONENTS Concurrent REQUIRED)
+find_package(Qt6 COMPONENTS Concurrent Core Gui Network Widgets REQUIRED)
 
 set(LIB_SOURCES
     lib/addressmapping.cpp
@@ -241,10 +239,9 @@ set(PY_SOURCES
     pymain.cpp
 )
 
-# helps with GHA and setup-python on Mac and Windows
-if (NOT DEFINED Python3_FIND_REGISTRY)
-  set(Python3_FIND_REGISTRY "LAST")
-endif ()
+if(APPLE)
+    set(Python3_FIND_VIRTUALENV ONLY)
+endif()
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
@@ -279,7 +276,6 @@ if(APPLE)
     endforeach()
     add_executable(csmm MACOSX_BUNDLE ${MAIN_SOURCES} ${APP_ICON_MACOSX} ${PY_STDLIB_FILES})
     add_executable(csmmpython ${PY_SOURCES})
-
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-mac.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
@@ -360,39 +356,41 @@ if(NOT WIN32)
     endif()
 
     target_include_directories(csmm PRIVATE ${YAML_CPP_INCLUDE_DIR})
-    target_link_libraries(csmm PRIVATE ${YAML_CPP_LIBRARIES})
     target_include_directories(csmmpython PRIVATE ${YAML_CPP_INCLUDE_DIR})
+    target_link_libraries(csmm PRIVATE ${YAML_CPP_LIBRARIES})
     target_link_libraries(csmmpython PRIVATE ${YAML_CPP_LIBRARIES})
 else()
     add_subdirectory(lib/yaml-cpp)
     target_include_directories(csmm PRIVATE lib/yaml-cpp/include)
-    target_link_libraries(csmm PRIVATE yaml-cpp)
     target_include_directories(csmmpython PRIVATE lib/yaml-cpp/include)
-    target_link_libraries(csmmpython PRIVATE yaml-cpp)
+    target_link_libraries(csmm PRIVATE pybind11::windows_extras yaml-cpp)
+    target_link_libraries(csmmpython PRIVATE pybind11::windows_extras yaml-cpp)
 endif()
 
 add_subdirectory(lib/pybind11)
-target_link_libraries(csmm PRIVATE pybind11::embed)
-target_link_libraries(csmm PRIVATE pybind11::windows_extras)
-target_link_libraries(csmmpython PRIVATE pybind11::embed)
-target_link_libraries(csmmpython PRIVATE pybind11::windows_extras)
-
+add_subdirectory(lib/libbecquerel)
 target_include_directories(csmm PRIVATE lib/libbecquerel)
 target_include_directories(csmmpython PRIVATE lib/libbecquerel)
-add_subdirectory(lib/libbecquerel)
-target_link_libraries(csmm PRIVATE becquerel)
-target_link_libraries(csmmpython PRIVATE becquerel)
 
-target_link_libraries(csmm PRIVATE Qt6::Core)
-target_link_libraries(csmm PRIVATE Qt6::Widgets)
-target_link_libraries(csmm PRIVATE Qt6::Gui)
-target_link_libraries(csmm PRIVATE Qt6::Network)
-target_link_libraries(csmm PRIVATE Qt6::Concurrent)
-target_link_libraries(csmmpython PRIVATE Qt6::Core)
-target_link_libraries(csmmpython PRIVATE Qt6::Widgets)
-target_link_libraries(csmmpython PRIVATE Qt6::Gui)
-target_link_libraries(csmmpython PRIVATE Qt6::Network)
-target_link_libraries(csmmpython PRIVATE Qt6::Concurrent)
+target_link_libraries(csmm PRIVATE
+    becquerel
+    pybind11::embed
+    Qt6::Concurrent
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Network
+    Qt6::Widgets
+)
+
+target_link_libraries(csmmpython PRIVATE
+    becquerel
+    pybind11::embed
+    Qt6::Concurrent
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Network
+    Qt6::Widgets
+)
 
 set_target_properties(csmm PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER com.fortunestreetmodding
@@ -401,4 +399,3 @@ set_target_properties(csmm PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE FALSE
 )
-
