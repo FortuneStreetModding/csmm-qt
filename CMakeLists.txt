@@ -7,7 +7,6 @@ add_compile_definitions(_UNICODE)
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
     set(CMAKE_OSX_ARCHITECTURES "x86_64")
-    set(Python3_FIND_VIRTUALENV "ONLY")
 endif()
 
 if(WIN32)
@@ -292,47 +291,6 @@ if(APPLE)
     add_custom_command(TARGET csmmpython POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/csmmpython ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/csmmpython
     )
-
-    add_custom_command(TARGET csmm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        /opt/homebrew/opt/yaml-cpp/lib/libyaml-cpp.0.8.dylib
-        $<TARGET_FILE_DIR:csmm>/../Frameworks/libyaml-cpp.0.8.dylib
-    )
-
-    add_custom_command(TARGET csmm POST_BUILD
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
-        /opt/homebrew/opt/yaml-cpp/lib/libyaml-cpp.0.8.dylib
-        @executable_path/../Frameworks/libyaml-cpp.0.8.dylib
-        $<TARGET_FILE:csmm>
-    )
-
-    add_custom_command(TARGET csmmpython POST_BUILD
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
-        /opt/homebrew/opt/yaml-cpp/lib/libyaml-cpp.0.8.dylib
-        @executable_path/../Frameworks/libyaml-cpp.0.8.dylib
-        $<TARGET_FILE:csmm>python
-    )
-
-    add_custom_command(TARGET csmm POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PYTHON_EXECUTABLE}
-        $<TARGET_FILE_DIR:csmm>/../Resources/Python
-    )
-
-    add_custom_command(TARGET csmm POST_BUILD
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
-        /Library/lib/Python.framework/Versions/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/Python
-        @executable_path/../Resources/Python
-        $<TARGET_FILE:csmm>
-    )
-
-    add_custom_command(TARGET csmmpython POST_BUILD
-        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
-        /Library/lib/Python.framework/Versions/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/Python
-        @executable_path/../Resources/Python
-        $<TARGET_FILE:csmm>python
-    )
-
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
     add_executable(csmm ${MAIN_SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
