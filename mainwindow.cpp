@@ -548,13 +548,13 @@ void MainWindow::validateMaps() {
     std::sort(mapSets.begin(), mapSets.end());
     mapSets.erase(std::unique(mapSets.begin(), mapSets.end()), mapSets.end());
 
-    for (int mapSet: qAsConst(mapSets)) {
+    for (int mapSet: std::as_const(mapSets)) {
         auto descriptorToZone = getMapZones(descriptors, mapSet, errorMsgs);
         auto zones = descriptorToZone.values();
         std::sort(zones.begin(), zones.end());
         zones.erase(std::unique(zones.begin(), zones.end()), zones.end());
 
-        for (int zone: qAsConst(zones)) {
+        for (int zone: std::as_const(zones)) {
             getMapOrderings(descriptors, mapSet, zone, errorMsgs);
         }
     }

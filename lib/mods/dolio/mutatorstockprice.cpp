@@ -9,7 +9,7 @@ void MutatorStockPrice::writeAsm(QDataStream &stream, const AddressMapper &addre
     quint32 procStockPriceMultiplier = allocate(writeStockPriceMultiplier(addressMapper, 0, getMutatorDataSubroutine), "procStockPriceMultiplier");
     stream.device()->seek(addressMapper.toFileAddress(procStockPriceMultiplier));
     auto routineCode = writeStockPriceMultiplier(addressMapper, procStockPriceMultiplier, getMutatorDataSubroutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // cmpwi r4,0x0            ->  b procStockPriceMultiplier
     stream << PowerPcAsm::b(hijackAddr, procStockPriceMultiplier);

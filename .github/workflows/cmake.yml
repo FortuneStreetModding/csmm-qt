@@ -10,7 +10,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  VERSION_NAME: ${{ github.event.release.tag_name }}
+  VERSION_NAME: 6.4.0 #${{ github.event.release.tag_name }}
 
 jobs:
   linux:
@@ -30,10 +30,10 @@ jobs:
         sudo add-apt-repository universe
         sudo apt install libfuse2
 
-    - name: Switch to Python 3.11
+    - name: Switch to Python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -62,14 +62,16 @@ jobs:
       with:
         files: ${{github.workspace}}/csmm-${{github.event.release.tag_name}}-linux.AppImage
   macos:
-    runs-on: macos-13
+    runs-on: macos-14
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
-
     - name: Install dependencies
-      run: brew install libarchive ninja python@3.11 yaml-cpp
+      run: brew install libarchive ninja
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -77,39 +79,42 @@ jobs:
         version: 6.6.1
         target: desktop
 
+    - name: Install x86_64 Homebrew
+      run: arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    - name: Install x86_64 yaml-cpp
+      run: arch -x86_64 /usr/local/bin/brew install yaml-cpp
+
+    - name: Install miniconda
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir -p ~/miniconda3
+        curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -o ~/miniconda3/miniconda.sh
+        bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+        rm -rf ~/miniconda3/miniconda.sh
+        source ~/miniconda3/bin/activate
+        conda init bash
+    - name: Set up x86_64 conda env
+      run: |
+        conda create -n x86_env -y
+        conda activate x86_env
+        conda config --env --set subdir osx-64
+        conda install -p ~/miniconda3/envs/x86_env python=3.12
+        pip install sphinx==7.2.6 pillow==10.2.0
+
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake -DCMAKE_BUILD_TYPE=Release . -G Ninja
+      run: conda activate x86_env && cmake -DPython3_ROOT_DIR=/Users/runner/miniconda3/envs/x86_env/ -DCMAKE_BUILD_TYPE=Release . -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
 
-    - name: Switch to Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Configure Python virtual environment
-      working-directory: ${{github.workspace}}
-      run: |
-        python -m venv ./csmm-venv
-        source ./csmm-venv/bin/activate
-
-    - name: Install Pip in CSMM
-      working-directory: ${{github.workspace}}
-      run: |
-        wget https://bootstrap.pypa.io/get-pip.py
-        ./csmm.app/Contents/MacOS/csmmpython -m get-pip --break-system-packages
-
-    - name: Install Pip Modules In Embedded Python
-      working-directory: ${{github.workspace}}
-      run: ./csmm.app/Contents/MacOS/csmmpython -m pip install sphinx==7.2.6 pillow==10.1.0 --break-system-packages
-
     - name: Build docs
       working-directory: ${{github.workspace}}/docs
       run: |
-        export SPHINXBUILD="${{github.workspace}}/csmm.app/Contents/MacOS/csmmpython -m sphinx"
+        conda activate x86_env
+        export SPHINXBUILD="python -m sphinx"
         make html
         cd _build
         zip -r "csmm-$VERSION_NAME-pydocs.zip" html
@@ -122,12 +127,7 @@ jobs:
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: |
-        HOMEBREW_PREFIX=$(brew --prefix python@3.11)
-        echo $HOMEBREW_PREFIX
-        mkdir -p $HOMEBREW_PREFIX/lib/Python.framework/
-        sudo cp -a $HOMEBREW_PREFIX/Frameworks/Python.framework/. $HOMEBREW_PREFIX/lib/Python.framework/
-        macdeployqt 'csmm.app' -dmg
+      run: conda activate x86_env && macdeployqt6 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}
@@ -160,6 +160,11 @@ jobs:
     - name: Setup VS Environment
       uses: seanmiddleditch/gha-setup-vsdevenv@master
 
+    - name: Switch to Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
     - name: Configure CMake
       working-directory: ${{github.workspace}}
       shell: bash
@@ -168,29 +173,6 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: ninja
-
-    - name: Switch to Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Configure Python virtual environment
-      working-directory: ${{github.workspace}}
-      run: |
-        py -m venv .venv
-        .\.venv\Scripts\activate
-
-    - name: Install Pip in CSMM
-      working-directory: ${{github.workspace}}
-      shell: pwsh
-      run: |
-        .\.venv\Scripts\activate
-        Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
-        .\csmmpython -m get-pip --break-system-packages
-
-    - name: Install Pip Modules In Embedded Python
-      working-directory: ${{github.workspace}}
-      run: .\csmmpython -m pip install pillow==10.1.0 --break-system-packages
 
     - name: Rename
       working-directory: ${{github.workspace}}

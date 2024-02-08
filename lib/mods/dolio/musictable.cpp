@@ -86,7 +86,7 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
     quint32 subroutineReplaceBgmId = allocate(writeSubroutineReplaceBgmId(addressMapper, bgmTableAddr, 0, returnContinueAddr, returnBgmReplacedAddr), "SubroutineReplaceBgmId");
     stream.device()->seek(addressMapper.toFileAddress(subroutineReplaceBgmId));
     auto insts = writeSubroutineReplaceBgmId(addressMapper, bgmTableAddr, subroutineReplaceBgmId, returnContinueAddr, returnBgmReplacedAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // mr r31, r3                                   -> b subroutineReplaceBgmId
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
@@ -100,7 +100,7 @@ void MusicTable::writeAsm(QDataStream &stream, const AddressMapper &addressMappe
     quint32 subroutineReplaceMeId = allocate(writeSubroutineReplaceBgmId(addressMapper, meTableAddr, 0, returnContinueAddr, returnBgmReplacedAddr), "SubroutineReplaceMeId");
     stream.device()->seek(addressMapper.toFileAddress(subroutineReplaceMeId));
     insts = writeSubroutineReplaceBgmId(addressMapper, meTableAddr, subroutineReplaceMeId, returnContinueAddr, returnBgmReplacedAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // mr r31, r3                                   -> b subroutineReplaceMeId
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));

@@ -106,7 +106,7 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     quint32 subroutineGetDefaultMapId = allocate(writeSubroutineGetDefaultMapIdIntoR3(addressMapper, defaultEasyMap, defaultStandardMap, 0, returnContinueAddr), "SubroutineGetDefaultMapIdIntoR3");
     stream.device()->seek(addressMapper.toFileAddress(subroutineGetDefaultMapId));
     auto insts = writeSubroutineGetDefaultMapIdIntoR3(addressMapper, defaultEasyMap, defaultStandardMap, subroutineGetDefaultMapId, returnContinueAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     // bne                                                                 -> nop
     stream.device()->seek(addressMapper.boomToFileAddress(0x8024afc4)); stream << PowerPcAsm::nop();
     // 0x9 = Castle Trodain
@@ -118,7 +118,7 @@ void WifiFix::writeAsm(QDataStream &stream, const AddressMapper &addressMapper, 
     subroutineGetDefaultMapId = allocate(writeSubroutineGetDefaultMapIdIntoR4(defaultEasyMap, defaultStandardMap, 0, returnContinueAddr), "SubroutineGetDefaultMapIdIntoR4");
     stream.device()->seek(addressMapper.toFileAddress(subroutineGetDefaultMapId));
     insts = writeSubroutineGetDefaultMapIdIntoR4(defaultEasyMap, defaultStandardMap, subroutineGetDefaultMapId, returnContinueAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     // li r4,0x9                                                           ->  b subroutineGetDefaultMapIdIntoR4
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineGetDefaultMapId);
 
