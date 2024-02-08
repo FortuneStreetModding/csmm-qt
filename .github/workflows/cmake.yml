@@ -10,7 +10,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  VERSION_NAME: 6.4.0 #${{ github.event.release.tag_name }}
+  VERSION_NAME: ${{ github.event.release.tag_name }}
 
 jobs:
   linux:
@@ -104,7 +104,7 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: conda activate x86_env && cmake -DPython3_ROOT_DIR=/Users/runner/miniconda3/envs/x86_env/ -DCMAKE_BUILD_TYPE=Release . -G Ninja
+      run: cmake -DPython3_ROOT_DIR=~/miniconda3/envs/x86_env/ -DCMAKE_BUILD_TYPE=Release . -G Ninja
 
     - name: Build
       working-directory: ${{github.workspace}}
@@ -127,7 +127,7 @@ jobs:
 
     - name: Deploy
       working-directory: ${{github.workspace}}
-      run: conda activate x86_env && macdeployqt6 'csmm.app' -dmg
+      run: macdeployqt6 'csmm.app' -dmg
 
     - name: Rename
       working-directory: ${{github.workspace}}
