@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21.1)
 
 add_compile_definitions(QT_NO_KEYWORDS)
 add_compile_definitions(UNICODE)
 add_compile_definitions(_UNICODE)
 
 if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64")
+    set(Python3_FIND_VIRTUALENV "ONLY")
 endif()
 
 if(WIN32)
@@ -26,11 +28,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 COMPONENTS Core REQUIRED)
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
-find_package(Qt6 COMPONENTS Gui REQUIRED)
-find_package(Qt6 COMPONENTS Network REQUIRED)
-find_package(Qt6 COMPONENTS Concurrent REQUIRED)
+find_package(Qt6 COMPONENTS Concurrent Core Gui Network Widgets REQUIRED)
 
 set(LIB_SOURCES
     lib/addressmapping.cpp
@@ -241,7 +239,11 @@ set(PY_SOURCES
     pymain.cpp
 )
 
-find_package(Python REQUIRED COMPONENTS Interpreter Development)
+if(APPLE)
+    set(Python3_FIND_VIRTUALENV ONLY)
+endif()
+
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 # copy over python libraries
 if(APPLE)
@@ -253,15 +255,12 @@ else()
 endif()
 
 file(MAKE_DIRECTORY ${PYTHON_STDLIB_DESTFOLDER})
-file(COPY "${Python_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
+file(COPY "${Python3_STDLIB}" DESTINATION ${PYTHON_STDLIB_DESTFOLDER}
     PATTERN "config-*/*" EXCLUDE
     PATTERN ".DS_Store" EXCLUDE
     PATTERN "site-packages" EXCLUDE
-    PATTERN "test" EXCLUDE)
-
-if (WIN32)
-    file(COPY "${Python_STDLIB}/../DLLs" DESTINATION ${PYTHON_STDLIB_DESTFOLDER})
-endif()
+    PATTERN "test" EXCLUDE
+    PATTERN "__pycache__" EXCLUDE)
 
 if(APPLE)
     set(MACOSX_BUNDLE_ICON_FILE AppIcon.icns)
@@ -269,7 +268,7 @@ if(APPLE)
     set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
     # copy python library files to bundle
-    file(GLOB_RECURSE PY_STDLIB_FILES "${PYTHON_STDLIB_DESTFOLDER}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/*")
+    file(GLOB_RECURSE PY_STDLIB_FILES "${PYTHON_STDLIB_DESTFOLDER}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/*")
     foreach (PY_STDLIB_FILE ${PY_STDLIB_FILES})
         file(RELATIVE_PATH PY_STDLIB_FILE_REL "${PYTHON_STDLIB_DESTFOLDER}" ${PY_STDLIB_FILE})
         get_filename_component(PY_STDLIB_FILE_REL_DIR ${PY_STDLIB_FILE_REL} DIRECTORY)
@@ -277,7 +276,6 @@ if(APPLE)
     endforeach()
     add_executable(csmm MACOSX_BUNDLE ${MAIN_SOURCES} ${APP_ICON_MACOSX} ${PY_STDLIB_FILES})
     add_executable(csmmpython ${PY_SOURCES})
-
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-mac.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
@@ -294,6 +292,47 @@ if(APPLE)
     add_custom_command(TARGET csmmpython POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/csmmpython ${CMAKE_CURRENT_BINARY_DIR}/csmm.app/Contents/MacOS/csmmpython
     )
+
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        /opt/homebrew/opt/yaml-cpp/lib/libyaml-cpp.0.8.dylib
+        $<TARGET_FILE_DIR:csmm>/../Frameworks/libyaml-cpp.0.8.dylib
+    )
+
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
+        /opt/homebrew/opt/yaml-cpp/lib/libyaml-cpp.0.8.dylib
+        @executable_path/../Frameworks/libyaml-cpp.0.8.dylib
+        $<TARGET_FILE:csmm>
+    )
+
+    add_custom_command(TARGET csmmpython POST_BUILD
+        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
+        /opt/homebrew/opt/yaml-cpp/lib/libyaml-cpp.0.8.dylib
+        @executable_path/../Frameworks/libyaml-cpp.0.8.dylib
+        $<TARGET_FILE:csmm>python
+    )
+
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${PYTHON_EXECUTABLE}
+        $<TARGET_FILE_DIR:csmm>/../Resources/Python
+    )
+
+    add_custom_command(TARGET csmm POST_BUILD
+        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
+        /Library/lib/Python.framework/Versions/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/Python
+        @executable_path/../Resources/Python
+        $<TARGET_FILE:csmm>
+    )
+
+    add_custom_command(TARGET csmmpython POST_BUILD
+        COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change
+        /Library/lib/Python.framework/Versions/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/Python
+        @executable_path/../Resources/Python
+        $<TARGET_FILE:csmm>python
+    )
+
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
     add_executable(csmm ${MAIN_SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
@@ -310,6 +349,10 @@ elseif(WIN32)
         COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_CURRENT_BINARY_DIR}/szs.zip
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/szs
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40b-r8923-cygwin64 ${CMAKE_CURRENT_BINARY_DIR}/szs
+    )
+    add_custom_command(TARGET csmm PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
     )
 else()
     add_executable(csmm ${MAIN_SOURCES})
@@ -354,41 +397,41 @@ if(NOT WIN32)
     endif()
 
     target_include_directories(csmm PRIVATE ${YAML_CPP_INCLUDE_DIR})
-    target_link_libraries(csmm PRIVATE ${YAML_CPP_LIBRARIES})
     target_include_directories(csmmpython PRIVATE ${YAML_CPP_INCLUDE_DIR})
+    target_link_libraries(csmm PRIVATE ${YAML_CPP_LIBRARIES})
     target_link_libraries(csmmpython PRIVATE ${YAML_CPP_LIBRARIES})
 else()
     add_subdirectory(lib/yaml-cpp)
     target_include_directories(csmm PRIVATE lib/yaml-cpp/include)
-    target_link_libraries(csmm PRIVATE yaml-cpp)
     target_include_directories(csmmpython PRIVATE lib/yaml-cpp/include)
-    target_link_libraries(csmmpython PRIVATE yaml-cpp)
+    target_link_libraries(csmm PRIVATE pybind11::windows_extras yaml-cpp)
+    target_link_libraries(csmmpython PRIVATE pybind11::windows_extras yaml-cpp)
 endif()
 
-set(PYBIND11_FINDPYTHON ON)
-set(PYBIND11_PYTHON_VERSION "3.11")
 add_subdirectory(lib/pybind11)
-target_link_libraries(csmm PRIVATE pybind11::embed)
-target_link_libraries(csmm PRIVATE pybind11::windows_extras)
-target_link_libraries(csmmpython PRIVATE pybind11::embed)
-target_link_libraries(csmmpython PRIVATE pybind11::windows_extras)
-
+add_subdirectory(lib/libbecquerel)
 target_include_directories(csmm PRIVATE lib/libbecquerel)
 target_include_directories(csmmpython PRIVATE lib/libbecquerel)
-add_subdirectory(lib/libbecquerel)
-target_link_libraries(csmm PRIVATE becquerel)
-target_link_libraries(csmmpython PRIVATE becquerel)
 
-target_link_libraries(csmm PRIVATE Qt6::Core)
-target_link_libraries(csmm PRIVATE Qt6::Widgets)
-target_link_libraries(csmm PRIVATE Qt6::Gui)
-target_link_libraries(csmm PRIVATE Qt6::Network)
-target_link_libraries(csmm PRIVATE Qt6::Concurrent)
-target_link_libraries(csmmpython PRIVATE Qt6::Core)
-target_link_libraries(csmmpython PRIVATE Qt6::Widgets)
-target_link_libraries(csmmpython PRIVATE Qt6::Gui)
-target_link_libraries(csmmpython PRIVATE Qt6::Network)
-target_link_libraries(csmmpython PRIVATE Qt6::Concurrent)
+target_link_libraries(csmm PRIVATE
+    becquerel
+    pybind11::embed
+    Qt6::Concurrent
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Network
+    Qt6::Widgets
+)
+
+target_link_libraries(csmmpython PRIVATE
+    becquerel
+    pybind11::embed
+    Qt6::Concurrent
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Network
+    Qt6::Widgets
+)
 
 set_target_properties(csmm PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER com.fortunestreetmodding
@@ -397,4 +440,3 @@ set_target_properties(csmm PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE FALSE
 )
-
