@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>919</width>
-    <height>242</height>
+    <height>297</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -154,6 +154,20 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>chooseInputWbfsIso</tabstop>
+  <tabstop>chooseInputGameFolder</tabstop>
+  <tabstop>chooseModpackZip</tabstop>
+  <tabstop>addModZip</tabstop>
+  <tabstop>removeModZip</tabstop>
+  <tabstop>riivolutionPatchName</tabstop>
+  <tabstop>enableRiivolution</tabstop>
+  <tabstop>markerCode</tabstop>
+  <tabstop>separateSaveGame</tabstop>
+  <tabstop>additionalMods</tabstop>
+  <tabstop>modpackZip</tabstop>
+  <tabstop>inputGameLoc</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
