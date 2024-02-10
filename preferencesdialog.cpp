@@ -12,10 +12,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QSettings settings;
     switch (settings.value("csmmMode", INDETERMINATE).toInt()) {
     case EXPRESS:
-        ui->quickSetup->setChecked(true);
+        ui->csmmModeQuickSetupButton->setChecked(true);
         break;
     case ADVANCED:
-        ui->advanced->setChecked(true);
+        ui->csmmModeAdvancedButton->setChecked(true);
         break;
     default:
         break;
@@ -31,9 +31,9 @@ void PreferencesDialog::accept()
 {
     QSettings settings;
     auto checkedBtn = ui->csmmMode->checkedButton();
-    if (checkedBtn == ui->quickSetup) {
+    if (checkedBtn == ui->csmmModeQuickSetupButton) {
         settings.setValue("csmmMode", EXPRESS);
-    } else if (checkedBtn == ui->advanced) {
+    } else if (checkedBtn == ui->csmmModeAdvancedButton) {
         settings.setValue("csmmMode", ADVANCED);
     } else {
         settings.setValue("csmmMode", INDETERMINATE);
