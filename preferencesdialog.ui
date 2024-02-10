@@ -77,7 +77,7 @@
          <string>Quick Setup</string>
         </property>
         <attribute name="buttonGroup">
-         <string notr="true">csmmMode</string>
+         <string notr="true">csmmModeBtnGroup</string>
         </attribute>
        </widget>
       </item>
@@ -87,7 +87,7 @@
          <string>Advanced</string>
         </property>
         <attribute name="buttonGroup">
-         <string notr="true">csmmMode</string>
+         <string notr="true">csmmModeBtnGroup</string>
         </attribute>
        </widget>
       </item>
@@ -189,6 +189,9 @@
         <property name="text">
          <string>Enable (Recommended)</string>
         </property>
+        <attribute name="buttonGroup">
+         <string notr="true">cacheModeBtnGroup</string>
+        </attribute>
        </widget>
       </item>
       <item>
@@ -196,6 +199,9 @@
         <property name="text">
          <string>Disable</string>
         </property>
+        <attribute name="buttonGroup">
+         <string notr="true">cacheModeBtnGroup</string>
+        </attribute>
        </widget>
       </item>
      </layout>
@@ -353,6 +359,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="csmmMode"/>
+  <buttongroup name="csmmModeBtnGroup"/>
+  <buttongroup name="cacheModeBtnGroup"/>
  </buttongroups>
 </ui>

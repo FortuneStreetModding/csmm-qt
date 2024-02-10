@@ -16,6 +16,9 @@ public:
     ~PreferencesDialog();
 private:
     Ui::PreferencesDialog *ui;
+    void enableCacheSettings();
+    void disableCacheSettings();
+    void resetCacheDirectory();
 private Q_SLOTS:
     void accept() override;
 };
