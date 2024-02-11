@@ -16,11 +16,14 @@ namespace CSMMNetworkManager {
 QNetworkAccessManager *instance() {
     static QNetworkAccessManager *theInstance = nullptr;
     if (!theInstance) {
+        auto enable_cache = shouldEnableNetworkCache();
         theInstance = new QNetworkAccessManager(QApplication::instance());
-        auto diskCache = new QNetworkDiskCache(theInstance);
-        diskCache->setCacheDirectory(networkCacheDir());
-        diskCache->setMaximumCacheSize(networkCacheSize());
-        theInstance->setCache(diskCache);
+        if(enable_cache){
+            auto diskCache = new QNetworkDiskCache(theInstance);
+            diskCache->setCacheDirectory(networkCacheDir());
+            diskCache->setMaximumCacheSize(networkCacheSize());
+            theInstance->setCache(diskCache);
+        }
         QObject::connect(theInstance, &QNetworkAccessManager::sslErrors, [=](QNetworkReply *reply, const QList<QSslError> &errors) {
             for (const QSslError &error : errors) {
                 qWarning() << "SSL error:" << error.errorString();
@@ -51,6 +54,22 @@ QString networkCacheDir() {
         settings.setValue("networkCacheDirectory", dirname);
     }
     return dirname;
+}
+
+bool shouldEnableNetworkCache() {
+    QSettings settings;
+    auto enable_cache_setting = settings.value("networkCacheMode").toInt();
+    bool enable_cache = true;
+    switch(enable_cache_setting) {
+    case 0:
+    case 1:
+        enable_cache = true;
+        break;
+    case 2:
+        enable_cache = false;
+        break;
+    }
+    return enable_cache;
 }
 
 bool downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
