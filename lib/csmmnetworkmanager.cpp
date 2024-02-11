@@ -87,6 +87,12 @@ bool shouldEnableNetworkCache() {
     return enable_cache;
 }
 
+void clearNetworkCache() {
+    auto cache = createNetworkCache(instance());
+    cache->deleteLater();
+    cache->clear();
+}
+
 bool downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                                 const std::function<void(double)> &progressCallback) {
     if (!toDownloadFrom.isLocalFile()) {

@@ -11,6 +11,7 @@ namespace CSMMNetworkManager {
     bool shouldEnableNetworkCache();
     long long int networkCacheSize();
     QString networkCacheDir();
+    void clearNetworkCache();
     QNetworkDiskCache* createNetworkCache(QNetworkAccessManager *instance);
     QNetworkAccessManager *instance();
     /**
@@ -27,10 +28,6 @@ namespace CSMMNetworkManager {
         void raise() const override { throw *this; }
         Exception *clone() const override { return new Exception(*this); }
     };
-
-    inline void clearNetworkCache() {
-        instance()->cache()->clear();
-    }
 }
 
 #endif // CSMMNETWORKMANAGER_H
