@@ -15,22 +15,37 @@ namespace CSMMNetworkManager {
 
 QNetworkAccessManager *instance() {
     static QNetworkAccessManager *theInstance = nullptr;
+    static QNetworkDiskCache *theCache = nullptr;
+    auto enable_cache = shouldEnableNetworkCache();
     if (!theInstance) {
-        auto enable_cache = shouldEnableNetworkCache();
         theInstance = new QNetworkAccessManager(QApplication::instance());
         if(enable_cache){
-            auto diskCache = new QNetworkDiskCache(theInstance);
-            diskCache->setCacheDirectory(networkCacheDir());
-            diskCache->setMaximumCacheSize(networkCacheSize());
-            theInstance->setCache(diskCache);
+            theCache = createNetworkCache(theInstance);
+            theInstance->setCache(theCache);
         }
         QObject::connect(theInstance, &QNetworkAccessManager::sslErrors, [=](QNetworkReply *reply, const QList<QSslError> &errors) {
             for (const QSslError &error : errors) {
                 qWarning() << "SSL error:" << error.errorString();
             }
         });
+    } else {
+        if(enable_cache && theCache == nullptr){
+            theCache = createNetworkCache(theInstance);
+            theInstance->setCache(theCache);
+        }
+        if(!enable_cache && theCache != nullptr){
+            theCache = nullptr;
+            theInstance->setCache(theCache);
+        }
     }
     return theInstance;
+}
+
+QNetworkDiskCache* createNetworkCache(QNetworkAccessManager *instance){
+    auto cache = new QNetworkDiskCache(instance);
+    cache->setCacheDirectory(networkCacheDir());
+    cache->setMaximumCacheSize(networkCacheSize());
+    return cache;
 }
 
 long long int networkCacheSize() {
