@@ -5,7 +5,7 @@ add_compile_definitions(UNICODE)
 add_compile_definitions(_UNICODE)
 
 if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
     set(CMAKE_OSX_ARCHITECTURES "x86_64")
 endif()
 
