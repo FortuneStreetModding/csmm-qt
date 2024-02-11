@@ -9,6 +9,7 @@
 #include "lib/await.h"
 #include "lib/progresscanceled.h"
 #include <QtConcurrent>
+#include <QSettings>
 
 namespace CSMMNetworkManager {
 
@@ -18,7 +19,7 @@ QNetworkAccessManager *instance() {
         theInstance = new QNetworkAccessManager(QApplication::instance());
         auto diskCache = new QNetworkDiskCache(theInstance);
         diskCache->setCacheDirectory(networkCacheDir());
-        diskCache->setMaximumCacheSize(4LL << 30); // 4 GB cache
+        diskCache->setMaximumCacheSize(networkCacheSize());
         theInstance->setCache(diskCache);
         QObject::connect(theInstance, &QNetworkAccessManager::sslErrors, [=](QNetworkReply *reply, const QList<QSslError> &errors) {
             for (const QSslError &error : errors) {
@@ -29,9 +30,27 @@ QNetworkAccessManager *instance() {
     return theInstance;
 }
 
+long long int networkCacheSize() {
+    QSettings settings;
+    long long int cache_size = settings.value("networkCacheSize").toLongLong();
+    if (cache_size < 1LL || cache_size > 10LL){
+        cache_size = 4LL;
+    }
+    auto cache_size_in_bytes = (cache_size << 30);
+    return cache_size_in_bytes;
+}
+
+
 QString networkCacheDir() {
-    QDir applicationCacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
-    return applicationCacheDir.filePath("networkCache");
+    QSettings settings;
+    auto dirname = settings.value("networkCacheDirectory").toString();
+    QDir dir(dirname);
+    if (dirname.isEmpty() || !dir.exists()) {
+        QDir applicationCacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+        dirname = applicationCacheDir.filePath("networkCache");
+        settings.setValue("networkCacheDirectory", dirname);
+    }
+    return dirname;
 }
 
 bool downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,

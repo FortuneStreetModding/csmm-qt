@@ -6,6 +6,7 @@
 #include <QNetworkAccessManager>
 
 namespace CSMMNetworkManager {
+    long long int networkCacheSize();
     QString networkCacheDir();
     QNetworkAccessManager *instance();
     /**
