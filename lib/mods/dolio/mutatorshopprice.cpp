@@ -11,7 +11,7 @@ void MutatorShopPrice::writeAsm(QDataStream &stream, const AddressMapper &addres
         quint32 procShopPriceMultiplier = allocate(writeBaseShopPriceMultiplier(addressMapper, 0, getMutatorDataSubroutine), "procShopPriceMultiplier");
         stream.device()->seek(addressMapper.toFileAddress(procShopPriceMultiplier));
         auto routineCode = writeBaseShopPriceMultiplier(addressMapper, procShopPriceMultiplier, getMutatorDataSubroutine);
-        for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+        for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
         stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
         // b LAB_8008eea0             ->  b procShopPriceMultiplier
         stream << PowerPcAsm::b(hijackAddr, procShopPriceMultiplier);
@@ -23,7 +23,7 @@ void MutatorShopPrice::writeAsm(QDataStream &stream, const AddressMapper &addres
         quint32 proc3StarHotelPriceMultiplier = allocate(write3StarHotelPriceMultiplier(addressMapper, 0, getMutatorDataSubroutine), "proc3StarHotelPriceMultiplier");
         stream.device()->seek(addressMapper.toFileAddress(proc3StarHotelPriceMultiplier));
         auto routineCode = write3StarHotelPriceMultiplier(addressMapper, proc3StarHotelPriceMultiplier, getMutatorDataSubroutine);
-        for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+        for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
         stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
         // bl Gm_Place_CalcRank        ->  b proc3StarHotelPriceMultiplier
         stream << PowerPcAsm::b(hijackAddr, proc3StarHotelPriceMultiplier);
@@ -35,7 +35,7 @@ void MutatorShopPrice::writeAsm(QDataStream &stream, const AddressMapper &addres
         quint32 procRankPriceMultiplier = allocate(writeRankPriceMultiplier(addressMapper, 0, getMutatorDataSubroutine), "procRankPriceMultiplier");
         stream.device()->seek(addressMapper.toFileAddress(procRankPriceMultiplier));
         auto routineCode = writeRankPriceMultiplier(addressMapper, procRankPriceMultiplier, getMutatorDataSubroutine);
-        for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+        for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
         stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
         // lis r3, 0x8045        ->  b procRankPriceMultiplier
         stream << PowerPcAsm::b(hijackAddr, procRankPriceMultiplier);

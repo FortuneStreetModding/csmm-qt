@@ -43,7 +43,7 @@ void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressM
     quint32 procGetTextureForCustomSquare = allocate(writeGetTextureForCustomSquareRoutine(addressMapper, 0, eventSquareFormatAddr, eventSquareTextureAddr), "GetTextureForCustomSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procGetTextureForCustomSquare));
     auto routineCode = writeGetTextureForCustomSquareRoutine(addressMapper, procGetTextureForCustomSquare, eventSquareFormatAddr, eventSquareTextureAddr);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // lwzx r6,r6,r0        -> b customTextureHandler
     stream << PowerPcAsm::b(hijackAddr, procGetTextureForCustomSquare);
@@ -55,7 +55,7 @@ void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressM
     quint32 procGetMinimapTileIdForCustomSquareRoutine = allocate(writeGetMinimapTileIdForCustomSquareRoutine(addressMapper, 0), "GetMinimapTileIdForCustomSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procGetMinimapTileIdForCustomSquareRoutine));
     routineCode = writeGetMinimapTileIdForCustomSquareRoutine(addressMapper, procGetMinimapTileIdForCustomSquareRoutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // li r31,0x9        -> b GetMinimapTileIdForCustomSquareRoutine
     stream << PowerPcAsm::b(hijackAddr, procGetMinimapTileIdForCustomSquareRoutine);
@@ -65,7 +65,7 @@ void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressM
     quint32 procMinimapTileIdHandler = allocate(writeMinimapTileIdHandler(addressMapper, 0), "MinimapTileIdHandler");
     stream.device()->seek(addressMapper.toFileAddress(procMinimapTileIdHandler));
     routineCode = writeMinimapTileIdHandler(addressMapper, procMinimapTileIdHandler);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // bge LAB_800b2898        -> b MinimapTileIdHandler
     stream << PowerPcAsm::b(hijackAddr, procMinimapTileIdHandler);
@@ -89,7 +89,7 @@ void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressM
     quint32 customDescriptionRoutine = allocate(writeGetDescriptionForCustomSquareRoutine(addressMapper, 0), "GetDescriptionForCustomSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(customDescriptionRoutine));
     routineCode = writeGetDescriptionForCustomSquareRoutine(addressMapper, customDescriptionRoutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
 
     virtualPos = addressMapper.boomStreetToStandard(0x800f8ce4);
     stream.device()->seek(addressMapper.toFileAddress(virtualPos));
@@ -128,7 +128,7 @@ void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressM
     quint32 fontCharacterIdModifierRoutine = allocate(writeFontCharacterIdModifierRoutine(addressMapper, 0), "fontCharacterIdModifierRoutine");
     stream.device()->seek(addressMapper.toFileAddress(fontCharacterIdModifierRoutine));
     routineCode = writeFontCharacterIdModifierRoutine(addressMapper, fontCharacterIdModifierRoutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // addi r0,r4,0x85   -> r0,r4,0xAD
     stream << PowerPcAsm::b(hijackAddr, fontCharacterIdModifierRoutine);
@@ -139,7 +139,7 @@ void EventSquareMod::writeAsm(QDataStream &stream, const AddressMapper &addressM
     quint32 procStopEventSquareRoutine = allocate(writeProcStopEventSquareRoutine(addressMapper, forceVentureCardVariable, 0), "procStopEventSquareRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procStopEventSquareRoutine));
     routineCode = writeProcStopEventSquareRoutine(addressMapper, forceVentureCardVariable, procStopEventSquareRoutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x80475838));
     stream << (quint32)procStopEventSquareRoutine;

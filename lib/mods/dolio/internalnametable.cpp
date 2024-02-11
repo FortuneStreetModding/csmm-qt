@@ -8,7 +8,7 @@ void InternalNameTable::loadFiles(const QString &root, GameInstance *gameInstanc
     QFile nameListFile(QDir(root).filePath(NAME_LIST.data()));
     if (nameListFile.exists() && nameListFile.open(QFile::ReadOnly)) {
         QTextStream listStream(&nameListFile);
-        listStream.setCodec("UTF-8");
+        listStream.setEncoding(QStringConverter::Utf8);
         for (auto &descriptor: gameInstance->mapDescriptors()) {
             descriptor.internalName = listStream.readLine();
             // clear the internal name of characters which are not allowed in a file system
@@ -36,7 +36,7 @@ void InternalNameTable::saveFiles(const QString &root, GameInstance *gameInstanc
     QSaveFile nameListFile(QDir(root).filePath(NAME_LIST.data()));
     if (nameListFile.open(QFile::WriteOnly)) {
         QTextStream listStream(&nameListFile);
-        listStream.setCodec("UTF-8");
+        listStream.setEncoding(QStringConverter::Utf8);
         for (auto &descriptor: gameInstance->mapDescriptors()) {
             listStream << descriptor.internalName << Qt::endl;
         }

@@ -19,7 +19,7 @@ void DisplayMapInResults::writeAsm(QDataStream &stream, const AddressMapper &add
     // we now know the location of the subroutine so we rewrite it w/ the location
     textSub = writeDesiredTextSubroutine(textSubAddr, addressMapper);
     stream.device()->seek(addressMapper.toFileAddress(textSubAddr));
-    for (auto word: qAsConst(textSub)) stream << word;
+    for (auto word: std::as_const(textSub)) stream << word;
 
     stream.device()->seek(addressMapper.boomToFileAddress(0x801d402c)); // 1st page of results
     stream << PowerPcAsm::bl(addressMapper.boomStreetToStandard(0x801d402c), textSubAddr);

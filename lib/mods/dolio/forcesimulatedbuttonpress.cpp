@@ -31,7 +31,7 @@ void ForceSimulatedButtonPress::writeAsm(QDataStream &stream, const AddressMappe
     quint32 uploadSimulatedButtonPress = allocate(writeUploadSimulatedButtonPress(addressMapper, 0, returnAddr), "UploadSimulatedButtonPress");
     stream.device()->seek(addressMapper.toFileAddress(uploadSimulatedButtonPress));
     auto insts = writeUploadSimulatedButtonPress(addressMapper, uploadSimulatedButtonPress, returnAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     // lwz r0,0x4(r3)                                                             -> b uploadSimulatedButtonPress
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, uploadSimulatedButtonPress);
 }

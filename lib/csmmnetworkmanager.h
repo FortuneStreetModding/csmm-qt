@@ -1,11 +1,18 @@
 #ifndef CSMMNETWORKMANAGER_H
 #define CSMMNETWORKMANAGER_H
 
+#include "qabstractnetworkcache.h"
+#include "qnetworkdiskcache.h"
+#include <QSettings>
 #include <QFuture>
 #include <QNetworkAccessManager>
 
 namespace CSMMNetworkManager {
+    bool shouldEnableNetworkCache();
+    long long int networkCacheSize();
     QString networkCacheDir();
+    void clearNetworkCache();
+    QNetworkDiskCache* createNetworkCache(QNetworkAccessManager *instance);
     QNetworkAccessManager *instance();
     /**
      * @returns a future that resolves to whether the url is an internet url

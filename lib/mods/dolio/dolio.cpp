@@ -54,7 +54,7 @@ quint32 DolIO::writeSubroutine(QDataStream &stream, const std::function<QVector<
     auto addr = allocate(fn(0), purpose, false);
     stream.device()->seek(mapperPtr->toFileAddress(addr));
     auto newSubroutine = fn(addr);
-    for (auto word: qAsConst(newSubroutine)) {
+    for (auto word: std::as_const(newSubroutine)) {
         stream << word;
     }
     return addr;

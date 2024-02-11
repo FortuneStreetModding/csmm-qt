@@ -76,7 +76,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     auto subroutineInitMapIdsForMapIcons = allocate(writeSubroutineInitMapIdsForMapIcons(addressMapper, 0), "SubroutineInitMapIdsForMapIcons");
     stream.device()->seek(addressMapper.toFileAddress(subroutineInitMapIdsForMapIcons));
     auto insts = writeSubroutineInitMapIdsForMapIcons(addressMapper, subroutineInitMapIdsForMapIcons); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     // increase the array size
     // rlwinm r3,r16,0x2,0x0,0x1d                            -> r3,r16,0x3,0x0,0x1d
     stream.device()->seek(addressMapper.boomToFileAddress(0x80187794)); stream << PowerPcAsm::rlwinm(3, 16, 0x3, 0x0, 0x1d);
@@ -100,7 +100,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     quint32 subroutineMakeNoneMapIconsInvisible = allocate(writeSubroutineMakeNoneMapIconsInvisible(addressMapper, 0, returnContinueAddr, returnMakeInvisibleAddr), "SubroutineMakeNoneMapIconsInvisibleMultiplayer");
     stream.device()->seek(addressMapper.toFileAddress(subroutineMakeNoneMapIconsInvisible));
     insts = writeSubroutineMakeNoneMapIconsInvisible(addressMapper, subroutineMakeNoneMapIconsInvisible, returnContinueAddr, returnMakeInvisibleAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     // lwz r0,0x184(r3)                                      ->  b subroutineMakeNoneMapIconsInvisible
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineMakeNoneMapIconsInvisible);
 
@@ -123,7 +123,7 @@ void MapIconTable::writeAsm(QDataStream &stream, const AddressMapper &addressMap
     quint32 subroutineWriteSubroutineSkipMapUnlockCheck = allocate(writeSubroutineSkipMapUnlockCheck(0, returnContinueAddr, returnSkipMapUnlockedCheck), "SubroutineWriteSubroutineSkipMapUnlockCheck");
     stream.device()->seek(addressMapper.toFileAddress(subroutineWriteSubroutineSkipMapUnlockCheck));
     insts = writeSubroutineSkipMapUnlockCheck(subroutineWriteSubroutineSkipMapUnlockCheck, returnContinueAddr, returnSkipMapUnlockedCheck); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     // or r3,r26,r26                                      ->  b subroutineWriteSubroutineSkipMapUnlockCheck
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr)); stream << PowerPcAsm::b(hijackAddr, subroutineWriteSubroutineSkipMapUnlockCheck);
 }

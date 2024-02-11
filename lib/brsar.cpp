@@ -284,7 +284,7 @@ bool containsCsmmEntries(QDataStream &stream) {
         return false;
     for(int i = 0; i < brsar.entries.length(); i++) {
         auto &entry = brsar.entries[i];
-        if(entry.fileName == QString("CSMM_999")) {
+        if(*entry.fileName == QString("CSMM_999")) {
             return true;
         }
     }
@@ -339,10 +339,10 @@ int patch(QDataStream &stream, std::vector<MapDescriptor> &descriptors) {
     int brsarIndex_min = 0, brsarIndex_max = 0;
     for(int i = 0; i < brsar.entries.length(); i++) {
         auto &entry = brsar.entries[i];
-        if(entry.fileName == QString("CSMM_000")) {
+        if(*entry.fileName == QString("CSMM_000")) {
             brsarIndex_min = i;
         }
-        if(entry.fileName == QString("CSMM_999")) {
+        if(*entry.fileName == QString("CSMM_999")) {
             brsarIndex_max = i;
         }
     }

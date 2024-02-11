@@ -1,7 +1,8 @@
 #include "freespacemanager.h"
 #include <QDataStream>
-#include <limits>
 #include <QDebug>
+#include <QIODevice>
+#include <limits>
 
 void FreeSpaceManager::addFreeSpace(quint32 start, quint32 end) {
     if (startedAllocating) {

@@ -9,7 +9,6 @@
 #include "mainwindow.h"
 #include "quicksetupdialog.h"
 #include <pybind11/embed.h>
-#include <iostream>
 
 #ifdef Q_OS_WIN
 #include <windows.h>

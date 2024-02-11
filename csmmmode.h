@@ -1,4 +1,3 @@
-
 #ifndef CSMMMODE_H
 #define CSMMMODE_H
 

@@ -34,7 +34,7 @@ void MapSetZoneOrder::writeAsm(QDataStream &stream, const AddressMapper &address
     quint32 subroutineGetMapsInZone = allocate(writeSubroutineGetMapsInZone(addressMapper, mapDescriptors, tableAddr, 0, returnAddr), "SubroutineGetMapsInZone");
     stream.device()->seek(addressMapper.toFileAddress(subroutineGetMapsInZone));
     auto insts = writeSubroutineGetMapsInZone(addressMapper, mapDescriptors, tableAddr, subroutineGetMapsInZone, returnAddr); // re-write the routine again since now we know where it is located in the main dol
-    for (quint32 inst: qAsConst(insts)) stream << inst;
+    for (quint32 inst: std::as_const(insts)) stream << inst;
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // cmpwi r29,0x0 ->  b subroutineGetMapsInZone
     stream << PowerPcAsm::b(hijackAddr, subroutineGetMapsInZone);
@@ -100,7 +100,7 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetNumMapsInZone(const std::vec
     std::sort(mapSetsSorted.begin(), mapSetsSorted.end());
     qint8 lastMapSet = mapSetsSorted.last();
 
-    for (qint8 mapSet: qAsConst(mapSetsSorted)) {
+    for (qint8 mapSet: std::as_const(mapSetsSorted)) {
         QSet<qint8> zones;
         for (auto &mapDescriptor: mapDescriptors) {
             if (mapDescriptor.mapSet == mapSet && mapDescriptor.zone != -1) {
@@ -111,7 +111,7 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetNumMapsInZone(const std::vec
         std::sort(zonesSorted.begin(), zonesSorted.end());
 
         asm_l2.clear();
-        for (quint8 zone: qAsConst(zonesSorted)) {
+        for (quint8 zone: std::as_const(zonesSorted)) {
             short count = std::count_if(mapDescriptors.begin(), mapDescriptors.end(), [&](const MapDescriptor &descriptor) {
                 int d_zone = descriptor.zone;
                 if (d_zone == 0) {
@@ -164,7 +164,7 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapp
     QList<qint8> mapSetsSorted = mapSets.values();
     std::sort(mapSetsSorted.begin(), mapSetsSorted.end());
 
-    for (qint8 mapSet: qAsConst(mapSetsSorted)) {
+    for (qint8 mapSet: std::as_const(mapSetsSorted)) {
         asm_.append(PowerPcAsm::cmpwi(5, mapSet));
         QSet<qint8> zones;
         for (auto &mapDescriptor: mapDescriptors) {
@@ -176,7 +176,7 @@ QVector<quint32> MapSetZoneOrder::writeSubroutineGetMapsInZone(const AddressMapp
         QList<qint8> zonesSorted = zones.values();
         std::sort(zonesSorted.begin(), zonesSorted.end());
         asm_l2.clear();
-        for (quint8 zone: qAsConst(zonesSorted)) {
+        for (quint8 zone: std::as_const(zonesSorted)) {
             asm_l2.append(PowerPcAsm::cmpwi(29, zone));
             std::vector<MapDescriptor> maps;
             for (auto &mapDescriptor: mapDescriptors) {

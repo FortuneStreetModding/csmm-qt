@@ -52,7 +52,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     quint32 procRollDiceBeforePayingRoutine = allocate(writeRollDiceBeforePayingRoutine(addressMapper, 0, lastShopPrice, hasRolledDice, getMutatorDataSubroutine), "procRollDiceBeforePayingRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procRollDiceBeforePayingRoutine));
     auto routineCode = writeRollDiceBeforePayingRoutine(addressMapper, procRollDiceBeforePayingRoutine, lastShopPrice, hasRolledDice, getMutatorDataSubroutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // li r7,0        ->  b procRollDiceBeforePayingRoutine
     stream << PowerPcAsm::b(hijackAddr, procRollDiceBeforePayingRoutine);
@@ -62,7 +62,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     quint32 procRememberSquareType = allocate(writeRememberSquareType(addressMapper, 0, hasRolledDice), "procRememberSquareType");
     stream.device()->seek(addressMapper.toFileAddress(procRememberSquareType));
     routineCode = writeRememberSquareType(addressMapper, procRememberSquareType, hasRolledDice);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // lbz r0,0x51(r3)   ->  b procRememberSquareType
     stream << PowerPcAsm::b(hijackAddr, procRememberSquareType);
@@ -72,7 +72,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     quint32 procCalculateGainRoutine = allocate(writeCalculateGainRoutine(addressMapper, 0, lastShopPrice, hasRolledDice, getMutatorDataSubroutine), "procCalculateGainRoutine");
     stream.device()->seek(addressMapper.toFileAddress(procCalculateGainRoutine));
     routineCode = writeCalculateGainRoutine(addressMapper, procCalculateGainRoutine, lastShopPrice, hasRolledDice, getMutatorDataSubroutine);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // add r3,r0,r3   ->  b procCalculateGainRoutine
     stream << PowerPcAsm::b(hijackAddr, procCalculateGainRoutine);
@@ -82,7 +82,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     quint32 procClearDiceRolledFlag = allocate(writeClearDiceRolledFlag(addressMapper, 0, hasRolledDice), "procClearDiceRolledFlag");
     stream.device()->seek(addressMapper.toFileAddress(procClearDiceRolledFlag));
     routineCode = writeClearDiceRolledFlag(addressMapper, procClearDiceRolledFlag, hasRolledDice);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     stream << procClearDiceRolledFlag;
 
@@ -91,7 +91,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     quint32 procDontShowQuestionBoxAgain = allocate(writeDontShowQuestionBoxAgain(addressMapper, 0, hasRolledDice), "procDontShowQuestionBoxAgain");
     stream.device()->seek(addressMapper.toFileAddress(procDontShowQuestionBoxAgain));
     routineCode = writeDontShowQuestionBoxAgain(addressMapper, procDontShowQuestionBoxAgain, hasRolledDice);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // lwz r0,0x28(r20)      ->  b procDontShowQuestionBoxAgain
     stream << PowerPcAsm::b(hijackAddr, procDontShowQuestionBoxAgain);
@@ -101,7 +101,7 @@ void MutatorRollShopPriceMultiplier::writeAsm(QDataStream &stream, const Address
     quint32 procCloseDice = allocate(writeCloseDice(addressMapper, 0, hasRolledDice), "procCloseDice");
     stream.device()->seek(addressMapper.toFileAddress(procCloseDice));
     routineCode = writeCloseDice(addressMapper, procCloseDice, hasRolledDice);
-    for (quint32 inst: qAsConst(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
+    for (quint32 inst: std::as_const(routineCode)) stream << inst; // re-write the routine again since now we know where it is located in the main dol
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // li r4,0x1       ->  b procCloseDice
     stream << PowerPcAsm::b(hijackAddr, procCloseDice);

@@ -15,7 +15,7 @@ struct ParsedModList {
 
 static ParsedModList parseModListFile(QFile *file) {
     QTextStream stream(file);
-    stream.setCodec("UTF-8");
+    stream.setEncoding(QStringConverter::Utf8);
 
     ParsedModList result;
     result.relative = -1;
@@ -60,7 +60,7 @@ static QSet<QString> applyParsedModLists(QVector<ParsedModList> &modLists, const
     }
     for (auto &modList: modLists) {
         result.unite(modList.added);
-        for (auto &modId: qAsConst(modList.removed)) {
+        for (auto &modId: std::as_const(modList.removed)) {
             if (!result.contains(modId)) {
                 throw ModException(QString("mod to remove \"%1\" doesn't exist").arg(modId));
             }
@@ -107,7 +107,7 @@ static ModListType importModpackDirs(const QVector<QString> &modpackDirs) {
     //pybind11::print(sys.attr("path"), "file"_a = sys.attr("stderr"));
 
     try {
-        for (auto &modid: qAsConst(modids)) {
+        for (auto &modid: std::as_const(modids)) {
             qInfo() << "trying to import user mod" << modid;
 
             // append mod instance for each user modid

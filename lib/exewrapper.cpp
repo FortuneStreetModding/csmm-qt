@@ -45,125 +45,143 @@ static const QStringList &getWiimmsEnv() {
     return witEnv;
 }
 
-static QFuture<void> observeProcess(QProcess *proc, bool deleteProcAfterSuccess = true) {
+static QFuture<void> observeProcess(QProcess *proc) {
     auto program = proc->program();
     if (proc->error() == QProcess::FailedToStart) {
-        delete proc;
-        auto def = AsyncFuture::deferred<void>();
-        def.complete();
-        return def.subscribe([=] { throw Exception(QString("Process '%1' failed to start").arg(program)); }).future();
+        throw Exception(QString("Process '%1' failed to start").arg(program));
     }
-    AsyncFuture::observe(proc, &QProcess::readyReadStandardError).subscribe([=]() {
+
+    QObject::connect(proc, &QProcess::readyReadStandardError, [proc]() {
         qWarning() << proc->readAllStandardError();
     });
-    return AsyncFuture::observe(proc, QOverload<int>::of(&QProcess::finished))
-            .subscribe([=](int code) {
-        if (code != 0) {
-            delete proc;
-            throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
-        }
-        if (deleteProcAfterSuccess) delete proc;
-    }).future();
+
+    using Args = std::tuple<int, QProcess::ExitStatus>;
+    QFuture<Args> future = QtFuture::connect(proc, &QProcess::finished);
+
+    proc->start();
+
+    return AsyncFuture::observe(future)
+        .subscribe([=](Args args) {
+            const auto code = std::get<0>(args);
+            const auto status = std::get<1>(args);
+            if (code != 0) {
+                throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
+            }
+        }).future();
 }
 
 QFuture<QVector<AddressSection>> readSections(const QString &inputFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWitPath(), {"DUMP", "-l", inputFile});
-    // have to use the old overload for now b/c AsyncFuture doesn't support
-    // multiple arguments yet
-    return AsyncFuture::observe(observeProcess(proc, false))
-            .subscribe([=]() -> QVector<AddressSection> {
-        QVector<AddressSection> result;
-        QString line;
-        QTextStream stream(proc);
+    proc->deleteLater();
+    proc->setProgram(getWitPath());
+    proc->setArguments({"DUMP", "-l", inputFile});
 
-        while (stream.readLineInto(&line)) {
-            if (line.contains("Delta between file offset and virtual address:")) {
-                stream.readLine();
-                stream.readLine();
-                stream.readLine();
-                break;
+    return AsyncFuture::observe(observeProcess(proc))
+        .subscribe([=]() -> QVector<AddressSection> {
+            QVector<AddressSection> result;
+            QString line;
+            QTextStream stream(proc);
+
+            while (stream.readLineInto(&line)) {
+                if (line.contains("Delta between file offset and virtual address:")) {
+                    stream.readLine();
+                    stream.readLine();
+                    stream.readLine();
+                    break;
+                }
             }
-        }
-        while (stream.readLineInto(&line)) {
-            auto columns = line.splitRef(':');
-            if (columns.size() == 5) {
-                // unused = columns[0]
-                auto offsets = columns[1].split("..");
-                QDataStream offsetStream0(QByteArray::fromHex(offsets[0].trimmed().toLatin1()));
-                QDataStream offsetStream1(QByteArray::fromHex(offsets[1].trimmed().toLatin1()));
-                quint32 offsetBeg, offsetEnd;
-                offsetStream0 >> offsetBeg;
-                offsetStream1 >> offsetEnd;
-                // size = columns[2]
-                QDataStream fileDeltaStream(QByteArray::fromHex(columns[3].trimmed().toLatin1()));
-                quint32 fileDelta;
-                fileDeltaStream >> fileDelta;
-                result.append({offsetBeg, offsetEnd, fileDelta, columns[4].trimmed().toString()});
+            while (stream.readLineInto(&line)) {
+                auto columns = line.split(':');
+                if (columns.size() == 5) {
+                    // unused = columns[0]
+                    auto offsets = columns[1].split("..");
+                    QDataStream offsetStream0(QByteArray::fromHex(offsets[0].trimmed().toLatin1()));
+                    QDataStream offsetStream1(QByteArray::fromHex(offsets[1].trimmed().toLatin1()));
+                    quint32 offsetBeg, offsetEnd;
+                    offsetStream0 >> offsetBeg;
+                    offsetStream1 >> offsetEnd;
+                    // size = columns[2]
+                    QDataStream fileDeltaStream(QByteArray::fromHex(columns[3].trimmed().toLatin1()));
+                    quint32 fileDelta;
+                    fileDeltaStream >> fileDelta;
+                    result.append({offsetBeg, offsetEnd, fileDelta, columns[4].trimmed()});
+                }
             }
-        }
-        delete proc;
-        return result;
-    }).future();
+            return result;
+        }).future();
 }
 
 QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWszstPath(), {"EXTRACT", "--overwrite", arcFile, "--dest", dFolder});
+    proc->deleteLater();
+    proc->setProgram(getWszstPath());
+    proc->setArguments({"EXTRACT", "--overwrite", arcFile, "--dest", dFolder});
     return observeProcess(proc);
 }
 QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWszstPath(), {"CREATE", "--overwrite", dFolder, "--dest", arcFile});
+    proc->deleteLater();
+    proc->setProgram(getWszstPath());
+    proc->setArguments({"CREATE", "--overwrite", dFolder, "--dest", arcFile});
     return observeProcess(proc);
 }
 QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    // wszst CREATE --overwrite --u8 --no-compress --pt-dir=REMOVE --transform TPL.CMPR --n-mipmaps 0 game_turnlot_BG.d
-    proc->start(getWszstPath(), {"CREATE", "--overwrite", "--u8", "--no-compress", "--pt-dir=REMOVE", "--transform", "TPL.CMPR", "--n-mipmaps", "0", dFolder, "--dest", arcFile});
+    proc->deleteLater();
+    proc->setProgram(getWszstPath());
+    proc->setArguments({"CREATE", "--overwrite", "--u8", "--no-compress", "--pt-dir=REMOVE", "--transform", "TPL.CMPR", "--n-mipmaps", "0", dFolder, "--dest", arcFile});
     return observeProcess(proc);
 }
 QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWimgtPath(), {"ENCODE", "--overwrite", pngFile, "--dest", tplFile});
+    proc->deleteLater();
+    proc->setProgram(getWimgtPath());
+    proc->setArguments({"ENCODE", "--overwrite", pngFile, "--dest", tplFile});
     return observeProcess(proc);
 }
 QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWitPath(), {"COPY", "--psel", "data", "--preserve", "--overwrite", "--fst", wbfsFile, extractDir});
+    proc->deleteLater();
+    proc->setProgram(getWitPath());
+    proc->setArguments({"COPY", "--psel", "data", "--preserve", "--overwrite", "--fst", wbfsFile, extractDir});
     return observeProcess(proc);
 }
 QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
+    proc->deleteLater();
     QString discId = separateSaveGame ? "K" : ".";
     QStringList args{"COPY", "--id", QString("%1...%2").arg(discId, markerCode), "--overwrite", sourceDir, wbfsFile};
-    proc->start(getWitPath(), args);
+    proc->setProgram(getWitPath());
+    proc->setArguments(args);
     return observeProcess(proc);
 }
 QFuture<void> patchWiimmfi(const QString &wbfsFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
+    proc->deleteLater();
     QStringList args{"EDIT", "--wiimmfi", wbfsFile};
-    proc->start(getWitPath(), args);
+    proc->setProgram(getWitPath());
+    proc->setArguments(args);
     return observeProcess(proc);
 }
 QFuture<QString> getId6(const QString &inputFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
-    proc->start(getWitPath(), {"ID6", inputFile});
-    return AsyncFuture::observe(observeProcess(proc, false))
-            .subscribe([=]() -> QString {
+    proc->deleteLater();
+    proc->setProgram((getWitPath()));
+    proc->setArguments({"ID6", inputFile});
+    proc->start();
+    return AsyncFuture::observe(observeProcess(proc)).subscribe([=]() -> QString {
         QString line;
         QTextStream stream(proc);
         line = stream.readAll();
-        delete proc;
         return line.trimmed();
     }).future();
 }

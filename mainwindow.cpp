@@ -11,7 +11,6 @@
 #include <QInputDialog>
 #include "lib/configuration.h"
 #include "lib/csmmnetworkmanager.h"
-#include "lib/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/importexportutils.h"
 #include "validationerrordialog.h"
@@ -78,8 +77,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionPatch_MarkerCode->setChecked(getMarkerCode() != "01");
     });
     connect(ui->actionExport_default_modlists_txt, &QAction::triggered, this, [&]() {
-        auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)");
-
+        auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)", nullptr);
         QSaveFile fileObj(saveFile);
 
         if (!fileObj.open(QFile::WriteOnly)) {
@@ -89,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
         auto defaultModList = DefaultModList::defaultModList();
 
         QTextStream stream(&fileObj);
-        stream.setCodec("UTF-8");
+        stream.setEncoding(QStringConverter::Utf8);
 
         for (auto &mod: defaultModList) {
             stream << mod->modId() << "\n";
@@ -98,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent)
         fileObj.commit();
     });
     connect(ui->importModPack, &QPushButton::clicked, this, [&](bool) {
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt;*.zip)");
+        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt *.zip)", nullptr);
 
         if (file.isEmpty()) {
             return;
@@ -141,7 +139,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::saveMapList() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.yaml", "CSMM Map List (*.yaml)");
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.yaml", "CSMM Map List (*.yaml)", nullptr);
     if (saveFile.isEmpty()) return;
     std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
@@ -154,7 +152,7 @@ void MainWindow::saveMapList() {
 }
 
 void MainWindow::loadMapList() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)");
+    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)", nullptr);
     if (openFile.isEmpty()) return;
     QFileInfo openFileInfo(openFile);
     if(!openFileInfo.exists()) {
@@ -190,7 +188,7 @@ void MainWindow::updateModListWidget() {
 }
 
 void MainWindow::saveCleanItastCsmmBrsar() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Open vanilla Itast.brsar", "Itast.brsar", "Vanilla Fortune Street Binary Sound Archive (*.brsar)");
+    auto openFile = QFileDialog::getOpenFileName(this, "Open vanilla Itast.brsar", "Itast.brsar", "Vanilla Fortune Street Binary Sound Archive (*.brsar)", nullptr);
     if (openFile.isEmpty()) return;
     //QFileInfo openFileInfo(openFile);
 
@@ -199,7 +197,7 @@ void MainWindow::saveCleanItastCsmmBrsar() {
         return;
     }
 
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)");
+    auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)", nullptr);
     if (saveFile.isEmpty()) return;
 
     QString errors = ImportExportUtils::applyBspatch(openFile, saveFile, ":/" + ITAST_BRSAR + ".bsdiff");
@@ -217,7 +215,7 @@ void MainWindow::openDir() {
         QMessageBox::critical(this, "Open Game Directory", "The temporary directory used for copying the game directory could not be created");
         return;
     }
-    QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory");
+    QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory", nullptr);
     if (dirname.isEmpty()) {
         return;
     }
@@ -270,7 +268,7 @@ void MainWindow::openIsoWbfs() {
         QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
         return;
     }
-    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
+    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
     if (isoWbfs.isEmpty()) return;
 
     try {
@@ -325,7 +323,7 @@ void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) 
 }
 
 void MainWindow::exportToFolder(bool riivolution) {
-    auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory");
+    auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory", nullptr);
     if (saveDir.isEmpty()) return;
     if (!QDir(saveDir).isEmpty()) {
         QMessageBox::critical(this, "Save", "Directory is non-empty");
@@ -382,11 +380,11 @@ void MainWindow::exportToFolder(bool riivolution) {
         }
     }
 
-    if (std::find_if(modList.begin(), modList.end(), [](const CSMMModHolder &mod) {
-                  return mod->modId() == "wifiFix";
-})) {
+    if (std::find_if(modList.begin(), modList.end(), [](const CSMMModHolder &mod) {return mod->modId() == "wifiFix";}) != modList.end()) {
         ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
     }
+
+
 
     auto wiiSaveDir = saveDir;
     if (riivolution) {
@@ -429,7 +427,7 @@ void MainWindow::exportToFolder(bool riivolution) {
         }
 
         progress.setValue(100);
-        QMessageBox::information(this, "Save", "Saved successfuly.");
+        QMessageBox::information(this, "Save", "Saved successfully.");
 
         // reload map descriptors
         int idx = 0;
@@ -445,7 +443,7 @@ void MainWindow::exportToFolder(bool riivolution) {
 }
 
 void MainWindow::exportIsoWbfs() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)");
+    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
     if (saveFile.isEmpty()) return;
 
     QTemporaryDir intermediateResults;
@@ -480,7 +478,7 @@ void MainWindow::exportIsoWbfs() {
                 QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(e.what()));
             }
 
-            QMessageBox::information(this, "Export", "Exported successfuly.");
+            QMessageBox::information(this, "Export", "Exported successfully.");
             return;
         }
     }
@@ -515,13 +513,13 @@ void MainWindow::exportIsoWbfs() {
         await(ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode(), getSeparateSaveGame()));
 
         progress.setValue(90);
-        if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; })) {
+        if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != modList.end()) {
             qInfo() << "patching wiimmfi";
             await(ExeWrapper::patchWiimmfi(saveFile));
         }
 
         progress.setValue(100);
-        QMessageBox::information(this, "Export", "Exported successfuly.");
+        QMessageBox::information(this, "Export", "Exported successfully.");
 
         // reload map descriptors
         int idx = 0;
@@ -550,13 +548,13 @@ void MainWindow::validateMaps() {
     std::sort(mapSets.begin(), mapSets.end());
     mapSets.erase(std::unique(mapSets.begin(), mapSets.end()), mapSets.end());
 
-    for (int mapSet: qAsConst(mapSets)) {
+    for (int mapSet: std::as_const(mapSets)) {
         auto descriptorToZone = getMapZones(descriptors, mapSet, errorMsgs);
         auto zones = descriptorToZone.values();
         std::sort(zones.begin(), zones.end());
         zones.erase(std::unique(zones.begin(), zones.end()), zones.end());
 
-        for (int zone: qAsConst(zones)) {
+        for (int zone: std::as_const(zones)) {
             getMapOrderings(descriptors, mapSet, zone, errorMsgs);
         }
     }

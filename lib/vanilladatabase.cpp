@@ -349,7 +349,7 @@ const std::map<QString, std::vector<QString>> &getVanillaDistrictNames() {
             auto districtWord = LOCALE_TO_DISTRICT_WORD.at(locale);
             districtWord.replace("\\s", " ");
             for (int i=0; i<16; ++i) {
-                cachedResult[locale].push_back(districtWord + (startingChar + i));
+                cachedResult[locale].push_back(districtWord + QChar((int(startingChar) + i)));
             }
         }
     }
