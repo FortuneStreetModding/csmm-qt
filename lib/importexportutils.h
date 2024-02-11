@@ -51,6 +51,8 @@ namespace ImportExportUtils {
         void raise() const override { throw *this; }
         Exception *clone() const override { return new Exception(*this); }
     };
+
+    void autoClearCache();
 }
 
 #endif // IMPORTEXPORTUTILS_H

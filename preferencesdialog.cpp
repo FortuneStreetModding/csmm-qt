@@ -1,4 +1,5 @@
 #include "preferencesdialog.h"
+#include "lib/csmmnetworkmanager.h"
 #include "qdir.h"
 #include "qstandardpaths.h"
 #include "ui_preferencesdialog.h"
@@ -37,6 +38,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         break;
     }
 
+    auto clearCacheOnError = settings.value("networkAutoClearCacheOnError").toBool();
+    ui->autoClearCacheCheckBox->setChecked(clearCacheOnError);
+
     auto size = settings.value("networkCacheSize").toInt();
     if (size >= 1 && size <= 10) {
         ui->cacheSizeSlider->setValue(size);
@@ -62,6 +66,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     connect(ui->resetCacheDirectoryButton, &QPushButton::clicked, this, [this](bool){
         resetCacheDirectory();
+    });
+
+    connect(ui->clearNetworkCacheButton, &QPushButton::clicked, this, [this](bool){
+        CSMMNetworkManager::clearNetworkCache();
     });
 
     connect(ui->enableCacheButton, &QPushButton::clicked, this, [this](bool){
@@ -106,6 +114,9 @@ void PreferencesDialog::accept()
     } else { // enable if not set
         settings.setValue("networkCacheMode", 1);
     }
+
+    auto clearCacheOnError = ui->autoClearCacheCheckBox->isChecked();
+    settings.setValue("networkAutoClearCacheOnError", clearCacheOnError);
 
     auto networkCacheSize = ui->cacheSizeSlider->value();
     settings.setValue("networkCacheSize", networkCacheSize);

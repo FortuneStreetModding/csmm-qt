@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>PreferencesDialog</class>
  <widget class="QDialog" name="PreferencesDialog">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -10,7 +13,7 @@
     <x>0</x>
     <y>0</y>
     <width>438</width>
-    <height>559</height>
+    <height>633</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -44,10 +47,10 @@
    <string>Preferences</string>
   </property>
   <property name="sizeGripEnabled">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <property name="modal">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -166,6 +169,46 @@
         </item>
        </layout>
       </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="clearNetworkCacheButton">
+          <property name="text">
+           <string>Clear Network Cache</string>
+          </property>
+          <property name="icon">
+           <iconset theme="user-trash-full"/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
@@ -202,6 +245,13 @@
         <attribute name="buttonGroup">
          <string notr="true">cacheModeBtnGroup</string>
         </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="autoClearCacheCheckBox">
+        <property name="text">
+         <string>Automatically clear cache on error</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -359,7 +409,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="csmmModeBtnGroup"/>
   <buttongroup name="cacheModeBtnGroup"/>
+  <buttongroup name="csmmModeBtnGroup"/>
  </buttongroups>
 </ui>
