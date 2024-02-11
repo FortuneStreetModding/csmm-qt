@@ -3,6 +3,7 @@
 
 #include "qabstractnetworkcache.h"
 #include "qnetworkdiskcache.h"
+#include <QSettings>
 #include <QFuture>
 #include <QNetworkAccessManager>
 
@@ -27,7 +28,7 @@ namespace CSMMNetworkManager {
         Exception *clone() const override { return new Exception(*this); }
     };
 
-    inline void clearNetworkCache(){
+    inline void clearNetworkCache() {
         instance()->cache()->clear();
     }
 }

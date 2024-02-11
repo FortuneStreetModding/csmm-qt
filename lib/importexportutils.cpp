@@ -126,12 +126,13 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
         throw Exception("Could not create an intermediate directory");
     }
     QFileInfo yamlFileZipInfo(yamlZipSrc);
+
     if(!yamlFileZipInfo.exists()) {
-        CSMMNetworkManager::clearNetworkCache();
+        autoClearCache();
         throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive does not exist.").arg(yamlZipSrc, intermediateDir.path()));
     }
     if(yamlFileZipInfo.size() < 100) {
-        CSMMNetworkManager::clearNetworkCache();
+        autoClearCache();
         throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(yamlZipSrc, intermediateDir.path()));
     }
     QString extractedYamlFile;
@@ -144,7 +145,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
         return 0;
     }, &extractedYamlFile);
     if (extractResult < 0) {
-        CSMMNetworkManager::clearNetworkCache();
+        autoClearCache();
         throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(yamlZipSrc, intermediateDir.path(), zip_strerror(extractResult)));
     }
     if (extractedYamlFile.isEmpty()) {
@@ -164,7 +165,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                 QFileInfo zipBackground(zipBackgroundStr);
                 if(zipBackground.exists()) {
                     if(zipBackground.size() < 100) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(zipBackgroundStr, intermediateDir.path()));
                     }
                     QString extractedCmpresFile;
@@ -177,15 +178,15 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                         return 0;
                     }, &extractedCmpresFile);
                     if (extractResult < 0) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(zipBackgroundStr, intermediateDir.path(), zip_strerror(extractResult)));
                     }
                     if (extractedCmpresFile.isEmpty()) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("%1 has no cmpres files").arg(zipBackgroundStr));
                     }
                 } else {
-                    CSMMNetworkManager::clearNetworkCache();
+                    autoClearCache();
                     throw Exception(QString("%1 was not found.").arg(zipBackgroundStr));
                 }
             }
@@ -230,7 +231,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                 zipMusic = QFileInfo(zipMusicStr);
                 if(zipMusic.exists()) {
                     if(zipMusic.size() < 100) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(zipMusicStr, intermediateDir.path()));
                     }
                     QString extractedBrstmFile;
@@ -243,15 +244,15 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                         return 0;
                     }, &extractedBrstmFile);
                     if (extractResult < 0) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(zipMusicStr, intermediateDir.path(), zip_strerror(extractResult)));
                     }
                     if (extractedBrstmFile.isEmpty()) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("%1 has no brstm files.\nThe following .brstm files are still missing:\n%2").arg(zipMusicStr, missingBrstmsStr));
                     }
                 } else {
-                    CSMMNetworkManager::clearNetworkCache();
+                    autoClearCache();
                     throw Exception(QString("%1 could not be retrieved.\nThe following .brstm files are still missing:\n%2").arg(zipMusicStr, missingBrstmsStr));
                 }
             }
@@ -300,7 +301,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 auto frbFileFrom = QFileInfo(yamlFileSrc).dir().filePath(frbFile + ".frb");
                 QFileInfo frbFileFromInfo(frbFileFrom);
                 if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
-                    CSMMNetworkManager::clearNetworkCache();
+                    autoClearCache();
                     throw Exception(QString("File %1 does not exist").arg(frbFileFrom));
                 }
                 auto frbFileTo = importDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
@@ -313,7 +314,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 auto mapIconFileTo = importDir.filePath(PARAM_FOLDER + "/" + descriptor.mapIcon + ".png");
                 QFileInfo mapIconFileFromInfo(mapIconFileFrom);
                 if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
-                    CSMMNetworkManager::clearNetworkCache();
+                    autoClearCache();
                     throw Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
                 }
                 QFile(mapIconFileTo).remove();
@@ -325,7 +326,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     auto brstmFileFrom = QFileInfo(yamlFileSrc).dir().filePath(musicEntry.brstmBaseFilename + ".brstm");
                     QFileInfo brstmFileInfo(brstmFileFrom);
                     if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("File %1 does not exist").arg(brstmFileFrom));
                     }
                     auto frbFileTo = importDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
@@ -339,7 +340,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 auto cmpresFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".cmpres");
                 QFileInfo cmpresFileInfo(cmpresFileFrom);
                 if (!cmpresFileInfo.exists() || !cmpresFileInfo.isFile()) {
-                    CSMMNetworkManager::clearNetworkCache();
+                    autoClearCache();
                     throw Exception(QString("File %1 does not exist").arg(cmpresFileFrom));
                 }
                 for (auto &locale: FS_LOCALES) {
@@ -351,7 +352,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 auto sceneFileFrom = QFileInfo(yamlFileSrc).dir().filePath(descriptor.background + ".scene");
                 QFileInfo sceneFileInfo(sceneFileFrom);
                 if (!sceneFileInfo.exists() || !sceneFileInfo.isFile()) {
-                    CSMMNetworkManager::clearNetworkCache();
+                    autoClearCache();
                     throw Exception(QString("File %1 does not exist").arg(sceneFileFrom));
                 }
                 auto sceneFileTo = importDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
@@ -363,7 +364,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     QString turnlotPngFrom = QFileInfo(yamlFileSrc).dir().filePath(turnlotPngFilename(extChr, descriptor.background));
                     QFileInfo turnlotPngInfo(turnlotPngFrom);
                     if (!turnlotPngInfo.exists() || !turnlotPngInfo.isFile()) {
-                        CSMMNetworkManager::clearNetworkCache();
+                        autoClearCache();
                         throw Exception(QString("File %1 does not exist").arg(turnlotPngFrom));
                     }
                     QString turnlotPngTo = importDir.filePath(turnlotPng(extChr, descriptor.background));
@@ -382,6 +383,17 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
 bool isMainDolVanilla(const QDir &dir) {
     auto hash = fileSha1(dir.filePath(MAIN_DOL));
     return std::find(std::begin(SHA1_VANILLA_MAIN_DOLS), std::end(SHA1_VANILLA_MAIN_DOLS), hash) != std::end(SHA1_VANILLA_MAIN_DOLS);
+}
+
+void autoClearCache() {
+    QSettings settings;
+    if(settings.value("networkAutoClearCacheOnError").toString().isEmpty()){
+        settings.setValue("networkAutoClearCacheOnError", true);
+    }
+    auto clearCacheOnError = settings.value("networkAutoClearCacheOnError").toBool();
+    if(clearCacheOnError){
+        CSMMNetworkManager::clearNetworkCache();
+    }
 }
 
 }
