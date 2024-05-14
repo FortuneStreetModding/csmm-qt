@@ -1,0 +1,26 @@
+{
+    "name": "Strawberry",
+    "category": "Light",
+    "colors": {
+        "window":"#f4acb7",
+        "window_text":"#111111",
+        "base":"#9D8189",
+        "alternate_base":"#eeeeee",
+        "text":"#111111",
+
+        "button":"#f4acb7",
+        "button_text":"#111111",
+        "bright_text":"#fcfcfc",
+
+        "link":"#2a82da",
+        "highlight":"#ff5ab8",
+        "highlighted_text":"#111111",
+
+        "tooltip_base":"#000000",
+        "tooltip_text":"#eeeeee",
+
+        "disabled_button":"#aaaaaa",
+        "disabled_highlighted_text":"#aaaaaa",
+        "disabled_text":"#aaaaaa"
+    }
+}

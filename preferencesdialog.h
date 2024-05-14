@@ -19,6 +19,8 @@ private:
     void enableCacheSettings();
     void disableCacheSettings();
     void resetCacheDirectory();
+    void buildPaletteMenu();
+    void paletteActionTriggered();
 private Q_SLOTS:
     void accept() override;
 };

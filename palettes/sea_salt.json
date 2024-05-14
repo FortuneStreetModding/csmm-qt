@@ -1,0 +1,26 @@
+{
+    "name": "Sea Salt",
+    "category": "Light",
+    "colors": {
+        "window":"#60a7bf",
+        "window_text":"#111111",
+        "base":"#4d638c",
+        "alternate_base":"#eeeeee",
+        "text":"#111111",
+
+        "button":"#60a7bf",
+        "button_text":"#111111",
+        "bright_text":"#fcfcfc",
+
+        "link":"#2a82da",
+        "highlight":"#809ed5",
+        "highlighted_text":"#111111",
+
+        "tooltip_base":"#000000",
+        "tooltip_text":"#eeeeee",
+
+        "disabled_button":"#aaaaaa",
+        "disabled_highlighted_text":"#aaaaaa",
+        "disabled_text":"#aaaaaa"
+    }
+}

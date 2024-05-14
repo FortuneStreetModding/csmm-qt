@@ -1,0 +1,26 @@
+{
+    "name": "Blueberry",
+    "category": "Dark",
+    "colors": {
+        "window":"#0b163b",
+        "window_text":"#eeeeee",
+        "base":"#08001e",
+        "alternate_base":"＃111111",
+        "text":"#eeeeee",
+
+        "button":"#0b163b",
+        "button_text":"#eeeeee",
+        "bright_text":"#fcfcfc",
+
+        "link":"#2a82da",
+        "highlight":"#acbdd8",
+        "highlighted_text":"#eeeeee",
+
+        "tooltip_base":"#000000",
+        "tooltip_text":"#eeeeee",
+
+        "disabled_button":"#555555",
+        "disabled_highlighted_text":"#555555",
+        "disabled_text":"#555555"
+    }
+}

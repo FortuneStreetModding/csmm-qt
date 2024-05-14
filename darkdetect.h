@@ -1,53 +1,53 @@
 #ifndef DARKDETECT_H
 #define DARKDETECT_H
 
-#include <QApplication>
-#include <QPalette>
-#include <QSettings>
-#include <QStyleFactory>
+#include "qapplication.h"
+#include "qjsondocument.h"
+#include "qpalette.h"
+#include "qsettings.h"
+#include "usersettings.h"
 
-inline QPalette buildDarkPalette() {
-    QPalette darkPalette;
-    QColor darkColor = QColor(45,45,45);
-    QColor disabledColor = QColor(127,127,127);
-    darkPalette.setColor(QPalette::Window, darkColor);
-    darkPalette.setColor(QPalette::WindowText, Qt::white);
-    darkPalette.setColor(QPalette::Base, QColor(18,18,18));
-    darkPalette.setColor(QPalette::AlternateBase, darkColor);
-    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
-    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-    darkPalette.setColor(QPalette::Text, Qt::white);
-    darkPalette.setColor(QPalette::Disabled, QPalette::Text, disabledColor);
-    darkPalette.setColor(QPalette::Button, darkColor);
-    darkPalette.setColor(QPalette::ButtonText, Qt::white);
-    darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
-    darkPalette.setColor(QPalette::BrightText, Qt::red);
-    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+inline void initWindowPaletteSettings(Qt::ColorScheme scheme) {
+    QSettings settings;
+    QString saved_palette = settings.value("window_palette/name", "not set").toString();
+    if(saved_palette == "not set"){
+        // We set these two palettes in like this to ensure the
+        // system works even if the user never interacts with the
+        // theme system. In this scenario, it will automatically
+        // set either Classic Light or Classic Dark on the first
+        // boot of this version based on what the user's OS is
+        // set to. In every subsequent boot, if the user does not
+        // change the theme, they will skip straight to the
+        // setChosenPalette() call below to load whichever palette
+        // got set here during the first boot.
+        QJsonDocument light_doc = readJsonFile(":/palettes/", "classic_light.json");
+        QJsonObject light_root_obj = light_doc.object();
+        QJsonObject light_palette = light_root_obj.value("colors").toObject();
 
-    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
-    darkPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
+        QJsonDocument dark_doc = readJsonFile(":/palettes/", "classic_dark.json");
+        QJsonObject dark_root_obj = dark_doc.object();
+        QJsonObject dark_palette = dark_root_obj.value("colors").toObject();
 
-    return darkPalette;
-}
-
-inline void initDarkThemeSettings() {
-#ifdef Q_OS_WIN
-    QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",QSettings::NativeFormat);
-    if(settings.value("AppsUseLightTheme")==0){
-        qApp->setStyle(QStyleFactory::create("Fusion"));
-        QPalette darkPalette = buildDarkPalette();
-        qApp->setPalette(darkPalette);
-        qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
+        if(scheme == Qt::ColorScheme::Light){
+            setChosenPalette(light_palette);
+            saveUserWindowPalette("Classic Light", light_palette);
+        }
+        else if(scheme == Qt::ColorScheme::Dark){
+            setChosenPalette(dark_palette);
+            saveUserWindowPalette("Classic Dark", dark_palette);
+        }
+        else{
+            // if it's unknown, just set Classic Dark
+            setChosenPalette(dark_palette);
+            saveUserWindowPalette("Classic Dark", dark_palette);
+        }
     }
-#endif
-#ifdef Q_OS_LINUX
-    qApp->setStyle(QStyleFactory::create("Fusion"));
-    QPalette darkPalette = buildDarkPalette();
-    qApp->setPalette(darkPalette);
-    qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
-#endif
+    else{
+        // if a palette is set
+        setChosenPalette(getSavedUserWindowPalette());
+    }
 }
+
 inline bool isDarkMode() {
     return QApplication::palette().color(QPalette::Base).lightnessF() < 0.5;
 }

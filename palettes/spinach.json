@@ -1,0 +1,26 @@
+{
+    "name": "Spinach",
+    "category": "Dark",
+    "colors": {
+        "window":"#0f3e02",
+        "window_text":"#eeeeee",
+        "base":"#062501",
+        "alternate_base":"#111111",
+        "text":"#eeeeee",
+
+        "button":"#0f3e02",
+        "button_text":"#eeeeee",
+        "bright_text":"#eeeeee",
+
+        "link":"#2a82da",
+        "highlight":"#499135",
+        "highlighted_text":"#062501",
+
+        "tooltip_base":"#000000",
+        "tooltip_text":"#eeeeee",
+
+        "disabled_button":"#555555",
+        "disabled_highlighted_text":"#555555",
+        "disabled_text":"#555555"
+    }
+}

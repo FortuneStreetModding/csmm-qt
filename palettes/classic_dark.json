@@ -1,0 +1,26 @@
+{
+    "name": "Classic Dark",
+    "category": "Dark",
+    "colors": {
+        "window":"#2d2d2d",
+        "window_text":"#eeeeee",
+        "base":"#121212",
+        "alternate_base":"＃111111",
+        "text":"#eeeeee",
+
+        "button":"#2d2d2d",
+        "button_text":"#eeeeee",
+        "bright_text":"#eeeeee",
+
+        "link":"#2a82da",
+        "highlight":"#d31779",
+        "highlighted_text":"#eeeeee",
+
+        "tooltip_base":"#000000",
+        "tooltip_text":"#eeeeee",
+
+        "disabled_button":"#555555",
+        "disabled_highlighted_text":"#555555",
+        "disabled_text":"#555555"
+    }
+}
