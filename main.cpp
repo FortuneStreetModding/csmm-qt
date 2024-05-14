@@ -1,12 +1,12 @@
 #include "choosemode.h"
-#include "darkdetect.h"
 #include "csmmmode.h"
 #include <QApplication>
 #include <QDir>
 #include <QProgressDialog>
-
+#include <QStyleHints>
 #include "lib/python/pythonbindings.h"
 #include "mainwindow.h"
+#include "darkdetect.h"
 #include "quicksetupdialog.h"
 #include <pybind11/embed.h>
 
@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
         QCoreApplication::setOrganizationDomain("fortunestreetmodding.github.io");
         QCoreApplication::setApplicationName("csmm");
         QCoreApplication::setApplicationVersion(QString("%1").arg(CSMM_VERSION));
+        initWindowPaletteSettings(app.styleHints()->colorScheme());
 
         setPyHome();
 
@@ -120,7 +121,6 @@ int main(int argc, char *argv[])
             ::ShowWindow( ::GetConsoleWindow(), SW_HIDE );
         }
 #endif
-        initDarkThemeSettings();
         QSettings settings;
         QWidget *w;
         switch (settings.value("csmmMode", INDETERMINATE).toInt()) {

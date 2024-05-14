@@ -206,7 +206,12 @@ qt_add_big_resources(LIB_SOURCES csmm.qrc)
 
 set(MAIN_SOURCES
     ${LIB_SOURCES}
-    quicksetupdialog.h quicksetupdialog.cpp quicksetupdialog.ui
+    choosemode.h
+    choosemode.cpp
+    choosemode.ui
+    csmmmode.h
+    csmmprogressdialog.h
+    csmmprogressdialog.cpp
     darkdetect.h
     main.cpp
     maincli.cpp
@@ -216,21 +221,20 @@ set(MAIN_SOURCES
     mainwindow.ui
     mapdescriptorwidget.cpp
     mapdescriptorwidget.h
+    preferencesdialog.cpp
+    preferencesdialog.h
+    preferencesdialog.ui
+    quicksetupdialog.cpp
+    quicksetupdialog.h
+    quicksetupdialog.ui
+    usersettings.cpp
+    usersettings.h
     validationerrordialog.cpp
     validationerrordialog.h
     validationerrordialog.ui
     venturecarddialog.cpp
     venturecarddialog.h
     venturecarddialog.ui
-    csmmprogressdialog.h
-    csmmprogressdialog.cpp
-    choosemode.h
-    choosemode.cpp
-    choosemode.ui
-    csmmmode.h
-    preferencesdialog.h
-    preferencesdialog.cpp
-    preferencesdialog.ui
 )
 
 set(PY_SOURCES

@@ -1,0 +1,26 @@
+{
+    "name": "Classic Light",
+    "category": "Light",
+    "colors": {
+        "window":"#c3c6c8",
+        "window_text":"#111111",
+        "base":"#9598a6",
+        "alternate_base":"#d4d7d9",
+        "text":"#111111",
+
+        "button":"#c3c6c8",
+        "button_text":"#111111",
+        "bright_text":"#fcfcfc",
+
+        "link":"#2a82da",
+        "highlight":"#172b89",
+        "highlighted_text":"#eeeeee",
+
+        "tooltip_base":"#000000",
+        "tooltip_text":"#eeeeee",
+
+        "disabled_button":"#aaaaaa",
+        "disabled_highlighted_text":"#aaaaaa",
+        "disabled_text":"#aaaaaa"
+    }
+}

@@ -228,5 +228,17 @@
         <file>files/minimap/ui_minimap_icon_ja.png</file>
         <file>files/minimap/ui_minimap_icon_w_ja.png</file>
         <file>files/ui_mark_eventsquare.png</file>
+        <file>palettes/blueberry.json</file>
+        <file>palettes/chocolate.json</file>
+        <file>palettes/classic_dark.json</file>
+        <file>palettes/classic_light.json</file>
+        <file>palettes/kiwi.json</file>
+        <file>palettes/lemon.json</file>
+        <file>palettes/plum.json</file>
+        <file>palettes/pumpkin.json</file>
+        <file>palettes/sea_salt.json</file>
+        <file>palettes/spinach.json</file>
+        <file>palettes/strawberry.json</file>
+        <file>palettes/wine.json</file>
     </qresource>
 </RCC>

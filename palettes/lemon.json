@@ -1,0 +1,26 @@
+{
+    "name": "Lemon",
+    "category": "Light",
+    "colors": {
+        "window":"#ecc23e",
+        "window_text":"#111111",
+        "base":"#66583d",
+        "alternate_base":"#eeeeee",
+        "text":"#111111",
+
+        "button":"#ecc23e",
+        "button_text":"#111111",
+        "bright_text":"#fcfcfc",
+
+        "link":"#2a82da",
+        "highlight":"#dbc2b1",
+        "highlighted_text":"#111111",
+
+        "tooltip_base":"#000000",
+        "tooltip_text":"#eeeeee",
+
+        "disabled_button":"#aaaaaa",
+        "disabled_highlighted_text":"#aaaaaa",
+        "disabled_text":"#aaaaaa"
+    }
+}
