@@ -23,7 +23,7 @@ private:
     void paletteActionTriggered();
 private Q_SLOTS:
     void accept() override;
-    void usePaletteHighlightColorCheckboxStatusChanged(int arg1);
+    void usePaletteHighlightColorCheckboxStatusChanged(int status);
 };
 
 #endif // PREFERENCESDIALOG_H

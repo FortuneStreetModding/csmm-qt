@@ -50,7 +50,7 @@ inline void setChosenPalette(QJsonObject colors, bool usePaletteHighlightColors 
     qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
 }
 
-inline void saveUserWindowPalette(QString paletteName, QJsonObject paletteColors, bool usePaletteHighlightColor = true){
+inline void saveUserWindowPalette(QString paletteName, QJsonObject paletteColors, bool usePaletteHighlightColors = true){
     QSettings settings;
     // this group adds a prefix to all of the values below, resulting in path/to/keys
     // like window_palette/colors/window.
@@ -58,7 +58,7 @@ inline void saveUserWindowPalette(QString paletteName, QJsonObject paletteColors
 
     // save the palette name and highlight color setting
     settings.setValue("name", paletteName);
-    settings.setValue("use_highlight_colors", usePaletteHighlightColor);
+    settings.setValue("use_highlight_colors", usePaletteHighlightColors);
 
     // save the palette colors. if we add keys to our palette schema, we will need
     // to add entries here and in returnPalettePreference().
