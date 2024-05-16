@@ -25,6 +25,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
+    this->resize(100,100);
     setWindowTitle("Preferences");
 
     ui->windowPaletteToolButton->setMenu(new QMenu);
@@ -43,6 +44,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     default:
         break;
     }
+
+    bool useHighlightColorSetting = settings.value("window_palette/use_highlight_colors", 1).toBool();
+    ui->usePaletteHighlightColorCheckbox->setChecked(useHighlightColorSetting);
 
     switch (settings.value("networkCacheMode").toInt()) {
     case 0:
@@ -228,13 +232,27 @@ void PreferencesDialog::paletteActionTriggered()
     if (action) {
         QString paletteName = action->text();
 
-        // do stuff with the selected palette name
+        // set the window palette label with the name of the new palette
         ui->windowPaletteLabel->setText(paletteName);
 
+        // check whether or not to use highlight colors
+        bool useHighlightColors = ui->usePaletteHighlightColorCheckbox->isChecked();
+
         // apply the palette
-        setChosenPalette(palette_files.value(paletteName));
+        setChosenPalette(palette_files.value(paletteName), useHighlightColors);
 
         // set the palette as chosen in QSettings
-        saveUserWindowPalette(paletteName, palette_files.value(paletteName));
+        saveUserWindowPalette(paletteName, palette_files.value(paletteName), useHighlightColors);
     }
 }
+
+void PreferencesDialog::usePaletteHighlightColorCheckboxStatusChanged(int value)
+{
+    bool useHighlightColors = value;
+    // if false, we're disabling the use of the palette's highlight color and highlight text color entries.
+    // if true, we're enabling their use.
+    QJsonObject palette = getSavedUserWindowPalette();
+    setChosenPalette(palette, useHighlightColors);
+    saveUserWindowPalette(palette.value("name").toString(), palette, useHighlightColors);
+}
+
