@@ -250,9 +250,9 @@ void PreferencesDialog::paletteActionTriggered()
     }
 }
 
-void PreferencesDialog::usePaletteHighlightColorCheckboxStatusChanged(int value)
+void PreferencesDialog::usePaletteHighlightColorCheckboxStatusChanged(int status)
 {
-    bool useHighlightColors = value;
+    bool useHighlightColors = status;
     // if false, we're disabling the use of the palette's highlight color and highlight text color entries.
     // if true, we're enabling their use.
     QJsonObject palette = getSavedUserWindowPalette();
