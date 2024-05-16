@@ -48,6 +48,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     bool useHighlightColorSetting = settings.value("window_palette/use_highlight_colors", 1).toBool();
     ui->usePaletteHighlightColorCheckbox->setChecked(useHighlightColorSetting);
 
+    connect(ui->usePaletteHighlightColorCheckbox, &QCheckBox::stateChanged, this, [this](bool value){
+        usePaletteHighlightColorCheckboxStatusChanged(value);
+    });
+
     switch (settings.value("networkCacheMode").toInt()) {
     case 0:
     case 1:

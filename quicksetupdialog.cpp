@@ -21,7 +21,7 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
     ui(new Ui::QuickSetupDialog), defaultMarkerCode(defaultMarkerCode), defaultSeparateSaveGame(defaultSeparateSaveGame)
 {
     ui->setupUi(this);
-
+    this->resize(size().width(),100);
     ui->markerCode->setText(defaultMarkerCode);
     ui->separateSaveGame->setChecked(defaultSeparateSaveGame);
 
@@ -73,7 +73,7 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
     toAdvancedMode->setAutoDefault(false);
     ui->buttonBox->addButton(toAdvancedMode, QDialogButtonBox::ResetRole);
 
-    connect(ui->enableRiivolution, &QCheckBox::toggled, this, [this](bool checked) {
+    connect(ui->enableRiivolutionGroupBox, &QGroupBox::toggled, this, [this](bool checked) {
         updateButtonBoxEnabled();
     });
 
@@ -89,7 +89,7 @@ QuickSetupDialog::~QuickSetupDialog()
 
 bool QuickSetupDialog::shouldPatchRiivolution()
 {
-    return ui->enableRiivolution->isChecked();
+    return ui->enableRiivolutionGroupBox->isChecked();
 }
 
 namespace csmm_quicksetup_detail {
@@ -176,6 +176,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         }
         CSMMProgressDialog dialog("Saving game to ROM", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
         dialog.setWindowModality(Qt::ApplicationModal);
+        dialog.setWindowTitle("Creating Disc Image");
         // copy directory if folder, extract wbfs/iso if file
         if (QFileInfo(ui->inputGameLoc->text()).isDir()) {
             std::error_code error;
@@ -210,7 +211,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
         auto mapListFileIt = QDirIterator(mods.second[0].path(), {"map[Ll]ist.yaml", "map[Ll]ist.yml"}, QDir::Files, QDirIterator::Subdirectories);
         if (!mapListFileIt.hasNext()) {
-            QMessageBox::critical(this, "Cannot save game", "Map list yaml not found in modpack zip");
+            QMessageBox::critical(this, "Cannot save game", "The maplist yaml was not found inside the modpack zip.");
             return;
         }
 
@@ -226,13 +227,13 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         });
 
         dialog.setValue(90);
-        qInfo() << "writing ROM";
+        qInfo() << "Writing modified game image...";
 
         // create wbfs/iso if file
         if (!QFileInfo(outputLoc).isDir()) {
             await(ExeWrapper::createWbfsIso(targetGameDir, outputLoc, ui->markerCode->text(), ui->separateSaveGame->isChecked()));
             if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != mods.first.end()) {
-                qInfo() << "patching wiimmfi";
+                qInfo() << "Patching Wiimmfi...";
                 dialog.setValue(95);
                 await(ExeWrapper::patchWiimmfi(outputLoc));
             }
@@ -240,14 +241,14 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
         // riivolution stuff
         if (shouldPatchRiivolutionVar) {
-            qInfo() << "patching riivolution";
+            qInfo() << "Patching Riivolution...";
             dialog.setValue(95);
             Riivolution::write(intermediateDir.path(), outputLoc, gameInstance.addressMapper(), ui->riivolutionPatchName->text());
         }
 
         dialog.setValue(100);
 
-        QMessageBox::information(this, "Quick setup successful", "Save was successful.");
+        QMessageBox::information(this, "Success!", "The game was saved successfully.");
 
         close();
     } catch (const ProgressCanceled &) {
@@ -260,7 +261,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 void QuickSetupDialog::updateButtonBoxEnabled()
 {
     bool enable = !ui->inputGameLoc->text().isEmpty() && !ui->modpackZip->text().isEmpty();
-    exportToWbfsIso->setEnabled(enable && !ui->enableRiivolution->isChecked());
+    exportToWbfsIso->setEnabled(enable && !ui->enableRiivolutionGroupBox->isChecked());
     exportToExtractedFolder->setEnabled(enable);
 }
 
