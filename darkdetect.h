@@ -44,7 +44,8 @@ inline void initWindowPaletteSettings(Qt::ColorScheme scheme) {
     }
     else{
         // if a palette is set
-        setChosenPalette(getSavedUserWindowPalette());
+        bool useHighlightColors = settings.value("window_palette/use_highlight_colors", 0).toBool();
+        setChosenPalette(getSavedUserWindowPalette(), useHighlightColors);
     }
 }
 
