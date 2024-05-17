@@ -36,7 +36,10 @@
       <item>
        <widget class="QPushButton" name="chooseInputWbfsIso">
         <property name="text">
-         <string>Choose .wbfs or .iso File</string>
+         <string>Choose File</string>
+        </property>
+        <property name="icon">
+         <iconset theme="drive-optical"/>
         </property>
        </widget>
       </item>
@@ -44,6 +47,9 @@
        <widget class="QPushButton" name="chooseInputGameFolder">
         <property name="text">
          <string>Choose Folder</string>
+        </property>
+        <property name="icon">
+         <iconset theme="folder-open"/>
         </property>
        </widget>
       </item>
