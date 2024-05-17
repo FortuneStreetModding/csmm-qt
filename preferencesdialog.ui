@@ -194,7 +194,7 @@
          <item>
           <widget class="QCheckBox" name="usePaletteHighlightColorCheckbox">
            <property name="text">
-            <string>Use Palette Highlight Color</string>
+            <string>Use palette highlight color</string>
            </property>
           </widget>
          </item>

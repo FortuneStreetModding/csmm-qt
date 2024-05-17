@@ -22,7 +22,7 @@ private:
     Ui::QuickSetupDialog *ui;
     QString defaultMarkerCode;
     bool defaultSeparateSaveGame;
-    QPushButton *exportToExtractedFolder, *exportToWbfsIso, *toAdvancedMode;
+    QPushButton *exportToExtractedFolder, *exportToWbfsIso, *toAdvancedMode, *toPreferences;
     void onResultClick(QAbstractButton *button);
     void updateButtonBoxEnabled();
 private Q_SLOTS:

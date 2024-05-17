@@ -1,5 +1,6 @@
 #include "quicksetupdialog.h"
 #include "lib/progresscanceled.h"
+#include "preferencesdialog.h"
 #include "ui_quicksetupdialog.h"
 
 #include <QtConcurrent>
@@ -33,21 +34,21 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
         }
     });
     connect(ui->chooseInputWbfsIso, &QPushButton::clicked, this, [this](bool){
-        auto isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
+        auto isoWbfs = QFileDialog::getOpenFileName(this, "Import .wbfs or .iso file", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
         if (!isoWbfs.isEmpty()) {
             ui->inputGameLoc->setText(isoWbfs);
             updateButtonBoxEnabled();
         }
     });
     connect(ui->chooseModpackZip, &QPushButton::clicked, this, [this](bool){
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "Modpack zip file (*.zip)", nullptr);
+        auto file = QFileDialog::getOpenFileName(this, "Import modpack", QString(), "Modpack zip file (*.zip)", nullptr);
         if (!file.isEmpty()) {
             ui->modpackZip->setText(file);
             updateButtonBoxEnabled();
         }
     });
     connect(ui->addModZip, &QPushButton::clicked, this, [this](bool) {
-        auto file = QFileDialog::getOpenFileName(this, "Import additional mod pack", QString(), "Modpack zip file (*.zip)", nullptr);
+        auto file = QFileDialog::getOpenFileName(this, "Import additional modpack", QString(), "Modpack zip file (*.zip)", nullptr);
         if (!file.isEmpty()) {
             ui->additionalMods->addItem(file);
             updateButtonBoxEnabled();
@@ -60,14 +61,20 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
     });
 
 
-    exportToWbfsIso = new QPushButton("Export to WBFS/ISO");
+    exportToWbfsIso = new QPushButton("Export to File");
+    exportToWbfsIso->setIcon(QIcon::fromTheme("drive-optical"));
     exportToWbfsIso->setEnabled(false);
     exportToWbfsIso->setDefault(true);
     ui->buttonBox->addButton(exportToWbfsIso, QDialogButtonBox::AcceptRole);
 
-    exportToExtractedFolder = new QPushButton("Export to Extracted Folder");
+    exportToExtractedFolder = new QPushButton("Export to Folder");
+    exportToExtractedFolder->setIcon(QIcon::fromTheme("folder-open"));
     exportToExtractedFolder->setEnabled(false);
     ui->buttonBox->addButton(exportToExtractedFolder, QDialogButtonBox::AcceptRole);
+
+    toPreferences = new QPushButton("Preferences");
+    toPreferences->setAutoDefault(false);
+    ui->buttonBox->addButton(toPreferences, QDialogButtonBox::ResetRole);
 
     toAdvancedMode = new QPushButton("Switch to Advanced CSMM");
     toAdvancedMode->setAutoDefault(false);
@@ -118,6 +125,12 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         return;
     }
 
+    if (button == toPreferences){
+        PreferencesDialog dialog;
+        dialog.exec();
+        return;
+    }
+
     csmm_quicksetup_detail::ProcessingGuard guard(this);
 
     bool shouldPatchRiivolutionVar = shouldPatchRiivolution();
@@ -147,13 +160,38 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
     // check if enough temporary disk space is available
     {
         QTemporaryDir tmp;
-        QStorageInfo storageInfo(tmp.path());
-        int availableMb = storageInfo.bytesAvailable()/1024/1024;
-        if (availableMb < 10000) {
-            if (QMessageBox::question(this, "Save",
-                                  QString("There is less than 10 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
-                                  QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
-                return;
+        QTemporaryDir saveDir(outputLoc);
+        QStorageInfo saveLocation(saveDir.path());
+
+
+        QSettings settings;
+        QTemporaryDir cacheDir(settings.value("networkCacheDirectory","").toString());
+        QStorageInfo cacheLocation(cacheDir.path());
+
+        int saveLocationAvailableMb = saveLocation.bytesAvailable()/1024/1024;
+        int cacheLocationAvailableMb = cacheLocation.bytesAvailable()/1024/1024;
+
+        QString lowStorageMessageCache = "There may not be enough space remaining on %1 to function as a cache directory.\n\nCSMM needs room not only to save files, but also to extract them before building your final modified game image. As such, it is recommended that your drive has at least 10GB of free space before continuing. It currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageSave = "There may not be enough space remaining on %1 to store the new disc image.\n\nWii disc images are usually around 5GB, so at least that much free space is recommended to continue. The drive currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessagePlural = "%1 is configured as both a cache location as well as the export location for this disc image. As such, it is recommended that your drive has at least 20GB of available disk space before continuing. It currently has %2MB remaining.\n\nWould you like to proceed?";
+
+        if(saveLocation.device() == cacheLocation.device()){
+            // the cache and the save location are on the same drive, handle accordingly
+            if(saveLocationAvailableMb < 20000){
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessagePlural.arg(saveLocation.displayName()).arg(saveLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    return;
+            }
+        }
+        else {
+            // find a way to make this known so we can handle _this_ accordingly
+            if(cacheLocationAvailableMb < 10000){
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageCache.arg(cacheLocation.displayName()).arg(cacheLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    return;
+            }
+            if(saveLocationAvailableMb < 5000){
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageSave.arg(saveLocation.displayName()).arg(saveLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    return;
+            }
         }
     }
 
@@ -174,7 +212,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
             QMessageBox::critical(this, "Cannot save game", "Cannot create temporary directory.");
             return;
         }
-        CSMMProgressDialog dialog("Saving game to ROM", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
+        CSMMProgressDialog dialog("Starting process...", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
         dialog.setWindowModality(Qt::ApplicationModal);
         dialog.setWindowTitle("Creating Disc Image");
         // copy directory if folder, extract wbfs/iso if file
@@ -248,8 +286,11 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
         dialog.setValue(100);
 
-        QMessageBox::information(this, "Success!", "The game was saved successfully.");
-
+        //QMessageBox::information(this, "Success!", "The game was saved successfully.");
+        bool stayInCSMM = QMessageBox::question(this, "Success!", "The game was saved successfully. Would you like to exit?", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes) == QMessageBox::No;
+        if (stayInCSMM) {
+            return;
+        }
         close();
     } catch (const ProgressCanceled &) {
         // nothing to do
