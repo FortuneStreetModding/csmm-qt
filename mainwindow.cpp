@@ -118,6 +118,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(ui->actionPreferences, &QAction::triggered, this, [&]() {
         PreferencesDialog dialog;
+        dialog.setWindowModality(Qt::ApplicationModal);
         dialog.exec();
     });
     updateModListWidget();
