@@ -62,13 +62,11 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
 
 
     exportToWbfsIso = new QPushButton("Export to File");
-    exportToWbfsIso->setIcon(QIcon::fromTheme("drive-optical"));
     exportToWbfsIso->setEnabled(false);
     exportToWbfsIso->setDefault(true);
     ui->buttonBox->addButton(exportToWbfsIso, QDialogButtonBox::AcceptRole);
 
     exportToExtractedFolder = new QPushButton("Export to Folder");
-    exportToExtractedFolder->setIcon(QIcon::fromTheme("folder-open"));
     exportToExtractedFolder->setEnabled(false);
     ui->buttonBox->addButton(exportToExtractedFolder, QDialogButtonBox::AcceptRole);
 

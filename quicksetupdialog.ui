@@ -38,18 +38,12 @@
         <property name="text">
          <string>Choose File</string>
         </property>
-        <property name="icon">
-         <iconset theme="drive-optical"/>
-        </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="chooseInputGameFolder">
         <property name="text">
          <string>Choose Folder</string>
-        </property>
-        <property name="icon">
-         <iconset theme="folder-open"/>
         </property>
        </widget>
       </item>
@@ -112,20 +106,14 @@
         <item>
          <widget class="QPushButton" name="addModZip">
           <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset theme="list-add"/>
+           <string>+</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="removeModZip">
           <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset theme="list-remove"/>
+           <string>-</string>
           </property>
          </widget>
         </item>
