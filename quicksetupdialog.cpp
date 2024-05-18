@@ -127,6 +127,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
     if (button == toPreferences){
         PreferencesDialog dialog;
+        dialog.setWindowModality(Qt::ApplicationModal);
         dialog.exec();
         return;
     }
