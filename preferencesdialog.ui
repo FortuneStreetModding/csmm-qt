@@ -425,9 +425,6 @@
           <property name="text">
            <string>Clear Network Cache</string>
           </property>
-          <property name="icon">
-           <iconset theme="user-trash-full"/>
-          </property>
          </widget>
         </item>
         <item>
@@ -490,18 +487,12 @@
           <property name="text">
            <string>Reset</string>
           </property>
-          <property name="icon">
-           <iconset theme="view-refresh"/>
-          </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="updateCacheDirectoryButton">
           <property name="text">
            <string>Change</string>
-          </property>
-          <property name="icon">
-           <iconset theme="folder-open"/>
           </property>
          </widget>
         </item>
