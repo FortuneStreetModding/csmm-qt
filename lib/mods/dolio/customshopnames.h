@@ -7,9 +7,8 @@ class CustomShopNames : public virtual DolIOTable, public virtual UiMessageInter
 {
 public:
     static constexpr std::string_view MODID = "customShopNames";
-    static constexpr std::string_view MODID_CAPITAL = "customShopNamesCapital";
-    CustomShopNames(bool isCapital) : isCapital(isCapital) {}
-    QString modId() const override { return (isCapital ? MODID_CAPITAL : MODID).data(); }
+    CustomShopNames() {}
+    QString modId() const override { return (MODID).data(); }
     QSet<QString> depends() const override { return {"allocateDescriptorCount"}; }
     QMap<QString, LoadMessagesFunction> loadUiMessages() override;
     void allocateUiMessages(const QString &root, GameInstance *gameInstance, const ModListType &modList) override;
@@ -22,10 +21,9 @@ protected:
     bool readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper) override;
     quint32 readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla) override;
 private:
-    QString tableAddrFileName() { return isCapital ? "files/customShopNamesCapital.dat" : "files/customShopNames.dat"; }
+    QString tableAddrFileName() { return "files/customShopNames.dat"; }
     quint32 writeTable(const std::vector<MapDescriptor> &descriptors);
     QVector<quint32> getMsgIdSubroutine(const AddressMapper &mapper, quint32 routineStartAddr);
-    bool isCapital;
     quint32 tableAddr = 0;
 };
 

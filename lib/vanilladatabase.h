@@ -21,7 +21,7 @@ void setDefaultVentureCards(RuleSet ruleSet, std::array<bool, 128> &outVentureCa
 QSet<QString> getVanillaIcons();
 const std::map<QString, QString> &localeToDistrictWord();
 const std::map<QString, std::vector<QString> > &getVanillaDistrictNames();
-const std::map<QString, std::vector<QString>> &getVanillaShopNames(bool capital);
+const std::map<QString, std::vector<QString>> &getVanillaShopNames();
 }
 
 #endif // VANILLADATABASE_H

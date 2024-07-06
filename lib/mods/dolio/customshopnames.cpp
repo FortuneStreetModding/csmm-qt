@@ -11,31 +11,35 @@ void CustomShopNames::writeAsm(QDataStream &stream, const AddressMapper &address
     auto msgIdSubroutine = getMsgIdSubroutine(addressMapper, msgIdSubroutineAddr);
     stream.device()->seek(addressMapper.toFileAddress(msgIdSubroutineAddr));
     for (auto word: msgIdSubroutine) stream << word;
-    auto hijackAddr = addressMapper.boomStreetToStandard(isCapital ? 0x800f89d4 : 0x800f865c);
+    auto hijackAddr = addressMapper.boomStreetToStandard(0x800f89d4);
     stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
     // addi r4, r30, 0x14d4 -> b msgIdSubroutine
     stream << PowerPcAsm::b(hijackAddr, msgIdSubroutineAddr);
+
+    hijackAddr = addressMapper.boomStreetToStandard(0x8010cd74);
+    stream.device()->seek(addressMapper.toFileAddress(hijackAddr));
+    // bl get_shop_name -> bl getShopName
+    stream << PowerPcAsm::bl(hijackAddr, addressMapper.boomStreetToStandard(0x800f8924));
 }
 
 void CustomShopNames::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla)
 {
     for (auto &descriptor: mapDescriptors) {
-        auto &l10nIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
-        l10nIds.clear();
+        descriptor.shopNameIds.clear();
         if (!isVanilla) {
             quint32 subTableAddr;
             stream >> subTableAddr;
             auto oldPos = stream.device()->pos();
             stream.device()->seek(addressMapper.toFileAddress(subTableAddr));
             for (int i=0; i<100; ++i) {
-                quint32 l10nId; stream >> l10nId;
-                l10nIds.push_back(l10nId);
+                quint32 shopNameId; stream >> shopNameId;
+                descriptor.shopNameIds.push_back(shopNameId);
             }
             stream.device()->seek(oldPos);
         } else {
-            auto startingVal = (isCapital ? 0x14d4 : 0x1468) + 1;
+            auto startingVal = 0x14d4 + 1;
             for (int i=0; i<100; ++i) {
-                l10nIds.push_back(startingVal + i);
+                descriptor.shopNameIds.push_back(startingVal + i);
             }
         }
     }
@@ -43,9 +47,9 @@ void CustomShopNames::readAsm(QDataStream &stream, std::vector<MapDescriptor> &m
 
 bool CustomShopNames::readIsVanilla(QDataStream &stream, const AddressMapper &addressMapper)
 {
-    stream.device()->seek(addressMapper.boomToFileAddress(isCapital ? 0x800f89d4 : 0x800f865c));
+    stream.device()->seek(addressMapper.boomToFileAddress(0x800f89d4));
     quint32 opcode; stream >> opcode;
-    return opcode == PowerPcAsm::addi(4, 30, isCapital ? 0x14d4 : 0x1468);
+    return opcode == PowerPcAsm::addi(4, 30, 0x14d4);
 }
 
 quint32 CustomShopNames::readTableAddr(QDataStream &stream, const AddressMapper &addressMapper, bool isVanilla)
@@ -57,7 +61,7 @@ quint32 CustomShopNames::writeTable(const std::vector<MapDescriptor> &descriptor
 {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
-        auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
+        auto &shopNameIds = (descriptor.shopNameIds);
         table.push_back(allocate(shopNameIds.begin(), shopNameIds.end(), "Shop Name ID Subtable"));
     }
     return allocate(table, "Shop Name ID Table");
@@ -66,10 +70,10 @@ quint32 CustomShopNames::writeTable(const std::vector<MapDescriptor> &descriptor
 QVector<quint32> CustomShopNames::getMsgIdSubroutine(const AddressMapper &mapper, quint32 routineStartAddr)
 {
     auto v = PowerPcAsm::make16bitValuePair(tableAddr);
-    auto returnAddr = mapper.boomStreetToStandard(isCapital ? 0x800f89d8 : 0x800f8660);
+    auto returnAddr = mapper.boomStreetToStandard(0x800f89d8);
 
     QVector<quint32> res;
-    res.push_back(PowerPcAsm::addi(4, 30, isCapital ? 0x14d4 : 0x1468));     // r4 <- r30 + 0x14d4
+    res.push_back(PowerPcAsm::addi(4, 30, 0x14d4));                          // r4 <- r30 + 0x14d4
     res.push_back(PowerPcAsm::cmpwi(30, 0));                                 // if (r30 > 0)
     res.push_back(PowerPcAsm::ble(12));                                      // {
     res.push_back(PowerPcAsm::mr(31, 3));                                    //   r31 <- r3
@@ -99,9 +103,9 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> CustomShopNames::loadUiM
         result[uiMessageCsv(locale)] = [=](const QString &, GameInstance *gameInstance,
                 const ModListType &, const UiMessage *messages) {
             for (auto &descriptor: gameInstance->mapDescriptors()) {
-                auto &shopNames = (isCapital ? descriptor.capitalShopNames : descriptor.shopNames)[locale];
+                auto &shopNames = descriptor.shopNames[locale];
                 shopNames.clear();
-                for (auto id : (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds)) {
+                for (auto id : descriptor.shopNameIds) {
                     shopNames.push_back((*messages).at(id));
                 }
             }
@@ -115,8 +119,8 @@ void CustomShopNames::allocateUiMessages(const QString &root, GameInstance *game
     // reuse shop name ids if they are equivalent in all languages
     std::map<std::vector<QString>, int> uiMessageIdReuse;
     for (auto &descriptor : gameInstance->mapDescriptors()) {
-        auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
-        auto &shopNames = (isCapital ? descriptor.capitalShopNames : descriptor.shopNames);
+        auto &shopNameIds = descriptor.shopNameIds;
+        auto &shopNames = descriptor.shopNames;
         shopNameIds.clear();
         for (int i=0; i<100; ++i) {
             std::vector<QString> reuse;
@@ -139,11 +143,22 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> CustomShopNames::saveUiM
                 const ModListType &, UiMessage *messages) {
             auto theLocale = locale == "uk" ? "en" : locale;
             for (auto &descriptor: gameInstance->mapDescriptors()) {
-                auto &shopNames = retrieveStr(isCapital ? descriptor.capitalShopNames : descriptor.shopNames, theLocale);
-                auto &shopNameIds = (isCapital ? descriptor.capitalShopNameIds : descriptor.shopNameIds);
+                auto &shopNames = retrieveStr(descriptor.shopNames, theLocale);
+                auto &shopNameIds = descriptor.shopNameIds;
                 for (int i=0; i<shopNameIds.size(); ++i) {
                     (*messages)[shopNameIds[i]] = shopNames[i];
                 }
+            }
+            // Rephrase some messages in the English locale so that uppercase shop name fits.
+            // The other locales' phrasing seem to fit already so no need to touch them.
+            if(locale == "uk" || locale == "en") {
+                (*messages)[3037] = "<en>'s bid of <auc_bid><g> for “<sp>” is accepted!";
+                (*messages)[3131] = "The deal is a success! “<sp>” is sold to <en>!";
+                (*messages)[3132] = "The deal is a success! “<sp>” is bought from <en>!";
+                (*messages)[3724] = "The value of “<sp>” increases by 20%!";
+                (*messages)[3730] = "The value of “<sp>” increases by 30%!";
+                (*messages)[3753] = "The value of “<sp>” increases by 50%!";
+                (*messages)[3756] = "The value of “<sp>” increases by 75%!";
             }
         };
     }

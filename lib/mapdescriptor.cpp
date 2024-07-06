@@ -90,22 +90,6 @@ static pybind11::object nodeToCustomData(const YAML::Node &node) {
     }
 }
 
-#define SHOP_NAMES_TO_YAML(shopNameType) \
-    if (!shopNameType.empty()) { \
-        out << YAML::Key << #shopNameType << YAML::Value << YAML::BeginMap; \
-        for (auto &fslocale: FS_LOCALES) { \
-            auto namesForLocale = getOrDefault(shopNameType, fslocale, std::vector<QString>()); \
-            if (fslocale == "uk" || namesForLocale.empty()) \
-                continue; \
-            out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginMap; \
-            for (int i=0; i<namesForLocale.size(); ++i) { \
-                out << YAML::Key << (i+1) << YAML::Value << namesForLocale[i].toStdString(); \
-            } \
-            out << YAML::EndMap; \
-        } \
-        out << YAML::EndMap; \
-    }
-
 QString MapDescriptor::toYaml() const {
     YAML::Emitter out;
 
@@ -233,8 +217,20 @@ QString MapDescriptor::toYaml() const {
         out << YAML::EndMap;
     }
 
-    SHOP_NAMES_TO_YAML(shopNames);
-    SHOP_NAMES_TO_YAML(capitalShopNames);
+    if (!shopNames.empty()) {
+        out << YAML::Key << "shopNames" << YAML::Value << YAML::BeginMap;
+        for (auto &fslocale: FS_LOCALES) {
+            auto namesForLocale = getOrDefault(shopNames, fslocale, std::vector<QString>());
+            if (fslocale == "uk" || namesForLocale.empty())
+                continue;
+            out << YAML::Key << localeToYamlKey(fslocale).toStdString() << YAML::Value << YAML::BeginMap;
+            for (int i=0; i<namesForLocale.size(); ++i) {
+                out << YAML::Key << (i+1) << YAML::Value << namesForLocale[i].toStdString();
+            }
+            out << YAML::EndMap;
+        }
+        out << YAML::EndMap;
+    }
 
     if (pybind11::len(extraData.get()) > 0) {
         out << YAML::Key << "extraData" << YAML::Value << customDataToNode(extraData.get());
@@ -299,17 +295,13 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && districtNameIds == other.districtNameIds
             && shopNames == other.shopNames
             && shopNameIds == other.shopNameIds
-            && capitalShopNames == other.capitalShopNames
-            && capitalShopNameIds == other.capitalShopNameIds
             && extraData.get().equal(other.extraData.get())
             && std::equal(std::begin(authors), std::end(authors), std::begin(other.authors));
 }
 
-void MapDescriptor::shopNamesFromYaml(const YAML::Node &yaml, bool isCapital) {
-    auto shopNameType = (isCapital ? "capitalShopNames" : "shopNames");
-    auto &theShopNames = (isCapital ? capitalShopNames : shopNames);
-    if (yaml[shopNameType]) {
-        auto snNode = yaml[shopNameType]; // shop name node of the yaml
+void MapDescriptor::shopNamesFromYaml(const YAML::Node &yaml) {
+    if (yaml["shopNames"]) {
+        auto snNode = yaml["shopNames"]; // shop name node of the yaml
         auto snNodeCopy = YAML::Clone(snNode);
         for (auto it=snNode.begin(); it!=snNode.end(); ++it) {
             // locale key
@@ -317,13 +309,10 @@ void MapDescriptor::shopNamesFromYaml(const YAML::Node &yaml, bool isCapital) {
             for (const auto &kv: it->second) { // iterate over shop name entries
                 auto convKey = kv.first.as<int>(); // shop model id
                 auto convVal = QString::fromStdString(kv.second.as<std::string>()); // shop name
-                theShopNames[key].at(convKey - 1) = convVal;
+                shopNames[key].at(convKey - 1) = convVal;
                 auto capitalConvVal = convVal;
                 if (!capitalConvVal.isEmpty()) {
                     capitalConvVal[0] = capitalConvVal[0].toTitleCase();
-                }
-                if (!isCapital) { // add default capital shop names for explicitly specified names
-                    capitalShopNames[key].at(convKey - 1) = capitalConvVal;
                 }
                 if (key == "en") { // fill defaults
                     for (auto &otherLocale: FS_LOCALES) {
@@ -332,13 +321,7 @@ void MapDescriptor::shopNamesFromYaml(const YAML::Node &yaml, bool isCapital) {
                         auto otherKeyStdStr = otherKey.toStdString();
                         if (!snNodeCopy[otherKeyStdStr].IsDefined()
                                 || !snNodeCopy[otherKeyStdStr][convKey].IsDefined()) {
-                            theShopNames[otherLocale].at(convKey - 1) = convVal;
-                            if (!isCapital
-                                    && (!yaml["capitalShopNames"].IsDefined()
-                                        || !yaml["capitalShopNames"][otherKeyStdStr].IsDefined()
-                                        || !yaml["capitalShopNames"][otherKeyStdStr][convKey].IsDefined())) {
-                                capitalShopNames[otherLocale].at(convKey - 1) = capitalConvVal;
-                            }
+                            shopNames[otherLocale].at(convKey - 1) = convVal;
                         }
                     }
                 }
@@ -509,10 +492,8 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
         }
     }
 
-    shopNames = VanillaDatabase::getVanillaShopNames(false);
-    capitalShopNames = VanillaDatabase::getVanillaShopNames(true);
-    shopNamesFromYaml(yaml, false);
-    shopNamesFromYaml(yaml, true);
+    shopNames = VanillaDatabase::getVanillaShopNames();
+    shopNamesFromYaml(yaml);
 
     if (yaml["extraData"]) extraData = pybind11::dict(nodeToCustomData(yaml["extraData"]));
 

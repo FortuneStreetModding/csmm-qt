@@ -43,6 +43,7 @@
 #include "freespace/wififreespace.h"
 #include "freespace/tinydistrictsfreespace.h"
 #include "freespace/vmovestopfreespace.h"
+#include "freespace/lowercaseshopnamefreespace.h"
 #include "dolio/changemusiconswitch.h"
 #include "misc/readfrbfileinfo.h"
 #include "misc/defaultmiscpatches.h"
@@ -86,8 +87,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<TinyDistricts>());
     patches.append(CSMMModHolder::fromCppObj<NamedDistricts>());
     patches.append(CSMMModHolder::fromCppObj<ArbitraryNumSwitchStates>());
-    patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(false));
-    patches.append(CSMMModHolder::fromCppObj<CustomShopNames>(true));
+    patches.append(CSMMModHolder::fromCppObj<CustomShopNames>());
     patches.append(CSMMModHolder::fromCppObj<ChangeMusicOnSwitch>());
 
     // mutators
@@ -107,6 +107,7 @@ ModListType defaultModList() {
     patches.append(CSMMModHolder::fromCppObj<MapDataFreeSpace>());
     patches.append(CSMMModHolder::fromCppObj<TinyDistrictsFreeSpace>());
     patches.append(CSMMModHolder::fromCppObj<VMoveStopFreeSpace>());
+    patches.append(CSMMModHolder::fromCppObj<LowerCaseShopNameFreeSpace>());
 
     patches.append(CSMMModHolder::fromCppObj<DefaultMiscPatches>());
     patches.append(CSMMModHolder::fromCppObj<ReadFrbFileInfo>());

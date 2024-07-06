@@ -155,6 +155,8 @@ set(LIB_SOURCES
     lib/mods/freespace/venturecardfreespace.h
     lib/mods/freespace/wififreespace.cpp
     lib/mods/freespace/wififreespace.h
+    lib/mods/freespace/lowercaseshopnamefreespace.cpp
+    lib/mods/freespace/lowercaseshopnamefreespace.h
     lib/mods/misc/defaultmiscpatches.cpp
     lib/mods/misc/defaultmiscpatches.h
     lib/music.h
