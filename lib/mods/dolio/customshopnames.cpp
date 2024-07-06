@@ -25,22 +25,10 @@ void CustomShopNames::writeAsm(QDataStream &stream, const AddressMapper &address
 void CustomShopNames::readAsm(QDataStream &stream, std::vector<MapDescriptor> &mapDescriptors, const AddressMapper &addressMapper, bool isVanilla)
 {
     for (auto &descriptor: mapDescriptors) {
-        descriptor.shopNameIds.clear();
-        if (!isVanilla) {
-            quint32 subTableAddr;
-            stream >> subTableAddr;
-            auto oldPos = stream.device()->pos();
-            stream.device()->seek(addressMapper.toFileAddress(subTableAddr));
-            for (int i=0; i<100; ++i) {
-                quint32 shopNameId; stream >> shopNameId;
-                descriptor.shopNameIds.push_back(shopNameId);
-            }
-            stream.device()->seek(oldPos);
+        if (isVanilla) {
+            descriptor.shopNameStartId = 5333;
         } else {
-            auto startingVal = 0x14d4 + 1;
-            for (int i=0; i<100; ++i) {
-                descriptor.shopNameIds.push_back(startingVal + i);
-            }
+            stream >> descriptor.shopNameStartId;
         }
     }
 }
@@ -61,16 +49,17 @@ quint32 CustomShopNames::writeTable(const std::vector<MapDescriptor> &descriptor
 {
     QVector<quint32> table;
     for (auto &descriptor: descriptors) {
-        auto &shopNameIds = (descriptor.shopNameIds);
-        table.push_back(allocate(shopNameIds.begin(), shopNameIds.end(), "Shop Name ID Subtable"));
+        table.append(descriptor.shopNameStartId);
     }
-    return allocate(table, "Shop Name ID Table");
+    return allocate(table, "Shop Name StartID Table");
 }
 
 QVector<quint32> CustomShopNames::getMsgIdSubroutine(const AddressMapper &mapper, quint32 routineStartAddr)
 {
     auto v = PowerPcAsm::make16bitValuePair(tableAddr);
     auto returnAddr = mapper.boomStreetToStandard(0x800f89d8);
+
+    // r30 = shop id
 
     QVector<quint32> res;
     res.push_back(PowerPcAsm::addi(4, 30, 0x14d4));                          // r4 <- r30 + 0x14d4
@@ -83,10 +72,9 @@ QVector<quint32> CustomShopNames::getMsgIdSubroutine(const AddressMapper &mapper
     res.push_back(PowerPcAsm::lis(4, v.upper));                              //   r4 <- tableAddr
     res.push_back(PowerPcAsm::addi(4, 4, v.lower));                          //
     res.push_back(PowerPcAsm::mulli(3, 3, 4));                               //   r3 <- r3 * 4
-    res.push_back(PowerPcAsm::lwzx(4, 4, 3));                                //   r4 <- r4[r3]
-    res.push_back(PowerPcAsm::mulli(3, 30, 4));                              //   r3 <- r30 * 4
-    res.push_back(PowerPcAsm::subi(3, 3, 4));                                //   r3 <- r3 - 4
-    res.push_back(PowerPcAsm::lwzx(4, 4, 3));                                //   r4 <- r4[r3]
+    res.push_back(PowerPcAsm::lwzx(4, 4, 3));                                //   r4 <- r4[r3]   (r4 is shopNameStartId now)
+    res.push_back(PowerPcAsm::add(4, 30, 4));                                //   r4 <- r30 + r4
+    res.push_back(PowerPcAsm::subi(4, 4, 1));                                //   r4 <- r4 - 1
     res.push_back(PowerPcAsm::mr(3, 31));                                    //   r3 <- r31
                                                                              // }
     res.push_back(PowerPcAsm::b(routineStartAddr, res.size(), returnAddr));  // return
@@ -105,8 +93,8 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> CustomShopNames::loadUiM
             for (auto &descriptor: gameInstance->mapDescriptors()) {
                 auto &shopNames = descriptor.shopNames[locale];
                 shopNames.clear();
-                for (auto id : descriptor.shopNameIds) {
-                    shopNames.push_back((*messages).at(id));
+                for (int i=0; i<100; i++) {
+                    shopNames.push_back((*messages).at(descriptor.shopNameStartId+i));
                 }
             }
         };
@@ -116,21 +104,23 @@ QMap<QString, UiMessageInterface::LoadMessagesFunction> CustomShopNames::loadUiM
 
 void CustomShopNames::allocateUiMessages(const QString &root, GameInstance *gameInstance, const ModListType &modList)
 {
-    // reuse shop name ids if they are equivalent in all languages
-    std::map<std::vector<QString>, int> uiMessageIdReuse;
+    // reuse shop name start id if they are all equivalent in all languages
+    std::map< std::map<QString, std::vector<QString>> , int> uiMessageIdReuse;
     for (auto &descriptor : gameInstance->mapDescriptors()) {
-        auto &shopNameIds = descriptor.shopNameIds;
-        auto &shopNames = descriptor.shopNames;
-        shopNameIds.clear();
-        for (int i=0; i<100; ++i) {
-            std::vector<QString> reuse;
-            for (auto &ent: shopNames) {
-                reuse.push_back(ent.second[i]);
+        // Check if the shopNames are already in the uiMessageIdReuse map
+        auto it = uiMessageIdReuse.find(descriptor.shopNames);
+        if (it != uiMessageIdReuse.end()) {
+            // If found, reuse the shopNameStartId
+            descriptor.shopNameStartId = it->second;
+        } else {
+            // Otherwise, generate a new shopNameStartId (and allocate the next 99 message ids) and add it to the map
+            for(int i=0;i<100;i++) {
+                int newId = gameInstance->nextUiMessageId();
+                if(i==0) {
+                    descriptor.shopNameStartId = newId;
+                    uiMessageIdReuse[descriptor.shopNames] = newId;
+                }
             }
-            if (!uiMessageIdReuse.count(reuse)) {
-                uiMessageIdReuse[reuse] = gameInstance->nextUiMessageId();
-            }
-            shopNameIds.push_back(uiMessageIdReuse[reuse]);
         }
     }
 }
@@ -144,9 +134,8 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> CustomShopNames::saveUiM
             auto theLocale = locale == "uk" ? "en" : locale;
             for (auto &descriptor: gameInstance->mapDescriptors()) {
                 auto &shopNames = retrieveStr(descriptor.shopNames, theLocale);
-                auto &shopNameIds = descriptor.shopNameIds;
-                for (int i=0; i<shopNameIds.size(); ++i) {
-                    (*messages)[shopNameIds[i]] = shopNames[i];
+                for (int i=0; i<100; ++i) {
+                    (*messages)[descriptor.shopNameStartId+i] = shopNames[i];
                 }
             }
             // Rephrase some messages in the English locale so that uppercase shop name fits.

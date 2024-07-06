@@ -99,10 +99,7 @@ struct MapDescriptor {
      * shopNames[locale][shopModel - 1] == shopName
      */
     std::map<QString, std::vector<QString>> shopNames;
-    /**
-     * shopNameIds[shopModel - 1] == shopNameId
-     */
-    std::vector<quint32> shopNameIds;
+    quint32 shopNameStartId;
 
     PyObjCopyWrapper<pybind11::dict> extraData;
 

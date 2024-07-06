@@ -294,7 +294,7 @@ bool MapDescriptor::operator==(const MapDescriptor &other) const {
             && districtNames == other.districtNames
             && districtNameIds == other.districtNameIds
             && shopNames == other.shopNames
-            && shopNameIds == other.shopNameIds
+            && shopNameStartId == other.shopNameStartId
             && extraData.get().equal(other.extraData.get())
             && std::equal(std::begin(authors), std::end(authors), std::begin(other.authors));
 }
