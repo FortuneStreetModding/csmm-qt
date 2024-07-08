@@ -11,3 +11,6 @@
 	url = https://github.com/pybind/pybind11
 	ignore = dirty
 	branch = stable
+[submodule "lib/asyncfuture"]
+	path = lib/asyncfuture
+	url = https://github.com/vpicaver/asyncfuture.git

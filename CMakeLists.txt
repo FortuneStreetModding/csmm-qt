@@ -32,7 +32,7 @@ find_package(Qt6 COMPONENTS Concurrent Core Gui Network Widgets REQUIRED)
 set(LIB_SOURCES
     lib/addressmapping.cpp
     lib/addressmapping.h
-    lib/asyncfuture.h
+    lib/asyncfuture/asyncfuture.h
     lib/await.h
     lib/brsar.cpp
     lib/brsar.h

@@ -1,6 +1,6 @@
 #include "exewrapper.h"
 
-#include "asyncfuture.h"
+#include "lib/asyncfuture/asyncfuture.h"
 #include "qdir.h"
 #include <QApplication>
 #include <QDataStream>

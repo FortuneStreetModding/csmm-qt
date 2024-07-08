@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <QRegularExpression>
 #include "importexportutils.h"
-#include "lib/asyncfuture.h"
+#include "lib/asyncfuture/asyncfuture.h"
 #include "lib/await.h"
 #include "lib/csmmnetworkmanager.h"
 #include "lib/progresscanceled.h"

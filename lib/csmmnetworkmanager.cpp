@@ -5,7 +5,7 @@
 #include <QApplication>
 #include <QStandardPaths>
 #include <QNetworkReply>
-#include "lib/asyncfuture.h"
+#include "lib/asyncfuture/asyncfuture.h"
 #include "lib/await.h"
 #include "lib/progresscanceled.h"
 #include <QtConcurrent>

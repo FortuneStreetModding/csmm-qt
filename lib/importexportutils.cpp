@@ -13,7 +13,7 @@
 #include "bsdiff/bsdifflib.h"
 #include "lib/uimessage.h"
 #include "lib/await.h"
-#include "lib/asyncfuture.h"
+#include "lib/asyncfuture/asyncfuture.h"
 #include "lib/csmmnetworkmanager.h"
 #include "lib/exewrapper.h"
 
