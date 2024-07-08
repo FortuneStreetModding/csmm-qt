@@ -85,6 +85,8 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
     connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &QuickSetupDialog::onResultClick);
 
     updateButtonBoxEnabled();
+
+    setWindowTitle(QString("CSMM %1: Quick Setup").arg(CSMM_VERSION));
 }
 
 QuickSetupDialog::~QuickSetupDialog()

@@ -122,6 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
         dialog.exec();
     });
     updateModListWidget();
+    setWindowTitle(QString("CSMM %1").arg(CSMM_VERSION));
 }
 
 QString MainWindow::getMarkerCode() {
