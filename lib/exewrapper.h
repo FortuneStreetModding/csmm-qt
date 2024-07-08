@@ -16,13 +16,13 @@
 
 namespace ExeWrapper {
     QFuture<QVector<AddressSection>> readSections(const QString &inputFile);
-    QFuture<void> extractArcFile(const QString &arcFile, const QString &dFolder);
-    QFuture<void> packDfolderToArc(const QString &dFolder, const QString &arcFile);
-    QFuture<void> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile);
-    QFuture<void> convertPngToTpl(const QString &pngFile, const QString &tplFile);
-    QFuture<void> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
-    QFuture<void> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame);
-    QFuture<void> patchWiimmfi(const QString &wbfsFile);
+    QFuture<QString> extractArcFile(const QString &arcFile, const QString &dFolder);
+    QFuture<QString> packDfolderToArc(const QString &dFolder, const QString &arcFile);
+    QFuture<QString> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile);
+    QFuture<QString> convertPngToTpl(const QString &pngFile, const QString &tplFile);
+    QFuture<QString> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
+    QFuture<QString> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame);
+    QFuture<QString> patchWiimmfi(const QString &wbfsFile);
     QFuture<QString> getId6(const QString &inputFile);
 
     class Exception : public QException, public std::runtime_error {
