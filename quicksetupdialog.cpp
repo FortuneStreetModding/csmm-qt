@@ -241,6 +241,12 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         for (int i=0; i<ui->additionalMods->count(); ++i) {
             modpackZips.append(ui->additionalMods->item(i)->text());
         }
+
+        qInfo() << "Loading ModPacks: ";
+        for (const QString &str : modpackZips) {
+            qInfo() << str;
+        }
+
         auto mods = ModLoader::importModpackCollection(modpackZips);
         auto gameInstance = GameInstance::fromGameDirectory(targetGameDir, importDir.path());
         CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
@@ -270,6 +276,8 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
         // create wbfs/iso if file
         if (!QFileInfo(outputLoc).isDir()) {
+            qInfo() << "Marker Code: " << ui->markerCode->text();
+            qInfo() << "Is Separate Save Game: " << ui->separateSaveGame->isChecked();
             await(ExeWrapper::createWbfsIso(targetGameDir, outputLoc, ui->markerCode->text(), ui->separateSaveGame->isChecked()));
             if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != mods.first.end()) {
                 qInfo() << "Patching Wiimmfi...";
@@ -287,7 +295,6 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
         dialog.setValue(100);
 
-        //QMessageBox::information(this, "Success!", "The game was saved successfully.");
         bool stayInCSMM = QMessageBox::question(this, "Success!", "The game was saved successfully. Would you like to exit?", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes) == QMessageBox::No;
         if (stayInCSMM) {
             return;

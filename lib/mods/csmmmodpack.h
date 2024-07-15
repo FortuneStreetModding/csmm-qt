@@ -3,12 +3,12 @@
 
 #include "csmmmod.h"
 #include "lib/await.h"
-#include "lib/asyncfuture/asyncfuture.h"
 #include "lib/exewrapper.h"
 #include "lib/mods/csmmmod.h"
 #include "lib/python/pythonbindings.h"
 #include "lib/importexportutils.h"
 #include "lib/datafileset.h"
+#include "lib/importexportutils.h"
 
 class CSMMModpack {
 public:
@@ -262,6 +262,12 @@ public:
         }
 
         backupAndRestore(arcFilesDir, root, false);
+
+        if(ImportExportUtils::isMainDolVanilla(QDir(root))) {
+            qInfo() << "Detected vanilla main.dol";
+        } else {
+            qInfo() << "Detected modified main.dol";
+        }
 
         // write the CSMM version
         auto versionFilePath = QDir(root).filePath(CSMM_VERSION_FILE);

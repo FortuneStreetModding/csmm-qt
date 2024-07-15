@@ -61,10 +61,10 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
 
         quint32 opcode = PowerPcAsm::lwz(0, -0x547c, 13);
         if (boomInst == opcode) {
-            // Boom Street detected
+            qInfo() << "Boom Street detected";
             addressMapperVal.setVersionMapper(AddressSectionMapper({ AddressSection() }), GameVersion::BOOM);
         } else if (fortuneInst == opcode) {
-            // Fortune Street
+            qInfo() << "Fortune Street detected";
             addressMapperVal.setVersionMapper(AddressSectionMapper({
                 {0x80000100, 0x8007a283, 0x0, ".text, .data0, .data1 and beginning of .text1 until InitSoftLanguage"},
                 {0x8007a2f4, 0x80268717, 0x54, "continuation of .text1 until AIRegisterDMACallback"},
@@ -75,7 +75,7 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
                 {0x804ac880, 0x8081f013, 0x200, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
             }), GameVersion::FORTUNE);
         } else if (itadakiInst == opcode) {
-            // Itadaki Street
+            qInfo() << "Itadaki Street detected";
             addressMapperVal.setVersionMapper(AddressSectionMapper({
                 {0x80000100, 0x8007A244, 0x0, ".text, .data0, .data1 and beginning of .text1 until InitSoftLanguage"},
                 {0x8007A2F4, 0x80268717, 0x94, "continuation of .text1 until AIRegisterDMACallback"},
