@@ -62,9 +62,10 @@ QVector<quint32> CustomShopNames::getMsgIdSubroutine(const AddressMapper &mapper
     // r30 = shop id
 
     QVector<quint32> res;
+    auto labels = PowerPcAsm::LabelTable();
     res.push_back(PowerPcAsm::addi(4, 30, 0x14d4));                          // r4 <- r30 + 0x14d4
     res.push_back(PowerPcAsm::cmpwi(30, 0));                                 // if (r30 > 0)
-    res.push_back(PowerPcAsm::ble(12));                                      // {
+    res.push_back(PowerPcAsm::ble(labels, "Return", res));                   // {
     res.push_back(PowerPcAsm::mr(31, 3));                                    //   r31 <- r3
     res.push_back(PowerPcAsm::bl(routineStartAddr, res.size(),
                                  mapper.boomStreetToStandard(0x800113f0)));  //   r3 <- Flag::Volatile::GetGameSelectInfo()
@@ -76,7 +77,7 @@ QVector<quint32> CustomShopNames::getMsgIdSubroutine(const AddressMapper &mapper
     res.push_back(PowerPcAsm::add(4, 30, 4));                                //   r4 <- r30 + r4
     res.push_back(PowerPcAsm::subi(4, 4, 1));                                //   r4 <- r4 - 1
     res.push_back(PowerPcAsm::mr(3, 31));                                    //   r3 <- r31
-                                                                             // }
+    labels.define("Return", res);                                            // }
     res.push_back(PowerPcAsm::b(routineStartAddr, res.size(), returnAddr));  // return
 
     return res;
