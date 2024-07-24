@@ -14,7 +14,7 @@ if(WIN32)
     add_definitions(/wd4267)
 endif()
 
-set(PROJECT_VERSION 7.0.1)
+set(PROJECT_VERSION 7.0.2)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
 
