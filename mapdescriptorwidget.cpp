@@ -109,7 +109,35 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     });
     setCellWidget(row, colIdx++, exportYamlButton);
 
-    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.names, "en", QString())));
+    QString prioritized_language = "en"; // pull from QSettings once we're saving that there.
+
+    QString en_name = getOrDefault(descriptor.names, "en", QString());
+    QString es_name = getOrDefault(descriptor.names, "su", QString());
+    QString de_name = getOrDefault(descriptor.names, "de", QString());
+    QString fr_name = getOrDefault(descriptor.names, "fr", QString());
+    QString it_name = getOrDefault(descriptor.names, "it", QString());
+    QString jp_name = getOrDefault(descriptor.names, "jp", QString());
+
+    if(!en_name.isEmpty()){
+        prioritized_language = "en";
+    }
+    else if(!es_name.isEmpty()){
+        prioritized_language = "su";
+    }
+    else if(!de_name.isEmpty()){
+        prioritized_language = "de";
+    }
+    else if(!fr_name.isEmpty()){
+        prioritized_language = "fr";
+    }
+    else if(!it_name.isEmpty()){
+        prioritized_language = "it";
+    }
+    else if(!jp_name.isEmpty()){
+        prioritized_language = "jp";
+    }
+
+    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.names, prioritized_language, QString())));
 
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.mapSet), MAP_SET_TYPE));
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.zone), ZONE_TYPE));
@@ -169,9 +197,9 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.nameMsgId)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.descMsgId)));
 
-    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.descs, "en", QString())));
+    setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.descs, prioritized_language, QString())));
     setItem(row, colIdx++, readOnlyItem(descriptor.internalName));
-    auto distNames = getOrDefault(descriptor.districtNames, "en", std::vector<QString>());
+    auto distNames = getOrDefault(descriptor.districtNames, prioritized_language, std::vector<QString>());
     setItem(row, colIdx++, readOnlyItem(QStringList(distNames.begin(), distNames.end()).join("; ")));
     QStringList districtNameIdStrs;
     for (quint32 v: descriptor.districtNameIds) {
