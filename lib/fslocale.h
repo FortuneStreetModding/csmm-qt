@@ -32,6 +32,24 @@ auto retrieveStr(const MapType &map, const QString &key) -> decltype(map.at(key)
     if (map.count(key)) {
         return map.at(key);
     }
+    else if (map.count("en")) {
+        return map.at("en");
+    }
+    else if (map.count("su")) {
+        return map.at("su");
+    }
+    else if (map.count("it")) {
+        return map.at("it");
+    }
+    else if (map.count("fr")) {
+        return map.at("fr");
+    }
+    else if (map.count("de")) {
+        return map.at("de");
+    }
+    else if (map.count("jp")) {
+        return map.at("jp");
+    }
     return map.at("en");
 }
 
