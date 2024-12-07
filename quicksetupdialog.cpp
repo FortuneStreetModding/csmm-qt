@@ -272,12 +272,12 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         });
 
         dialog.setValue(90);
-        qInfo() << "Writing modified game image...";
 
         // create wbfs/iso if file
         if (!QFileInfo(outputLoc).isDir()) {
             qInfo() << "Marker Code: " << ui->markerCode->text();
             qInfo() << "Is Separate Save Game: " << ui->separateSaveGame->isChecked();
+            qInfo() << "Writing modified game image...";
             await(ExeWrapper::createWbfsIso(targetGameDir, outputLoc, ui->markerCode->text(), ui->separateSaveGame->isChecked()));
             if (std::find_if(mods.first.begin(), mods.first.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != mods.first.end()) {
                 qInfo() << "Patching Wiimmfi...";
