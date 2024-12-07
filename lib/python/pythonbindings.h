@@ -48,7 +48,7 @@ public:
     }
 
     /**
-     * @return the mod's interface of class T (e.g. ArcFileInterface, GeneralInterface, etc.)
+     * @return the mod's interface of class T (e.g. ArcFileInterface, BrresFileInterface, GeneralInterface, etc.)
      */
     template<class T>
     std::shared_ptr<T> getCapability() {

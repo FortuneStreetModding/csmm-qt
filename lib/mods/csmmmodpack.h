@@ -254,14 +254,21 @@ public:
     void save(const QString &root, const std::function<void(double)> &progressCallback = [](double) {}) {
         QHash<QString, QMap<QString, UiMessageInterface::SaveMessagesFunction>> messageSavers;
         QHash<QString, QMap<QString, ArcFileInterface::ModifyArcFunction>> arcModifiers;
+        QHash<QString, QMap<QString, BrresFileInterface::ModifyBrresFunction>> brresModifiers;
         QMap<QString, UiMessage> messageFiles;
         QTemporaryDir arcFilesDir;
         QSet<QString> arcFiles;
+        QTemporaryDir brresFilesDir;
+        QSet<QString> brresFiles;
         if (!arcFilesDir.isValid()) {
             throw ModException(QString("error creating temporary directory: %1").arg(arcFilesDir.errorString()));
         }
+        if (!brresFilesDir.isValid()) {
+            throw ModException(QString("error creating temporary directory: %1").arg(brresFilesDir.errorString()));
+        }
 
         backupAndRestore(arcFilesDir, root, false);
+        backupAndRestore(brresFilesDir, root, false);
 
         if(ImportExportUtils::isMainDolVanilla(QDir(root))) {
             qInfo() << "Detected vanilla main.dol";
@@ -294,6 +301,14 @@ public:
                 }
                 arcModifiers[mod->modId()] = std::move(modArcModifiers);
             }
+            auto brresFileInterface = mod.getCapability<BrresFileInterface>();
+            if (brresFileInterface) {
+                auto modBrresModifiers = brresFileInterface->modifyBrresFile();
+                for (auto it=modBrresModifiers.begin(); it!=modBrresModifiers.end(); ++it) {
+                    brresFiles.insert(it.key());
+                }
+                brresModifiers[mod->modId()] = std::move(modBrresModifiers);
+            }
         }
 
         for (auto it=messageFiles.begin(); it!=messageFiles.end(); ++it) {
@@ -311,6 +326,13 @@ public:
                 progressCallback((double)i / arcFiles.size() / 3);
                 QDir(arcFilesDir.path()).mkpath(arcFile);
                 await(ExeWrapper::extractArcFile(QDir(root).filePath(arcFile), arcFilesDir.filePath(arcFile)));
+                ++i;
+            }
+            for (auto &brresFile: brresFiles) {
+                qInfo() << "extracting brres file" << brresFile;
+                progressCallback((double)i / brresFiles.size() / 3);
+                QDir(brresFilesDir.path()).mkpath(brresFile);
+                await(ExeWrapper::extractBrresFile(QDir(root).filePath(brresFile), brresFilesDir.filePath(brresFile)));
                 ++i;
             }
         }
@@ -347,6 +369,13 @@ public:
                     it.value()(root, &gameInstance.get(), modList, arcFilesDir.filePath(it.key()));
                 }
             }
+            if (brresModifiers.contains(mod->modId())) {
+                qInfo() << "saving brres files for" << mod->modId();
+                auto &modifiers = brresModifiers[mod->modId()];
+                for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
+                    it.value()(root, &gameInstance.get(), modList, brresFilesDir.filePath(it.key()));
+                }
+            }
 
             auto remFreeSpaceModEnd = gameInstance.get().freeSpaceManager().calculateTotalRemainingFreeSpace();
 
@@ -354,6 +383,7 @@ public:
         }
 
         backupAndRestore(arcFilesDir, root, true);
+        backupAndRestore(brresFilesDir, root, true);
 
         for (auto it=messageFiles.begin(); it!=messageFiles.end(); ++it) {
             QFile file(QDir(root).filePath(it.key()));
@@ -369,6 +399,12 @@ public:
                 qInfo() << "saving arc file" << arcFile;
                 progressCallback((2 + (double)i / arcFiles.size()) / 3);
                 await(ExeWrapper::packDfolderToArc(arcFilesDir.filePath(arcFile), QDir(root).filePath(arcFile)));
+                ++i;
+            }
+            for (auto &brresFile: brresFiles) {
+                qInfo() << "saving brres file" << brresFile;
+                progressCallback((2 + (double)i / brresFiles.size()) / 3);
+                await(ExeWrapper::packDfolderToBrres(brresFilesDir.filePath(brresFile), QDir(root).filePath(brresFile)));
                 ++i;
             }
         }

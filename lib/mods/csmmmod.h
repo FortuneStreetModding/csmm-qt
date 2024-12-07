@@ -23,6 +23,22 @@ public:
     virtual ~ArcFileInterface() {}
 };
 
+class BrresFileInterface {
+public:
+    /**
+     * @brief Typedef for functions that modify the contents of .brres files; takes the extracted directory path as the last argument.
+     */
+    typedef std::function<void(const QString &, GameInstance *, const ModListType &, const QString &)> ModifyBrresFunction;
+
+    /**
+     * @brief Used to modify .brres files on save.
+     * @return a mapping from the .brres file path relative to the game root to the function used to modify the .brres
+     */
+    virtual QMap<QString, ModifyBrresFunction> modifyBrresFile() { return {}; };
+
+    virtual ~BrresFileInterface() {}
+};
+
 class GeneralInterface {
 public:
     /**

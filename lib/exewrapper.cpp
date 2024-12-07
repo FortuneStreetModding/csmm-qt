@@ -140,11 +140,32 @@ QFuture<QString> packTurnlotFolderToArc(const QString &dFolder, const QString &a
     proc->setArguments({"CREATE", "--overwrite", "--u8", "--no-compress", "--pt-dir=REMOVE", "--transform", "TPL.CMPR", "--n-mipmaps", "0", dFolder, "--dest", arcFile});
     return observeProcess(proc);
 }
+QFuture<QString> extractBrresFile(const QString &brresFile, const QString &dFolder) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->setProgram(getWszstPath());
+    proc->setArguments({"EXTRACT", "--overwrite", brresFile, "--dest", dFolder});
+    return observeProcess(proc);
+}
+QFuture<QString> packDfolderToBrres(const QString &dFolder, const QString &brresFile) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->setProgram(getWszstPath());
+    proc->setArguments({"CREATE", "--overwrite", dFolder, "--dest", brresFile});
+    return observeProcess(proc);
+}
 QFuture<QString> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->setProgram(getWimgtPath());
     proc->setArguments({"ENCODE", "--overwrite", pngFile, "--dest", tplFile});
+    return observeProcess(proc);
+}
+QFuture<QString> convertPngToTex(const QString &pngFile, const QString &texFile) {
+    QProcess *proc = new QProcess();
+    proc->setEnvironment(getWiimmsEnv());
+    proc->setProgram(getWimgtPath());
+    proc->setArguments({"ENCODE", "--overwrite", pngFile, "--dest", texFile});
     return observeProcess(proc);
 }
 QFuture<QString> extractWbfsIso(const QString &wbfsFile, const QString &extractDir) {

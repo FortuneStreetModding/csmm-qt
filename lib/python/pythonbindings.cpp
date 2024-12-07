@@ -127,6 +127,17 @@ public:
     }
 };
 
+class PyBrresFileInterface : public BrresFileInterface {
+private:
+    typedef QMap<QString, ModifyBrresFunction> ResultType;
+public:
+    using BrresFileInterface::BrresFileInterface;
+
+    QMap<QString, ModifyBrresFunction> modifyBrresFile() override {
+        PYBIND11_OVERRIDE(ResultType, BrresFileInterface, modifyBrresFile);
+    }
+};
+
 class PyGeneralInterface : public GeneralInterface {
 public:
     using GeneralInterface::GeneralInterface;
@@ -166,6 +177,13 @@ void init_pycsmm(pybind11::module_ &m) {
         await(ExeWrapper::convertPngToTpl(src, dest));
     }, pybind11::arg("src"), pybind11::arg("dest"), R"pycsmmdoc(
     Converts the png file at src to a tpl file at dest, overwriting if necessary.
+)pycsmmdoc");
+
+    m.def("convertPngToTex", [](const QString &src, const QString &dest) {
+        pybind11::gil_scoped_release release;
+        await(ExeWrapper::convertPngToTex(src, dest));
+    }, pybind11::arg("src"), pybind11::arg("dest"), R"pycsmmdoc(
+    Converts the png file at src to a tex file at dest, overwriting if necessary.
 )pycsmmdoc");
 
     m.attr("FS_LOCALES") = pybind11::list();
@@ -549,6 +567,20 @@ void init_pycsmm(pybind11::module_ &m) {
     Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
     the list of mods, and the directory that the .arc file was extracted to for modification. Each callback
     should modify the .arc file as it desires.
+)pycsmmdoc");
+
+    pybind11::class_<BrresFileInterface, PyBrresFileInterface, std::shared_ptr<BrresFileInterface>>(m, "BrresFileInterface", R"pycsmmdoc(
+    Mod interface for working with .brres files.
+)pycsmmdoc")
+        .def(pybind11::init<>(), R"pycsmmdoc(
+    Constructor. Due to how multiple inheritance works with pybind11, you'll have to invoke this constructor
+    explicitly in your mod.
+)pycsmmdoc")
+        .def("modifyBrresFile", &BrresFileInterface::modifyBrresFile, R"pycsmmdoc(
+    Returns a mapping from .brres file (relative to the root of the Fortune Street game folder) to callback.
+    Each callback should take 4 arguments: the root of the Fortune Street game folder, the GameInstance,
+    the list of mods, and the directory that the .brres file was extracted to for modification. Each callback
+    should modify the .brres file as it desires.
 )pycsmmdoc");
 
     pybind11::class_<GeneralInterface, PyGeneralInterface, std::shared_ptr<GeneralInterface>>(m, "GeneralInterface", R"pycsmmdoc(
