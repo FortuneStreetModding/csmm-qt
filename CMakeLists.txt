@@ -14,7 +14,7 @@ if(WIN32)
     add_definitions(/wd4267)
 endif()
 
-set(PROJECT_VERSION 7.1.0)
+set(PROJECT_VERSION 7.1.1)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
 
@@ -319,7 +319,8 @@ elseif(WIN32)
         ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
     )
 else()
-    add_executable(csmm ${MAIN_SOURCES})
+    add_executable(csmm ${MAIN_SOURCES}
+        additionalmodsdialog.h additionalmodsdialog.cpp additionalmodsdialog.ui)
     add_executable(csmmpython ${PY_SOURCES})
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)

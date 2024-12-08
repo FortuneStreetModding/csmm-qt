@@ -140,16 +140,19 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="quickSetup">
+        <widget class="QPushButton" name="importModPack">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
-          <string>Quick Setup</string>
+          <string>Import Modpack(s)</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="importModPack">
+        <widget class="QPushButton" name="quickSetup">
          <property name="text">
-          <string>Import Mod List</string>
+          <string>Quick Setup</string>
          </property>
         </widget>
        </item>

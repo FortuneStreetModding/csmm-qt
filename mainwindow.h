@@ -29,8 +29,8 @@ private:
     QSharedPointer<QTemporaryDir> importDir;
 
     ModListType modList;
+    std::shared_ptr<QTemporaryDir[]> tempModpackDirs;
 
-    std::shared_ptr<QTemporaryDir> tempModpackDir;
 
     void openDir();
     void openIsoWbfs();

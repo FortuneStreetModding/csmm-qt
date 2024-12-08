@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "additionalmodsdialog.h"
 #include "lib/progresscanceled.h"
 #include "preferencesdialog.h"
 #include "ui_mainwindow.h"
@@ -96,19 +97,22 @@ MainWindow::MainWindow(QWidget *parent)
         fileObj.commit();
     });
     connect(ui->importModPack, &QPushButton::clicked, this, [&](bool) {
-        auto file = QFileDialog::getOpenFileName(this, "Import mod pack", QString(), "modlist.txt or modpack zip files (*.txt *.zip)", nullptr);
+        AdditionalModsDialog *additionalModsDialog = new AdditionalModsDialog();
 
-        if (file.isEmpty()) {
-            return;
-        }
-
-        try {
-            std::tie(modList, tempModpackDir) = ModLoader::importModpackFile(file);
-            updateModListWidget();
-            QMessageBox::information(this, "Import mod pack", "Modpack successfully imported.");
-        } catch (const std::runtime_error &error) {
-            QMessageBox::critical(this, "Error importing modpack", QString("Error importing modpack:\n%1").arg(error.what()));
-            PyErr_Clear();
+        if(additionalModsDialog->exec()){
+            auto modpackZips = additionalModsDialog->GetModpackZips();
+            if(modpackZips.isEmpty()){
+                return;
+            }
+            try {
+                qInfo() << "Loading Modpacks: ";
+                std::tie(modList, tempModpackDirs) = ModLoader::importModpackCollection(modpackZips);
+                updateModListWidget();
+                QMessageBox::information(this, "Import modpack(s)", "Modpack(s) successfully imported.");
+            } catch (const std::runtime_error &error) {
+                QMessageBox::critical(this, "Error importing modpack(s)", QString("Error importing modpack(s):\n%1").arg(error.what()));
+                PyErr_Clear();
+            }
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
@@ -184,7 +188,12 @@ void MainWindow::updateModListWidget() {
     ui->modListWidget->clear();
     QStringList modStrs;
     for (auto &mod: modList) {
-        modStrs.append(mod->modId());
+        if(!modStrs.contains(mod->modId())){
+            modStrs.append(mod->modId());
+        }
+        else{
+            qInfo() << "Duplicate item attempted to be added to modList: " + mod->modId();
+        }
     }
     ui->modListWidget->addItems(modStrs);
 }
@@ -316,6 +325,7 @@ void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) 
     }
     ui->tableWidget->dirty = false;
     ui->mapToolbar->setEnabled(true);
+    ui->importModPack->setEnabled(true);
     ui->actionValidate->setEnabled(true);
     ui->actionLoad_map_list_csv->setEnabled(true);
     ui->actionSave_map_list_csv->setEnabled(true);

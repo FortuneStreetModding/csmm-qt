@@ -242,7 +242,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
             modpackZips.append(ui->additionalMods->item(i)->text());
         }
 
-        qInfo() << "Loading ModPacks: ";
+        qInfo() << "Loading Modpacks: ";
         for (const QString &str : modpackZips) {
             qInfo() << str;
         }
