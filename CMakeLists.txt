@@ -208,6 +208,9 @@ qt_add_big_resources(LIB_SOURCES csmm.qrc)
 
 set(MAIN_SOURCES
     ${LIB_SOURCES}
+    additionalmodsdialog.h
+    additionalmodsdialog.cpp
+    additionalmodsdialog.ui
     choosemode.h
     choosemode.cpp
     choosemode.ui
@@ -319,8 +322,7 @@ elseif(WIN32)
         ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
     )
 else()
-    add_executable(csmm ${MAIN_SOURCES}
-        additionalmodsdialog.h additionalmodsdialog.cpp additionalmodsdialog.ui)
+    add_executable(csmm ${MAIN_SOURCES})
     add_executable(csmmpython ${PY_SOURCES})
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
