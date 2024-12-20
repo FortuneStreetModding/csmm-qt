@@ -566,25 +566,25 @@ files/chance_card/ui_chancecard_127.cmpres:
   patched: 3a6bb39a7c1fbff66ae87abbcbd6357d9dbb9ab0
   vanilla: ce35ddcd65857a272b7e007ef14d94e893b74da5
 files/game/game_board.cmpres:
-  patched: 8706325696669abc36cb5395f28a016a366b0da2
+  patched: 9acb1c780fb9b7324b0349031dd14e0866fd020b
   vanilla: e40441e95554825ffb85cdeef851cf8cf136c74a
 files/game/langDE/game_board_DE.cmpres:
-  patched: c5f1b9ee498cf01f6a9639c58c7e14e4d7060256
+  patched: 4f3dd172b97f6e754836257363431c9a136896df
   vanilla: 3eb4795db2af1d11a5f8e584eddd0140241f8d7d
 files/game/langEN/game_board_EN.cmpres:
-  patched: f83ab0dd6d2284c721c3ebd7c8b4bd015ea438a1
+  patched: 4299474c1cb6c484b709ce4852739da64fb9d06e
   vanilla: 4c2645a68179b374dc7f7bfcc6d35282340e59a7
 files/game/langES/game_board_ES.cmpres:
-  patched: 8e0eb22bc2e0e2885824518051c2e5f744ac3ee4
+  patched: 0d54c9ae22c24c88448c8459895b37dcc3fff7ca
   vanilla: 2f081bd5e4215d1705f337f861416cdca8158744
 files/game/langFR/game_board_FR.cmpres:
-  patched: 213ad2170d610359567d8801b61d66e00b435683
+  patched: 617ed72e0d0ff13a060f534839a91412fe11e40c
   vanilla: 0720efd7d5931156acade3808edfea84557af6ad
 files/game/langIT/game_board_IT.cmpres:
-  patched: 80e099a85902b56260fb85b63678f64ab4213c4f
+  patched: 26a94ec89b09caaeacf07ba9ab9e4547f77adc16
   vanilla: 74b03366cf0e6c1bedb91ede6b5db347f1300c02
 files/game/langUK/game_board_UK.cmpres:
-  patched: a58da1da574fc23826ee3ad0ae8e4e9c9239c717
+  patched: 7b3b97e3ed4ab1e49985875c96aa797dcce80e90
   vanilla: 39490a564fa47f5ffe98d08c992aa47f6deb9f4d
 files/font/font_ma_alps_gaiji.brfna: 
   patched: f72bfc6c78af3ad1878d789738b30a59e04228de

@@ -154,11 +154,11 @@ QFuture<QString> packDfolderToBrres(const QString &dFolder, const QString &brres
     proc->setArguments({"CREATE", "--overwrite", dFolder, "--dest", brresFile});
     return observeProcess(proc);
 }
-QFuture<QString> convertPngToTpl(const QString &pngFile, const QString &tplFile) {
+QFuture<QString> convertPngToTpl(const QString &pngFile, const QString &tplFile, const QString &tplFormat) {
     QProcess *proc = new QProcess();
     proc->setEnvironment(getWiimmsEnv());
     proc->setProgram(getWimgtPath());
-    proc->setArguments({"ENCODE", "--overwrite", pngFile, "--dest", tplFile});
+    proc->setArguments({"ENCODE", "--overwrite", pngFile, "--dest", tplFile, "--transform", tplFormat});
     return observeProcess(proc);
 }
 QFuture<QString> convertPngToTex(const QString &pngFile, const QString &texFile) {

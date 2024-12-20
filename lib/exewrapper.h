@@ -21,7 +21,7 @@ namespace ExeWrapper {
     QFuture<QString> packTurnlotFolderToArc(const QString &dFolder, const QString &arcFile);
     QFuture<QString> extractBrresFile(const QString &brresFile, const QString &dFolder);
     QFuture<QString> packDfolderToBrres(const QString &dFolder, const QString &brresFile);
-    QFuture<QString> convertPngToTpl(const QString &pngFile, const QString &tplFile);
+    QFuture<QString> convertPngToTpl(const QString &pngFile, const QString &tplFile, const QString &tplFormat = "RGB5A3");
     QFuture<QString> convertPngToTex(const QString &pngFile, const QString &texFile);
     QFuture<QString> extractWbfsIso(const QString &wbfsFile, const QString &extractDir);
     QFuture<QString> createWbfsIso(const QString &sourceDir, const QString &wbfsFile, const QString &markerCode, bool separateSaveGame);
