@@ -37,7 +37,7 @@ void TurnlotScenes::saveFiles(const QString &root, GameInstance *gameInstance, c
             }
             if (turnlotPngInfo.exists() && turnlotPngInfo.isFile()) {
                 QFile(turnlotTplPath).remove();
-                await(ExeWrapper::convertPngToTpl(turnlotPngPath, turnlotTplPath));
+                await(ExeWrapper::convertPngToTpl(turnlotPngPath, turnlotTplPath, "CMPR"));
             }
         }
     }
