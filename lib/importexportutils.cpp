@@ -121,7 +121,8 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
 static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, const QDir &importDir,
                           const std::function<void(double)> &progressCallback,
                           const QString &backgroundZipDir) {
-    QTemporaryDir intermediateDir;
+    QSettings settings;
+    QTemporaryDir intermediateDir(settings.value("temporaryDirectory","").toString() + "/intermediate");
     if (!intermediateDir.isValid()) {
         throw Exception("Could not create an intermediate directory");
     }

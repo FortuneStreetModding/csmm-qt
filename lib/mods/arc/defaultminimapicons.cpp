@@ -31,8 +31,8 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> DefaultMinimapIcons::modifyAr
         if (!uppercasedLocale.isEmpty()) {
             langDir = QString("lang%1/").arg(uppercasedLocale);
         }
-
-        auto minimapTemp = QSharedPointer<QTemporaryDir>::create();
+        QSettings settings;
+        auto minimapTemp = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/minimap");
         if (!minimapTemp->isValid()) {
             throw ModException(QString("could not create temporary directory %1").arg(minimapTemp->path()));
         }

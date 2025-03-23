@@ -122,6 +122,17 @@ int main(int argc, char *argv[])
         }
 #endif
         QSettings settings;
+        // configure the network cache and temporary directories if they are not present
+        if (!settings.contains("networkCacheDirectory") || !settings.value("networkCacheDirectory").isValid()) {
+            QDir applicationCacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+            auto defaultNetworkCacheDir = applicationCacheDir.filePath("networkCache");
+            settings.setValue("networkCacheDirectory", defaultNetworkCacheDir);
+        }
+        if (!settings.contains("temporaryDirectory") || !settings.value("temporaryDirectory").isValid()) {
+            QTemporaryDir d;
+            settings.setValue("temporaryDirectory", d.path());
+            d.remove();
+        }
         QWidget *w;
         switch (settings.value("csmmMode", INDETERMINATE).toInt()) {
         case INDETERMINATE:

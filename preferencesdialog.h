@@ -19,6 +19,7 @@ private:
     void enableCacheSettings();
     void disableCacheSettings();
     void resetCacheDirectory();
+    void resetTemporaryDirectory();
     void buildPaletteMenu();
     void paletteActionTriggered();
 private Q_SLOTS:

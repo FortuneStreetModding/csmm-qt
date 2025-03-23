@@ -19,6 +19,7 @@
 #include <QDebug>
 #include <QStyleFactory>
 #include "usersettings.h"
+#include "QTemporaryDir"
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
@@ -78,22 +79,40 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->cacheSizeLabel->setText(QString::number(4) + "GB");
     }
 
-    auto dirname = settings.value("networkCacheDirectory").toString();
-    if (!dirname.isEmpty()) {
-        ui->cacheDirectoryLabel->setText(dirname);
+    auto networkCacheDirName = settings.value("networkCacheDirectory").toString();
+    if (!networkCacheDirName.isEmpty()) {
+        ui->cacheDirectoryLabel->setText(networkCacheDirName);
     } else {
         resetCacheDirectory();
     }
 
+    auto temporaryDirName = settings.value("temporaryDirectory").toString();
+    if (!temporaryDirName.isEmpty()) {
+        ui->temporaryDirectoryLabel->setText(temporaryDirName);
+    } else {
+        resetTemporaryDirectory();
+    }
+
     connect(ui->updateCacheDirectoryButton, &QPushButton::clicked, this, [this](bool){
-        auto dirname = QFileDialog::getExistingDirectory(this, "Set CSMM Network Cache Directory", nullptr);
-        if (!dirname.isEmpty()) {
-            ui->cacheDirectoryLabel->setText(dirname);
+        auto networkCacheDirNname = QFileDialog::getExistingDirectory(this, "Set CSMM Network Cache Directory", nullptr);
+        if (!networkCacheDirNname.isEmpty()) {
+            ui->cacheDirectoryLabel->setText(networkCacheDirNname);
+        }
+    });
+
+    connect(ui->updateTemporaryDirectoryButton, &QPushButton::clicked, this, [this](bool){
+        auto temporaryDirName = QFileDialog::getExistingDirectory(this, "Set CSMM Temporary Directory", nullptr);
+        if (!temporaryDirName.isEmpty()) {
+            ui->temporaryDirectoryLabel->setText(temporaryDirName);
         }
     });
 
     connect(ui->resetCacheDirectoryButton, &QPushButton::clicked, this, [this](bool){
         resetCacheDirectory();
+    });
+
+    connect(ui->resetTemporaryDirectoryButton, &QPushButton::clicked, this, [this](bool){
+        resetTemporaryDirectory();
     });
 
     connect(ui->clearNetworkCacheButton, &QPushButton::clicked, this, [this](bool){
@@ -152,6 +171,9 @@ void PreferencesDialog::accept()
     auto networkCacheDirectory = ui->cacheDirectoryLabel->text();
     settings.setValue("networkCacheDirectory", networkCacheDirectory);
 
+    auto temporaryCacheDirectory = ui->temporaryDirectoryLabel->text();
+    settings.setValue("temporaryDirectory", temporaryCacheDirectory);
+
     QDialog::accept();
 }
 
@@ -174,6 +196,15 @@ void PreferencesDialog::resetCacheDirectory()
     QDir applicationCacheDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
     auto defaultNetworkCacheDir = applicationCacheDir.filePath("networkCache");
     ui->cacheDirectoryLabel->setText(defaultNetworkCacheDir);
+}
+
+void PreferencesDialog::resetTemporaryDirectory()
+{
+    QTemporaryDir d;
+    QSettings settings;
+    settings.setValue("temporaryDirectory", d.path());
+    ui->temporaryDirectoryLabel->setText(d.path());
+    d.remove();
 }
 
 // Window Palette

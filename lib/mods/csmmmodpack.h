@@ -256,9 +256,10 @@ public:
         QHash<QString, QMap<QString, ArcFileInterface::ModifyArcFunction>> arcModifiers;
         QHash<QString, QMap<QString, BrresFileInterface::ModifyBrresFunction>> brresModifiers;
         QMap<QString, UiMessage> messageFiles;
-        QTemporaryDir arcFilesDir;
+        QSettings settings;
+        QTemporaryDir arcFilesDir(settings.value("temporaryDirectory","").toString() + "/arc");
         QSet<QString> arcFiles;
-        QTemporaryDir brresFilesDir;
+        QTemporaryDir brresFilesDir(settings.value("temporaryDirectory","").toString() + "/brres");
         QSet<QString> brresFiles;
         if (!arcFilesDir.isValid()) {
             throw ModException(QString("error creating temporary directory: %1").arg(arcFilesDir.errorString()));

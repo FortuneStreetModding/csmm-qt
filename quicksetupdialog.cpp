@@ -160,26 +160,54 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
 
     // check if enough temporary disk space is available
     {
-        QTemporaryDir tmp;
+        QString path = "";
         QTemporaryDir saveDir(outputLoc);
         QStorageInfo saveLocation(saveDir.path());
 
 
         QSettings settings;
-        QTemporaryDir cacheDir(settings.value("networkCacheDirectory","").toString());
+        QTemporaryDir tmp(settings.value("temporaryDirectory","").toString() + "/tmp");
+        QTemporaryDir cacheDir(settings.value("networkCacheDirectory","").toString() + "/tmp");
         QStorageInfo cacheLocation(cacheDir.path());
+        QStorageInfo temporaryLocation(tmp.path());
 
         int saveLocationAvailableMb = saveLocation.bytesAvailable()/1024/1024;
         int cacheLocationAvailableMb = cacheLocation.bytesAvailable()/1024/1024;
+        int temporaryLocationAvailableMb = temporaryLocation.bytesAvailable()/1024/1024;
 
-        QString lowStorageMessageCache = "There may not be enough space remaining on %1 to function as a cache directory.\n\nCSMM needs room not only to save files, but also to extract them before building your final modified game image. As such, it is recommended that your drive has at least 10GB of free space before continuing. It currently has %2MB remaining.\n\nWould you like to proceed?";
-        QString lowStorageMessageSave = "There may not be enough space remaining on %1 to store the new disc image.\n\nWii disc images are usually around 5GB, so at least that much free space is recommended to continue. The drive currently has %2MB remaining.\n\nWould you like to proceed?";
-        QString lowStorageMessagePlural = "%1 is configured as both a cache location as well as the export location for this disc image. As such, it is recommended that your drive has at least 20GB of available disk space before continuing. It currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageCache = "There may not be enough space remaining on %1 to function as a network cache directory. It is recommended that your network cache drive has at least 10GB of free space before continuing. It currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageSave = "There may not be enough space remaining on %1 to store the new disc image.\n\nIt is recommended that the drive you're saving the Wii disc image to has at least 5GB of free space available. However, the drive currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageCacheAndSave = "%1 is configured as both a cache location as well as the export location for this disc image. As such, it is recommended that your drive has at least 15GB of available disk space before continuing. It currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageCacheAndTemporary = "%1 is configured as both a network cache location as well as the temporary directory location. As such, it is recommended that the drive has at least 15GB of available disk space before continuing. It currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageSaveAndTemporary = "%1 configured as both the save location for the disc image as well as the temporary directory to be used during extraction. As such, it is recommended that the drive has at least 15GB of available disk space before continuing. It currently has %2 remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageTemporary = "There may not be enough space remaining on %1 to function as a temporary directory. This is the directory where downloaded archive files will be temporarily extracted before CSMM copies these files into the Wii disc image. As such, it is recommended that this drive has at least 10GB of free space before continuing. However, the drive currently has %2MB remaining.\n\nWould you like to proceed?";
+        QString lowStorageMessageAll = "%1 is configured as a network cache directory, temporary directory, and the drive your disc image is being extracted to. As such, we recommend that this drive has at least 25GB of free space before continuing. However, it currently has %2MB remaining.\n\nWould you like to proceed?";
 
-        if(saveLocation.device() == cacheLocation.device()){
+        if(saveLocation.device() == cacheLocation.device() && saveLocation.device() == temporaryLocation.device()){
+            // if the cache, save, and temporary location drives are all the same, handle this accordingly
+            if(saveLocationAvailableMb < 25000){
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageAll.arg(saveLocation.displayName()).arg(saveLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    return;
+            }
+        }
+        else if(saveLocation.device() == cacheLocation.device()){
             // the cache and the save location are on the same drive, handle accordingly
             if(saveLocationAvailableMb < 20000){
-                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessagePlural.arg(saveLocation.displayName()).arg(saveLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageCacheAndSave.arg(saveLocation.displayName()).arg(saveLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    return;
+            }
+        }
+        else if(saveLocation.device() == temporaryLocation.device()){
+            // the save and the temporary location are on the same drive, handle accordingly
+            if(saveLocationAvailableMb < 15000){
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageSaveAndTemporary.arg(saveLocation.displayName()).arg(saveLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    return;
+            }
+        }
+        else if(cacheLocation.device() == temporaryLocation.device()){
+            // the cache and the temporary location are on the same drive, handle accordingly
+            if(cacheLocationAvailableMb < 15000){
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageCacheAndTemporary.arg(cacheLocation.displayName()).arg(cacheLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
                     return;
             }
         }
@@ -193,15 +221,19 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
                 if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageSave.arg(saveLocation.displayName()).arg(saveLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
                     return;
             }
+            if(temporaryLocationAvailableMb < 10000){
+                if (QMessageBox::question(this, "Low Disk Space", lowStorageMessageSave.arg(temporaryLocation.displayName()).arg(temporaryLocationAvailableMb), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    return;
+            }
         }
     }
 
     try {
-        QTemporaryDir importDir;
-        QTemporaryDir intermediateDir;
+        QSettings settings;
+        QTemporaryDir importDir(settings.value("temporaryDirectory","").toString() + "/import");
+        QTemporaryDir intermediateDir(settings.value("temporaryDirectory","").toString() + "/intermediate");
 
-        QString targetGameDir = QFileInfo(outputLoc).isDir()
-                ? outputLoc : intermediateDir.path();
+        QString targetGameDir = QFileInfo(outputLoc).isDir() ? outputLoc : intermediateDir.path();
         if (shouldPatchRiivolutionVar) {
             if (!QDir(targetGameDir).mkdir(ui->riivolutionPatchName->text())) {
                 QMessageBox::critical(this, "Cannot save game", "Cannot create directory for putting patch files");
@@ -247,14 +279,20 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
             qInfo() << str;
         }
 
-        auto mods = ModLoader::importModpackCollection(modpackZips);
+        std::vector<std::shared_ptr<QTemporaryDir>> tmpDirs;
+
+        for (int i = 0; i < modpackZips.size(); i++) {
+            tmpDirs.emplace_back(std::make_shared<QTemporaryDir>(settings.value("temporaryDirectory", "").toString() + "/download"));
+        }
+
+        auto mods = ModLoader::importModpackCollection(modpackZips, tmpDirs);
         auto gameInstance = GameInstance::fromGameDirectory(targetGameDir, importDir.path());
         CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
         modpack.load(targetGameDir);
 
         dialog.setValue(20);
 
-        auto mapListFileIt = QDirIterator(mods.second[0].path(), {"map[Ll]ist.yaml", "map[Ll]ist.yml"}, QDir::Files, QDirIterator::Subdirectories);
+        auto mapListFileIt = QDirIterator(mods.second[0]->path(), {"map[Ll]ist.yaml", "map[Ll]ist.yml"}, QDir::Files, QDirIterator::Subdirectories);
         if (!mapListFileIt.hasNext()) {
             QMessageBox::critical(this, "Cannot save game", "The maplist yaml was not found inside the modpack zip.");
             return;
@@ -291,6 +329,21 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
             qInfo() << "Patching Riivolution...";
             dialog.setValue(95);
             Riivolution::write(intermediateDir.path(), outputLoc, gameInstance.addressMapper(), ui->riivolutionPatchName->text());
+        }
+
+        qInfo() << "Cleaning up...";
+
+        // do some temporary directory cleanup
+        for (auto &d: tmpDirs) {
+            if(d->isValid()){
+                d->remove();
+            }
+        }
+        if(importDir.isValid()){
+            importDir.remove();
+        }
+        if(intermediateDir.isValid()){
+            intermediateDir.remove();
         }
 
         dialog.setValue(100);
