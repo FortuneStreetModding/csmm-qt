@@ -105,8 +105,15 @@ MainWindow::MainWindow(QWidget *parent)
                 return;
             }
             try {
+                QSettings settings;
+                std::vector<std::shared_ptr<QTemporaryDir>> tmpDirs;
+
+                for (int i = 0; i < modpackZips.size(); i++) {
+                    tmpDirs.emplace_back(std::make_shared<QTemporaryDir>(settings.value("temporaryDirectory", "").toString() + "/import"));
+                }
+
                 qInfo() << "Loading Modpacks: ";
-                std::tie(modList, tempModpackDirs) = ModLoader::importModpackCollection(modpackZips);
+                std::tie(modList, tempModpackDirs) = ModLoader::importModpackCollection(modpackZips, tmpDirs);
                 updateModListWidget();
                 QMessageBox::information(this, "Import modpack(s)", "Modpack(s) successfully imported.");
             } catch (const std::runtime_error &error) {
@@ -220,8 +227,9 @@ void MainWindow::saveCleanItastCsmmBrsar() {
 }
 
 void MainWindow::openDir() {
-    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
-    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create();
+    QSettings settings;
+    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/game");
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/import");
     if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
         QMessageBox::critical(this, "Open Game Directory", "The temporary directory used for copying the game directory could not be created");
         return;
@@ -273,8 +281,9 @@ void MainWindow::openDir() {
 }
 
 void MainWindow::openIsoWbfs() {
-    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create();
-    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create();
+    QSettings settings;
+    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/game");
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/import");
     if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
         QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
         return;
@@ -342,12 +351,13 @@ void MainWindow::exportToFolder(bool riivolution) {
         return;
     }
     // check if enough temporary disk space is available
-    QTemporaryDir tmp;
+    QSettings settings;
+    QTemporaryDir tmp(settings.value("temporaryDirectory","").toString() + "/tmp");
     QStorageInfo storageInfo(tmp.path());
     int availableMb = storageInfo.bytesAvailable()/1024/1024;
     if(availableMb < 10000) {
         if (QMessageBox::question(this, "Save",
-                              QString("There is less than 10 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
+                              QString("%1 is configured to be your temporary directory, but the disk has less than 10GB of space available.\n\nIf you run out of disk space during the export operation, CSMM may crash. Would you like to proceed?").arg(storageInfo.displayName()),
                               QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
             return;
     }
@@ -438,6 +448,21 @@ void MainWindow::exportToFolder(bool riivolution) {
                                riivolutionName);
         }
 
+        qInfo() << "Cleaning up...";
+        if(importDir->isValid()){
+            importDir->remove();
+        }
+
+        if(tempGameDir->isValid()){
+            tempGameDir->remove();
+        }
+
+        for (auto &d: tempModpackDirs) {
+            if(d->isValid()){
+                d->remove();
+            }
+        }
+
         progress.setValue(100);
         QMessageBox::information(this, "Save", "Saved successfully.");
 
@@ -457,20 +482,20 @@ void MainWindow::exportToFolder(bool riivolution) {
 void MainWindow::exportIsoWbfs() {
     auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
     if (saveFile.isEmpty()) return;
-
-    QTemporaryDir intermediateResults;
+    QSettings settings;
+    QTemporaryDir intermediateResults(settings.value("temporaryDirectory","").toString() + "/intermediate");
     if (!intermediateResults.isValid()) {
         QMessageBox::critical(this, "Export WBFS/ISO", "Could not create a temporary directory for patching");
         return;
     }
 
     // check if enough temporary disk space is available
-    QTemporaryDir tmp;
+    QTemporaryDir tmp(settings.value("temporaryDirectory","").toString() + "/tmp");
     QStorageInfo storageInfo(tmp.path());
     int availableMb = storageInfo.bytesAvailable()/1024/1024;
     if(availableMb < 10000) {
         if (QMessageBox::question(this, "Save",
-                              QString("There is less than 10 GB of space left on %1\nCSMM stores temporary files and needs enough disk space to function properly.").arg(storageInfo.displayName()),
+                              QString("%1 is configured to be your temporary directory, but the disk has less than 10GB of space available.\n\nIf you run out of disk space during the export operation, CSMM may crash. Would you like to proceed?").arg(storageInfo.displayName()),
                               QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
             return;
     }
@@ -521,12 +546,12 @@ void MainWindow::exportIsoWbfs() {
         descriptors = gameInstance.mapDescriptors();
 
         progress.setValue(80);
-        qInfo() << "packing wbfs/iso";
+        qInfo() << "Writing game image...";
         await(ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode(), getSeparateSaveGame()));
 
         progress.setValue(90);
         if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != modList.end()) {
-            qInfo() << "patching wiimmfi";
+            qInfo() << "Patching Wiimmfi...";
             await(ExeWrapper::patchWiimmfi(saveFile));
         }
 

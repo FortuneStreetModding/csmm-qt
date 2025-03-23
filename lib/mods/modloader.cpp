@@ -131,22 +131,21 @@ static ModListType importModpackDirs(const QVector<QString> &modpackDirs) {
     return result;
 }
 
-std::pair<ModListType, std::shared_ptr<QTemporaryDir[]>> importModpackCollection(const QVector<QString> &modlistColl) {
+std::pair<ModListType, std::vector<std::shared_ptr<QTemporaryDir>>> importModpackCollection(const QVector<QString> &modlistColl, const std::vector<std::shared_ptr<QTemporaryDir>> tmpDirs) {
     if (modlistColl.isEmpty()) {
-        return std::make_pair(DefaultModList::defaultModList(), nullptr);
+        return std::make_pair(DefaultModList::defaultModList(), tmpDirs);
     }
-
-    std::shared_ptr<QTemporaryDir[]> tmpDirs(new QTemporaryDir[modlistColl.size()]);
+    QSettings settings;
     QVector<QString> modpackDirs;
 
     for (int i=0; i<modlistColl.size(); ++i) {
         QString extractedFile;
 
-        if (!tmpDirs[i].isValid()) {
+        if (!tmpDirs[i]->isValid()) {
             throw ModException(QString("could not create temporary directory for mod list zip %1").arg(modlistColl[i]));
         }
 
-        int zipResult = zip_extract(modlistColl[i].toUtf8(), tmpDirs[i].path().toUtf8(), [](const char *candidate, void *arg) {
+        int zipResult = zip_extract(modlistColl[i].toUtf8(), tmpDirs[i]->path().toUtf8(), [](const char *candidate, void *arg) {
             QFileInfo fi(candidate);
             QString *extractedFilePtr = (QString *)arg;
 
@@ -165,19 +164,17 @@ std::pair<ModListType, std::shared_ptr<QTemporaryDir[]>> importModpackCollection
     return make_pair(ModLoader::importModpackDirs(modpackDirs), tmpDirs);
 }
 
-std::pair<ModListType, std::shared_ptr<QTemporaryDir>> importModpackFile(const QString &file) {
+std::pair<ModListType, std::shared_ptr<QTemporaryDir>> importModpackFile(const QString &file, const std::shared_ptr<QTemporaryDir> tmpDir) {
     if (file.isEmpty()) { // special case: empty string yields default modpack
-        return std::make_pair(DefaultModList::defaultModList(), nullptr);
+        return std::make_pair(DefaultModList::defaultModList(), tmpDir);
     }
-
-    std::shared_ptr<QTemporaryDir> tmpDir;
-
+    QSettings settings;
     QString dir;
 
     if (QFileInfo(file).suffix() == "zip") {
+        QSettings settings;
         QString extractedFile;
 
-        tmpDir = std::make_shared<QTemporaryDir>();
         if (!tmpDir->isValid()) {
             throw ModException(QString("could not create temporary directory to extract %1 to").arg(file));
         }
@@ -196,6 +193,7 @@ std::pair<ModListType, std::shared_ptr<QTemporaryDir>> importModpackFile(const Q
             throw ModException(QString("zip file %1 could not be extracted: %2").arg(file, zip_strerror(zipResult)));
         }
         dir = QFileInfo(extractedFile).dir().path();
+
     } else {
         dir = QFileInfo(file).dir().path();
     }
