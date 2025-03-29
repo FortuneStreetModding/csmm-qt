@@ -5,6 +5,7 @@
 #include <QFuture>
 #include <QVector>
 #include "mapdescriptor.h"
+#include <QTemporaryDir>
 
 namespace ImportExportUtils {
     /**
@@ -53,6 +54,7 @@ namespace ImportExportUtils {
     };
 
     void autoClearCache();
+    QTemporaryDir createTempDir(QString suffix);
 }
 
 #endif // IMPORTEXPORTUTILS_H

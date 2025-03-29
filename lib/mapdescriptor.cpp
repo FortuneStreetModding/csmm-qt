@@ -1,5 +1,6 @@
 #include "mapdescriptor.h"
 #include <QDebug>
+#include "qcoreapplication.h"
 #include "vanilladatabase.h"
 #include "fslocale.h"
 #include "importexportutils.h"
@@ -432,7 +433,7 @@ bool MapDescriptor::fromYaml(const YAML::Node &yaml) {
             }
             for (auto &brstmBaseFilename: brstmBaseFilenames) {
                 if(brstmBaseFilename.length() > 48) {
-                    throw ImportExportUtils::Exception(QString("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.").arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
+                    throw ImportExportUtils::Exception(QString(QObject::tr("The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.")).arg(brstmBaseFilename).arg(brstmBaseFilename.length()));
                 }
                 MusicEntry entry;
                 entry.brstmBaseFilename = brstmBaseFilename;
@@ -566,24 +567,24 @@ void getPracticeBoards(const std::vector<MapDescriptor> &descriptors, short &eas
                 if (easyPracticeBoard == -1) {
                     easyPracticeBoard = i;
                 } else {
-                    errorMsgs << QString("[board %1] There can be only 1 practice board for the easy map set").arg(i);
+                    errorMsgs << QString(QObject::tr("[board %1] There can be only 1 practice board for the easy map set")).arg(i);
                 }
             } else if (descriptors[i].mapSet == 1) {
                 if (standardPracticeBoard == -1) {
                     standardPracticeBoard = i;
                 } else {
-                    errorMsgs << QString("[board %1] There can be only 1 practice board for the standard map set").arg(i);
+                    errorMsgs << QString(QObject::tr("[board %1] There can be only 1 practice board for the standard map set")).arg(i);
                 }
             } else if (descriptors[i].mapSet == -1) {
-                errorMsgs << QString("[board %1] A practice board can only be set for map sets 0 or 1").arg(i);
+                errorMsgs << QString(QObject::tr("[board %1] A practice board can only be set for map sets 0 or 1")).arg(i);
             }
         }
     }
     if (easyPracticeBoard == -1) {
-        errorMsgs << "Easy map set needs at least 1 practice board";
+        errorMsgs << QObject::tr("Easy map set needs at least 1 practice board");
     }
     if (standardPracticeBoard == -1) {
-        errorMsgs << "Standard map set needs at least 1 practice board";
+        errorMsgs << QObject::tr("Standard map set needs at least 1 practice board");
     }
 }
 
@@ -593,14 +594,14 @@ QMap<int, int> getMapSets(const std::vector<MapDescriptor> &descriptors, QString
         if (descriptors[i].mapSet == 0 || descriptors[i].mapSet == 1) {
             result[i] = descriptors[i].mapSet;
         } else if (descriptors[i].mapSet != -1) {
-            errorMsgs << QString("[board %1] A board can only be in map sets -1, 0, or 1").arg(i);
+            errorMsgs << QString(QObject::tr("[board %1] A board can only be in map sets -1, 0, or 1")).arg(i);
         }
     }
 
     // note: the iterators here are by value, not by key
     for (int mapSetVal: {0, 1}) {
         if (std::find(result.begin(), result.end(), mapSetVal) == result.end()) {
-            errorMsgs << QString("There much be at least one map in map set %1").arg(mapSetVal);
+            errorMsgs << QString(QObject::tr("There much be at least one map in map set %1")).arg(mapSetVal);
         }
     }
 
@@ -616,13 +617,13 @@ QMap<int, int> getMapZones(const std::vector<MapDescriptor> &descriptors, int ma
                 result[i] = descriptors[i].zone;
                 ++numMapsPerZone[descriptors[i].zone];
             } else if (descriptors[i].zone != -1) {
-                errorMsgs << QString("[board %1] A board can only be in zones -1, 0, 1, or 2").arg(i);
+                errorMsgs << QString(QObject::tr("[board %1] A board can only be in zones -1, 0, 1, or 2")).arg(i);
             }
         }
     }
     for (int zoneVal: {0, 1, 2}) {
         if (numMapsPerZone[zoneVal] < 6) {
-            errorMsgs << QString("[map set %1] The number of boards in zone %2 must be at least 6").arg(mapSet).arg(zoneVal);
+            errorMsgs << QString(QObject::tr("[map set %1] The number of boards in zone %2 must be at least 6")).arg(mapSet).arg(zoneVal);
         }
     }
 
@@ -637,7 +638,7 @@ QMap<int, int> getMapOrderings(const std::vector<MapDescriptor> &descriptors, in
             if (descriptors[i].order >= 0) {
                 result[i] = descriptors[i].order;
             } else {
-                errorMsgs << QString("[board %1] All orders in a zone must be nonnegative").arg(i);
+                errorMsgs << QString(QObject::tr("[board %1] All orders in a zone must be nonnegative")).arg(i);
             }
         }
     }
@@ -646,13 +647,13 @@ QMap<int, int> getMapOrderings(const std::vector<MapDescriptor> &descriptors, in
     std::sort(orders.begin(), orders.end());
     auto uniqueEnd = std::unique(orders.begin(), orders.end());
     if (uniqueEnd != orders.end()) {
-        errorMsgs << QString("[mapset %1, zone %2] The order value within a zone must be unique").arg(mapSet).arg(zone);
+        errorMsgs << QString(QObject::tr("[mapset %1, zone %2] The order value within a zone must be unique")).arg(mapSet).arg(zone);
     }
     if (orders.front() != 0) {
-        errorMsgs << QString("[mapset %1, zone %2] The lowest order within a zone must be 0").arg(mapSet).arg(zone);
+        errorMsgs << QString(QObject::tr("[mapset %1, zone %2] The lowest order within a zone must be 0")).arg(mapSet).arg(zone);
     }
     if (orders.back() != uniqueEnd - orders.begin() - 1) {
-        errorMsgs << QString("[mapset %1, zone %2] There must be no gaps in the ordering").arg(mapSet).arg(zone);
+        errorMsgs << QString(QObject::tr("[mapset %1, zone %2] There must be no gaps in the ordering")).arg(mapSet).arg(zone);
     }
     return result;
 }

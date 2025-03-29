@@ -25,7 +25,7 @@ QNetworkAccessManager *instance() {
         }
         QObject::connect(theInstance, &QNetworkAccessManager::sslErrors, [=](QNetworkReply *reply, const QList<QSslError> &errors) {
             for (const QSslError &error : errors) {
-                qWarning() << "SSL error:" << error.errorString();
+                qWarning() << QObject::tr("SSL error:") << error.errorString();
             }
         });
     } else {
@@ -121,18 +121,18 @@ bool downloadFileIfUrl(const QUrl &toDownloadFrom, const QString &dest,
                 delete reply;
                 QString fixSuggestion;
                 if(errStr.contains("SSL handshake failed", Qt::CaseInsensitive)) {
-                    fixSuggestion = "Check if your system time is set correctly and try again.";
+                    fixSuggestion = QObject::tr("Check if your system time is set correctly and try again.");
                 }
-                throw Exception("network error: " + errStr + "\n" + fixSuggestion);
+                throw Exception(QString(QObject::tr("Network error: %1 \n %2")).arg(errStr).arg(fixSuggestion));
             }
             if (!file->commit()) {
                 delete reply;
-                throw Exception("write failed to " + dest);
+                throw Exception(QObject::tr("Write failed to %1").arg(dest));
             }
             delete reply;
             return true;
         } else {
-            throw Exception("failed to create file for downloading");
+            throw Exception(QObject::tr("Failed to download file to disk. Create failed."));
         }
     }
     auto def = AsyncFuture::deferred<bool>();

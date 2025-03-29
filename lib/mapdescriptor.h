@@ -12,6 +12,7 @@
 #include "music.h"
 #include "mutator/mutator.h"
 #include "lib/python/pythonbindings.h"
+#include "qcoreapplication.h"
 
 enum RuleSet : quint32 {
     Standard = 0,
@@ -58,6 +59,9 @@ Character stringToTourCharacter(const QString &str);
 const QMap<QString, Character> &stringToTourCharactersMapping();
 
 struct MapDescriptor {
+    Q_DECLARE_TR_FUNCTIONS(MapDescriptor)
+
+public:
     qint8 mapSet = -1;
     qint8 zone = -1;
     qint8 order = -1;

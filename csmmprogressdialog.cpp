@@ -16,7 +16,7 @@ CSMMProgressDialog::CSMMProgressDialog(const QString &labelText, const QString &
 void CSMMProgressDialog::setValue(int progress)
 {
     if (wasCanceled()) {
-        throw ProgressCanceled("Canceled");
+        throw ProgressCanceled("Cancelled");
     }
     QProgressDialog::setValue(progress);
 }

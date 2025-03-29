@@ -35,7 +35,7 @@ QString getSha1OfVanillaFileName(const QString &vanillaFileName) {
         auto yaml = YAML::Load(contents.toStdString());
         return QString::fromStdString(yaml[vanillaFileName.toStdString()]["vanilla"].as<std::string>()).toLower();
     }
-    throw Exception(QString("The file %1 is not a vanilla file").arg(vanillaFileName));
+    throw Exception(QString(QObject::tr("The file %1 is not a vanilla file")).arg(vanillaFileName));
 }
 
 QString fileSha1(const QString &fileName) {
@@ -52,11 +52,11 @@ QString fileSha1(const QString &fileName) {
 QString createBsdiff(const QString &oldfileStr, const QString &newfileStr, const QString &patchfileStr) {
    QFile oldfile(oldfileStr);
    if (!oldfile.exists()) {
-       return QString("%1 does not exist.").arg(oldfileStr);
+       return QString(QObject::tr("%1 does not exist.")).arg(oldfileStr);
    }
    QFile newFile(newfileStr);
    if (!newFile.exists()) {
-       return QString("%1 does not exist.").arg(newfileStr);
+       return QString(QObject::tr("%1 does not exist.")).arg(newfileStr);
    }
 
    char *errs = bsdiff(oldfileStr.toLatin1().constData(), newfileStr.toLatin1().constData(), patchfileStr.toLatin1().constData());
@@ -72,7 +72,7 @@ QString applyBspatch(const QString &oldfileStr, const QString &newfileStr, const
 
    QFile oldfile(oldfileStr);
    if (!oldfile.open(QFile::ReadOnly)) {
-       return QString("Could not open %1 for reading.").arg(oldfileStr);
+       return QString(QObject::tr("Could not open %1 for reading.")).arg(oldfileStr);
    }
    auto oldfileBytes = oldfile.readAll();
    in_buf = (unsigned char*) oldfileBytes.data();
@@ -81,7 +81,7 @@ QString applyBspatch(const QString &oldfileStr, const QString &newfileStr, const
 
    QFile patchfile(patchfileStr);
    if (!patchfile.open(QFile::ReadOnly)) {
-       return QString("Could not open %1 for reading.").arg(patchfileStr);
+       return QString(QObject::tr("Could not open %1 for reading.")).arg(patchfileStr);
    }
    auto patchfileBytes = patchfile.readAll();
    patch_buf = (unsigned char*) patchfileBytes.data();
@@ -94,7 +94,7 @@ QString applyBspatch(const QString &oldfileStr, const QString &newfileStr, const
 
    QFile newfile(newfileStr);
    if (!newfile.open(QFile::WriteOnly)) {
-       return QString("Could not open %1 for writing.").arg(newfileStr);
+       return QString(QObject::tr("Could not open %1 for writing.")).arg(newfileStr);
    }
    newfile.write((char*) out_buf, out_sz);
    return QString();
@@ -122,19 +122,19 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                           const std::function<void(double)> &progressCallback,
                           const QString &backgroundZipDir) {
     QSettings settings;
-    QTemporaryDir intermediateDir(settings.value("temporaryDirectory","").toString() + "/intermediate");
+    QTemporaryDir intermediateDir(createTempDir("intermediate"));
     if (!intermediateDir.isValid()) {
-        throw Exception("Could not create an intermediate directory");
+        throw Exception(QObject::tr("Could not create an intermediate directory").toUtf8().constData());
     }
     QFileInfo yamlFileZipInfo(yamlZipSrc);
 
     if(!yamlFileZipInfo.exists()) {
         autoClearCache();
-        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive does not exist.").arg(yamlZipSrc, intermediateDir.path()));
+        throw Exception(QString(QObject::tr("Could not extract %1 to intermediate directory %2: The archive does not exist.")).arg(yamlZipSrc, intermediateDir.path()));
     }
     if(yamlFileZipInfo.size() < 100) {
         autoClearCache();
-        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(yamlZipSrc, intermediateDir.path()));
+        throw Exception(QString(QObject::tr("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.")).arg(yamlZipSrc, intermediateDir.path()));
     }
     QString extractedYamlFile;
     int extractResult = zip_extract(yamlZipSrc.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg) {
@@ -147,10 +147,10 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
     }, &extractedYamlFile);
     if (extractResult < 0) {
         autoClearCache();
-        throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(yamlZipSrc, intermediateDir.path(), zip_strerror(extractResult)));
+        throw Exception(QString(QObject::tr("Could not extract %1 to intermediate directory %2: %3")).arg(yamlZipSrc, intermediateDir.path(), zip_strerror(extractResult)));
     }
     if (extractedYamlFile.isEmpty()) {
-        throw Exception("Zip file has no map descriptor");
+        throw Exception(QObject::tr("Zip file has no map descriptor"));
     }
 
     std::ifstream yamlStream(std::filesystem::path(extractedYamlFile.toStdU16String()));
@@ -167,7 +167,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                 if(zipBackground.exists()) {
                     if(zipBackground.size() < 100) {
                         autoClearCache();
-                        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(zipBackgroundStr, intermediateDir.path()));
+                        throw Exception(QString(QObject::tr("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.")).arg(zipBackgroundStr, intermediateDir.path()));
                     }
                     QString extractedCmpresFile;
                     int extractResult = zip_extract(zipBackgroundStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
@@ -180,15 +180,15 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                     }, &extractedCmpresFile);
                     if (extractResult < 0) {
                         autoClearCache();
-                        throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(zipBackgroundStr, intermediateDir.path(), zip_strerror(extractResult)));
+                        throw Exception(QString(QObject::tr("Could not extract %1 to intermediate directory %2: %3")).arg(zipBackgroundStr, intermediateDir.path(), zip_strerror(extractResult)));
                     }
                     if (extractedCmpresFile.isEmpty()) {
                         autoClearCache();
-                        throw Exception(QString("%1 has no cmpres files").arg(zipBackgroundStr));
+                        throw Exception(QString(QObject::tr("%1 has no cmpres files")).arg(zipBackgroundStr));
                     }
                 } else {
                     autoClearCache();
-                    throw Exception(QString("%1 was not found.").arg(zipBackgroundStr));
+                    throw Exception(QString(QObject::tr("%1 was not found.")).arg(zipBackgroundStr));
                 }
             }
         }
@@ -214,7 +214,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                 if(node["music"].IsDefined()
                         && node["music"]["download"].IsSequence()
                         && node["music"]["download"].size() > 0) {
-                    qInfo() << "Downloading music:" << yamlFileZipInfo.baseName() + ".music.zip";
+                    qInfo() << QObject::tr("Downloading music: %1.music.zip").arg(yamlFileZipInfo.baseName()).toUtf8().constData();
                     auto urlsList = node["music"]["download"].as<std::vector<std::string>>();
                     for (auto &url: urlsList) {
                         QString urlStr = QString::fromStdString(url);
@@ -224,7 +224,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                         } catch (const ProgressCanceled &e) {
                             throw e;
                         } catch (const std::runtime_error &e) {
-                            qWarning() << "warning:" << e.what();
+                            qWarning() << QObject::tr("warning:") << e.what();
                             // download failed, try next url
                         }
                     }
@@ -233,7 +233,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                 if(zipMusic.exists()) {
                     if(zipMusic.size() < 100) {
                         autoClearCache();
-                        throw Exception(QString("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.").arg(zipMusicStr, intermediateDir.path()));
+                        throw Exception(QString(QObject::tr("Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.")).arg(zipMusicStr, intermediateDir.path()));
                     }
                     QString extractedBrstmFile;
                     int extractResult = zip_extract(zipMusicStr.toUtf8(), intermediateDir.path().toUtf8(), [](const char *candidate, void *arg){
@@ -246,21 +246,21 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                     }, &extractedBrstmFile);
                     if (extractResult < 0) {
                         autoClearCache();
-                        throw Exception(QString("Could not extract %1 to intermediate directory %2: %3").arg(zipMusicStr, intermediateDir.path(), zip_strerror(extractResult)));
+                        throw Exception(QString(QObject::tr("Could not extract %1 to intermediate directory %2: %3")).arg(zipMusicStr, intermediateDir.path(), zip_strerror(extractResult)));
                     }
                     if (extractedBrstmFile.isEmpty()) {
                         autoClearCache();
-                        throw Exception(QString("%1 has no brstm files.\nThe following .brstm files are still missing:\n%2").arg(zipMusicStr, missingBrstmsStr));
+                        throw Exception(QString(QObject::tr("%1 has no brstm files.\nThe following .brstm files are still missing:\n%2")).arg(zipMusicStr, missingBrstmsStr));
                     }
                 } else {
                     autoClearCache();
-                    throw Exception(QString("%1 could not be retrieved.\nThe following .brstm files are still missing:\n%2").arg(zipMusicStr, missingBrstmsStr));
+                    throw Exception(QString(QObject::tr("%1 could not be retrieved.\nThe following .brstm files are still missing:\n%2")).arg(zipMusicStr, missingBrstmsStr));
                 }
             }
         }
         importYaml(extractedYamlFile, descriptor, importDir);
     } else {
-        throw Exception(QString("File %1 could not be parsed").arg(extractedYamlFile));
+        throw Exception(QString(QObject::tr("File %1 could not be parsed")).arg(extractedYamlFile));
     }
 }
 
@@ -268,27 +268,27 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 const std::function<void(double)> &progressCallback,
                 const QString &backgroundZipDir) {
     if(descriptor.names["en"] != ""){
-        qInfo() << "Importing:" <<  descriptor.names["en"];
+        qInfo() << QObject::tr("Importing: %1").arg(descriptor.names["en"]).toUtf8().constData();
     }
 
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
         importYamlZip(yamlFileSrc, descriptor, importDir, progressCallback, backgroundZipDir);
     } else {
         if (!importDir.mkpath(PARAM_FOLDER)) {
-            throw Exception("could not create import param folder");
+            throw Exception(QObject::tr("could not create import param folder"));
         }
         if (!importDir.mkpath(SOUND_STREAM_FOLDER)) {
-            throw Exception("could not create import sound stream folder");
+            throw Exception(QObject::tr("could not create import sound stream folder"));
         }
         if (!importDir.mkpath(SCENE_FOLDER)) {
-            throw Exception("could not create import scene folder");
+            throw Exception(QObject::tr("could not create import scene folder"));
         }
         if (!importDir.mkpath(GAME_FOLDER)) {
-            throw Exception("could not create import game folder");
+            throw Exception(QObject::tr("could not create import game folder"));
         }
         for (auto &locale: FS_LOCALES) {
             if (!importDir.mkpath(bgPath(locale))) {
-                throw Exception("could not create import background folder for locale " + locale);
+                throw Exception(QObject::tr("could not create import background folder for locale %1").arg(locale));
             }
         }
 
@@ -303,7 +303,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 QFileInfo frbFileFromInfo(frbFileFrom);
                 if (!frbFileFromInfo.exists() || !frbFileFromInfo.isFile()) {
                     autoClearCache();
-                    throw Exception(QString("File %1 does not exist").arg(frbFileFrom));
+                    throw Exception(QString(QObject::tr("File %1 does not exist")).arg(frbFileFrom));
                 }
                 auto frbFileTo = importDir.filePath(PARAM_FOLDER+"/"+frbFile + ".frb");
                 QFile(frbFileTo).remove();
@@ -316,7 +316,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 QFileInfo mapIconFileFromInfo(mapIconFileFrom);
                 if (!mapIconFileFromInfo.exists() || !mapIconFileFromInfo.isFile()) {
                     autoClearCache();
-                    throw Exception(QString("File %1 does not exist").arg(mapIconFileFrom));
+                    throw Exception(QString(QObject::tr("File %1 does not exist")).arg(mapIconFileFrom));
                 }
                 QFile(mapIconFileTo).remove();
                 QFile::copy(mapIconFileFrom, mapIconFileTo);
@@ -328,7 +328,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     QFileInfo brstmFileInfo(brstmFileFrom);
                     if (!brstmFileInfo.exists() || !brstmFileInfo.isFile()) {
                         autoClearCache();
-                        throw Exception(QString("File %1 does not exist").arg(brstmFileFrom));
+                        throw Exception(QString(QObject::tr("File %1 does not exist")).arg(brstmFileFrom));
                     }
                     auto frbFileTo = importDir.filePath(SOUND_STREAM_FOLDER+"/"+musicEntry.brstmBaseFilename + ".brstm");
                     QFile(frbFileTo).remove();
@@ -342,7 +342,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 QFileInfo cmpresFileInfo(cmpresFileFrom);
                 if (!cmpresFileInfo.exists() || !cmpresFileInfo.isFile()) {
                     autoClearCache();
-                    throw Exception(QString("File %1 does not exist").arg(cmpresFileFrom));
+                    throw Exception(QString(QObject::tr("File %1 does not exist")).arg(cmpresFileFrom));
                 }
                 for (auto &locale: FS_LOCALES) {
                     auto cmpresFileTo = importDir.filePath(bgPath(locale, descriptor.background));
@@ -354,7 +354,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                 QFileInfo sceneFileInfo(sceneFileFrom);
                 if (!sceneFileInfo.exists() || !sceneFileInfo.isFile()) {
                     autoClearCache();
-                    throw Exception(QString("File %1 does not exist").arg(sceneFileFrom));
+                    throw Exception(QString(QObject::tr("File %1 does not exist")).arg(sceneFileFrom));
                 }
                 auto sceneFileTo = importDir.filePath(SCENE_FOLDER+"/"+descriptor.background + ".scene");
                 QFile(sceneFileTo).remove();
@@ -366,7 +366,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
                     QFileInfo turnlotPngInfo(turnlotPngFrom);
                     if (!turnlotPngInfo.exists() || !turnlotPngInfo.isFile()) {
                         autoClearCache();
-                        throw Exception(QString("File %1 does not exist").arg(turnlotPngFrom));
+                        throw Exception(QString(QObject::tr("File %1 does not exist")).arg(turnlotPngFrom));
                     }
                     QString turnlotPngTo = importDir.filePath(turnlotPng(extChr, descriptor.background));
                     QFile(turnlotPngTo).remove();
@@ -376,7 +376,7 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
             // set internal name
             descriptor.internalName = QFileInfo(yamlFileSrc).baseName();
         } else {
-            throw Exception(QString("File %1 could not be parsed").arg(yamlFileSrc));
+            throw Exception(QString(QObject::tr("File %1 could not be parsed")).arg(yamlFileSrc));
         }
     }
 }
@@ -388,13 +388,32 @@ bool isMainDolVanilla(const QDir &dir) {
 
 void autoClearCache() {
     QSettings settings;
-    if(settings.value("networkAutoClearCacheOnError").toString().isEmpty()){
+    // if networkAutoClearCacheOnError hasn't been set,
+    // enable it and clear the cache this time.
+    if(!settings.contains("networkAutoClearCacheOnError")){
         settings.setValue("networkAutoClearCacheOnError", true);
-    }
-    auto clearCacheOnError = settings.value("networkAutoClearCacheOnError").toBool();
-    if(clearCacheOnError){
         CSMMNetworkManager::clearNetworkCache();
     }
+    // if it has been set, then only clear the cache if
+    // it's set to true
+    else {
+        if(settings.value("networkAutoClearCacheOnError").toBool()){
+            CSMMNetworkManager::clearNetworkCache();
+        }
+    }
+}
+
+QTemporaryDir createTempDir(QString suffix) {
+    QSettings settings;
+    auto chosenDirectory = settings.value("temporaryDirectory").toString();
+    if(QDir(chosenDirectory).exists()){
+        chosenDirectory = QString("%1/%2").arg(chosenDirectory).arg(suffix);
+    }
+    else {
+        chosenDirectory = QString("%1%2").arg(chosenDirectory).arg(suffix);
+    }
+    QTemporaryDir dir(chosenDirectory);
+    return dir;
 }
 
 }

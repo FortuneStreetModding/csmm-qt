@@ -203,7 +203,7 @@ void run(QStringList arguments)
                     targetDir.mkpath(".");
                 }
                 QSettings settings;
-                std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(settings.value("temporaryDirectory","").toString() + "/download");
+                std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(ImportExportUtils::createTempDir("download"));
 
                 auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                 auto mods = ModLoader::importModpackFile(parser.value(modPackOption), tmpDir);
@@ -288,7 +288,7 @@ void run(QStringList arguments)
                 if(!file.exists()) {
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                     QSettings settings;
-                    std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(settings.value("temporaryDirectory","").toString() + "/download");
+                    std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(ImportExportUtils::createTempDir("download"));
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption), tmpDir);
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -327,7 +327,7 @@ void run(QStringList arguments)
                 } else {
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), "");
                     QSettings settings;
-                    std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(settings.value("temporaryDirectory","").toString() + "/download");
+                    std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(ImportExportUtils::createTempDir("download"));
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption), tmpDir);
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());
@@ -363,14 +363,14 @@ void run(QStringList arguments)
                     cfgPath = sourceDir.filePath("csmm_pending_changes.yaml");
                 }
                 if (QFile::exists(cfgPath)) {
-                    QTemporaryDir importDir;
+                    QTemporaryDir importDir(ImportExportUtils::createTempDir("import"));
                     if (!importDir.isValid()) {
                         qCritical() << "Could not create temporary directory for importing descriptors." << importDir.errorString();
                         exit(1);
                     }
                     auto gameInstance = GameInstance::fromGameDirectory(sourceDir.path(), importDir.path());
                     QSettings settings;
-                    std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(settings.value("temporaryDirectory","").toString() + "/download");
+                    std::shared_ptr<QTemporaryDir> tmpDir = std::make_shared<QTemporaryDir>(ImportExportUtils::createTempDir("download"));
                     auto mods = ModLoader::importModpackFile(parser.value(modPackOption), tmpDir);
                     CSMMModpack modpack(gameInstance, mods.first.begin(), mods.first.end());
                     modpack.load(sourceDir.path());

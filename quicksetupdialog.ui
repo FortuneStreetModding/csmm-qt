@@ -192,6 +192,9 @@
      <property name="standardButtons">
       <set>QDialogButtonBox::NoButton</set>
      </property>
+     <property name="centerButtons">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
   </layout>

@@ -3,6 +3,7 @@
 #include "lib/fslocale.h"
 #include "lib/datafileset.h"
 #include "lib/exewrapper.h"
+#include "lib/importexportutils.h"
 
 static QString getFileCopy(const QString &fileName, const QDir &dir) {
     // copy the file to dir
@@ -32,7 +33,7 @@ QMap<QString, ArcFileInterface::ModifyArcFunction> DefaultMinimapIcons::modifyAr
             langDir = QString("lang%1/").arg(uppercasedLocale);
         }
         QSettings settings;
-        auto minimapTemp = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/minimap");
+        auto minimapTemp = QSharedPointer<QTemporaryDir>::create(ImportExportUtils::createTempDir("minimap"));
         if (!minimapTemp->isValid()) {
             throw ModException(QString("could not create temporary directory %1").arg(minimapTemp->path()));
         }
