@@ -27,7 +27,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 COMPONENTS Concurrent Core Gui Network Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Concurrent Core Gui Network Widgets LinguistTools REQUIRED)
+qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} languages/english.ts languages/italian.ts languages/japanese.ts)
+qt6_add_lupdate(csmm ${QM_FILES})
 
 set(LIB_SOURCES
     lib/addressmapping.cpp
@@ -282,8 +284,8 @@ if(APPLE)
         get_filename_component(PY_STDLIB_FILE_REL_DIR ${PY_STDLIB_FILE_REL} DIRECTORY)
         set_property(SOURCE ${PY_STDLIB_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/lib/${PY_STDLIB_FILE_REL_DIR}")
     endforeach()
-    add_executable(csmm MACOSX_BUNDLE ${MAIN_SOURCES} ${APP_ICON_MACOSX} ${PY_STDLIB_FILES})
-    add_executable(csmmpython ${PY_SOURCES})
+    add_executable(csmm MACOSX_BUNDLE ${MAIN_SOURCES} ${APP_ICON_MACOSX} ${PY_STDLIB_FILES} ${QM_FILES})
+    add_executable(csmmpython ${PY_SOURCES} ${QM_FILES})
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-mac.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD
@@ -302,8 +304,8 @@ if(APPLE)
     )
 elseif(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/AppIcon.rc")
-    add_executable(csmm ${MAIN_SOURCES} ${APP_ICON_RESOURCE_WINDOWS})
-    add_executable(csmmpython ${PY_SOURCES})
+    add_executable(csmm ${MAIN_SOURCES} ${APP_ICON_RESOURCE_WINDOWS} ${QM_FILES})
+    add_executable(csmmpython ${PY_SOURCES} ${QM_FILES})
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-cygwin64.zip ${CMAKE_CURRENT_BINARY_DIR}/wit.zip)
     add_custom_command(TARGET csmm POST_BUILD
@@ -322,8 +324,10 @@ elseif(WIN32)
         ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
     )
 else()
-    add_executable(csmm ${MAIN_SOURCES})
-    add_executable(csmmpython ${PY_SOURCES})
+    add_executable(csmm ${MAIN_SOURCES} ${QM_FILES}
+        lib/region.h lib/region.cpp
+    )
+    add_executable(csmmpython ${PY_SOURCES} ${QM_FILES})
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
     add_custom_command(TARGET csmm POST_BUILD

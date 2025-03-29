@@ -5,8 +5,11 @@
 #include <QException>
 #include <stdexcept>
 #include "addressmapping.h"
+#include "qcoreapplication.h"
 
 class FreeSpaceManager {
+    Q_DECLARE_TR_FUNCTIONS(FreeSpaceManager)
+
 public:
     void addFreeSpace(quint32 start, quint32 end);
     int calculateTotalRemainingFreeSpace() const;

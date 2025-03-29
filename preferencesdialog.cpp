@@ -2,6 +2,7 @@
 #include "lib/csmmnetworkmanager.h"
 #include "qdir.h"
 #include "qstandardpaths.h"
+#include "qtranslator.h"
 #include "ui_preferencesdialog.h"
 #include <QFileDialog>
 #include <QSettings>
@@ -20,6 +21,7 @@
 #include <QStyleFactory>
 #include "usersettings.h"
 #include "QTemporaryDir"
+#include "lib/region.h"
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
@@ -27,7 +29,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     this->resize(100,100);
-    setWindowTitle("Preferences");
+    setWindowTitle(tr("Preferences"));
 
     ui->windowPaletteToolButton->setMenu(new QMenu);
     connect(ui->windowPaletteToolButton, &QToolButton::clicked, this, &PreferencesDialog::buildPaletteMenu);
@@ -93,15 +95,50 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         resetTemporaryDirectory();
     }
 
+    auto programLanguagesAvailable = Region::instance().availableProgramLanguages();
+
+    QString chosenLanguage = settings.value("programLanguage","").toString();
+    qInfo() << chosenLanguage + " ( chosen language ) ";
+    QString chosenTerritory = settings.value("preferredGameTerritory","North America").toString();
+    qInfo() << chosenTerritory + " ( chosen territory ) ";
+
+    ui->languageComboBox->addItems(programLanguagesAvailable);
+    // currently, rebuildLanguageComboBox works but has the side effect of
+    // breaking the language reload, as that seems to rely on the text from
+    // the language box.
+
+    //rebuildLanguageComboBox();
+
+
+    int currentLanguageIndex = ui->languageComboBox->findText(chosenLanguage);
+    if (currentLanguageIndex != -1) {
+        ui->languageComboBox->setCurrentIndex(currentLanguageIndex);  // Select the item if found
+    }
+
+    QStringList currentTerritories = Region::instance().availableGameReleaseTerritories(false);
+    QStringList translated = Region::instance().availableGameReleaseTerritories(true);
+
+    QString chosenTerritoryIndex = QString::number(currentTerritories.indexOf(chosenTerritory));
+    qInfo() << currentTerritories.join(" ") + " ( current territories ) "; // in english
+    qInfo() << translated.join(" ") + " ( current territories - translated ) "; // in the selected language
+
+    qInfo() << chosenTerritoryIndex + " ( chosenTerritoryIndex ) ";
+
+    rebuildTerritoryComboBox();
+
+    if (chosenTerritory.toInt() != -1) {
+        ui->preferredGameRegionComboBox->setCurrentIndex(chosenTerritoryIndex.toInt());  // Select the item if found
+    }
+
     connect(ui->updateCacheDirectoryButton, &QPushButton::clicked, this, [this](bool){
-        auto networkCacheDirNname = QFileDialog::getExistingDirectory(this, "Set CSMM Network Cache Directory", nullptr);
+        auto networkCacheDirNname = QFileDialog::getExistingDirectory(this, tr("Set CSMM Network Cache Directory"), nullptr);
         if (!networkCacheDirNname.isEmpty()) {
             ui->cacheDirectoryLabel->setText(networkCacheDirNname);
         }
     });
 
     connect(ui->updateTemporaryDirectoryButton, &QPushButton::clicked, this, [this](bool){
-        auto temporaryDirName = QFileDialog::getExistingDirectory(this, "Set CSMM Temporary Directory", nullptr);
+        auto temporaryDirName = QFileDialog::getExistingDirectory(this, tr("Set CSMM Temporary Directory"), nullptr);
         if (!temporaryDirName.isEmpty()) {
             ui->temporaryDirectoryLabel->setText(temporaryDirName);
         }
@@ -131,13 +168,82 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         auto size_str = QString::number(position);
         ui->cacheSizeLabel->setText(size_str + "GB");
     });
+
+    connect(ui->languageComboBox, &QComboBox::currentTextChanged, this, [this](QString text){
+        Region::instance().setProgramLanguage(text);
+        Region::instance().applyProgramLanguage(text);
+
+        qInfo() << QString("language changed to %1").arg(text);
+    });
+
+    connect(ui->preferredGameRegionComboBox, &QComboBox::currentIndexChanged, this, [this](int index){
+        if(index != -1){
+            auto territories = Region::instance().availableGameReleaseTerritories(true);
+            auto territoryString = territories.at(index);
+            qInfo() << QString("territory changed to %1").arg(territoryString);
+            auto index = ui->preferredGameRegionComboBox->currentIndex();
+            Region::instance().setPreferredGameTerritory(index);
+            territoryChangedSignal(Region::instance().availableGameReleaseTerritories(false).at(index));
+        }
+        else{
+            qInfo() << "-1 received by QComboBox::currentIndexChanged";
+        }
+    });
+}
+
+void PreferencesDialog::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange) {
+        qInfo() << "A PreferencesDialog::changeEvent() has fired!";
+
+        rebuildTerritoryComboBox();
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
+}
+
+void PreferencesDialog::rebuildTerritoryComboBox()
+{
+    auto index = ui->preferredGameRegionComboBox->currentIndex();
+    auto territories  = Region::instance().availableGameReleaseTerritories(false);
+    QStringList translated = Region::instance().availableGameReleaseTerritories(true);
+    // blocking signals here so we don't trigger a region change event
+    // by changing the current index of the combo box.
+    ui->preferredGameRegionComboBox->blockSignals(true);
+    ui->preferredGameRegionComboBox->clear();
+    ui->preferredGameRegionComboBox->addItems(translated);
+    ui->preferredGameRegionComboBox->setCurrentIndex(index);
+    ui->preferredGameRegionComboBox->blockSignals(false);
+}
+
+void PreferencesDialog::rebuildLanguageComboBox(){
+    QComboBox* combobox = ui->languageComboBox;
+    qInfo() << combobox->currentText();
+    qInfo() << Region::instance().getLocaleFromLanguageName(combobox->currentText()).nativeLanguageName();
+
+    auto index = combobox->currentIndex();
+    auto languages = Region::instance().availableProgramLanguages();
+
+    QStringList translated;
+    for(auto &l: languages){
+        if(l == "English"){
+            translated.append(l);
+        }
+        else {
+            translated.append(Region::instance().getLocaleFromLanguageName(l).nativeLanguageName());
+        }
+    }
+    combobox->blockSignals(true);
+    combobox->clear();
+    combobox->addItems(translated);
+    combobox->setCurrentIndex(index);
+    combobox->blockSignals(false);
 }
 
 PreferencesDialog::~PreferencesDialog()
 {
     delete ui;
 }
-
 
 void PreferencesDialog::accept()
 {

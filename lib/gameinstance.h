@@ -8,6 +8,8 @@
 #define MIN_CSMM_UI_MESSAGE_ID 25000
 
 struct GameInstance {
+    Q_DECLARE_TR_FUNCTIONS(GameInstance)
+
 public:
     std::vector<MapDescriptor> &mapDescriptors();
     const std::vector<MapDescriptor> &mapDescriptors() const;

@@ -6,9 +6,10 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTextStream>
-#include "lib/datafileset.h"
+#include <QSettings>
 #include "lib/importexportutils.h"
 #include "lib/getordefault.h"
+#include "lib/region.h"
 #include "lib/progresscanceled.h"
 #include "venturecarddialog.h"
 #include "csmmprogressdialog.h"
@@ -20,16 +21,17 @@ static constexpr int ORDER_TYPE = QTableWidgetItem::UserType + 2;
 static constexpr int UNLOCK_ID_TYPE = QTableWidgetItem::UserType + 3;
 
 MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
-    QStringList labels{"", "", "Name", "MapSet [E]", "Zone [E]", "Order [E]",
-                       "Tut. Map? [E]", "Unlock ID [E]", "Ruleset", "Initial Cash", "Target Amount",
-                       "Base Salary", "Salary Increment", "Max. Dice Roll",
-                       "Venture Cards", "FRB Files", "Switch Origin Points",
-                       "Board Theme", "Background", "Background Music ID",
-                       "Map Icon", "Looping Mode", "Looping Mode Radius",
-                       "Looping Mode Horiz. Padding", "Looping Mode Vertical Square Count",
-                       "Tour Bankruptcy Limit", "Tour Initial Cash", "Tour Opponents",
-                       "Tour Clear Rank", "Name Msg ID", "Desc Msg ID",
-                       "Description", "Internal Name", "District Names", "District Name IDs"};
+
+    QStringList labels{"", "", tr("Name"), tr("MapSet [E]"), tr("Zone [E]"), tr("Order [E]"),
+                       tr("Tutorial Map? [E]"), tr("Unlock ID [E]"), tr("Ruleset"), tr("Initial Cash"), tr("Target Amount"),
+                       tr("Base Salary"), tr("Salary Increment"), tr("Maximum Dice Roll"),
+                       tr("Venture Cards"), tr("FRB Files"), tr("Switch Origin Points"),
+                       tr("Board Theme"), tr("Background"), tr("Background Music ID"),
+                       tr("Map Icon"), tr("Looping Mode"), tr("Looping Mode Radius"),
+                       tr("Looping Mode Horizontal Padding"), tr("Looping Mode Vertical Square Count"),
+                       tr("Tour Bankruptcy Limit"), tr("Tour Initial Cash"), tr("Tour Opponents"),
+                       tr("Tour Clear Rank"), tr("Name Msg ID"), tr("Desc Msg ID"),
+                       tr("Description"), tr("Internal Name"), tr("District Names"), tr("District Name IDs")};
     setColumnCount(labels.size());
     setHorizontalHeaderLabels(labels);
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -74,13 +76,13 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setVerticalHeaderItem(row, readOnlyItem(QString::number(row)));
 
-    auto importYamlButton = new QPushButton("Import .yaml or .zip");
+    auto importYamlButton = new QPushButton(tr("Import"));
     connect(importYamlButton, &QPushButton::clicked, this, [=](bool) {
-        auto openYaml = QFileDialog::getOpenFileName(this, "Import .yaml or .zip", QString(), "Map Descriptor Files (*.yaml *.zip)", nullptr);
+        auto openYaml = QFileDialog::getOpenFileName(this, tr("Import .yaml or .zip"), QString(), tr("Map Descriptor Files (*.yaml *.zip)"), nullptr);
         if (openYaml.isEmpty()) return;
         MapDescriptor newDescriptor;
         try {
-            CSMMProgressDialog dialog("Importing yaml", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
+            CSMMProgressDialog dialog(tr("Importing yaml"), QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
             ImportExportUtils::importYaml(openYaml, newDescriptor, getImportDirectory(), [&](double progress) {
                 dialog.setValue(100 * progress);
             });
@@ -91,25 +93,36 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
         } catch (const ProgressCanceled &) {
             // nothing to do
         } catch (const std::runtime_error &exception) {
-            QMessageBox::critical(this, "Import .yaml", QString("Error loading the map: %1").arg(exception.what()));
+            QMessageBox::critical(this, tr("Import .yaml"), QString(tr("Error loading the map: %1")).arg(exception.what()));
         }
     });
     setCellWidget(row, colIdx++, importYamlButton);
 
-    auto exportYamlButton = new QPushButton("Export .yaml");
+    auto exportYamlButton = new QPushButton(tr("Export"));
     connect(exportYamlButton, &QPushButton::clicked, this, [=](bool) {
         auto gameDirectory = getGameDirectory();
-        auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, "Export .yaml", descriptorPtr->internalName + ".yaml", "Map Descriptor Files (*.yaml)", nullptr, QFileDialog::DontUseNativeDialog);
+        auto saveYamlTo = QFileDialog::getSaveFileName(exportYamlButton, tr("Export .yaml"), descriptorPtr->internalName + ".yaml", tr("Map Descriptor Files (*.yaml)"), nullptr, QFileDialog::DontUseNativeDialog);
         if (saveYamlTo.isEmpty()) return;
         try {
             ImportExportUtils::exportYaml(gameDirectory, saveYamlTo, *descriptorPtr);
         } catch (const std::runtime_error &exception) {
-            QMessageBox::critical(this, "Export .yaml", QString("Error exporting the map: %1").arg(exception.what()));
+            QMessageBox::critical(this, tr("Export .yaml"), QString(tr("Error exporting the map: %1")).arg(exception.what()));
         }
     });
     setCellWidget(row, colIdx++, exportYamlButton);
 
-    QString prioritized_language = "en"; // pull from QSettings once we're saving that there.
+    //QString prioritized_language = "en"; // pull from QSettings once we're saving that there.
+    QSettings settings;
+    QString prioritized_language = Region::instance().getGameCodeFromTerritory(settings.value("preferredGameTerritory").toString());
+    if(settings.contains("preferredGameTerritory")){
+        qInfo() << QString("settings contains preferredGameTerritory: %1").arg(settings.value("preferredGameTerritory").toString());
+    }
+    else{
+        qInfo() << QString("settings does not contain PreferredGameTerritory, reverting to English");
+    }
+
+    qInfo() << QString("MapDescriptorWidget: preferredGameTerritory: %1").arg(settings.value("preferredGameTerritory").toString());
+    qInfo() << QString("MapDescriptorWidget: prioritized_language %1").arg(prioritized_language);
 
     QString en_name = getOrDefault(descriptor.names, "en", QString());
     QString es_name = getOrDefault(descriptor.names, "su", QString());
@@ -118,23 +131,28 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
     QString it_name = getOrDefault(descriptor.names, "it", QString());
     QString jp_name = getOrDefault(descriptor.names, "jp", QString());
 
-    if(!en_name.isEmpty()){
-        prioritized_language = "en";
+    if(!getOrDefault(descriptor.names, prioritized_language, QString()).isEmpty()){
+
     }
-    else if(!es_name.isEmpty()){
-        prioritized_language = "su";
-    }
-    else if(!de_name.isEmpty()){
-        prioritized_language = "de";
-    }
-    else if(!fr_name.isEmpty()){
-        prioritized_language = "fr";
-    }
-    else if(!it_name.isEmpty()){
-        prioritized_language = "it";
-    }
-    else if(!jp_name.isEmpty()){
-        prioritized_language = "jp";
+    else {
+        if(!en_name.isEmpty()){
+            prioritized_language = "en";
+        }
+        else if(!es_name.isEmpty()){
+            prioritized_language = "su";
+        }
+        else if(!de_name.isEmpty()){
+            prioritized_language = "de";
+        }
+        else if(!fr_name.isEmpty()){
+            prioritized_language = "fr";
+        }
+        else if(!it_name.isEmpty()){
+            prioritized_language = "it";
+        }
+        else if(!jp_name.isEmpty()){
+            prioritized_language = "jp";
+        }
     }
 
     setItem(row, colIdx++, readOnlyItem(getOrDefault(descriptor.names, prioritized_language, QString())));
@@ -153,14 +171,14 @@ void MapDescriptorWidget::loadRowWithMapDescriptor(int row, const MapDescriptor 
 
     setItem(row, colIdx++, new QTableWidgetItem(QString::number(descriptor.unlockId), UNLOCK_ID_TYPE));
 
-    setItem(row, colIdx++, readOnlyItem(descriptor.ruleSet == Easy ? "Easy" : "Standard"));
+    setItem(row, colIdx++, readOnlyItem(descriptor.ruleSet == Easy ? tr("Easy") : tr("Standard")));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.initialCash)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.targetAmount)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.baseSalary)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.salaryIncrement)));
     setItem(row, colIdx++, readOnlyItem(QString::number(descriptor.maxDiceRoll)));
 
-    QPushButton *ventureButton = new QPushButton("View Venture Cards"); // note: setCellWidget takes control of button
+    QPushButton *ventureButton = new QPushButton(tr("View Venture Cards")); // note: setCellWidget takes control of button
     connect(ventureButton, &QPushButton::clicked, this, [=](bool) {
         (new VentureCardDialog(*descriptorPtr /* maintain descriptor when other descs are removed */, this))->exec();
     });
@@ -237,6 +255,24 @@ void MapDescriptorWidget::clearDescriptors() {
     setRowCount(0);
     descriptors.clear();
     dirty = false;
+}
+
+void MapDescriptorWidget::retranslate()
+{
+    // Reapply translated strings for row item buttons (import/export/view venture cards)
+    for (int row = 0; row < this->rowCount(); ++row) {
+        for (int col = 0; col < this->columnCount(); ++col){
+            QWidget* widget = this->cellWidget(row, col);
+            if (auto button = qobject_cast<QPushButton*>(widget)) {
+                button->setText(tr(button->text().toUtf8().constData()));
+            }
+        }
+    }
+    // Reapply translated strings for columns
+    for(int col = 0; col < this->columnCount(); ++col){
+        auto column = this->horizontalHeaderItem(col)->text();
+        this->setHorizontalHeaderItem(col, new QTableWidgetItem(tr(column.toUtf8().constData())));
+    }
 }
 
 const QVector<QSharedPointer<MapDescriptor>> &MapDescriptorWidget::getDescriptors() {

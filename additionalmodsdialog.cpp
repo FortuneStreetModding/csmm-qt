@@ -14,7 +14,7 @@ AdditionalModsDialog::AdditionalModsDialog(QWidget *parent)
     this->resize(100,100);
 
     connect(ui->addModZip, &QPushButton::clicked, this, [this](bool) {
-        auto files = QFileDialog::getOpenFileNames(this, "Import additional modpack(s)", QString(), "Modpack zip file (*.zip)", nullptr);
+        auto files = QFileDialog::getOpenFileNames(this, tr("Import additional modpack(s)"), QString(), tr("Modpack zip file (*.zip)"), nullptr);
         if (!files.isEmpty()) {
             ui->additionalMods->addItems(files);
         }
@@ -28,7 +28,7 @@ AdditionalModsDialog::AdditionalModsDialog(QWidget *parent)
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    setWindowTitle(QString("Add Modpacks"));
+    setWindowTitle(QString(tr("Add Modpacks")));
 }
 
 QVector<QString> AdditionalModsDialog::GetModpackZips(){

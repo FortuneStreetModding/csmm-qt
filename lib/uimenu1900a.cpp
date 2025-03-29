@@ -1,4 +1,5 @@
 #include "uimenu1900a.h"
+#include "qcoreapplication.h"
 #include <brlan.h>
 #include <brlyt.h>
 #include <QFileInfo>
@@ -26,7 +27,7 @@ static bool checkMapIconsForValidity(const QMap<QString, QString> &mapIconToTplN
 QString constructMapIconTplName(const QString &mapIcon) {
     auto basename = QFileInfo(mapIcon).baseName();
     if (basename == "bghatena") {
-        qCritical() << "bghatena is not allowed to be used as mapIcon name!";
+        qCritical() << QObject::tr("bghatena is not allowed to be used as mapIcon name!");
         return "";
     }
     return QString("ui_menu007_%1.tpl").arg(basename);

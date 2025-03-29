@@ -48,7 +48,7 @@ static const QStringList &getWiimmsEnv() {
 static QFuture<QString> observeProcess(QProcess *proc) {
     auto program = proc->program();
     if (proc->error() == QProcess::FailedToStart) {
-        throw Exception(QString("Process '%1' failed to start").arg(program));
+        throw Exception(QString(QObject::tr("Process '%1' failed to start")).arg(program));
     }
 
     QObject::connect(proc, &QProcess::readyReadStandardError, [proc]() {
@@ -65,7 +65,7 @@ static QFuture<QString> observeProcess(QProcess *proc) {
             const auto code = std::get<0>(args);
             const auto status = std::get<1>(args);
             if (code != 0) {
-                throw Exception(QString("Process '%1' returned nonzero exit code %2").arg(program).arg(code));
+                throw Exception(QString(QObject::tr("Process '%1' returned nonzero exit code %2")).arg(program).arg(code));
             }
             QTextStream stream(proc);
             QString line = stream.readAll();

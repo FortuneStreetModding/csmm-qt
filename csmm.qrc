@@ -240,5 +240,11 @@
         <file>palettes/spinach.json</file>
         <file>palettes/strawberry.json</file>
         <file>palettes/wine.json</file>
+        <file>languages/italian.qm</file>
+        <file>languages/italian.ts</file>
+        <file>languages/japanese.qm</file>
+        <file>languages/japanese.ts</file>
+        <file>languages/english.qm</file>
+        <file>languages/english.ts</file>
     </qresource>
 </RCC>

@@ -9,6 +9,7 @@
 
 class MapDescriptorWidget : public QTableWidget
 {
+    Q_OBJECT
 public:
     explicit MapDescriptorWidget(QWidget *parent = nullptr);
     void loadRowWithMapDescriptor(int row, const MapDescriptor &descriptor);
@@ -20,6 +21,7 @@ public:
     void setGameDirectoryFunction(const std::function<QString()> &fn);
     void setImportDirectoryFunction(const std::function<QString()> &fn);
     bool dirty = false;
+    void retranslate();
 private:
     QVector<QSharedPointer<MapDescriptor>> descriptors;
     std::function<QString()> getGameDirectory;

@@ -61,10 +61,10 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
 
         quint32 opcode = PowerPcAsm::lwz(0, -0x547c, 13);
         if (boomInst == opcode) {
-            qInfo() << "Boom Street detected";
+            qInfo() << tr("Boom Street detected").toUtf8().constData();
             addressMapperVal.setVersionMapper(AddressSectionMapper({ AddressSection() }), GameVersion::BOOM);
         } else if (fortuneInst == opcode) {
-            qInfo() << "Fortune Street detected";
+            qInfo() << tr("Fortune Street detected").toUtf8().constData();
             addressMapperVal.setVersionMapper(AddressSectionMapper({
                 {0x80000100, 0x8007a283, 0x0, ".text, .data0, .data1 and beginning of .text1 until InitSoftLanguage"},
                 {0x8007a2f4, 0x80268717, 0x54, "continuation of .text1 until AIRegisterDMACallback"},
@@ -75,7 +75,7 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
                 {0x804ac880, 0x8081f013, 0x200, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
             }), GameVersion::FORTUNE);
         } else if (itadakiInst == opcode) {
-            qInfo() << "Itadaki Street detected";
+            qInfo() << tr("Itadaki Street Wii detected").toUtf8().constData();
             addressMapperVal.setVersionMapper(AddressSectionMapper({
                 {0x80000100, 0x8007A244, 0x0, ".text, .data0, .data1 and beginning of .text1 until InitSoftLanguage"},
                 {0x8007A2F4, 0x80268717, 0x94, "continuation of .text1 until AIRegisterDMACallback"},
@@ -86,10 +86,10 @@ GameInstance GameInstance::fromGameDirectory(const QString &dir, const QString &
                 {0x804AC880, 0x8081F013, 0x300, ".uninitialized0, .data6, .uninitialized1, .data7, .uninitialized2"}
             }), GameVersion::ITADAKI);
         } else {
-            throw std::runtime_error("could not determine the Fortune Street region in the main.dol file of "+dir.toStdString()+" Is this a proper Fortune Street directory?"); // TODO use a QException subclass
+            throw std::runtime_error(QString(tr("Could not determine the Fortune Street region in the main.dol file of %1. \n\n Is this a proper Fortune Street directory?")).arg(dir).toStdString()); // TODO use a QException subclass
         }
     } else {
-        throw std::runtime_error("could not open main.dol file of "+dir.toStdString()); // TODO use a QException subclass
+        throw std::runtime_error(QString(tr("Could not open the main.dol file: %1")).arg(dir).toStdString()); // TODO use a QException subclass
     }
     return GameInstance(descriptors, addressMapperVal, FreeSpaceManager(), importDir);
 }

@@ -25,7 +25,7 @@ quint32 FreeSpaceManager::findSuitableFreeSpaceBlock(int requiredSize) const {
         }
     }
     if (smallestFreeSpaceBlockEnd == std::numeric_limits<quint32>::max()) {
-        throw Exception(QString("requested %1 bytes but not enough free space").arg(requiredSize));
+        throw Exception(QString(tr("requested %1 bytes but not enough free space")).arg(requiredSize));
     }
     return smallestFreeSpaceBlockEnd;
 }
@@ -52,7 +52,7 @@ quint32 FreeSpaceManager::findLargestFreeSpaceBlock(const QMap<quint32, quint32>
         }
     }
     if (largestBlockEnd == std::numeric_limits<quint32>::max()) {
-        throw Exception("no blocks found"); // should never happen
+        throw Exception(tr("no blocks found")); // should never happen
     }
     return largestBlockEnd;
 }

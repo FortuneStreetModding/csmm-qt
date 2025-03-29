@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->tableWidget->duplicateSelectedMapDescriptors();
     });
     connect(ui->removeMap, &QPushButton::clicked, this, [&](bool) {
-        if (QMessageBox::question(this, "Remove Map(s)", "Are you sure you want to remove the selected maps?") == QMessageBox::Yes) {
+        if (QMessageBox::question(this, tr("Remove Map(s)"), tr("Are you sure you want to remove the selected maps?")) == QMessageBox::Yes) {
             ui->tableWidget->removeSelectedMapDescriptors();
         }
     });
@@ -78,11 +78,11 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionPatch_MarkerCode->setChecked(getMarkerCode() != "01");
     });
     connect(ui->actionExport_default_modlists_txt, &QAction::triggered, this, [&]() {
-        auto saveFile = QFileDialog::getSaveFileName(this, "Export default modlist.txt", "modlist.txt", "Mod List (*.txt)", nullptr);
+        auto saveFile = QFileDialog::getSaveFileName(this, tr("Export default modlist.txt"), "modlist.txt", "Mod List (*.txt)", nullptr);
         QSaveFile fileObj(saveFile);
 
         if (!fileObj.open(QFile::WriteOnly)) {
-            QMessageBox::critical(this, "Error exporting modlist.txt", "Error opening file for saving");
+            QMessageBox::critical(this, tr("Error exporting modlist.txt"), tr("Error opening file for saving"));
         }
 
         auto defaultModList = DefaultModList::defaultModList();
@@ -109,15 +109,15 @@ MainWindow::MainWindow(QWidget *parent)
                 std::vector<std::shared_ptr<QTemporaryDir>> tmpDirs;
 
                 for (int i = 0; i < modpackZips.size(); i++) {
-                    tmpDirs.emplace_back(std::make_shared<QTemporaryDir>(settings.value("temporaryDirectory", "").toString() + "/import"));
+                    tmpDirs.emplace_back(std::make_shared<QTemporaryDir>(ImportExportUtils::createTempDir("import")));
                 }
 
                 qInfo() << "Loading Modpacks: ";
                 std::tie(modList, tempModpackDirs) = ModLoader::importModpackCollection(modpackZips, tmpDirs);
                 updateModListWidget();
-                QMessageBox::information(this, "Import modpack(s)", "Modpack(s) successfully imported.");
+                QMessageBox::information(this, tr("Import modpack(s)"), tr("Modpack(s) successfully imported."));
             } catch (const std::runtime_error &error) {
-                QMessageBox::critical(this, "Error importing modpack(s)", QString("Error importing modpack(s):\n%1").arg(error.what()));
+                QMessageBox::critical(this, tr("Error importing modpack(s)"), QString(tr("Error importing modpack(s):\n%1")).arg(error.what()));
                 PyErr_Clear();
             }
         }
@@ -130,11 +130,48 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionPreferences, &QAction::triggered, this, [&]() {
         PreferencesDialog dialog;
         dialog.setWindowModality(Qt::ApplicationModal);
+
+        connect(&dialog, &PreferencesDialog::territoryChangedSignal, this, [this](const QString& t) {
+            qDebug() << "Territory: " + t;
+            qDebug() << ui->tableWidget->getDescriptors().count();
+
+            // if there are items in the MapDescriptorWidget,
+            // reload them with the names and such from that territory.
+            auto descriptors = ui->tableWidget->getDescriptors();
+            if(ui->tableWidget->getDescriptors().count()!=0){
+                ui->tableWidget->clearDescriptors();
+                for (auto &d: descriptors) {
+                    ui->tableWidget->appendMapDescriptor(*d);
+                }
+            }
+        });
+
         dialog.exec();
     });
+
     updateModListWidget();
     setWindowTitle(QString("CSMM %1").arg(CSMM_VERSION));
 }
+
+void MainWindow::changeEvent(QEvent *event) {
+    if (event->type() == QEvent::LanguageChange) {
+        qInfo() << "A MainWindow::changeEvent() has fired!";
+        ui->retranslateUi(this);
+
+        auto descriptors = ui->tableWidget->getDescriptors();
+        if(ui->tableWidget->getDescriptors().count()!=0){
+            ui->tableWidget->clearDescriptors();
+            for (int i = 0; i < descriptors.count(); i++) {
+                ui->tableWidget->appendMapDescriptor(*descriptors[i]);
+                ui->tableWidget->loadRowWithMapDescriptor(i, *descriptors[i]);
+            }
+        }
+        ui->tableWidget->retranslate();
+    }
+
+    QMainWindow::changeEvent(event);
+}
+
 
 QString MainWindow::getMarkerCode() {
     if(ui->actionPatch_MarkerCode->data().isNull())
@@ -152,7 +189,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::saveMapList() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save Map List", "mapList.yaml", "CSMM Map List (*.yaml)", nullptr);
+    auto saveFile = QFileDialog::getSaveFileName(this, tr("Save Map List"), tr("mapList.yaml"), tr("CSMM Map List (*.yaml)"), nullptr);
     if (saveFile.isEmpty()) return;
     std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
@@ -160,23 +197,23 @@ void MainWindow::saveMapList() {
     try {
         Configuration::save(saveFile, descriptors);
     } catch (const std::runtime_error &e) {
-         QMessageBox::critical(this, "Save Map List", QString("Error saving the map list: %1").arg(e.what()));
+        QMessageBox::critical(this, tr("Save Map List"), QString(tr("Error saving the map list: %1")).arg(e.what()));
     }
 }
 
 void MainWindow::loadMapList() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Load Map List", QString(), "CSMM Map List (*.yaml *.csv)", nullptr);
+    auto openFile = QFileDialog::getOpenFileName(this, tr("Load Map List"), QString(), tr("CSMM Map List (*.yaml *.csv)"), nullptr);
     if (openFile.isEmpty()) return;
     QFileInfo openFileInfo(openFile);
     if(!openFileInfo.exists()) {
-        QMessageBox::critical(this, "Open Map List", QString("Error loading the map list: %1").arg(openFile));
+        QMessageBox::critical(this, tr("Open Map List"), QString(tr("Error loading the map list: %1")).arg(openFile));
     }
     std::vector<MapDescriptor> descriptors;
     auto descriptorPtrs = ui->tableWidget->getDescriptors();
     std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
-    ui->statusbar->showMessage("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.");
+    ui->statusbar->showMessage(tr("Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze."));
     ui->statusbar->repaint();
-    CSMMProgressDialog progressDialog("Importing map list", QString(), 0, 100);
+    CSMMProgressDialog progressDialog(tr("Importing map list"), QString(), 0, 100);
     progressDialog.setWindowModality(Qt::ApplicationModal);
     try {
         Configuration::load(openFile, descriptors, importDir->path(), [&](double progress) {
@@ -184,10 +221,10 @@ void MainWindow::loadMapList() {
         });
         loadDescriptors(descriptors);
         ui->tableWidget->dirty = true;
-        ui->statusbar->showMessage("Map list load completed");
+        ui->statusbar->showMessage(tr("Map list load completed"));
         ui->statusbar->repaint();
     } catch (const std::runtime_error &exception) {
-        QMessageBox::critical(this, "Import Map List", QString("Error importing the map list: %1").arg(exception.what()));
+        QMessageBox::critical(this, tr("Import Map List"), QString(tr("Error importing the map list: %1")).arg(exception.what()));
     }
 }
 
@@ -199,42 +236,42 @@ void MainWindow::updateModListWidget() {
             modStrs.append(mod->modId());
         }
         else{
-            qInfo() << "Duplicate item attempted to be added to modList: " + mod->modId();
+            qInfo() << tr("Duplicate item attempted to be added to modList: ") + mod->modId();
         }
     }
     ui->modListWidget->addItems(modStrs);
 }
 
 void MainWindow::saveCleanItastCsmmBrsar() {
-    auto openFile = QFileDialog::getOpenFileName(this, "Open vanilla Itast.brsar", "Itast.brsar", "Vanilla Fortune Street Binary Sound Archive (*.brsar)", nullptr);
+    auto openFile = QFileDialog::getOpenFileName(this, tr("Open vanilla Itast.brsar"), "Itast.brsar", tr("Vanilla Fortune Street Binary Sound Archive (*.brsar)"), nullptr);
     if (openFile.isEmpty()) return;
     //QFileInfo openFileInfo(openFile);
 
     if (ImportExportUtils::fileSha1(openFile) != ImportExportUtils::getSha1OfVanillaFileName(ITAST_BRSAR)) {
-        QMessageBox::information(this, "Wrong Itast.brsar", QString("The provided file %1 is not a vanilla Itast.brsar").arg(openFile));
+        QMessageBox::information(this, tr("Wrong Itast.brsar"), QString(tr("The provided file %1 is not a vanilla Itast.brsar")).arg(openFile));
         return;
     }
 
-    auto saveFile = QFileDialog::getSaveFileName(this, "Save clean Itast.csmm.brsar", "Itast.csmm.brsar", "CSMM Fortune Street Binary Sound Archive (*.brsar)", nullptr);
+    auto saveFile = QFileDialog::getSaveFileName(this, tr("Save clean Itast.csmm.brsar"), "Itast.csmm.brsar", tr("CSMM Fortune Street Binary Sound Archive (*.brsar)"), nullptr);
     if (saveFile.isEmpty()) return;
 
     QString errors = ImportExportUtils::applyBspatch(openFile, saveFile, ":/" + ITAST_BRSAR + ".bsdiff");
     if(!errors.isEmpty()) {
-        QMessageBox::critical(this, "Open", QString("Errors occurred when applying Itast.brsar.bsdiff patch to file %1:\n%2").arg(openFile, errors));
+        QMessageBox::critical(this, tr("Open"), QString(tr("Errors occurred when applying Itast.brsar.bsdiff patch to file %1:\n%2")).arg(openFile, errors));
     }
 
-    QMessageBox::information(this, "Save", QString("Saved to %1").arg(saveFile));
+    QMessageBox::information(this, tr("Save"), QString(tr("Saved to %1")).arg(saveFile));
 }
 
 void MainWindow::openDir() {
     QSettings settings;
-    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/game");
-    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/import");
+    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create(ImportExportUtils::createTempDir("game"));
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create(ImportExportUtils::createTempDir("import"));
     if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
-        QMessageBox::critical(this, "Open Game Directory", "The temporary directory used for copying the game directory could not be created");
+        QMessageBox::critical(this, tr("Open Game Directory"), tr("The temporary directory used for copying the game directory could not be created"));
         return;
     }
-    QString dirname = QFileDialog::getExistingDirectory(this, "Open Fortune Street Directory", nullptr);
+    QString dirname = QFileDialog::getExistingDirectory(this, tr("Open Fortune Street Directory"), nullptr);
     if (dirname.isEmpty()) {
         return;
     }
@@ -245,8 +282,8 @@ void MainWindow::openDir() {
         return error;
     });
     if (!ImportExportUtils::isMainDolVanilla(QDir(dirname))) {
-        auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
-                             "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
+        auto btn = QMessageBox::warning(this, tr("Non-vanilla main.dol detected"),
+                                        tr("CSMM has detected a non-vanilla main.dol. Modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?"),
                              QMessageBox::Yes | QMessageBox::No);
         if (btn != QMessageBox::Yes) {
             return;
@@ -254,7 +291,7 @@ void MainWindow::openDir() {
     }
 
     try {
-        CSMMProgressDialog progress("Importing folder", QString(), 0, 2, nullptr, Qt::WindowFlags(), true);
+        CSMMProgressDialog progress(tr("Importing folder"), QString(), 0, 2, nullptr, Qt::WindowFlags(), true);
         progress.setWindowModality(Qt::WindowModal);
         progress.setValue(0);
 
@@ -265,7 +302,7 @@ void MainWindow::openDir() {
         auto errorCode = await(copyTask);
         progress.setValue(2);
         if (errorCode) {
-            QMessageBox::critical(this, "Error loading game", QString::fromStdString("Error copying files to temporary working directory: " + errorCode.message()));
+            QMessageBox::critical(this, tr("Error loading game"), QString(tr("Error copying files to temporary working directory: %1")).arg(QString::fromStdString(errorCode.message())));
             return;
         }
         loadDescriptors(gameInstance.mapDescriptors());
@@ -275,24 +312,24 @@ void MainWindow::openDir() {
     } catch (const ProgressCanceled &) {
         // nothing to do
     } catch (const std::runtime_error &e) {
-        QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+        QMessageBox::critical(this, tr("Error loading game"), QString(tr("Error loading game: %1")).arg(e.what()));
         PyErr_Clear();
     }
 }
 
 void MainWindow::openIsoWbfs() {
     QSettings settings;
-    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/game");
-    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create(settings.value("temporaryDirectory","").toString() + "/import");
+    auto newTempGameDir = QSharedPointer<QTemporaryDir>::create(ImportExportUtils::createTempDir("game"));
+    auto newTempImportDir = QSharedPointer<QTemporaryDir>::create(ImportExportUtils::createTempDir("import"));
     if (!newTempGameDir->isValid() || !newTempImportDir->isValid()) {
-        QMessageBox::critical(this, "Import WBFS/ISO", "The temporary directory used for importing disc images could not be created");
+        QMessageBox::critical(this, tr("Import WBFS/ISO"), tr("The temporary directory used for importing disc images could not be created"));
         return;
     }
-    QString isoWbfs = QFileDialog::getOpenFileName(this, "Import WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
+    QString isoWbfs = QFileDialog::getOpenFileName(this, tr("Import WBFS/ISO"), QString(), tr("Fortune Street disc files (*.wbfs *.iso *.ciso)"), nullptr);
     if (isoWbfs.isEmpty()) return;
 
     try {
-        CSMMProgressDialog progress("Importing WBFS/ISO…", QString(), 0, 2, nullptr, Qt::WindowFlags(), true);
+        CSMMProgressDialog progress(tr("Importing WBFS/ISO…"), QString(), 0, 2, nullptr, Qt::WindowFlags(), true);
         progress.setWindowModality(Qt::WindowModal);
         progress.setValue(0);
 
@@ -301,8 +338,8 @@ void MainWindow::openIsoWbfs() {
         progress.setValue(1);
 
         if (!ImportExportUtils::isMainDolVanilla(newTempGameDir->path())) {
-            auto btn = QMessageBox::warning(this, "Non-vanilla main.dol detected",
-                                 "CSMM has detected a non-vanilla main.dol; modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?",
+            auto btn = QMessageBox::warning(this, tr("Non-vanilla main.dol detected"),
+                                            tr("CSMM has detected a non-vanilla main.dol. Modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?"),
                                  QMessageBox::Yes | QMessageBox::No);
             if (btn != QMessageBox::Yes) {
                 return;
@@ -322,7 +359,7 @@ void MainWindow::openIsoWbfs() {
     } catch (const ProgressCanceled &) {
         // nothing to do
     } catch (const std::runtime_error &e) {
-        QMessageBox::critical(this, "Error loading game", QString("Error loading game: %1").arg(e.what()));
+        QMessageBox::critical(this, tr("Error loading game"), QString(tr("Error loading game: %1")).arg(e.what()));
         PyErr_Clear();
     }
 }
@@ -344,20 +381,20 @@ void MainWindow::loadDescriptors(const std::vector<MapDescriptor> &descriptors) 
 }
 
 void MainWindow::exportToFolder(bool riivolution) {
-    auto saveDir = QFileDialog::getExistingDirectory(this, "Save to Fortune Street Directory", nullptr);
+    auto saveDir = QFileDialog::getExistingDirectory(this, tr("Save to Fortune Street Directory"), nullptr);
     if (saveDir.isEmpty()) return;
     if (!QDir(saveDir).isEmpty()) {
-        QMessageBox::critical(this, "Save", "Directory is non-empty");
+        QMessageBox::critical(this, tr("Save"), tr("Directory is not empty."));
         return;
     }
     // check if enough temporary disk space is available
     QSettings settings;
-    QTemporaryDir tmp(settings.value("temporaryDirectory","").toString() + "/tmp");
+    QTemporaryDir tmp(ImportExportUtils::createTempDir("tmp"));
     QStorageInfo storageInfo(tmp.path());
     int availableMb = storageInfo.bytesAvailable()/1024/1024;
     if(availableMb < 10000) {
-        if (QMessageBox::question(this, "Save",
-                              QString("%1 is configured to be your temporary directory, but the disk has less than 10GB of space available.\n\nIf you run out of disk space during the export operation, CSMM may crash. Would you like to proceed?").arg(storageInfo.displayName()),
+        if (QMessageBox::question(this, tr("Save"),
+                                  QString(tr("%1 is configured to be your temporary directory, but the disk has less than 10GB of space available.\n\nIf you run out of disk space during the export operation, CSMM may crash. Would you like to proceed?")).arg(storageInfo.displayName()),
                               QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
             return;
     }
@@ -367,21 +404,21 @@ void MainWindow::exportToFolder(bool riivolution) {
     if (riivolution) {
         bool riivolutionNameChosen;
         riivolutionName = QInputDialog::getText(this,
-                                                "Enter Riivolution Patch Name",
-                                                "Enter Riivolution Patch Name:",
+                                                tr("Enter Riivolution Patch Name"),
+                                                tr("Enter Riivolution Patch Name:"),
                                                 QLineEdit::Normal,
                                                 "csmm", &riivolutionNameChosen);
         if (!riivolutionNameChosen) {
             return;
         }
         if (!Riivolution::validateRiivolutionName(riivolutionName)) {
-            QMessageBox::critical(this, "Save", "Riivolution patch name is invalid");
+            QMessageBox::critical(this, tr("Save"), tr("Riivolution patch name is invalid"));
             return;
         }
     }
 
     if (!riivolution && !ui->tableWidget->dirty) {
-        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches? ") == QMessageBox::Yes) {
+        if (QMessageBox::question(this, tr("Clean Export"), tr("It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?")) == QMessageBox::Yes) {
             CSMMProgressDialog progress("Saving…", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
             try {
                 progress.setWindowModality(Qt::WindowModal);
@@ -392,10 +429,10 @@ void MainWindow::exportToFolder(bool riivolution) {
                 std::filesystem::copy(windowFilePath().toStdU16String(), saveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
                 if (error) {
                     progress.close();
-                    QMessageBox::critical(this, "Save", QString("Could not copy game data: %1").arg(error.message().c_str()));
+                    QMessageBox::critical(this, tr("Save"), QString(tr("Could not copy game data: %1")).arg(error.message().c_str()));
                 } else {
                     progress.setValue(100);
-                    QMessageBox::information(this, "Save", "Saved successfuly.");
+                    QMessageBox::information(this, tr("Save"), tr("Saved successfuly."));
                 }
             } catch (const ProgressCanceled &) { return; }
             return;
@@ -403,7 +440,7 @@ void MainWindow::exportToFolder(bool riivolution) {
     }
 
     if (std::find_if(modList.begin(), modList.end(), [](const CSMMModHolder &mod) {return mod->modId() == "wifiFix";}) != modList.end()) {
-        ui->statusbar->showMessage("Warning: Wiimmfi patching is not supported when exporting to a folder.");
+        ui->statusbar->showMessage(tr("Warning: Wiimmfi patching is not supported when exporting to a folder."));
     }
 
 
@@ -411,12 +448,12 @@ void MainWindow::exportToFolder(bool riivolution) {
     auto wiiSaveDir = saveDir;
     if (riivolution) {
         if (!QDir(saveDir).mkdir(riivolutionName)) {
-            QMessageBox::critical(this, "Export", "Export failed: Could not create riivolution directory");
+            QMessageBox::critical(this, tr("Export"), tr("Export failed: Could not create riivolution directory"));
         }
         wiiSaveDir = QDir(saveDir).filePath(riivolutionName);
     }
 
-    CSMMProgressDialog progress("Saving…", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
+    CSMMProgressDialog progress(tr("Saving…"), QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
     progress.setWindowModality(Qt::WindowModal);
     try {
         progress.setValue(0);
@@ -425,7 +462,7 @@ void MainWindow::exportToFolder(bool riivolution) {
         std::filesystem::copy(windowFilePath().toStdU16String(), wiiSaveDir.toStdU16String(), std::filesystem::copy_options::recursive, error);
 
         if (error) {
-            QMessageBox::critical(this, "Save", QString("Could not copy game data to temporary directory for modifying:\n%1").arg(error.message().c_str()));
+            QMessageBox::critical(this, tr("Save"), QString(tr("Could not copy game data to temporary directory for modifying:\n%1")).arg(error.message().c_str()));
             return;
         }
 
@@ -443,12 +480,12 @@ void MainWindow::exportToFolder(bool riivolution) {
 
         if (riivolution) {
             progress.setValue(90);
-            qInfo() << "Patching Riivolution…";
+            qInfo() << tr("Patching Riivolution…");
             Riivolution::write(windowFilePath(), saveDir, gameInstance.addressMapper(),
                                riivolutionName);
         }
 
-        qInfo() << "Cleaning up...";
+        qInfo() << tr("Cleaning up...");
         if(importDir->isValid()){
             importDir->remove();
         }
@@ -464,7 +501,7 @@ void MainWindow::exportToFolder(bool riivolution) {
         }
 
         progress.setValue(100);
-        QMessageBox::information(this, "Save", "Saved successfully.");
+        QMessageBox::information(this, tr("Save"), tr("Saved successfully."));
 
         // reload map descriptors
         int idx = 0;
@@ -474,34 +511,34 @@ void MainWindow::exportToFolder(bool riivolution) {
     } catch (const ProgressCanceled &) {
         return;
     } catch (const std::runtime_error &exception) {
-        QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
+        QMessageBox::critical(this, tr("Export"), QString(tr("Export failed: %1")).arg(exception.what()));
         PyErr_Clear();
     }
 }
 
 void MainWindow::exportIsoWbfs() {
-    auto saveFile = QFileDialog::getSaveFileName(this, "Export WBFS/ISO", QString(), "Fortune Street disc files (*.wbfs *.iso *.ciso)", nullptr);
+    auto saveFile = QFileDialog::getSaveFileName(this, tr("Export WBFS/ISO"), QString(), tr("Fortune Street disc files (*.wbfs *.iso *.ciso)"), nullptr);
     if (saveFile.isEmpty()) return;
     QSettings settings;
-    QTemporaryDir intermediateResults(settings.value("temporaryDirectory","").toString() + "/intermediate");
+    QTemporaryDir intermediateResults(ImportExportUtils::createTempDir("intermediate"));
     if (!intermediateResults.isValid()) {
-        QMessageBox::critical(this, "Export WBFS/ISO", "Could not create a temporary directory for patching");
+        QMessageBox::critical(this, tr("Export WBFS/ISO"), tr("Could not create a temporary directory in the specified location. Please make sure the disk is mounted."));
         return;
     }
 
     // check if enough temporary disk space is available
-    QTemporaryDir tmp(settings.value("temporaryDirectory","").toString() + "/tmp");
+    QTemporaryDir tmp(ImportExportUtils::createTempDir("tmp"));
     QStorageInfo storageInfo(tmp.path());
     int availableMb = storageInfo.bytesAvailable()/1024/1024;
     if(availableMb < 10000) {
-        if (QMessageBox::question(this, "Save",
-                              QString("%1 is configured to be your temporary directory, but the disk has less than 10GB of space available.\n\nIf you run out of disk space during the export operation, CSMM may crash. Would you like to proceed?").arg(storageInfo.displayName()),
+        if (QMessageBox::question(this, tr("Save"),
+                                  QString(tr("%1 is configured to be your temporary directory, but the disk has less than 10GB of space available.\n\nIf you run out of disk space during the export operation, CSMM may crash. Would you like to proceed?").arg(storageInfo.displayName())),
                               QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Cancel)
             return;
     }
 
     if (!ui->tableWidget->dirty) {
-        if (QMessageBox::question(this, "Clean Export", "It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?") == QMessageBox::Yes) {
+        if (QMessageBox::question(this, tr("Clean Export"), tr("It seems you haven't made any changes.\nDo you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?")) == QMessageBox::Yes) {
             CSMMProgressDialog progress("Saving…", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
             progress.setWindowModality(Qt::WindowModal);
 
@@ -512,16 +549,16 @@ void MainWindow::exportIsoWbfs() {
             } catch (const ProgressCanceled &) {
                 return;
             } catch (const std::runtime_error &e) {
-                QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(e.what()));
+                QMessageBox::critical(this, tr("Export"), QString(tr("Export failed: %1")).arg(e.what()));
             }
 
-            QMessageBox::information(this, "Export", "Exported successfully.");
+            QMessageBox::information(this, tr("Export"), tr("Exported successfully."));
             return;
         }
     }
 
     std::vector<MapDescriptor> descriptors;
-    CSMMProgressDialog progress("Exporting to image…", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
+    CSMMProgressDialog progress(tr("Exporting to image…"), QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
     progress.setWindowModality(Qt::WindowModal);
 
     try {
@@ -531,7 +568,7 @@ void MainWindow::exportIsoWbfs() {
         std::error_code error;
         std::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
         if (error) {
-            QMessageBox::critical(this, "Export", QString("Could not copy to intermediate directory: %1").arg(error.message().c_str()));
+            QMessageBox::critical(this, tr("Export"), QString(tr("Could not copy to intermediate directory: %1")).arg(error.message().c_str()));
         }
 
         progress.setValue(20);
@@ -546,17 +583,17 @@ void MainWindow::exportIsoWbfs() {
         descriptors = gameInstance.mapDescriptors();
 
         progress.setValue(80);
-        qInfo() << "Writing game image...";
+        qInfo() << tr("Writing game image...");
         await(ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode(), getSeparateSaveGame()));
 
         progress.setValue(90);
         if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != modList.end()) {
-            qInfo() << "Patching Wiimmfi...";
+            qInfo() << tr("Patching Wiimmfi...");
             await(ExeWrapper::patchWiimmfi(saveFile));
         }
 
         progress.setValue(100);
-        QMessageBox::information(this, "Export", "Exported successfully.");
+        QMessageBox::information(this, tr("Export"), tr("Exported successfully."));
 
         // reload map descriptors
         int idx = 0;
@@ -566,7 +603,7 @@ void MainWindow::exportIsoWbfs() {
     } catch (const ProgressCanceled &) {
         return;
     } catch (const std::runtime_error &exception) {
-        QMessageBox::critical(this, "Export", QString("Export failed: %1").arg(exception.what()));
+        QMessageBox::critical(this, tr("Export"), QString(tr("Export failed: %1")).arg(exception.what()));
         PyErr_Clear();
     }
 }
@@ -597,7 +634,7 @@ void MainWindow::validateMaps() {
     }
 
     if (errorMsgs.isEmpty()) {
-        QMessageBox::information(this, "Validation", "Validation passed.");
+        QMessageBox::information(this, tr("Validation"), tr("Validation passed."));
     } else {
         ValidationErrorDialog errorDialog(errorMsgs);
         errorDialog.exec();

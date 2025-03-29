@@ -1,5 +1,6 @@
 #include "riivolution.h"
 #include "lib/datafileset.h"
+#include "qcoreapplication.h"
 
 #include <QXmlStreamWriter>
 #include <QDirIterator>
@@ -21,10 +22,10 @@ static bool fileContentsEqual(const QString &filePath0, const QString &filePath1
     }
     QFile file0(filePath0), file1(filePath1);
     if (!file0.open(QFile::ReadOnly)) {
-        throw Exception("could not open " + filePath0 + " for inspection");
+        throw Exception(QObject::tr( "could not open %1 for inspection").arg(filePath0));
     }
     if (!file1.open(QFile::ReadOnly)) {
-        throw Exception("could not open " + filePath1 + " for inspection");
+        throw Exception(QObject::tr( "could not open %1 for inspection").arg(filePath1));
     }
     char buffer0[4096], buffer1[4096];
     while (!file0.atEnd() && !file1.atEnd()) {
@@ -52,12 +53,12 @@ void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &a
     }
 
     if (!fullPatchDir.mkdir("riivolution")) {
-        throw Exception("could not create riivolution dir in " + fullPatchDir.path());
+        throw Exception(QString(QObject::tr( "could not create riivolution dir in %1")).arg(fullPatchDir.path()));
     }
 
     QFile riivolutionFile(fullPatchDir.filePath("riivolution/" + riivolutionName +".xml"));
     if (!riivolutionFile.open(QFile::WriteOnly)) {
-        throw Exception("could not create riivolution.xml for writing");
+        throw Exception(QString(QObject::tr( "could not create riivolution.xml for writing")));
     }
     QXmlStreamWriter xmlWriter(&riivolutionFile);
 
@@ -103,10 +104,10 @@ void write(const QDir &vanilla, const QDir &fullPatchDir, const AddressMapper &a
         QFile vanillaMainDol(vanilla.filePath(MAIN_DOL)),
                 patchedMainDol(fullPatchDir.filePath(riivolutionName + "/" + MAIN_DOL));
         if (!vanillaMainDol.open(QFile::ReadOnly)) {
-            throw Exception("couldn't open vanilla main dol for reading");
+            throw Exception(QString(QObject::tr( "couldn't open vanilla main dol for reading")));
         }
         if (!patchedMainDol.open(QFile::ReadOnly)) {
-            throw Exception("couldn't open patched main dol for reading");
+            throw Exception(QString(QObject::tr( "couldn't open patched main dol for reading")));
         }
         QVector<QPair<quint32, QByteArray>> memoryValues;
         char vanillaOp, patchedOp;

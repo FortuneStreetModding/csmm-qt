@@ -269,13 +269,15 @@ void save(const QString &fileName, const std::vector<MapDescriptor> &descriptors
 {
     QSaveFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        throw std::runtime_error("Could not open file for saving");
+        auto t = QObject::tr("Could not open file for saving");
+        throw std::runtime_error(t.toStdString());
     }
     ConfigFile config = parse(descriptors, fileName);
     QTextStream out(&file);
     out << config.toYaml();
     if (!file.commit()) {
-        throw std::runtime_error("There was an error writing the file");
+        auto t = QObject::tr("There was an error writing the file");
+        throw std::runtime_error(t.toStdString());
     }
 }
 
@@ -292,7 +294,8 @@ void import(const QString &fileName, const std::optional<QFileInfo>& mapDescript
         auto entry_to_modify = std::find_if(config.entries.begin(), config.entries.end(),
                      [&](const auto &entry) { return entry.mapId == mapId.value(); });
         if (entry_to_modify == config.entries.end()) {
-            throw std::runtime_error("Error: Could not write to file");
+            auto t = QObject::tr("Error: Could not write to file");
+            throw std::runtime_error(t.toStdString());
         }
         if(mapSet.has_value())
             entry_to_modify->mapSet = mapSet.value();
@@ -332,7 +335,8 @@ void import(const QString &fileName, const std::optional<QFileInfo>& mapDescript
 
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        throw std::runtime_error("Error: Could not write to file"); // TODO throw a subclass of QException
+        auto t = QObject::tr("Error: Could not write to file");
+        throw std::runtime_error(t.toStdString()); // TODO throw a subclass of QException
     }
     QTextStream out(&file);
     out << config.toYaml();
@@ -359,9 +363,10 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
              it != configFile.backgroundPaths.end();
              ++it) {
 
-            qInfo() << "Downloading background:" << it.key();
+            qInfo() << QObject::tr("Downloading background: %1").arg(it.key()).toUtf8().constData();
+
             for (auto &url: it.value()) {
-                auto dest = dir.filePath(it.key() + ".background.zip");
+                auto dest = dir.filePath("%1.background.zip").arg(it.key());
                 try {
                     CSMMNetworkManager::downloadFileIfUrl(url, dest, [&](double progress) {
                         progressCallback((progress + i) / configFile.backgroundPaths.size() * 0.5);
@@ -370,7 +375,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
                 } catch (const ProgressCanceled &e) {
                     throw e;
                 } catch (const std::runtime_error &e) {
-                    qWarning() << "warning:" << e.what();
+                    qWarning() << QObject::tr("warning:") << e.what();
                     continue; // try next url
                 }
             }
@@ -386,14 +391,14 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
         if(!entry.mapDescriptorRelativePath.isEmpty()) {
             auto descPath = dir.filePath(entry.mapDescriptorRelativePath);
             if (!entry.mapDescriptorUrls.empty()) {
-                qInfo() << "Downloading board:" << entry.name;
+                qInfo() << QObject::tr("Downloading board: %1").arg(entry.name).toUtf8().constData();
                 for (auto &url: entry.mapDescriptorUrls) {
                     try {
                         CSMMNetworkManager::downloadFileIfUrl(url, descPath);
                     } catch (const ProgressCanceled &e) {
                         throw e;
                     } catch (const std::runtime_error &e) {
-                        qWarning() << "warning:" << e.what();
+                        qWarning() << QObject::tr("warning:") << e.what();
                         // download failed, try next url
                         continue;
                     }

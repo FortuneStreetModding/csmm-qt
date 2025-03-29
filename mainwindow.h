@@ -36,13 +36,16 @@ private:
     void exportToFolder(bool riivolution);
     void exportIsoWbfs();
     void loadDescriptors(const std::vector<MapDescriptor> &descriptors);
-    void validateMaps();
+    void loadMapList();
     void saveCleanItastCsmmBrsar();
     void saveMapList();
-    void loadMapList();
     void updateModListWidget();
+    void validateMaps();
 
     QString getMarkerCode();
     bool getSeparateSaveGame();
+
+protected:
+    void changeEvent(QEvent *event) override;
 };
 #endif // MAINWINDOW_H

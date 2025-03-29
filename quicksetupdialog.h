@@ -27,6 +27,8 @@ private:
     void updateButtonBoxEnabled();
 private Q_SLOTS:
     void accept() override;
+protected:
+    void changeEvent(QEvent *event) override;
 };
 
 #endif // QUICKSETUPDIALOG_H
