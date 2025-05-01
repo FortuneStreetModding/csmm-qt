@@ -40,7 +40,7 @@ QMap<QString, UiMessageInterface::SaveMessagesFunction> WifiFix::saveUiMessages(
                     it->second.replace(REG_WIFI_SU, "Wiimmfi\\3\\1\\2");
                 }
                 if (locale == "jp") {
-                    it->second.replace("Ｗｉ－Ｆｉ", "Ｗｉｉｍｍｆｉ", Qt::CaseInsensitive);
+                    it->second.replace("Ｗｉ－Ｆｉ", "Wiimmfi", Qt::CaseInsensitive);
                 }
                 it->second.replace(REG_WIFI, "Wiimmfi");
                 it->second.replace("support.nintendo.com", "https://wiimmfi.de/error", Qt::CaseInsensitive);
