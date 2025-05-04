@@ -21,7 +21,6 @@ public:
     QLocale getLocaleFromLanguageName(QString language);
 
     bool applyProgramLanguage(const QString string);
-    bool applyPreferredGameTerritory(const QString string);
     void initializeRegionSettings();
     void setProgramLanguage(const QString string);
     void setPreferredGameTerritory(const int index);

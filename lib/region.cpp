@@ -149,12 +149,6 @@ bool Region::applyProgramLanguage(QString string)
     return was_translation_successful;
 }
 
-bool Region::applyPreferredGameTerritory(QString string)
-{
-    // this is where we'll do things based on territory, e.g. for the MapDescriptor widget in the MainWindow.
-    return false;
-}
-
 void Region::initializeRegionSettings()
 {
     QSettings settings;
