@@ -28,7 +28,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 COMPONENTS Concurrent Core Gui Network Widgets LinguistTools REQUIRED)
-qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} languages/english.ts languages/italian.ts languages/japanese.ts)
+qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} languages/en_US.ts languages/it_IT.ts languages/ja_JP.ts)
 qt6_add_lupdate(csmm ${QM_FILES})
 
 set(LIB_SOURCES

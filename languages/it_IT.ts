@@ -1082,12 +1082,12 @@ Do you want to make a clean export without letting CSMM make any game code chang
         <translation type="vanished">Regno Unito</translation>
     </message>
     <message>
-        <location filename="../preferencesdialog.cpp" line="134"/>
+        <location filename="../preferencesdialog.cpp" line="141"/>
         <source>Set CSMM Network Cache Directory</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../preferencesdialog.cpp" line="141"/>
+        <location filename="../preferencesdialog.cpp" line="148"/>
         <source>Set CSMM Temporary Directory</source>
         <translation></translation>
     </message>
@@ -1711,46 +1711,46 @@ Would you like to proceed?</source>
 <context>
     <name>Region</name>
     <message>
-        <location filename="../lib/region.cpp" line="36"/>
-        <location filename="../lib/region.cpp" line="97"/>
+        <location filename="../lib/region.cpp" line="35"/>
+        <location filename="../lib/region.cpp" line="96"/>
         <source>France</source>
         <translation>Francia</translation>
     </message>
     <message>
-        <location filename="../lib/region.cpp" line="37"/>
-        <location filename="../lib/region.cpp" line="98"/>
+        <location filename="../lib/region.cpp" line="36"/>
+        <location filename="../lib/region.cpp" line="97"/>
         <source>Germany</source>
         <translation>Germania</translation>
     </message>
     <message>
-        <location filename="../lib/region.cpp" line="38"/>
-        <location filename="../lib/region.cpp" line="99"/>
+        <location filename="../lib/region.cpp" line="37"/>
+        <location filename="../lib/region.cpp" line="98"/>
         <source>Italy</source>
         <translation>Italia</translation>
     </message>
     <message>
-        <location filename="../lib/region.cpp" line="39"/>
-        <location filename="../lib/region.cpp" line="90"/>
-        <location filename="../lib/region.cpp" line="101"/>
-        <location filename="../lib/region.cpp" line="109"/>
+        <location filename="../lib/region.cpp" line="38"/>
+        <location filename="../lib/region.cpp" line="89"/>
+        <location filename="../lib/region.cpp" line="100"/>
+        <location filename="../lib/region.cpp" line="108"/>
         <source>North America</source>
         <translation>America del Nord</translation>
     </message>
     <message>
-        <location filename="../lib/region.cpp" line="40"/>
-        <location filename="../lib/region.cpp" line="100"/>
+        <location filename="../lib/region.cpp" line="39"/>
+        <location filename="../lib/region.cpp" line="99"/>
         <source>Japan</source>
         <translation>Giappone</translation>
     </message>
     <message>
-        <location filename="../lib/region.cpp" line="41"/>
-        <location filename="../lib/region.cpp" line="102"/>
+        <location filename="../lib/region.cpp" line="40"/>
+        <location filename="../lib/region.cpp" line="101"/>
         <source>Spain</source>
         <translation>Spagna</translation>
     </message>
     <message>
-        <location filename="../lib/region.cpp" line="42"/>
-        <location filename="../lib/region.cpp" line="103"/>
+        <location filename="../lib/region.cpp" line="41"/>
+        <location filename="../lib/region.cpp" line="102"/>
         <source>United Kingdom</source>
         <translation>Regno Unito</translation>
     </message>
