@@ -17,13 +17,12 @@ QStringList Region::availableProgramLanguages() const
 {
     QDir dir(":/languages");
     QStringList translationFileNames = dir.entryList(QStringList("*.qm"), QDir::Files, QDir::Name);
-    qInfo() << translationFileNames;
     QStringList languagesAvailable;
 
     // then add the others before returning the list
     for (QString &fileName : translationFileNames){
-        auto capitalizedFileName = fileName[0].toUpper() + fileName.mid(1);
-        languagesAvailable.append(capitalizedFileName.replace(".qm",""));
+        auto localeCode = QFileInfo(fileName).baseName();
+        languagesAvailable.append(localeCode);
     }
 
     return languagesAvailable;
@@ -58,7 +57,7 @@ QStringList Region::availableGameReleaseTerritories(bool translated) const
 QString Region::currentSystemLanguage() const
 {
     QLocale locale = QLocale();
-    return QLocale::languageToString(locale.language());
+    return locale.name();
 }
 
 QString Region::currentSystemTerritory() const
@@ -110,34 +109,12 @@ QString Region::getTerritoryFromGameCode(QString string)
     }
 }
 
-QLocale Region::getLocaleFromLanguageName(QString name)
-{
-    static const QHash<QString, QLocale::Language> languageMap = [] {
-        QHash<QString, QLocale::Language> map;
-        const QList<QLocale::Language> languages = {
-            QLocale::English,
-            QLocale::French,
-            QLocale::German,
-            QLocale::Japanese,
-            QLocale::Italian,
-            QLocale::Spanish,
-        };
-        for (QLocale::Language lang : languages) {
-            map.insert(QLocale::languageToString(lang), lang);
-        }
-        return map;
-    }();
-
-    QLocale::Language language = languageMap.value(name, QLocale::C);
-    return QLocale(language);
-}
-
 bool Region::applyProgramLanguage(QString string)
 {
     qApp->removeTranslator(&translator);
 
-    qInfo() << QString("Installing %1").arg(string.toLower());
-    bool was_translation_successful = translator.load(QString(":/languages/%1").arg(string.toLower()));
+    qInfo() << QString("Installing %1").arg(string);
+    bool was_translation_successful = translator.load(QString(":/languages/%1").arg(string));
 
     if(was_translation_successful){
         qApp->installTranslator(&translator);
@@ -155,15 +132,15 @@ void Region::initializeRegionSettings()
 
     if (!settings.contains("programLanguage")){
         // get the system language
-        auto systemLanguage = currentSystemLanguage();
-        auto languagesAvailable = availableProgramLanguages();
+        auto systemLanguageCode = currentSystemLanguage();
+        auto languageCodesAvailable = availableProgramLanguages();
 
-        if(languagesAvailable.contains(systemLanguage)){
-            setProgramLanguage(systemLanguage);
+        if(languageCodesAvailable.contains(systemLanguageCode)){
+            setProgramLanguage(systemLanguageCode);
         }
         else {
             // if we don't, set it to English and move on.
-            setProgramLanguage("English");
+            setProgramLanguage("en_US");
         }
         applyProgramLanguage(settings.value("programLanguage").toString());
     }

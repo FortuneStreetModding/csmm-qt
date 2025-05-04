@@ -18,7 +18,6 @@ public:
     QString getTerritoryFromGameCode(QString string);
 
     QString getFlagEmoji(const QString &countryCode);
-    QLocale getLocaleFromLanguageName(QString language);
 
     bool applyProgramLanguage(const QString string);
     void initializeRegionSettings();
