@@ -478,7 +478,7 @@ void PreferencesDialog::setPaletteLabel(){
     QString englishPaletteName = settings.value("window_palette/name", "not set").toString();
 
     // if language is not english, set the palette name in the appropriate language
-    if(localeCode == "en_us"){
+    if(localeCode == "en_US"){
         ui->windowPaletteLabel->setText(englishPaletteName);
     }
     else{

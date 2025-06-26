@@ -252,9 +252,9 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
             QMessageBox::critical(this, tr("Cannot save game"), tr("Cannot create temporary directory.").toUtf8().constData());
             return;
         }
-        CSMMProgressDialog dialog("Starting process...", QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
+        CSMMProgressDialog dialog(tr("Starting process..."), QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
         dialog.setWindowModality(Qt::ApplicationModal);
-        dialog.setWindowTitle("Creating Disc Image");
+        dialog.setWindowTitle(tr("Creating Disc Image"));
         // copy directory if folder, extract wbfs/iso if file
         if (QFileInfo(ui->inputGameLoc->text()).isDir()) {
             std::error_code error;
@@ -281,7 +281,7 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
             modpackZips.append(ui->additionalMods->item(i)->text());
         }
 
-        qInfo() << "Loading Modpacks: ";
+        qInfo() << tr("Loading Modpacks: ");
         for (const QString &str : modpackZips) {
             qInfo() << str;
         }

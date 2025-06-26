@@ -63,6 +63,69 @@
     </message>
   </context>
   <context>
+    <name>CSMMModpack</name>
+    <message>
+      <source>Duplicate mod %1 detected</source>
+      <translation>Rilevato mod duplicato %1</translation>
+    </message>
+    <message>
+      <source>Loading general interface for %1</source>
+      <translation>Caricamento dell'interfaccia generale per %1</translation>
+    </message>
+    <message>
+      <source>Loading UI messages for %1</source>
+      <translation>Caricamento dei messaggi dell'interfaccia utente per %1</translation>
+    </message>
+    <message>
+      <source>Extracting arc file %1</source>
+      <translation>Estrazione del file arc %1</translation>
+    </message>
+    <message>
+      <source>Extracting brres file %1</source>
+      <translation>Estrazione del file brres %1</translation>
+    </message>
+    <message>
+      <source>Saving mod %1</source>
+      <translation>Salvataggio mod %1</translation>
+    </message>
+    <message>
+      <source>Allocating ui messages for %1</source>
+      <translation>Assegnazione dei messaggi dell'interfaccia utente per %1</translation>
+    </message>
+    <message>
+      <source>Saving ui messages for %1</source>
+      <translation>Salvataggio dei messaggi dell'interfaccia utente per %1</translation>
+    </message>
+    <message>
+      <source>Processing general interface for %1</source>
+      <translation>Elaborazione dell'interfaccia generale per %1</translation>
+    </message>
+    <message>
+      <source>Saving arc files for %1</source>
+      <translation>Salvataggio dei file arc per %1</translation>
+    </message>
+    <message>
+      <source>Saving brres files for %1</source>
+      <translation>Salvataggio dei file brres per %1</translation>
+    </message>
+    <message>
+      <source>Could not open file %1</source>
+      <translation>Impossibile aprire il file %1</translation>
+    </message>
+    <message>
+      <source>Saving arc file %1</source>
+      <translation>Salvataggio del file arc %1</translation>
+    </message>
+    <message>
+      <source>Saving brres file %1</source>
+      <translation>Salvataggio del file brres %1</translation>
+    </message>
+    <message>
+      <source>Remaining free space: %1 %2 %3 %4</source>
+      <translation>Spazio libero rimanente: %1 %2 %3 %4</translation>
+    </message>
+  </context>
+  <context>
     <name>FreeSpaceManager</name>
     <message>
       <source>requested %1 bytes but not enough free space</source>
@@ -369,6 +432,10 @@
       <translation>Importazione della cartella</translation>
     </message>
     <message>
+      <source>CSMM has detected a non-vanilla main.dol. Modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?</source>
+      <translation>CSMM ha rilevato un main.dol non-vanilla; modificare un main.dol che è stato già modificato con CSMM non è pienamente supportato. Vuoi comunque procedere?</translation>
+    </message>
+    <message>
       <source>Error loading game</source>
       <translation>Errore durante il caricamento del gioco</translation>
     </message>
@@ -507,13 +574,6 @@ Do you want to make a clean export without letting CSMM make any game code chang
     <message>
       <source>Validation passed.</source>
       <translation>Validazione superata.</translation>
-    </message>
-  </context>
-  <context>
-    <name> modificare un main.dol che è stato già modificato con CSMM non è pienamente supportato. Vuoi comunque procedere?</name>
-    <message>
-      <source>CSMM has detected a non-vanilla main.dol. Modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?</source>
-      <translation>CSMM ha rilevato un main.dol non-vanilla</translation>
     </message>
   </context>
   <context>
@@ -1261,7 +1321,11 @@ Would you like to proceed?</source>
       <translation>È Salvataggio di Gioco separato: %1</translation>
     </message>
     <message>
-      <source>Writing modified game image…</source>
+      <source>Loading Modpacks: </source>
+      <translation>Caricamento Modpack:</translation>
+    </message>
+    <message>
+      <source>Writing modified game image...</source>
       <translation>Scrittura dell'immagine di gioco modificata...</translation>
     </message>
     <message>
@@ -1283,6 +1347,14 @@ Would you like to proceed?</source>
     <message>
       <source>The game was saved successfully. Would you like to exit?</source>
       <translation>Il gioco è stato salvato con successo. Ti piacerebbe uscire?</translation>
+    </message>
+    <message>
+      <source>Creating Disc Image</source>
+      <translation>Creazione di un'immagine disco</translation>
+    </message>
+    <message>
+      <source>Starting process...</source>
+      <translation>Processo di avvio...</translation>
     </message>
   </context>
   <context>
