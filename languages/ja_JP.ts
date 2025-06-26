@@ -63,37 +63,100 @@
     </message>
   </context>
   <context>
+    <name>CSMMModpack</name>
+    <message>
+      <source>Duplicate mod %1 detected</source>
+      <translation>重複した mod %1 が検出されました</translation>
+    </message>
+    <message>
+      <source>Loading general interface for %1</source>
+      <translation>%1 の一般インターフェースを読み込んでいます</translation>
+    </message>
+    <message>
+      <source>Loading UI messages for %1</source>
+      <translation>%1 の UI メッセージを読み込んでいます</translation>
+    </message>
+    <message>
+      <source>Extracting arc file %1</source>
+      <translation>arc ファイル %1 を抽出しています</translation>
+    </message>
+    <message>
+      <source>Extracting brres file %1</source>
+      <translation>brres ファイル %1 を抽出しています</translation>
+    </message>
+    <message>
+      <source>Saving mod %1</source>
+      <translation>mod %1 を保存しています</translation>
+    </message>
+    <message>
+      <source>Allocating ui messages for %1</source>
+      <translation>%1 の UI メッセージを割り当てています</translation>
+    </message>
+    <message>
+      <source>Saving ui messages for %1</source>
+      <translation>%1 の UI メッセージを保存しています</translation>
+    </message>
+    <message>
+      <source>Processing general interface for %1</source>
+      <translation>%1 の一般インターフェースを処理中</translation>
+    </message>
+    <message>
+      <source>Saving arc files for %1</source>
+      <translation>%1 の arc ファイルを保存しています</translation>
+    </message>
+    <message>
+      <source>Saving brres files for %1</source>
+      <translation>%1 の brres ファイルを保存しています</translation>
+    </message>
+    <message>
+      <source>Could not open file %1</source>
+      <translation>ファイル %1 を開けませんでした</translation>
+    </message>
+    <message>
+      <source>Saving arc file %1</source>
+      <translation>アークファイル %1 を保存しています</translation>
+    </message>
+    <message>
+      <source>Saving brres file %1</source>
+      <translation>brres ファイル %1 を保存しています</translation>
+    </message>
+    <message>
+      <source>Remaining free space: %1 %2 %3 %4</source>
+      <translation>残りの空き容量: %1 %2 %3 %4</translation>
+    </message>
+  </context>
+  <context>
     <name>FreeSpaceManager</name>
     <message>
       <source>requested %1 bytes but not enough free space</source>
-      <translation>％1 バイトを要求しましたが、十分な空きスペースがありません。</translation>
+      <translation>%1 バイトを要求しましたが、十分な空きスペースがありません。</translation>
     </message>
     <message>
       <source>no blocks found</source>
-      <translation>ブロックが見つかりません。</translation>
+      <translation>ブロックが見つかりません</translation>
     </message>
   </context>
   <context>
     <name>GameInstance</name>
     <message>
       <source>Boom Street detected</source>
-      <translation>Boom Streetが見つかりました。</translation>
+      <translation>Boom Streetが見つかりました</translation>
     </message>
     <message>
       <source>Fortune Street detected</source>
-      <translation>Fortune Streetが見つかりました。</translation>
+      <translation>Fortune Streetが見つかりました</translation>
     </message>
     <message>
       <source>Itadaki Street Wii detected</source>
-      <translation>いただきストリートWiiが見つかりました。</translation>
+      <translation>いただきストリートWiiが見つかりました</translation>
     </message>
     <message>
       <source>Could not determine the Fortune Street region in the main.dol file of %1. \n\n Is this a proper Fortune Street directory?</source>
-      <translation>main.dolファイルのいただきストリートの地域を％1で決定できませんでした。\n\n これは適切ないただきストリートのディレクトリですか？</translation>
+      <translation>main.dolファイルのいただきストリートの地域を%1で決定できませんでした。\n\n これは適切ないただきストリートのディレクトリですか？</translation>
     </message>
     <message>
       <source>Could not open the main.dol file: %1</source>
-      <translation>main.dolファイルを開くことができませんでした。: ％1</translation>
+      <translation>main.dolファイルを開くことができませんでした。: %1</translation>
     </message>
   </context>
   <context>
@@ -326,7 +389,7 @@
     </message>
     <message>
       <source>The provided file %1 is not a vanilla Itast.brsar</source>
-      <translation>選択したファイル ％1 は、バニラのItast.brsarではありません。</translation>
+      <translation>選択したファイル %1 は、バニラのItast.brsarではありません。</translation>
     </message>
     <message>
       <source>CSMM Fortune Street Binary Sound Archive (*.brsar)</source>
@@ -339,7 +402,7 @@
     <message>
       <source>Errors occurred when applying Itast.brsar.bsdiff patch to file %1:
 %2</source>
-      <translation>Itast.brsar.bsdiffパッチをファイル ％1 に適用すると、エラーが発生しました。:
+      <translation>Itast.brsar.bsdiffパッチをファイル %1 に適用すると、エラーが発生しました。:
 %2</translation>
     </message>
     <message>
@@ -380,7 +443,7 @@
     </message>
     <message>
       <source>Error copying files to temporary working directory: %1</source>
-      <translation>一時的な作業ディレクトリへのファイルのコピーでエラーが発生しました。: ％1</translation>
+      <translation>一時的な作業ディレクトリへのファイルのコピーでエラーが発生しました。: %1</translation>
     </message>
     <message>
       <source>Error loading game: %1</source>
@@ -841,7 +904,7 @@ CSMMにゲームコードの変更をさせず、オプションのパッチも�
     </message>
     <message>
       <source>Downloading background: %1</source>
-      <translation>背景をダウンロード中: ％1</translation>
+      <translation>背景をダウンロード中: %1</translation>
     </message>
     <message>
       <source>warning:</source>
@@ -849,7 +912,7 @@ CSMMにゲームコードの変更をさせず、オプションのパッチも�
     </message>
     <message>
       <source>Downloading board: %1</source>
-      <translation>マップをダウンロード中: ％1</translation>
+      <translation>マップをダウンロード中: %1</translation>
     </message>
     <message>
       <source>The file %1 is not a vanilla file</source>
@@ -897,7 +960,7 @@ CSMMにゲームコードの変更をさせず、オプションのパッチも�
     </message>
     <message>
       <source>Downloading music: %1.music.zip</source>
-      <translation>音楽をダウンロード中: ％1.music.zip</translation>
+      <translation>音楽をダウンロード中: %1.music.zip</translation>
     </message>
     <message>
       <source>%1 has no brstm files.
@@ -1193,17 +1256,19 @@ The following .brstm files are still missing:
     </message>
     <message>
       <source>Cannot select Fortune Street directory for saving</source>
-      <translation>保存するいただきストリートのディレクトリを選択できません。</translation>
+      <translation>保存するいただきストリートのディレクトリを選択できません</translation>
     </message>
     <message>
       <source>Directory is not empty</source>
-      <translation>空のディレクトリです。</translation>
+      <translation>空のディレクトリです</translation>
     </message>
     <message>
       <source>There may not be enough space remaining on %1 to function as a network cache directory. It is recommended that your network cache drive has at least 10GB of free space before continuing. It currently has %2MB remaining.
 
 Would you like to proceed?</source>
-      <translation>%1 にはキャッシュディレクトリとして機能するのに十分な空き容量が残っていない可能性があります。そのため、続行する前に少なくとも 10GB の空き容量があることをおすすめします。現在、空き容量は %2MB です。</translation>
+      <translation>%1 にはキャッシュディレクトリとして機能するのに十分な空き容量が残っていない可能性があります。そのため、続行する前に少なくとも 10GB の空き容量があることをおすすめします。現在、空き容量は %2MB です。
+
+続行しますか?</translation>
     </message>
     <message>
       <source>There may not be enough space remaining on %1 to store the new disc image.
@@ -1211,13 +1276,17 @@ Would you like to proceed?</source>
 It is recommended that the drive you're saving the Wii disc image to has at least 5GB of free space available. However, the drive currently has %2MB remaining.
 
 Would you like to proceed?</source>
-      <translation>%1 には新しいディスクイメージを保存するのに十分な空き容量が残っていない可能性があります。Wiiのディスクイメージは通常、約5GB なので、続行するには少なくともそれ以上の空き容量があることをおすすめします。現在、ドライブの空き容量は %2MB です。</translation>
+      <translation>%1 には新しいディスクイメージを保存するのに十分な空き容量が残っていない可能性があります。Wiiのディスクイメージは通常、約5GB なので、続行するには少なくともそれ以上の空き容量があることをおすすめします。現在、ドライブの空き容量は %2MB です。
+
+続行しますか?</translation>
     </message>
     <message>
       <source>%1 is configured as both a cache location as well as the export location for this disc image. As such, it is recommended that your drive has at least 15GB of available disk space before continuing. It currently has %2MB remaining.
 
 Would you like to proceed?</source>
-      <translation>%1 は、このディスクイメージのエクスポート先としてだけでなく、キャッシュ先としても設定されています。このため、続行する前にドライブに少なくとも 20GB の使用可能なディスク領域があることをおすすめします。現在、空き容量は %2MB です。</translation>
+      <translation>%1 は、このディスクイメージのエクスポート先としてだけでなく、キャッシュ先としても設定されています。このため、続行する前にドライブに少なくとも 20GB の使用可能なディスク領域があることをおすすめします。現在、空き容量は %2MB です。
+
+続行しますか?</translation>
     </message>
     <message>
       <source>%1 is configured as both a network cache location as well as the temporary directory location. As such, it is recommended that the drive has at least 15GB of available disk space before continuing. It currently has %2MB remaining.
@@ -1272,28 +1341,40 @@ Would you like to proceed?</source>
       <translation>個別のゲームの保存: %1</translation>
     </message>
     <message>
-      <source>Writing modified game image…</source>
-      <translation>変更されたゲームイメージを書き込んでいます。</translation>
+      <source>Loading Modpacks: </source>
+      <translation>Modpacksの読み込み:</translation>
+    </message>
+    <message>
+      <source>Writing modified game image...</source>
+      <translation>変更されたゲームイメージを書き込んでいます...</translation>
     </message>
     <message>
       <source>Patching Wiimmfi...</source>
-      <translation>Wiimmfiをパッチングしています。</translation>
+      <translation>Wiimmfiをパッチングしています...</translation>
     </message>
     <message>
       <source>Patching Riivolution...</source>
-      <translation>Riivolutionをパッチングしています。</translation>
+      <translation>Riivolutionをパッチングしています...</translation>
     </message>
     <message>
       <source>Cleaning up...</source>
-      <translation>クリーニング中</translation>
+      <translation>クリーニング中...</translation>
     </message>
     <message>
       <source>Success!</source>
-      <translation>成功しました。</translation>
+      <translation>成功しました!</translation>
     </message>
     <message>
       <source>The game was saved successfully. Would you like to exit?</source>
       <translation>ゲームは正常に保存されました。終了しますか？</translation>
+    </message>
+    <message>
+      <source>Creating Disc Image</source>
+      <translation>ディスクイメージの作成</translation>
+    </message>
+    <message>
+      <source>Starting process...</source>
+      <translation>プロセスを開始しています...</translation>
     </message>
   </context>
   <context>

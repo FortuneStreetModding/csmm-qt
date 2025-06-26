@@ -1,1352 +1,1412 @@
 <?xml version="1.0" ?>
 <TS version="2.1" language="en_US">
   <context>
-    <name>AutoAssignShopModelsDialog</name>
+    <name>AdditionalModsDialog</name>
     <message>
-      <source>Allow readjusting shop values</source>
-      <translation>Allow readjusting shop values</translation>
+      <source>Additional Mods Dialog</source>
+      <translation/>
     </message>
     <message>
-      <source>Max Shop Model Id:</source>
-      <translation>Max Shop Model Id:</translation>
+      <source>You can add any modpacks you'd like to use in this window. However, please note that mapLists will not be added; the only boards that will be added to your game are the ones you specify in the grid on the main window.</source>
+      <translation/>
     </message>
     <message>
-      <source>Assign shop model according to</source>
-      <translation>Assign shop model according to</translation>
+      <source>Add modpack(s):</source>
+      <translation/>
     </message>
     <message>
-      <source>Closest Value</source>
-      <translation>Closest Value</translation>
+      <source>\+</source>
+      <translation/>
     </message>
     <message>
-      <source>Randomized</source>
-      <translation>Randomized</translation>
+      <source>\-</source>
+      <translation/>
     </message>
     <message>
-      <source>Allow readjusting shop prices</source>
-      <translation>Allow readjusting shop prices</translation>
+      <source>Import additional modpack(s)</source>
+      <translation/>
     </message>
     <message>
-      <source>Prevent duplicates</source>
-      <translation>Prevent duplicates</translation>
+      <source>Modpack zip file (*.zip)</source>
+      <translation/>
     </message>
     <message>
-      <source>Allow non-vanilla shop models</source>
-      <translation>Allow non-vanilla shop models</translation>
+      <source>Add Modpacks</source>
+      <translation/>
+    </message>
+  </context>
+  <context>
+    <name>ChooseMode</name>
+    <message>
+      <source>Choose Mode</source>
+      <translation/>
     </message>
     <message>
-      <source>Modify only unset shop models</source>
-      <translation>Modify only unset shop models</translation>
+      <source>Advanced Mode: Gives you full control over how maps are added, which patches are applied, etc.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Quick Setup Mode</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Advanced Mode</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Quick Setup Mode: Quickly patch a Fortune Street ISO with a modpack of your choice.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Set choice as default and don’t ask me again (can still be changed in the Preferences window)</source>
+      <translation/>
+    </message>
+  </context>
+  <context>
+    <name>CSMMModpack</name>
+    <message>
+      <source>Duplicate mod %1 detected</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Loading general interface for %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Loading UI messages for %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Extracting arc file %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Extracting brres file %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Saving mod %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Allocating ui messages for %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Saving ui messages for %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Processing general interface for %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Saving arc files for %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Saving brres files for %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not open file %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Saving arc file %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Saving brres file %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Remaining free space: %1 %2 %3 %4</source>
+      <translation/>
+    </message>
+  </context>
+  <context>
+    <name>FreeSpaceManager</name>
+    <message>
+      <source>requested %1 bytes but not enough free space</source>
+      <translation/>
+    </message>
+    <message>
+      <source>no blocks found</source>
+      <translation/>
+    </message>
+  </context>
+  <context>
+    <name>GameInstance</name>
+    <message>
+      <source>Boom Street detected</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Fortune Street detected</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Itadaki Street Wii detected</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not determine the Fortune Street region in the main.dol file of %1. \n\n Is this a proper Fortune Street directory?</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not open the main.dol file: %1</source>
+      <translation/>
     </message>
   </context>
   <context>
     <name>MainWindow</name>
     <message>
-      <source>Fortune Avenue</source>
-      <translation>Fortune Avenue</translation>
+      <source>CSMM</source>
+      <translation/>
     </message>
     <message>
-      <source>Toolbox</source>
-      <translation>Toolbox</translation>
+      <source>Add Map</source>
+      <translation/>
     </message>
     <message>
-      <source>Straight-Line Tolerance</source>
-      <translation>Straight-Line Tolerance</translation>
+      <source>Duplicate Map(s)</source>
+      <translation/>
     </message>
     <message>
-      <source>Autopath Range</source>
-      <translation>Autopath Range</translation>
+      <source>Remove Map(s)</source>
+      <translation/>
     </message>
     <message>
-      <source>Snap All</source>
-      <translation>Snap All</translation>
+      <source>Quick Setup</source>
+      <translation/>
     </message>
     <message>
-      <source>Snap To:</source>
-      <translation>Snap To:</translation>
-    </message>
-    <message>
-      <source>On ID Change:</source>
-      <translation>On ID Change:</translation>
-    </message>
-    <message>
-      <source>Swap IDs</source>
-      <translation>Swap IDs</translation>
-    </message>
-    <message>
-      <source>Remove Square(s)</source>
-      <translation>Remove Square(s)</translation>
-    </message>
-    <message>
-      <source>Backspace</source>
-      <translation>Backspace</translation>
-    </message>
-    <message>
-      <source>Add Square</source>
-      <translation>Add Square</translation>
-    </message>
-    <message>
-      <source>Ctrl+E</source>
-      <translation>Ctrl+E</translation>
-    </message>
-    <message>
-      <source>Shift IDs</source>
-      <translation>Shift IDs</translation>
-    </message>
-    <message>
-      <source>16</source>
-      <translation>16</translation>
-    </message>
-    <message>
-      <source>Board Settings</source>
-      <translation>Board Settings</translation>
-    </message>
-    <message>
-      <source>Max. Dice Roll</source>
-      <translation>Max. Dice Roll</translation>
-    </message>
-    <message>
-      <source>Salary Increment</source>
-      <translation>Salary Increment</translation>
-    </message>
-    <message>
-      <source>Vertical + Horizontal</source>
-      <translation>Vertical + Horizontal</translation>
-    </message>
-    <message>
-      <source>Initial Cash</source>
-      <translation>Initial Cash</translation>
-    </message>
-    <message>
-      <source>None</source>
-      <translation>None</translation>
-    </message>
-    <message>
-      <source>Base Salary</source>
-      <translation>Base Salary</translation>
-    </message>
-    <message>
-      <source>Looping Mode</source>
-      <translation>Looping Mode</translation>
-    </message>
-    <message>
-      <source>Vertical</source>
-      <translation>Vertical</translation>
-    </message>
-    <message>
-      <source>File Version</source>
-      <translation>File Version</translation>
-    </message>
-    <message>
-      <source>Info</source>
-      <translation>Info</translation>
-    </message>
-    <message>
-      <source>District ID</source>
-      <translation>District ID</translation>
-    </message>
-    <message>
-      <source>Position(x,y)</source>
-      <translation>Position(x,y)</translation>
-    </message>
-    <message>
-      <source>Yield</source>
-      <translation>Yield</translation>
-    </message>
-    <message>
-      <source>Type</source>
-      <translation>Type</translation>
-    </message>
-    <message>
-      <source>Load Shop Preset</source>
-      <translation>Load Shop Preset</translation>
-    </message>
-    <message>
-      <source>Lift/Magmalice Start: Yes for Yoshi-type lift, No for Magmalice lift</source>
-      <translation>Lift/Magmalice Start: Yes for Yoshi-type lift, No for Magmalice lift</translation>
-    </message>
-    <message>
-      <source>Is Yoshi-type Lift?</source>
-      <translation>Is Yoshi-type Lift?</translation>
-    </message>
-    <message>
-      <source>Shop Model</source>
-      <translation>Shop Model</translation>
-    </message>
-    <message>
-      <source>Initial Price</source>
-      <translation>Initial Price</translation>
-    </message>
-    <message>
-      <source>Auto-Calc</source>
-      <translation>Auto-Calc</translation>
-    </message>
-    <message>
-      <source>Initial Value</source>
-      <translation>Initial Value</translation>
-    </message>
-    <message>
-      <source>ID</source>
-      <translation>ID</translation>
-    </message>
-    <message>
-      <source>…</source>
-      <translation>…</translation>
-    </message>
-    <message>
-      <source>From</source>
-      <translation>From</translation>
-    </message>
-    <message>
-      <source>Allow All</source>
-      <translation>Allow All</translation>
-    </message>
-    <message>
-      <source>Reset Paths</source>
-      <translation>Reset Paths</translation>
-    </message>
-    <message>
-      <source>Disallow All</source>
-      <translation>Disallow All</translation>
-    </message>
-    <message>
-      <source>Waypoints</source>
-      <translation>Waypoints</translation>
-    </message>
-    <message>
-      <source>Clear</source>
-      <translation>Clear</translation>
-    </message>
-    <message>
-      <source>Waypoint 1</source>
-      <translation>Waypoint 1</translation>
-    </message>
-    <message>
-      <source>Waypoint 2</source>
-      <translation>Waypoint 2</translation>
-    </message>
-    <message>
-      <source>Waypoint 3</source>
-      <translation>Waypoint 3</translation>
-    </message>
-    <message>
-      <source>Waypoint 4</source>
-      <translation>Waypoint 4</translation>
-    </message>
-    <message>
-      <source>Clear All Waypoints</source>
-      <translation>Clear All Waypoints</translation>
-    </message>
-    <message>
-      <source>Sort All Waypoints</source>
-      <translation>Sort All Waypoints</translation>
-    </message>
-    <message>
-      <source>Connect selected squares</source>
-      <translation>Connect selected squares</translation>
-    </message>
-    <message>
-      <source>Connect Bidirectionally</source>
-      <translation>Connect Bidirectionally</translation>
-    </message>
-    <message>
-      <source>-- Connect --&gt;</source>
-      <translation>-- Connect --&gt;</translation>
-    </message>
-    <message>
-      <source>← Connect --</source>
-      <translation>← Connect --</translation>
+      <source>Import Mod List</source>
+      <translation/>
     </message>
     <message>
       <source>File</source>
-      <translation>File</translation>
+      <translation/>
     </message>
     <message>
-      <source>Tools</source>
-      <translation>Tools</translation>
+      <source>Optional Patches</source>
+      <translation/>
     </message>
     <message>
       <source>Help</source>
-      <translation>Help</translation>
+      <translation/>
     </message>
     <message>
-      <source>View</source>
-      <translation>View</translation>
+      <source>Tools</source>
+      <translation/>
     </message>
     <message>
-      <source>Select</source>
-      <translation>Select</translation>
+      <source>CSMM Help</source>
+      <translation/>
     </message>
     <message>
-      <source>Edit</source>
-      <translation>Edit</translation>
-    </message>
-    <message>
-      <source>New</source>
-      <translation>New</translation>
-    </message>
-    <message>
-      <source>Ctrl+N</source>
-      <translation>Ctrl+N</translation>
-    </message>
-    <message>
-      <source>Open</source>
-      <translation>Open</translation>
+      <source>Open Extracted Game Folder</source>
+      <translation/>
     </message>
     <message>
       <source>Ctrl+O</source>
-      <translation>Ctrl+O</translation>
+      <translation/>
+    </message>
+    <message>
+      <source>Export to Extracted Folder</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Ctrl+Shift+E</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Import WBFS/ISO</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Ctrl+I</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Ctrl+E</source>
+      <translation/>
+    </message>
+    <message>
+      <source>(Re-)Download External Tools</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Validate</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Patch Marker Code (marker_code=02)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Save clean Itast.csmm.brsar</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Load map list (*.csv / *.yaml)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Save map list (*.yaml)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Export default modlist.txt</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Aggiungi l'Autore nel Descrittore della Mappa</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Show CSMM Network Cache in Filesystem</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Export to Riivolution</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Open Log Folder</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Separate Save Game</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Preferences</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Enter MarkerCode.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>- 2 characters. - Digits and uppercase letters only. - 01 is vanilla game. - 02 is csmm default.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error exporting modlist.txt</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error opening file for saving</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Import Modpack(s)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Modpack(s) successfully imported.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error importing modpack(s)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error importing modpack(s):
+%1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Save Map List</source>
+      <translation/>
+    </message>
+    <message>
+      <source>mapList.yaml</source>
+      <translation/>
+    </message>
+    <message>
+      <source>CSMM Map List (*.yaml)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error saving the map list: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Load Map List</source>
+      <translation/>
+    </message>
+    <message>
+      <source>CSMM Map List (*.yaml *.csv)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Open Map List</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error loading the map list: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Warning: This operation will import the maps in the map list one by one. Depending on the size of the map list, this can take a while and CSMM may freeze.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Importing map list</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Map list load completed</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Import Map List</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error importing the map list: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Duplicate item attempted to be added to modList:</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Open vanilla Itast.brsar</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Vanilla Fortune Street Binary Sound Archive (*.brsar)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Wrong Itast.brsar</source>
+      <translation/>
+    </message>
+    <message>
+      <source>The provided file %1 is not a vanilla Itast.brsar</source>
+      <translation/>
+    </message>
+    <message>
+      <source>CSMM Fortune Street Binary Sound Archive (*.brsar)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Open</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Errors occurred when applying Itast.brsar.bsdiff patch to file %1:
+%2</source>
+      <translation/>
     </message>
     <message>
       <source>Save</source>
-      <translation>Save</translation>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+S</source>
-      <translation>Ctrl+S</translation>
+      <source>Saved to %1</source>
+      <translation/>
     </message>
     <message>
-      <source>Save As</source>
-      <translation>Save As</translation>
+      <source>Open Game Directory</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+Shift+S</source>
-      <translation>Ctrl+Shift+S</translation>
+      <source>The temporary directory used for copying the game directory could not be created</source>
+      <translation/>
     </message>
     <message>
-      <source>Verify Board</source>
-      <translation>Verify Board</translation>
+      <source>Open Fortune Street Directory</source>
+      <translation/>
     </message>
     <message>
-      <source>Auto-Path</source>
-      <translation>Auto-Path</translation>
+      <source>Non-vanilla main.dol detected</source>
+      <translation/>
     </message>
     <message>
-      <source>Fortune Avenue Help</source>
-      <translation>Fortune Avenue Help</translation>
+      <source>Importing folder</source>
+      <translation/>
     </message>
     <message>
-      <source>Zoom In</source>
-      <translation>Zoom In</translation>
+      <source>Error loading game</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+Shift+=</source>
-      <translation>Ctrl+Shift+=</translation>
+      <source>Error copying files to temporary working directory: %1</source>
+      <translation/>
     </message>
     <message>
-      <source>Zoom Out</source>
-      <translation>Zoom Out</translation>
+      <source>Error loading game: %1</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+-</source>
-      <translation>Ctrl+-</translation>
+      <source>The temporary directory used for importing disc images could not be created</source>
+      <translation/>
     </message>
     <message>
-      <source>Draw Axes</source>
-      <translation>Draw Axes</translation>
+      <source>Fortune Street disc files (*.wbfs *.iso *.ciso)</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+K</source>
-      <translation>Ctrl+K</translation>
+      <source>Importing WBFS/ISO…</source>
+      <translation/>
     </message>
     <message>
-      <source>Drag to Pan</source>
-      <translation>Drag to Pan</translation>
+      <source>Save to Fortune Street Directory</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+D</source>
-      <translation>Ctrl+D</translation>
+      <source>Directory is not empty.</source>
+      <translation/>
     </message>
     <message>
-      <source>Screenshot</source>
-      <translation>Screenshot</translation>
+      <source>%1 is configured to be your temporary directory, but the disk has less than 10GB of space available.
+
+If you run out of disk space during the export operation, CSMM may crash. Would you like to proceed?</source>
+      <translation/>
     </message>
     <message>
-      <source>Next</source>
-      <translation>Next</translation>
+      <source>Enter Riivolution Patch Name</source>
+      <translation/>
     </message>
     <message>
-      <source>PgUp</source>
-      <translation>PgUp</translation>
+      <source>Enter Riivolution Patch Name:</source>
+      <translation/>
     </message>
     <message>
-      <source>Previous</source>
-      <translation>Previous</translation>
+      <source>Riivolution patch name is invalid</source>
+      <translation/>
     </message>
     <message>
-      <source>PgDown</source>
-      <translation>PgDown</translation>
+      <source>Clean Export</source>
+      <translation/>
     </message>
     <message>
-      <source>Select All</source>
-      <translation>Select All</translation>
+      <source>It seems you haven't made any changes.
+Do you want to make a clean export without letting CSMM make any game code changes and without applying any of the optional patches?</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+A</source>
-      <translation>Ctrl+A</translation>
+      <source>Could not copy game data: %1</source>
+      <translation/>
     </message>
     <message>
-      <source>Follow Waypoint Destination 1</source>
-      <translation>Follow Waypoint Destination 1</translation>
+      <source>Saved successfuly.</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+1</source>
-      <translation>Ctrl+1</translation>
+      <source>Warning: Wiimmfi patching is not supported when exporting to a folder.</source>
+      <translation/>
     </message>
     <message>
-      <source>Follow Waypoint Destination 2</source>
-      <translation>Follow Waypoint Destination 2</translation>
+      <source>Export</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+2</source>
-      <translation>Ctrl+2</translation>
+      <source>Export failed: Could not create riivolution directory</source>
+      <translation/>
     </message>
     <message>
-      <source>Follow Waypoint Destination 3</source>
-      <translation>Follow Waypoint Destination 3</translation>
+      <source>Saving…</source>
+      <translation/>
     </message>
     <message>
-      <source>Ctrl+3</source>
-      <translation>Ctrl+3</translation>
+      <source>Could not copy game data to temporary directory for modifying:
+%1</source>
+      <translation/>
     </message>
     <message>
-      <source>Shop Price Auto-Calc Function</source>
-      <translation>Shop Price Auto-Calc Function</translation>
+      <source>Patching Riivolution…</source>
+      <translation/>
     </message>
     <message>
-      <source>District Simulator</source>
-      <translation>District Simulator</translation>
+      <source>Cleaning up...</source>
+      <translation/>
     </message>
     <message>
-      <source>Use Legacy Auto-Path</source>
-      <translation>Use Legacy Auto-Path</translation>
+      <source>Saved successfully.</source>
+      <translation/>
     </message>
     <message>
-      <source>Use Advanced Auto-Path</source>
-      <translation>Use Advanced Auto-Path</translation>
+      <source>Export failed: %1</source>
+      <translation/>
     </message>
     <message>
-      <source>Auto-Assign Shop Models</source>
-      <translation>Auto-Assign Shop Models</translation>
+      <source>Export to WBFS/ISO</source>
+      <translation/>
     </message>
     <message>
-      <source>Set Max Path Search Depth</source>
-      <translation>Set Max Path Search Depth</translation>
+      <source>Could not create a temporary directory in the specified location. Please make sure the disk is mounted.</source>
+      <translation/>
     </message>
     <message>
-      <source>Sync from Other Board for Switch State</source>
-      <translation>Sync from Other Board for Switch State</translation>
+      <source>Exported successfully.</source>
+      <translation/>
     </message>
     <message>
-      <source>Sync to Other Board for Switch State</source>
-      <translation>Sync to Other Board for Switch State</translation>
+      <source>Exporting to image…</source>
+      <translation/>
     </message>
     <message>
-      <source>Exit</source>
-      <translation>Exit</translation>
+      <source>Could not copy to intermediate directory: %1</source>
+      <translation/>
     </message>
     <message>
-      <source>Preferences…</source>
-      <translation>Preferences…</translation>
+      <source>Writing game image...</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Patching Wiimmfi...</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Validation</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Validation passed.</source>
+      <translation/>
+    </message>
+  </context>
+  <context>
+    <name> modificare un main.dol che è stato già modificato con CSMM non è pienamente supportato. Vuoi comunque procedere?</name>
+    <message>
+      <source>CSMM has detected a non-vanilla main.dol. Modifying a main.dol that has already been patched with CSMM is not fully supported. Continue anyway?</source>
+      <translation/>
+    </message>
+  </context>
+  <context>
+    <name>MapDescriptorWidget</name>
+    <message>
+      <source>Name</source>
+      <translation/>
+    </message>
+    <message>
+      <source>MapSet [E]</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Zone [E]</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Order [E]</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Tutorial Map? [E]</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Unlock ID [E]</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Ruleset</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Initial Cash</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Target Amount</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Base Salary</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Salary Increment</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Maximum Dice Roll</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Venture Cards</source>
+      <translation/>
+    </message>
+    <message>
+      <source>FRB Files</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Switch Origin Points</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Board Theme</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Background</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Background Music ID</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Map Icon</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Looping Mode</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Looping Mode Radius</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Looping Mode Horizontal Padding</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Looping Mode Vertical Square Count</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Tour Bankruptcy Limit</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Tour Initial Cash</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Tour Opponents</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Tour Clear Rank</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Name Msg ID</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Desc Msg ID</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Description</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Internal Name</source>
+      <translation/>
+    </message>
+    <message>
+      <source>District Names</source>
+      <translation/>
+    </message>
+    <message>
+      <source>District Name IDs</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Import</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Map Descriptor Files (*.yaml *.zip)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Importing yaml</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Import .yaml</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error loading the map: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Export</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Map Descriptor Files (*.yaml)</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Error exporting the map: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Easy</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Standard</source>
+      <translation/>
+    </message>
+    <message>
+      <source>View Venture Cards</source>
+      <translation/>
     </message>
   </context>
   <context>
     <name>PreferencesDialog</name>
     <message>
+      <source>Preferences</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Default Mode</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Quick Setup</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Advanced</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Language and Region</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Display Language</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Preferred Game Region</source>
+      <translation/>
+    </message>
+    <message>
       <source>Window Palette</source>
-      <translation>Window Palette</translation>
+      <translation/>
+    </message>
+    <message>
+      <source>Classic Dark</source>
+      <translation/>
     </message>
     <message>
       <source>Change</source>
-      <translation>Change</translation>
+      <translation/>
     </message>
     <message>
-      <source>Use Palette Highlight Color</source>
-      <translation>Use Palette Highlight Color</translation>
+      <source>Use palette highlight color</source>
+      <translation/>
     </message>
     <message>
-      <source>Language</source>
-      <translation>Language</translation>
+      <source>Network Cache</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Enable</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Disable</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Automatically clear cache on error</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Network Cache Size</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Maximum Cache Size</source>
+      <translation/>
+    </message>
+    <message>
+      <source>4GB</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Clear Network Cache</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Network Cache Directory</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Reset</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Temporary Directory</source>
+      <translation/>
+    </message>
+    <message>
+      <source>France</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Germany</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Italy</source>
+      <translation/>
+    </message>
+    <message>
+      <source>North America</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Japan</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Spain</source>
+      <translation/>
+    </message>
+    <message>
+      <source>United Kingdom</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Set CSMM Network Cache Directory</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Set CSMM Temporary Directory</source>
+      <translation/>
     </message>
   </context>
   <context>
-    <name>ScreenshotDialog</name>
+    <name>QObject</name>
     <message>
-      <source>Browse .frb</source>
-      <translation>Browse .frb</translation>
+      <source>Could not open file for saving</source>
+      <translation/>
     </message>
     <message>
-      <source>Format</source>
-      <translation>Format</translation>
+      <source>There was an error writing the file</source>
+      <translation/>
     </message>
     <message>
-      <source>webp</source>
-      <translation>webp</translation>
+      <source>Error: Could not write to file</source>
+      <translation/>
     </message>
     <message>
-      <source>Choose board files (.frb) to take screenshots for:</source>
-      <translation>Choose board files (.frb) to take screenshots for:</translation>
+      <source>Downloading background: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>warning:</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Downloading board: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>The file %1 is not a vanilla file</source>
+      <translation/>
+    </message>
+    <message>
+      <source>%1 does not exist.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not open %1 for reading.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not open %1 for writing.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not create an intermediate directory</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not extract %1 to intermediate directory %2: The archive does not exist.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not extract %1 to intermediate directory %2: The archive is corrupt or there was an error in the download. Check the logs.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Could not extract %1 to intermediate directory %2: %3</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Zip file has no map descriptor</source>
+      <translation/>
+    </message>
+    <message>
+      <source>%1 has no cmpres files</source>
+      <translation/>
+    </message>
+    <message>
+      <source>%1 was not found.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Downloading music: %1.music.zip</source>
+      <translation/>
+    </message>
+    <message>
+      <source>%1 has no brstm files.
+The following .brstm files are still missing:
+%2</source>
+      <translation/>
+    </message>
+    <message>
+      <source>%1 could not be retrieved.
+The following .brstm files are still missing:
+%2</source>
+      <translation/>
+    </message>
+    <message>
+      <source>File %1 could not be parsed</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Importing: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create import param folder</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create import sound stream folder</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create import scene folder</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create import game folder</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create import background folder for locale %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>File %1 does not exist</source>
+      <translation/>
+    </message>
+    <message>
+      <source>bghatena is not allowed to be used as mapIcon name!</source>
+      <translation/>
+    </message>
+    <message>
+      <source>SSL error:</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Check if your system time is set correctly and try again.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Network error: %1 
+%2</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Write failed to %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Failed to download file to disk. Create failed.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Process '%1' failed to start</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Process '%1' returned nonzero exit code %2</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create logging directory:</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create log file</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Running CSMM %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not symlink to latest log file:</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not remove old log file:</source>
+      <translation/>
+    </message>
+    <message>
+      <source>The filename of the brstm file %1 is too long. It must be max 48 characters, but is %2 characters.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[board %1] There can be only 1 practice board for the easy map set</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[board %1] There can be only 1 practice board for the standard map set</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[board %1] A practice board can only be set for map sets 0 or 1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Easy map set needs at least 1 practice board</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Standard map set needs at least 1 practice board</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[board %1] A board can only be in map sets -1, 0, or 1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>There much be at least one map in map set %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[board %1] A board can only be in zones -1, 0, 1, or 2</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[map set %1] The number of boards in zone %2 must be at least 6</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[board %1] All orders in a zone must be nonnegative</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[mapset %1, zone %2] The order value within a zone must be unique</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[mapset %1, zone %2] The lowest order within a zone must be 0</source>
+      <translation/>
+    </message>
+    <message>
+      <source>[mapset %1, zone %2] There must be no gaps in the ordering</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not open %1 for inspection</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create riivolution dir in %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>could not create riivolution.xml for writing</source>
+      <translation/>
+    </message>
+    <message>
+      <source>couldn't open vanilla main dol for reading</source>
+      <translation/>
+    </message>
+    <message>
+      <source>couldn't open patched main dol for reading</source>
+      <translation/>
     </message>
   </context>
   <context>
-    <name>embedded in code</name>
+    <name>QuickSetupDialog</name>
     <message>
-      <source>Auto Shop Model Assignment Options</source>
-      <translation>Auto Shop Model Assignment Options</translation>
+      <source>Quick Setup</source>
+      <translation/>
     </message>
     <message>
-      <source>Unused</source>
-      <translation>Unused</translation>
+      <source>Game folder or .wbfs/.iso disc image file</source>
+      <translation/>
     </message>
     <message>
-      <source>The shop model of %1 square has been assigned. %2 shop models remain the same.</source>
-      <translation>The shop model of %1 square has been assigned. %2 shop models remain the same.</translation>
+      <source>Choose File</source>
+      <translation/>
     </message>
     <message>
-      <source>The shop models of %1 squares have been assigned. %2 shop models remain the same.</source>
-      <translation>The shop models of %1 squares have been assigned. %2 shop models remain the same.</translation>
+      <source>Choose Folder</source>
+      <translation/>
     </message>
     <message>
-      <source>No shop models have been assigned.</source>
-      <translation>No shop models have been assigned.</translation>
+      <source>Primary modpack .zip</source>
+      <translation/>
     </message>
     <message>
-      <source>The shop model of %1 square has been assigned.</source>
-      <translation>The shop model of %1 square has been assigned.</translation>
+      <source>Choose Modpack</source>
+      <translation/>
     </message>
     <message>
-      <source>The shop models of %1 squares have been assigned.</source>
-      <translation>The shop models of %1 squares have been assigned.</translation>
+      <source>Additional mods (optional)</source>
+      <translation/>
     </message>
     <message>
-      <source>Total deviation from previous shop values: %1</source>
-      <translation>Total deviation from previous shop values: %1</translation>
+      <source>+</source>
+      <translation/>
     </message>
     <message>
-      <source>Auto Shop Model Assignment</source>
-      <translation>Auto Shop Model Assignment</translation>
+      <source>-</source>
+      <translation/>
     </message>
     <message>
-      <source>too many directions to fit into a 64-bit integer</source>
-      <translation>too many directions to fit into a 64-bit integer</translation>
+      <source>Enable Riivolution (optional)</source>
+      <translation/>
     </message>
     <message>
-      <source>Board must have at least 3 squares.</source>
-      <translation>Board must have at least 3 squares.</translation>
+      <source>Patch Name</source>
+      <translation/>
     </message>
     <message>
-      <source>Board must have a maximum of 85 squares.</source>
-      <translation>Board must have a maximum of 85 squares.</translation>
+      <source>csmm</source>
+      <translation/>
     </message>
     <message>
-      <source>Maximum dice roll must be between 1 and 9, inclusive.</source>
-      <translation>Maximum dice roll must be between 1 and 9, inclusive.</translation>
+      <source>Marker Code</source>
+      <translation/>
     </message>
     <message>
-      <source>Square %1 has district value %2. Maximum is 11.</source>
-      <translation>Square %1 has district value %2. Maximum is 11.</translation>
+      <source>Separate Save Game</source>
+      <translation/>
     </message>
     <message>
-      <source>Starting square of Waypoint %1 of Square %2 is Square %3, which does not exist.</source>
-      <translation>Starting square of Waypoint %1 of Square %2 is Square %3, which does not exist.</translation>
+      <source>Open Fortune Street Directory</source>
+      <translation/>
     </message>
     <message>
-      <source>Starting square of Waypoint %1 of Square %2 is Square %3, which is too far.</source>
-      <translation>Starting square of Waypoint %1 of Square %2 is Square %3, which is too far.</translation>
+      <source>Import .wbfs or .iso file</source>
+      <translation/>
     </message>
     <message>
-      <source>Destination square #%4 of Waypoint %1 of Square %2 is Square %3, which does not exist.</source>
-      <translation>Destination square #%4 of Waypoint %1 of Square %2 is Square %3, which does not exist.</translation>
+      <source>Fortune Street disc files (*.wbfs *.iso *.ciso)</source>
+      <translation/>
     </message>
     <message>
-      <source>Destination square #%4 of Waypoint %1 of Square %2 is Square %3, which is too far.</source>
-      <translation>Destination square #%4 of Waypoint %1 of Square %2 is Square %3, which is too far.</translation>
+      <source>Import modpack</source>
+      <translation/>
     </message>
     <message>
-      <source>Destination square #%4 of Waypoint %1 of Square %2 is Square %3, which is a One Way Alley Square.</source>
-      <translation>Destination square #%4 of Waypoint %1 of Square %2 is Square %3, which is a One Way Alley Square.</translation>
+      <source>Modpack zip file (*.zip)</source>
+      <translation/>
     </message>
     <message>
-      <source>Square %1 has %2 destinations, which is more than the maximum of 4.</source>
-      <translation>Square %1 has %2 destinations, which is more than the maximum of 4.</translation>
+      <source>Import additional modpack</source>
+      <translation/>
     </message>
     <message>
-      <source>Did you skip District %1 when assigning districts?</source>
-      <translation>Did you skip District %1 when assigning districts?</translation>
+      <source>Export to File</source>
+      <translation/>
     </message>
     <message>
-      <source>District %1 has %2 shops, which is more than the maximum of 6.</source>
-      <translation>District %1 has %2 shops, which is more than the maximum of 6.</translation>
-    </message>
-    <message>
-      <source>Enter Function</source>
-      <translation>Enter Function</translation>
-    </message>
-    <message>
-      <source>Enter the shop price based on shop value function (x = shop value).\nEnter empty string to restore default.</source>
-      <translation>Enter the shop price based on shop value function (x = shop value).\nEnter empty string to restore default.</translation>
-    </message>
-    <message>
-      <source>Enter Search Depth</source>
-      <translation>Enter Search Depth</translation>
-    </message>
-    <message>
-      <source>Enter the max path search depth.\n\n</source>
-      <translation>Enter the max path search depth.\n\n</translation>
-    </message>
-    <message>
-      <source>This is only for demonstration purposes and does not have any in-game effect.\n</source>
-      <translation>This is only for demonstration purposes and does not have any in-game effect.\n</translation>
-    </message>
-    <message>
-      <source>Sensible values are between 16 (small boards) and 28 (huge boards).\n\n</source>
-      <translation>Sensible values are between 16 (small boards) and 28 (huge boards).\n\n</translation>
-    </message>
-    <message>
-      <source>Enter 0 to restore the game’s default behavior, which is max(squareCount/3,16)</source>
-      <translation>Enter 0 to restore the game’s default behavior, which is max(squareCount/3,16)</translation>
-    </message>
-    <message>
-      <source>Update Initial Cash</source>
-      <translation>Update Initial Cash</translation>
-    </message>
-    <message>
-      <source>Update Base Salary</source>
-      <translation>Update Base Salary</translation>
-    </message>
-    <message>
-      <source>Update Salary Increment</source>
-      <translation>Update Salary Increment</translation>
-    </message>
-    <message>
-      <source>Update Max Dice Roll</source>
-      <translation>Update Max Dice Roll</translation>
-    </message>
-    <message>
-      <source>Update Looping Mode</source>
-      <translation>Update Looping Mode</translation>
-    </message>
-    <message>
-      <source>Update Autopath Range</source>
-      <translation>Update Autopath Range</translation>
-    </message>
-    <message>
-      <source>Update Straight Line Tolerance</source>
-      <translation>Update Straight Line Tolerance</translation>
-    </message>
-    <message>
-      <source>Zoom: %1</source>
-      <translation>Zoom: %1</translation>
-    </message>
-    <message>
-      <source>Open File</source>
-      <translation>Open File</translation>
-    </message>
-    <message>
-      <source>Fortune Street Boards (*.frb)</source>
-      <translation>Fortune Street Boards (*.frb)</translation>
-    </message>
-    <message>
-      <source>Error saving file</source>
-      <translation>Error saving file</translation>
-    </message>
-    <message>
-      <source>An error occurred while trying to save the file.</source>
-      <translation>An error occurred while trying to save the file.</translation>
-    </message>
-    <message>
-      <source>Save File</source>
-      <translation>Save File</translation>
-    </message>
-    <message>
-      <source>Error opening file</source>
-      <translation>Error opening file</translation>
-    </message>
-    <message>
-      <source>An error occurred while trying to open the file.</source>
-      <translation>An error occurred while trying to open the file.</translation>
-    </message>
-    <message>
-      <source>This file is version %1, but the latest version is version 3. Would you like to upgrade the file to the latest version?</source>
-      <translation>This file is version %1, but the latest version is version 3. Would you like to upgrade the file to the latest version?</translation>
-    </message>
-    <message>
-      <source>Destination ID</source>
-      <translation>Destination ID</translation>
-    </message>
-    <message>
-      <source>Venture Card ID</source>
-      <translation>Venture Card ID</translation>
-    </message>
-    <message>
-      <source>District ID</source>
-      <translation>District ID</translation>
-    </message>
-    <message>
-      <source>%1 selected</source>
-      <translation>%1 selected</translation>
-    </message>
-    <message>
-      <source>Choose File to Sync With</source>
-      <translation>Choose File to Sync With</translation>
-    </message>
-    <message>
-      <source>Error opening file for sync</source>
-      <translation>Error opening file for sync</translation>
-    </message>
-    <message>
-      <source>Could not open file for sync.</source>
-      <translation>Could not open file for sync.</translation>
-    </message>
-    <message>
-      <source>Error processing file for sync</source>
-      <translation>Error processing file for sync</translation>
-    </message>
-    <message>
-      <source>Corrupt .frb file</source>
-      <translation>Corrupt .frb file</translation>
-    </message>
-    <message>
-      <source>The number of squares in the other file is not the same as this one.</source>
-      <translation>The number of squares in the other file is not the same as this one.</translation>
-    </message>
-    <message>
-      <source>Could not open the other file for saving.</source>
-      <translation>Could not open the other file for saving.</translation>
-    </message>
-    <message>
-      <source>Could not save the other file.</source>
-      <translation>Could not save the other file.</translation>
-    </message>
-    <message>
-      <source>Sync from Other File for Switch</source>
-      <translation>Sync from Other File for Switch</translation>
-    </message>
-    <message>
-      <source>Connect Squares</source>
-      <translation>Connect Squares</translation>
-    </message>
-    <message>
-      <source>Change Square Type</source>
-      <translation>Change Square Type</translation>
-    </message>
-    <message>
-      <source>Change District/Destination ID</source>
-      <translation>Change District/Destination ID</translation>
-    </message>
-    <message>
-      <source>Change Shop Model</source>
-      <translation>Change Shop Model</translation>
-    </message>
-    <message>
-      <source>Change Shop Model ID</source>
-      <translation>Change Shop Model ID</translation>
-    </message>
-    <message>
-      <source>Change Initial Shop Value</source>
-      <translation>Change Initial Shop Value</translation>
-    </message>
-    <message>
-      <source>Change Initial Shop Price</source>
-      <translation>Change Initial Shop Price</translation>
-    </message>
-    <message>
-      <source>Change Is Lift</source>
-      <translation>Change Is Lift</translation>
-    </message>
-    <message>
-      <source>Clear All Waypoints</source>
-      <translation>Clear All Waypoints</translation>
-    </message>
-    <message>
-      <source>Clear Waypoint 1</source>
-      <translation>Clear Waypoint 1</translation>
-    </message>
-    <message>
-      <source>Clear Waypoint 2</source>
-      <translation>Clear Waypoint 2</translation>
-    </message>
-    <message>
-      <source>Clear Waypoint 3</source>
-      <translation>Clear Waypoint 3</translation>
-    </message>
-    <message>
-      <source>Clear Waypoint 4</source>
-      <translation>Clear Waypoint 4</translation>
-    </message>
-    <message>
-      <source>Sort Waypoints</source>
-      <translation>Sort Waypoints</translation>
-    </message>
-    <message>
-      <source>Toggle (Dis)allowed Direction</source>
-      <translation>Toggle (Dis)allowed Direction</translation>
-    </message>
-    <message>
-      <source>Reset Autopath Directions</source>
-      <translation>Reset Autopath Directions</translation>
-    </message>
-    <message>
-      <source>Allow All Directions</source>
-      <translation>Allow All Directions</translation>
-    </message>
-    <message>
-      <source>Disallow All Directions</source>
-      <translation>Disallow All Directions</translation>
-    </message>
-    <message>
-      <source>Update Waypoint</source>
-      <translation>Update Waypoint</translation>
-    </message>
-    <message>
-      <source>District %1: %2g</source>
-      <translation>District %1: %2g</translation>
-    </message>
-    <message>
-      <source>Search Depth: %1</source>
-      <translation>Search Depth: %1</translation>
-    </message>
-    <message>
-      <source>Using Fixed Depth: %1</source>
-      <translation>Using Fixed Depth: %1</translation>
-    </message>
-    <message>
-      <source>Max Paths Square ID: %1</source>
-      <translation>Max Paths Square ID: %1</translation>
-    </message>
-    <message>
-      <source>Possible Paths: %1</source>
-      <translation>Possible Paths: %1</translation>
-    </message>
-    <message>
-      <source>Crash inevitable!</source>
-      <translation>Crash inevitable!</translation>
-    </message>
-    <message>
-      <source>Crash possible!</source>
-      <translation>Crash possible!</translation>
-    </message>
-    <message>
-      <source>Stuttering likely!</source>
-      <translation>Stuttering likely!</translation>
-    </message>
-    <message>
-      <source>OK</source>
-      <translation>OK</translation>
-    </message>
-    <message>
-      <source>Verification</source>
-      <translation>Verification</translation>
-    </message>
-    <message>
-      <source>Board passed verification.</source>
-      <translation>Board passed verification.</translation>
-    </message>
-    <message>
-      <source>%1 error(s) and %2 warning(s):\n</source>
-      <translation>%1 error(s) and %2 warning(s):\n</translation>
-    </message>
-    <message>
-      <source>Success!</source>
-      <translation>Success!</translation>
-    </message>
-    <message>
-      <source>Successfully auto-pathed the entire board.</source>
-      <translation>Successfully auto-pathed the entire board.</translation>
-    </message>
-    <message>
-      <source>Autopath</source>
-      <translation>Autopath</translation>
-    </message>
-    <message>
-      <source>Assign Shop Models</source>
-      <translation>Assign Shop Models</translation>
-    </message>
-    <message>
-      <source>Unsaved Changes</source>
-      <translation>Unsaved Changes</translation>
-    </message>
-    <message>
-      <source>You have unsaved changes. Do you want to save them?</source>
-      <translation>You have unsaved changes. Do you want to save them?</translation>
+      <source>Export to Folder</source>
+      <translation/>
     </message>
     <message>
       <source>Preferences</source>
-      <translation>Preferences</translation>
+      <translation/>
     </message>
     <message>
-      <source>Select the boards you would like to create screenshots for.</source>
-      <translation>Select the boards you would like to create screenshots for.</translation>
+      <source>Switch to Advanced CSMM</source>
+      <translation/>
     </message>
     <message>
-      <source>All screenshots saved successfully. The filenames that were created are as follows: \n\n</source>
-      <translation>All screenshots saved successfully. The filenames that were created are as follows: \n\n</translation>
+      <source>CSMM %1: Quick Setup</source>
+      <translation/>
     </message>
     <message>
-      <source>One or more screenshots could not be saved.</source>
-      <translation>One or more screenshots could not be saved.</translation>
+      <source>Cannot save game</source>
+      <translation/>
     </message>
     <message>
-      <source>Add Square</source>
-      <translation>Add Square</translation>
+      <source>Invalid Riivolution name: %1</source>
+      <translation/>
     </message>
     <message>
-      <source>Move Squares</source>
-      <translation>Move Squares</translation>
+      <source>Save WBFS/ISO</source>
+      <translation/>
     </message>
     <message>
-      <source>Remove Squares</source>
-      <translation>Remove Squares</translation>
+      <source>Save Fortune Street Directory</source>
+      <translation/>
     </message>
     <message>
-      <source>north</source>
-      <translation>north</translation>
+      <source>Cannot select Fortune Street directory for saving</source>
+      <translation/>
     </message>
     <message>
-      <source>northwest</source>
-      <translation>northwest</translation>
+      <source>Directory is not empty</source>
+      <translation/>
     </message>
     <message>
-      <source>northeast</source>
-      <translation>northeast</translation>
+      <source>There may not be enough space remaining on %1 to function as a network cache directory. It is recommended that your network cache drive has at least 10GB of free space before continuing. It currently has %2MB remaining.
+
+Would you like to proceed?</source>
+      <translation/>
     </message>
     <message>
-      <source>south</source>
-      <translation>south</translation>
+      <source>There may not be enough space remaining on %1 to store the new disc image.
+
+It is recommended that the drive you're saving the Wii disc image to has at least 5GB of free space available. However, the drive currently has %2MB remaining.
+
+Would you like to proceed?</source>
+      <translation/>
     </message>
     <message>
-      <source>southwest</source>
-      <translation>southwest</translation>
+      <source>%1 is configured as both a cache location as well as the export location for this disc image. As such, it is recommended that your drive has at least 15GB of available disk space before continuing. It currently has %2MB remaining.
+
+Would you like to proceed?</source>
+      <translation/>
     </message>
     <message>
-      <source>southeast</source>
-      <translation>southeast</translation>
+      <source>%1 is configured as both a network cache location as well as the temporary directory location. As such, it is recommended that the drive has at least 15GB of available disk space before continuing. It currently has %2MB remaining.
+
+Would you like to proceed?</source>
+      <translation/>
     </message>
     <message>
-      <source>west</source>
-      <translation>west</translation>
+      <source>%1 configured as both the save location for the disc image as well as the temporary directory to be used during extraction. As such, it is recommended that the drive has at least 15GB of available disk space before continuing. It currently has %2 remaining.
+
+Would you like to proceed?</source>
+      <translation/>
     </message>
     <message>
-      <source>east</source>
-      <translation>east</translation>
+      <source>There may not be enough space remaining on %1 to function as a temporary directory. This is the directory where downloaded archive files will be temporarily extracted before CSMM copies these files into the Wii disc image. As such, it is recommended that this drive has at least 10GB of free space before continuing. However, the drive currently has %2MB remaining.
+
+Would you like to proceed?</source>
+      <translation/>
     </message>
     <message>
-      <source>Failed to create JSON document from data.</source>
-      <translation>Failed to create JSON document from data.</translation>
+      <source>%1 is configured as a network cache directory, temporary directory, and the drive your disc image is being extracted to. As such, we recommend that this drive has at least 25GB of free space before continuing. However, it currently has %2MB remaining.
+
+Would you like to proceed?</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Low Disk Space</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Cannot create temporary directory.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>The maplist yaml was not found inside the modpack zip.</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Marker Code: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Is Separate Save Game: %1</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Loading Modpacks: </source>
+      <translation/>
+    </message>
+    <message>
+      <source>Writing modified game image...</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Patching Wiimmfi...</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Patching Riivolution...</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Cleaning up...</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Success!</source>
+      <translation/>
+    </message>
+    <message>
+      <source>The game was saved successfully. Would you like to exit?</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Creating Disc Image</source>
+      <translation/>
+    </message>
+    <message>
+      <source>Starting process...</source>
+      <translation/>
     </message>
   </context>
   <context>
-    <name>Shop Names</name>
+    <name>Region</name>
     <message>
-      <source>Scrap-paper shop</source>
-      <translation>Scrap-paper shop</translation>
+      <source>France</source>
+      <translation/>
     </message>
     <message>
-      <source>Wool shop</source>
-      <translation>Wool shop</translation>
+      <source>Germany</source>
+      <translation/>
     </message>
     <message>
-      <source>Bottle store</source>
-      <translation>Bottle store</translation>
+      <source>Italy</source>
+      <translation/>
     </message>
     <message>
-      <source>Secondhand book shop</source>
-      <translation>Secondhand book shop</translation>
+      <source>North America</source>
+      <translation/>
     </message>
     <message>
-      <source>Scrap-metal supplier</source>
-      <translation>Scrap-metal supplier</translation>
+      <source>Japan</source>
+      <translation/>
     </message>
     <message>
-      <source>Stationery shop</source>
-      <translation>Stationery shop</translation>
+      <source>Spain</source>
+      <translation/>
     </message>
     <message>
-      <source>General store</source>
-      <translation>General store</translation>
-    </message>
-    <message>
-      <source>Florist's</source>
-      <translation>Florist's</translation>
-    </message>
-    <message>
-      <source>Ice-cream shop</source>
-      <translation>Ice-cream shop</translation>
-    </message>
-    <message>
-      <source>Comic-book shop</source>
-      <translation>Comic-book shop</translation>
-    </message>
-    <message>
-      <source>Dairy</source>
-      <translation>Dairy</translation>
-    </message>
-    <message>
-      <source>Doughnut shop</source>
-      <translation>Doughnut shop</translation>
-    </message>
-    <message>
-      <source>Pizza shack</source>
-      <translation>Pizza shack</translation>
-    </message>
-    <message>
-      <source>Bakery</source>
-      <translation>Bakery</translation>
-    </message>
-    <message>
-      <source>Grocery store</source>
-      <translation>Grocery store</translation>
-    </message>
-    <message>
-      <source>Pharmacy</source>
-      <translation>Pharmacy</translation>
-    </message>
-    <message>
-      <source>Fish market</source>
-      <translation>Fish market</translation>
-    </message>
-    <message>
-      <source>Toy shop</source>
-      <translation>Toy shop</translation>
-    </message>
-    <message>
-      <source>Bookshop</source>
-      <translation>Bookshop</translation>
-    </message>
-    <message>
-      <source>Cosmetics boutique</source>
-      <translation>Cosmetics boutique</translation>
-    </message>
-    <message>
-      <source>T-shirt shop</source>
-      <translation>T-shirt shop</translation>
-    </message>
-    <message>
-      <source>Fruit stall</source>
-      <translation>Fruit stall</translation>
-    </message>
-    <message>
-      <source>Photography studio</source>
-      <translation>Photography studio</translation>
-    </message>
-    <message>
-      <source>Coffee shop</source>
-      <translation>Coffee shop</translation>
-    </message>
-    <message>
-      <source>Butcher shop</source>
-      <translation>Butcher shop</translation>
-    </message>
-    <message>
-      <source>Restaurant</source>
-      <translation>Restaurant</translation>
-    </message>
-    <message>
-      <source>Barbershop</source>
-      <translation>Barbershop</translation>
-    </message>
-    <message>
-      <source>Hat boutique</source>
-      <translation>Hat boutique</translation>
-    </message>
-    <message>
-      <source>Hardware store</source>
-      <translation>Hardware store</translation>
-    </message>
-    <message>
-      <source>Gift shop</source>
-      <translation>Gift shop</translation>
-    </message>
-    <message>
-      <source>Launderette</source>
-      <translation>Launderette</translation>
-    </message>
-    <message>
-      <source>Shoe shop</source>
-      <translation>Shoe shop</translation>
-    </message>
-    <message>
-      <source>Clothing store</source>
-      <translation>Clothing store</translation>
-    </message>
-    <message>
-      <source>Optician's</source>
-      <translation>Optician's</translation>
-    </message>
-    <message>
-      <source>Clockmaker's</source>
-      <translation>Clockmaker's</translation>
-    </message>
-    <message>
-      <source>Furniture shop</source>
-      <translation>Furniture shop</translation>
-    </message>
-    <message>
-      <source>Sports shop</source>
-      <translation>Sports shop</translation>
-    </message>
-    <message>
-      <source>Locksmith's</source>
-      <translation>Locksmith's</translation>
-    </message>
-    <message>
-      <source>Glassmaker's</source>
-      <translation>Glassmaker's</translation>
-    </message>
-    <message>
-      <source>Sushi restaurant</source>
-      <translation>Sushi restaurant</translation>
-    </message>
-    <message>
-      <source>Art gallery</source>
-      <translation>Art gallery</translation>
-    </message>
-    <message>
-      <source>Leatherware boutique</source>
-      <translation>Leatherware boutique</translation>
-    </message>
-    <message>
-      <source>Pet shop</source>
-      <translation>Pet shop</translation>
-    </message>
-    <message>
-      <source>Nail salon</source>
-      <translation>Nail salon</translation>
-    </message>
-    <message>
-      <source>Spice shop</source>
-      <translation>Spice shop</translation>
-    </message>
-    <message>
-      <source>Music shop</source>
-      <translation>Music shop</translation>
-    </message>
-    <message>
-      <source>Surf shop</source>
-      <translation>Surf shop</translation>
-    </message>
-    <message>
-      <source>Boating shop</source>
-      <translation>Boating shop</translation>
-    </message>
-    <message>
-      <source>Cartographer's</source>
-      <translation>Cartographer's</translation>
-    </message>
-    <message>
-      <source>Alloy rims shop</source>
-      <translation>Alloy rims shop</translation>
-    </message>
-    <message>
-      <source>Fashion boutique</source>
-      <translation>Fashion boutique</translation>
-    </message>
-    <message>
-      <source>Waxworks</source>
-      <translation>Waxworks</translation>
-    </message>
-    <message>
-      <source>Lens shop</source>
-      <translation>Lens shop</translation>
-    </message>
-    <message>
-      <source>Kaleidoscope shop</source>
-      <translation>Kaleidoscope shop</translation>
-    </message>
-    <message>
-      <source>Crystal ball shop</source>
-      <translation>Crystal ball shop</translation>
-    </message>
-    <message>
-      <source>Gemstone supplier</source>
-      <translation>Gemstone supplier</translation>
-    </message>
-    <message>
-      <source>Taxidermy studio</source>
-      <translation>Taxidermy studio</translation>
-    </message>
-    <message>
-      <source>Antiques dealer's</source>
-      <translation>Antiques dealer's</translation>
-    </message>
-    <message>
-      <source>Goldsmith's</source>
-      <translation>Goldsmith's</translation>
-    </message>
-    <message>
-      <source>Fossil shop</source>
-      <translation>Fossil shop</translation>
-    </message>
-    <message>
-      <source>Music-box shop</source>
-      <translation>Music-box shop</translation>
-    </message>
-    <message>
-      <source>Marionette workshop</source>
-      <translation>Marionette workshop</translation>
-    </message>
-    <message>
-      <source>Health shop</source>
-      <translation>Health shop</translation>
-    </message>
-    <message>
-      <source>Organic food shop</source>
-      <translation>Organic food shop</translation>
-    </message>
-    <message>
-      <source>Bridal boutique</source>
-      <translation>Bridal boutique</translation>
-    </message>
-    <message>
-      <source>Autograph shop</source>
-      <translation>Autograph shop</translation>
-    </message>
-    <message>
-      <source>Meteorite shop</source>
-      <translation>Meteorite shop</translation>
-    </message>
-    <message>
-      <source>Department store</source>
-      <translation>Department store</translation>
+      <source>United Kingdom</source>
+      <translation/>
     </message>
   </context>
   <context>
-    <name>Square Types</name>
+    <name>ValidationErrorDialog</name>
     <message>
-      <source>Property</source>
-      <translation>Property</translation>
+      <source>Validation</source>
+      <translation/>
     </message>
     <message>
-      <source>Bank</source>
-      <translation>Bank</translation>
+      <source>Errors:</source>
+      <translation/>
     </message>
+  </context>
+  <context>
+    <name>VentureCardDialog</name>
     <message>
-      <source>Venture</source>
-      <translation>Venture</translation>
-    </message>
-    <message>
-      <source>Spade</source>
-      <translation>Spade</translation>
-    </message>
-    <message>
-      <source>Heart</source>
-      <translation>Heart</translation>
-    </message>
-    <message>
-      <source>Diamond</source>
-      <translation>Diamond</translation>
-    </message>
-    <message>
-      <source>Club</source>
-      <translation>Club</translation>
-    </message>
-    <message>
-      <source>Spade (Change-of-Suit)</source>
-      <translation>Spade (Change-of-Suit)</translation>
-    </message>
-    <message>
-      <source>Heart (Change-of-Suit)</source>
-      <translation>Heart (Change-of-Suit)</translation>
-    </message>
-    <message>
-      <source>Diamond (Change-of-Suit)</source>
-      <translation>Diamond (Change-of-Suit)</translation>
-    </message>
-    <message>
-      <source>Club (Change-of-Suit)</source>
-      <translation>Club (Change-of-Suit)</translation>
-    </message>
-    <message>
-      <source>Take-A-Break</source>
-      <translation>Take-A-Break</translation>
-    </message>
-    <message>
-      <source>Boon</source>
-      <translation>Boon</translation>
-    </message>
-    <message>
-      <source>Boom</source>
-      <translation>Boom</translation>
-    </message>
-    <message>
-      <source>Stockbroker</source>
-      <translation>Stockbroker</translation>
-    </message>
-    <message>
-      <source>Roll On</source>
-      <translation>Roll On</translation>
-    </message>
-    <message>
-      <source>Arcade</source>
-      <translation>Arcade</translation>
-    </message>
-    <message>
-      <source>Switch</source>
-      <translation>Switch</translation>
-    </message>
-    <message>
-      <source>Cannon</source>
-      <translation>Cannon</translation>
-    </message>
-    <message>
-      <source>Backstreet A</source>
-      <translation>Backstreet A</translation>
-    </message>
-    <message>
-      <source>Backstreet B</source>
-      <translation>Backstreet B</translation>
-    </message>
-    <message>
-      <source>Backstreet C</source>
-      <translation>Backstreet C</translation>
-    </message>
-    <message>
-      <source>Backstreet D</source>
-      <translation>Backstreet D</translation>
-    </message>
-    <message>
-      <source>Backstreet E</source>
-      <translation>Backstreet E</translation>
-    </message>
-    <message>
-      <source>One-Way Alley Door A</source>
-      <translation>One-Way Alley Door A</translation>
-    </message>
-    <message>
-      <source>One-Way Alley Door B</source>
-      <translation>One-Way Alley Door B</translation>
-    </message>
-    <message>
-      <source>One-Way Alley Door C</source>
-      <translation>One-Way Alley Door C</translation>
-    </message>
-    <message>
-      <source>One-Way Alley Door D</source>
-      <translation>One-Way Alley Door D</translation>
-    </message>
-    <message>
-      <source>Lift/Magmalice Start</source>
-      <translation>Lift/Magmalice Start</translation>
-    </message>
-    <message>
-      <source>Lift End</source>
-      <translation>Lift End</translation>
-    </message>
-    <message>
-      <source>Magmalice</source>
-      <translation>Magmalice</translation>
-    </message>
-    <message>
-      <source>One-Way Alley End</source>
-      <translation>One-Way Alley End</translation>
-    </message>
-    <message>
-      <source>Event</source>
-      <translation>Event</translation>
-    </message>
-    <message>
-      <source>Vacant Plot</source>
-      <translation>Vacant Plot</translation>
+      <source>Enabled Venture Cards</source>
+      <translation/>
     </message>
   </context>
 </TS>
