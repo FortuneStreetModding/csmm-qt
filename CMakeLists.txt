@@ -185,6 +185,8 @@ set(LIB_SOURCES
     lib/orderedmap.h
     lib/powerpcasm.cpp
     lib/powerpcasm.h
+    lib/region.cpp
+    lib/region.h
     lib/resultscenes.cpp
     lib/resultscenes.h
     lib/uigame013.cpp
@@ -336,9 +338,6 @@ elseif(WIN32)
         ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll ${PYTHON_STDLIB_DESTFOLDER}
     )
 else()
-    add_executable(csmm ${MAIN_SOURCES} ${QM_FILES}
-        lib/region.h lib/region.cpp
-    )
     add_executable(csmmpython ${PY_SOURCES} ${QM_FILES})
 
     file(DOWNLOAD https://wit.wiimm.de/download/wit-v3.05a-r8638-x86_64.tar.gz ${CMAKE_CURRENT_BINARY_DIR}/wit.tar.gz)
