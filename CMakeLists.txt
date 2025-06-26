@@ -35,13 +35,13 @@ qt_standard_project_setup(
     I18N_TRANSLATED_LANGUAGES it_IT ja_JP
 )
 
-qt_add_translations(csmm TS_FILES languages/en_US.ts languages/it_IT.ts languages/ja_JP.ts QM_FILES_OUTPUT_VARIABLE qm_files)
-install(FILES ${qm_files}
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/translations)
-# qt_add_resources(csmm "translations_resources"
-#     PREFIX "/languages"
-#     FILES ${qm_files}
-# )
+qt_add_translations(csmm
+    TS_FILES
+        languages/en_US.ts
+        languages/it_IT.ts
+        languages/ja_JP.ts
+    RESOURCE_PREFIX "translations"
+)
 
 set(LIB_SOURCES
     lib/addressmapping.cpp
@@ -354,6 +354,9 @@ else()
         COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/szs-v2.40b-r8923-x86_64 ${CMAKE_CURRENT_BINARY_DIR}/szs
     )
 endif()
+
+add_custom_target(translations ALL DEPENDS ${qm_files})
+add_dependencies(csmm translations)
 
 set_target_properties(csmm PROPERTIES CXX_VISIBILITY_PRESET hidden)
 

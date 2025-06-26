@@ -36,7 +36,7 @@ jobs:
         python-version: '3.12'
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
         version: 6.9.1
         target: desktop
@@ -74,7 +74,7 @@ jobs:
       run: brew install libarchive ninja
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
         version: 6.9.1
         target: desktop
@@ -148,11 +148,11 @@ jobs:
         submodules: true
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
         version: 6.9.1
         target: desktop
-        arch: win64_msvc2019_64
+        arch: win64_msvc2022_64
 
     - name: Install Ninja
       uses: seanmiddleditch/gha-setup-ninja@master
