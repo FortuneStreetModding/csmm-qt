@@ -1,6 +1,14 @@
 {
-    "name": "Kiwi",
-    "category": "Light",
+    "name": {
+        "en_US": "Kiwi",
+        "it_IT": "Kiwi",
+        "ja_JP": "キウイ"
+    },
+    "category": {
+        "en_US": "Light",
+        "it_IT": "Bianco",
+        "ja_JP": "ライト"
+    },
     "colors": {
         "window":"#62963D",
         "window_text":"#111111",

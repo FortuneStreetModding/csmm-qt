@@ -32,16 +32,16 @@
          <bool>false</bool>
         </property>
         <property name="textElideMode">
-         <enum>Qt::ElideRight</enum>
+         <enum>Qt::TextElideMode::ElideRight</enum>
         </property>
         <property name="verticalScrollMode">
-         <enum>QAbstractItemView::ScrollPerPixel</enum>
+         <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
         </property>
         <property name="horizontalScrollMode">
-         <enum>QAbstractItemView::ScrollPerPixel</enum>
+         <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
         </property>
         <property name="gridStyle">
-         <enum>Qt::SolidLine</enum>
+         <enum>Qt::PenStyle::SolidLine</enum>
         </property>
         <property name="sortingEnabled">
          <bool>false</bool>
@@ -129,7 +129,7 @@
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -322,7 +322,7 @@
   </action>
   <action name="actionShow_CSMM_Network_Cache_In_File_System">
    <property name="text">
-    <string>Show CSMM Network Cache In File System</string>
+    <string>Show CSMM Network Cache in Filesystem</string>
    </property>
   </action>
   <action name="actionExport_to_Riivolution">

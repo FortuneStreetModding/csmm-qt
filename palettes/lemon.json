@@ -1,6 +1,14 @@
 {
-    "name": "Lemon",
-    "category": "Light",
+    "name": {
+        "en_US": "Lemon",
+        "it_IT": "Limone",
+        "ja_JP": "レモン"
+    },
+    "category": {
+        "en_US": "Light",
+        "it_IT": "Bianco",
+        "ja_JP": "ライト"
+    },
     "colors": {
         "window":"#ecc23e",
         "window_text":"#111111",

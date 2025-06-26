@@ -1,6 +1,14 @@
 {
-    "name": "Sea Salt",
-    "category": "Light",
+    "name": {
+        "en_US": "Sea Salt",
+        "it_IT": "Cielo",
+        "ja_JP": "シーソルト色"
+    },
+    "category": {
+        "en_US": "Light",
+        "it_IT": "Bianco",
+        "ja_JP": "ライト"
+    },
     "colors": {
         "window":"#60a7bf",
         "window_text":"#111111",

@@ -1,6 +1,14 @@
 {
-    "name": "Classic Dark",
-    "category": "Dark",
+    "name": {
+        "en_US": "Classic Dark",
+        "it_IT": "Scuro Classico",
+        "ja_JP": "クラシックダーク"
+    },
+    "category": {
+        "en_US": "Dark",
+        "it_IT": "Scuro",
+        "ja_JP": "ダーク"
+    },
     "colors": {
         "window":"#2d2d2d",
         "window_text":"#eeeeee",

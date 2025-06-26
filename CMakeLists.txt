@@ -18,6 +18,7 @@ set(PROJECT_VERSION 7.3.0)
 
 project(csmm VERSION ${PROJECT_VERSION} LANGUAGES CXX C)
 
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -28,8 +29,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 COMPONENTS Concurrent Core Gui Network Widgets LinguistTools REQUIRED)
-qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} languages/en_US.ts languages/it_IT.ts languages/ja_JP.ts)
-qt6_add_lupdate(csmm ${QM_FILES})
+
+qt_standard_project_setup(
+    I18N_SOURCE_LANGUAGE en_US
+    I18N_TRANSLATED_LANGUAGES it_IT ja_JP
+)
+
+qt_add_translations(csmm TS_FILES languages/en_US.ts languages/it_IT.ts languages/ja_JP.ts QM_FILES_OUTPUT_VARIABLE qm_files)
+install(FILES ${qm_files}
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/translations)
+# qt_add_resources(csmm "translations_resources"
+#     PREFIX "/languages"
+#     FILES ${qm_files}
+# )
 
 set(LIB_SOURCES
     lib/addressmapping.cpp

@@ -1,6 +1,14 @@
 {
-    "name": "Plum",
-    "category": "Dark",
+    "name": {
+        "en_US": "Plum",
+        "it_IT": "Prugna",
+        "ja_JP": "梅色"
+    },
+    "category": {
+        "en_US": "Dark",
+        "it_IT": "Scuro",
+        "ja_JP": "ダーク"
+    },
     "colors": {
         "window":"#20112f",
         "window_text":"#eeeeee",

@@ -3,6 +3,7 @@
 #include "QSettings"
 #include "QTranslator"
 #include "qwidget.h"
+#include <qstandardpaths.h>
 
 Region& Region::instance() {
     static Region instance;
@@ -15,7 +16,11 @@ Region::Region(QObject *parent) : QObject(parent) {}
 
 QStringList Region::availableProgramLanguages() const
 {
-    QDir dir(":/languages");
+    // QDir dir(":/languages");
+    // qInfo() << dir.entryList();
+    QString translationPath = QStandardPaths::locate(QStandardPaths::AppDataLocation, "translations", QStandardPaths::LocateDirectory);
+    QDir dir(translationPath);
+
     QStringList translationFileNames = dir.entryList(QStringList("*.qm"), QDir::Files, QDir::Name);
     QStringList languagesAvailable;
 
@@ -114,7 +119,19 @@ bool Region::applyProgramLanguage(QString string)
     qApp->removeTranslator(&translator);
 
     qInfo() << QString("Installing %1").arg(string);
-    bool was_translation_successful = translator.load(QString(":/languages/%1").arg(string));
+
+    QString translationPath = QStandardPaths::locate(QStandardPaths::AppDataLocation, "translations", QStandardPaths::LocateDirectory);
+    QDir dir(translationPath);
+
+    bool was_translation_successful = false; //translator.load(QString(":/languages/%1.qm").arg(string));
+
+    QFileInfo translationFile(dir.filePath(string + ".qm"));
+    if(translationFile.exists() && translationFile.isFile()){
+       was_translation_successful = translator.load(dir.filePath(string + ".qm"));
+    }
+    else{
+       was_translation_successful = false;
+    }
 
     if(was_translation_successful){
         qApp->installTranslator(&translator);

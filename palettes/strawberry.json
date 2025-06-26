@@ -1,6 +1,14 @@
 {
-    "name": "Strawberry",
-    "category": "Light",
+    "name": {
+        "en_US": "Strawberry",
+        "it_IT": "Fragola",
+        "ja_JP": "いちご色"
+    },
+    "category": {
+        "en_US": "Light",
+        "it_IT": "Bianco",
+        "ja_JP": "ライト"
+    },
     "colors": {
         "window":"#f4acb7",
         "window_text":"#111111",

@@ -23,8 +23,10 @@ private:
     void resetTemporaryDirectory();
     void buildPaletteMenu();
     void paletteActionTriggered();
+    QString returnPaletteNameInCurrentLanguage(QString currentLocaleCode, QString englishPaletteName);
+    void setPaletteLabel();
     void rebuildTerritoryComboBox();
-    void rebuildLanguageComboBox();
+    void rebuildLanguageComboBox(); 
 private Q_SLOTS:
     void accept() override;
     void usePaletteHighlightColorCheckboxStatusChanged(int status);
