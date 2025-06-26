@@ -38,7 +38,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.6.1
+        version: 6.9.1
         target: desktop
 
     - name: Configure CMake
@@ -76,7 +76,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.6.1
+        version: 6.9.1
         target: desktop
 
     - name: Install x86_64 Homebrew
@@ -150,7 +150,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.6.1
+        version: 6.9.1
         target: desktop
         arch: win64_msvc2019_64
 

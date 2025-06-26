@@ -1,6 +1,14 @@
 {
-    "name": "Pumpkin",
-    "category": "Light",
+    "name": {
+        "en_US": "Pumpkin",
+        "it_IT": "Arancia",
+        "ja_JP": "カボチャ色"
+    },
+    "category": {
+        "en_US": "Light",
+        "it_IT": "Bianco",
+        "ja_JP": "ライト"
+    },
     "colors": {
         "window":"#e3843e",
         "window_text":"#111111",

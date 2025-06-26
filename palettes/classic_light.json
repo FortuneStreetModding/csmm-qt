@@ -1,6 +1,14 @@
 {
-    "name": "Classic Light",
-    "category": "Light",
+    "name": {
+        "en_US": "Classic Light",
+        "it_IT": "Chiaro Classico",
+        "ja_JP": "クラシックライト"
+    },
+    "category": {
+        "en_US": "Light",
+        "it_IT": "Bianco",
+        "ja_JP": "ライト"
+    },
     "colors": {
         "window":"#c3c6c8",
         "window_text":"#111111",
