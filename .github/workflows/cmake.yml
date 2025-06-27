@@ -14,7 +14,7 @@ env:
 
 jobs:
   linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -22,18 +22,18 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y libyaml-cpp-dev libarchive-dev wget ninja-build libxkbcommon0 libxkbcommon-x11-0 libxcb-cursor-dev
-        wget https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20220822-1/linuxdeploy-x86_64.AppImage
+        sudo apt-get update && sudo apt-get install -y libyaml-cpp-dev libarchive-dev wget ninja-build libxkbcommon0 libxkbcommon-x11-0 libxcb-cursor-dev
+        wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
         chmod +x linuxdeploy-x86_64.AppImage
         wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
         chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
         sudo add-apt-repository universe
         sudo apt install libfuse2
 
-    - name: Switch to Python 3.12
+    - name: Switch to Python 3.13
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.13'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
@@ -99,7 +99,7 @@ jobs:
         conda create -n x86_env -y
         conda activate x86_env
         conda config --env --set subdir osx-64
-        conda install -p ~/miniconda3/envs/x86_env python=3.12
+        conda install -p ~/miniconda3/envs/x86_env python=3.13
         pip install sphinx==8.1.3 pillow==11.1.0
 
     - name: Configure CMake
