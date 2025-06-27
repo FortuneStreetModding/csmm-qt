@@ -66,63 +66,67 @@
     <name>CSMMModpack</name>
     <message>
       <source>Duplicate mod %1 detected</source>
-      <translation>Rilevato mod duplicato %1</translation>
+      <translation>La mod %1 è duplicata</translation>
     </message>
     <message>
       <source>Loading general interface for %1</source>
-      <translation>Caricamento dell'interfaccia generale per %1</translation>
+      <translation>Carico l'interfaccia generale per %1</translation>
     </message>
     <message>
       <source>Loading UI messages for %1</source>
-      <translation>Caricamento dei messaggi dell'interfaccia utente per %1</translation>
+      <translation>Carico i messaggi dell'interfaccia per %1</translation>
     </message>
     <message>
       <source>Extracting arc file %1</source>
-      <translation>Estrazione del file arc %1</translation>
+      <translation>Estraggo il file arc %1</translation>
     </message>
     <message>
       <source>Extracting brres file %1</source>
-      <translation>Estrazione del file brres %1</translation>
+      <translation>Estraggo il file brres %1</translation>
     </message>
     <message>
       <source>Saving mod %1</source>
-      <translation>Salvataggio mod %1</translation>
+      <translation>Salvo la mod %1</translation>
     </message>
     <message>
       <source>Allocating ui messages for %1</source>
-      <translation>Assegnazione dei messaggi dell'interfaccia utente per %1</translation>
+      <translation>Alloco i messaggi dell'interfaccia per %1</translation>
     </message>
     <message>
       <source>Saving ui messages for %1</source>
-      <translation>Salvataggio dei messaggi dell'interfaccia utente per %1</translation>
+      <translation>Salvo i messaggi dell'interfaccia per %1</translation>
     </message>
     <message>
       <source>Processing general interface for %1</source>
-      <translation>Elaborazione dell'interfaccia generale per %1</translation>
+      <translation>Elaboro l'interfaccia generale per %1</translation>
     </message>
     <message>
       <source>Saving arc files for %1</source>
-      <translation>Salvataggio dei file arc per %1</translation>
+      <translation>Salvo i file arc per %1</translation>
     </message>
     <message>
       <source>Saving brres files for %1</source>
-      <translation>Salvataggio dei file brres per %1</translation>
+      <translation>Salvo i file brres per %1</translation>
     </message>
     <message>
       <source>Could not open file %1</source>
-      <translation>Impossibile aprire il file %1</translation>
+      <translation>Non è stato possibile aprire il file %1</translation>
     </message>
     <message>
       <source>Saving arc file %1</source>
-      <translation>Salvataggio del file arc %1</translation>
+      <translation>Salvo il file arc %1</translation>
     </message>
     <message>
       <source>Saving brres file %1</source>
-      <translation>Salvataggio del file brres %1</translation>
+      <translation>Salvo il file brres %1</translation>
     </message>
     <message>
       <source>Remaining free space: %1 %2 %3 %4</source>
-      <translation>Spazio libero rimanente: %1 %2 %3 %4</translation>
+      <translation>Spazio libero rimasto: %1 %2 %3 %4</translation>
+    </message>
+    <message>
+      <source>Loading mod %1</source>
+      <translation>Carico la mod %1</translation>
     </message>
   </context>
   <context>

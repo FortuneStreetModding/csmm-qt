@@ -103,7 +103,7 @@ public:
         }
 
         for (auto &mod: modList) {
-            qDebug() << QString(tr("Loading mod %1")).arg(mod->modId())
+            qDebug() << QString(tr("Loading mod %1")).arg(mod->modId());
 
             auto generalFileInterface = mod.getCapability<GeneralInterface>();
             if (generalFileInterface) {
@@ -325,14 +325,14 @@ public:
         {
             int i=0;
             for (auto &arcFile: arcFiles) {
-                qInfo() << QString(tr("Extracting arc file %1")).arg(arcFile);
+                qInfo() << QString(tr("Extracting arc file %1")).arg(arcFile).toUtf8().constData();
                 progressCallback((double)i / arcFiles.size() / 3);
                 QDir(arcFilesDir.path()).mkpath(arcFile);
                 await(ExeWrapper::extractArcFile(QDir(root).filePath(arcFile), arcFilesDir.filePath(arcFile)));
                 ++i;
             }
             for (auto &brresFile: brresFiles) {
-                qInfo() << QString(tr("Extracting brres file %1")).arg(brresFile);
+                qInfo() << QString(tr("Extracting brres file %1")).arg(brresFile).toUtf8().constData();
                 progressCallback((double)i / brresFiles.size() / 3);
                 QDir(brresFilesDir.path()).mkpath(brresFile);
                 await(ExeWrapper::extractBrresFile(QDir(root).filePath(brresFile), brresFilesDir.filePath(brresFile)));
@@ -342,7 +342,7 @@ public:
 
         for (int i=0; i<modList.size(); ++i) {
             auto &mod = modList[i];
-            qInfo() << QString(tr("Saving mod %1")).arg(mod->modId());
+            qInfo() << QString(tr("Saving mod %1")).arg(mod->modId()).toUtf8().constData();
 
             auto remFreeSpaceModStart = gameInstance.get().freeSpaceManager().calculateTotalRemainingFreeSpace();
 
@@ -350,11 +350,11 @@ public:
 
             auto uiMessageInterface = mod.getCapability<UiMessageInterface>();
             if (uiMessageInterface) {
-                qInfo() << QString(tr("Allocating ui messages for %1")).arg(mod->modId());
+                qInfo() << QString(tr("Allocating ui messages for %1")).arg(mod->modId()).toUtf8().constData();
                 uiMessageInterface->allocateUiMessages(root, &gameInstance.get(), modList);
             }
             if (messageSavers.contains(mod->modId())) {
-                qInfo() << QString(tr("Saving ui messages for %1")).arg(mod->modId());
+                qInfo() << QString(tr("Saving ui messages for %1")).arg(mod->modId()).toUtf8().constData();
                 auto &savers = messageSavers[mod->modId()];
                 for (auto it=savers.begin(); it!=savers.end(); ++it) {
                     it.value()(root, &gameInstance.get(), modList, &messageFiles[it.key()]);
@@ -362,18 +362,18 @@ public:
             }
             auto generalFileInterface = mod.getCapability<GeneralInterface>();
             if (generalFileInterface) {
-                qInfo() << QString(tr("Processing general interface for %1")).arg(mod->modId());
+                qInfo() << QString(tr("Processing general interface for %1")).arg(mod->modId()).toUtf8().constData();
                 generalFileInterface->saveFiles(root, &gameInstance.get(), modList);
             }
             if (arcModifiers.contains(mod->modId())) {
-                qInfo() << QString(tr("Saving arc files for %1")).arg(mod->modId());
+                qInfo() << QString(tr("Saving arc files for %1")).arg(mod->modId()).toUtf8().constData();
                 auto &modifiers = arcModifiers[mod->modId()];
                 for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
                     it.value()(root, &gameInstance.get(), modList, arcFilesDir.filePath(it.key()));
                 }
             }
             if (brresModifiers.contains(mod->modId())) {
-                qInfo() << QString(tr("Saving brres files for %1")).arg(mod->modId());
+                qInfo() << QString(tr("Saving brres files for %1")).arg(mod->modId()).toUtf8().constData();
                 auto &modifiers = brresModifiers[mod->modId()];
                 for (auto it=modifiers.begin(); it!=modifiers.end(); ++it) {
                     it.value()(root, &gameInstance.get(), modList, brresFilesDir.filePath(it.key()));
@@ -399,13 +399,13 @@ public:
         {
             int i = 0;
             for (auto &arcFile: arcFiles) {
-                qInfo() << QString(tr("Saving arc file %1")).arg(arcFile);
+                qInfo() << QString(tr("Saving arc file %1")).arg(arcFile).toUtf8().constData();
                 progressCallback((2 + (double)i / arcFiles.size()) / 3);
                 await(ExeWrapper::packDfolderToArc(arcFilesDir.filePath(arcFile), QDir(root).filePath(arcFile)));
                 ++i;
             }
             for (auto &brresFile: brresFiles) {
-                qInfo() << QString(tr("Saving brres file %1")).arg(brresFile);;
+                qInfo() << QString(tr("Saving brres file %1")).arg(brresFile).toUtf8().constData();
                 progressCallback((2 + (double)i / brresFiles.size()) / 3);
                 await(ExeWrapper::packDfolderToBrres(brresFilesDir.filePath(brresFile), QDir(root).filePath(brresFile)));
                 ++i;
@@ -414,7 +414,7 @@ public:
 
         auto remFreeSpace = gameInstance.get().freeSpaceManager().calculateTotalRemainingFreeSpace();
         auto totalFreeSpace = gameInstance.get().freeSpaceManager().calculateTotalFreeSpace();
-        qInfo() << QString(tr("Remaining free space: %1 %2 %3 %4")).arg(remFreeSpace).arg("/").arg(totalFreeSpace).arg("bytes");;
+        qInfo() << QString(tr("Remaining free space: %1 %2 %3 %4")).arg(remFreeSpace).arg("/").arg(totalFreeSpace).arg("bytes").toUtf8().constData();
     }
 private:
     std::reference_wrapper<GameInstance> gameInstance;
