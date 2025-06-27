@@ -558,7 +558,7 @@ void MainWindow::exportIsoWbfs() {
     }
 
     std::vector<MapDescriptor> descriptors;
-    CSMMProgressDialog progress(tr("Exporting to image…"), QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
+    CSMMProgressDialog progress(tr("Exporting to image…").toUtf8().constData(), QString(), 0, 100, nullptr, Qt::WindowFlags(), true);
     progress.setWindowModality(Qt::WindowModal);
 
     try {
@@ -568,7 +568,7 @@ void MainWindow::exportIsoWbfs() {
         std::error_code error;
         std::filesystem::copy(windowFilePath().toStdU16String(), intermediatePath.toStdU16String(), std::filesystem::copy_options::recursive, error);
         if (error) {
-            QMessageBox::critical(this, tr("Export"), QString(tr("Could not copy to intermediate directory: %1")).arg(error.message().c_str()));
+            QMessageBox::critical(this, tr("Export"), QString(tr("Could not copy to intermediate directory: %1")).arg(error.message().c_str()).toUtf8().constData());
         }
 
         progress.setValue(20);
@@ -583,17 +583,17 @@ void MainWindow::exportIsoWbfs() {
         descriptors = gameInstance.mapDescriptors();
 
         progress.setValue(80);
-        qInfo() << tr("Writing game image...");
+        qInfo() << tr("Writing game image...").toUtf8().constData();
         await(ExeWrapper::createWbfsIso(intermediatePath, saveFile, getMarkerCode(), getSeparateSaveGame()));
 
         progress.setValue(90);
         if (std::find_if(modList.begin(), modList.end(), [](const auto &mod) { return mod->modId() == "wifiFix"; }) != modList.end()) {
-            qInfo() << tr("Patching Wiimmfi...");
+            qInfo() << tr("Patching Wiimmfi...").toUtf8().constData();
             await(ExeWrapper::patchWiimmfi(saveFile));
         }
 
         progress.setValue(100);
-        QMessageBox::information(this, tr("Export"), tr("Exported successfully."));
+        QMessageBox::information(this, tr("Export").toUtf8().constData(), tr("Exported successfully.").toUtf8().constData());
 
         // reload map descriptors
         int idx = 0;
