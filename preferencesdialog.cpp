@@ -353,9 +353,6 @@ void PreferencesDialog::buildPaletteMenu()
 
         // grab the name and category and whatever other data from these palettes
         QJsonObject rootObj = doc.object();
-        //QString name = rootObj.value("name").toString();
-        //QString category = rootObj.value("category").toString();
-
 
         QSettings settings;
         QString currentLanguageLocaleCode = settings.value("programLanguage","").toString();

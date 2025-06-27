@@ -66,63 +66,67 @@
     <name>CSMMModpack</name>
     <message>
       <source>Duplicate mod %1 detected</source>
-      <translation>重複した mod %1 が検出されました</translation>
+      <translation>重複したMod %1 を検出しました。</translation>
     </message>
     <message>
       <source>Loading general interface for %1</source>
-      <translation>%1 の一般インターフェースを読み込んでいます</translation>
+      <translation>%1 の一般的なインターフェイスを読み込んでいます。</translation>
     </message>
     <message>
       <source>Loading UI messages for %1</source>
-      <translation>%1 の UI メッセージを読み込んでいます</translation>
+      <translation>%1 のUIメッセージを読み込んでいます。</translation>
     </message>
     <message>
       <source>Extracting arc file %1</source>
-      <translation>arc ファイル %1 を抽出しています</translation>
+      <translation>arcファイル %1 を抽出しています。</translation>
     </message>
     <message>
       <source>Extracting brres file %1</source>
-      <translation>brres ファイル %1 を抽出しています</translation>
+      <translation>brresファイル %1 を抽出しています。</translation>
     </message>
     <message>
       <source>Saving mod %1</source>
-      <translation>mod %1 を保存しています</translation>
+      <translation>%1 Mod を保存しています。</translation>
     </message>
     <message>
       <source>Allocating ui messages for %1</source>
-      <translation>%1 の UI メッセージを割り当てています</translation>
+      <translation>%1 のUIメッセージを割り当てています。</translation>
     </message>
     <message>
       <source>Saving ui messages for %1</source>
-      <translation>%1 の UI メッセージを保存しています</translation>
+      <translation>%1 のUIメッセージをを保存しています。</translation>
     </message>
     <message>
       <source>Processing general interface for %1</source>
-      <translation>%1 の一般インターフェースを処理中</translation>
+      <translation>%1 の一般的なインターフェイスを処理しています。</translation>
     </message>
     <message>
       <source>Saving arc files for %1</source>
-      <translation>%1 の arc ファイルを保存しています</translation>
+      <translation>%1 のarcファイルをを保存しています。</translation>
     </message>
     <message>
       <source>Saving brres files for %1</source>
-      <translation>%1 の brres ファイルを保存しています</translation>
+      <translation>%1 のbrresファイルをを保存しています。</translation>
     </message>
     <message>
       <source>Could not open file %1</source>
-      <translation>ファイル %1 を開けませんでした</translation>
+      <translation>%1 のファイルを開くことができませんでした。</translation>
     </message>
     <message>
       <source>Saving arc file %1</source>
-      <translation>アークファイル %1 を保存しています</translation>
+      <translation>%1 のarcファイルをを保存しています。</translation>
     </message>
     <message>
       <source>Saving brres file %1</source>
-      <translation>brres ファイル %1 を保存しています</translation>
+      <translation>%1 のbrresファイルをを保存しています。</translation>
     </message>
     <message>
       <source>Remaining free space: %1 %2 %3 %4</source>
-      <translation>残りの空き容量: %1 %2 %3 %4</translation>
+      <translation>残りの空きスペース: %1 %2 %3 %4</translation>
+    </message>
+    <message>
+      <source>Loading mod %1</source>
+      <translation>%1 Mod を読み込んでいます。</translation>
     </message>
   </context>
   <context>
