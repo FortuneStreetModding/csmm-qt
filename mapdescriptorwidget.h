@@ -22,6 +22,7 @@ public:
     void setImportDirectoryFunction(const std::function<QString()> &fn);
     bool dirty = false;
     void retranslate();
+    void setWidgetLabels();
 private:
     QVector<QSharedPointer<MapDescriptor>> descriptors;
     std::function<QString()> getGameDirectory;

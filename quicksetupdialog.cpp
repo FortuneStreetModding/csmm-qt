@@ -383,13 +383,13 @@ void QuickSetupDialog::changeEvent(QEvent *event) {
     if (event->type() == QEvent::LanguageChange) {
         qInfo() << "A QuickSetupDialog::changeEvent() has fired!";
         ui->retranslateUi(this);
+        setWindowTitle(QString(tr("CSMM %1: Quick Setup")).arg(CSMM_VERSION));
 
         // retranslate the buttonBox's buttons manually
         exportToWbfsIso->setText(tr("Export to File"));
         exportToExtractedFolder->setText(tr("Export to Folder"));
         toPreferences->setText(tr("Preferences"));
         toAdvancedMode->setText(tr("Switch to Advanced CSMM"));
-
     }
     QWidget::changeEvent(event);
 }

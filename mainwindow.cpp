@@ -157,6 +157,7 @@ void MainWindow::changeEvent(QEvent *event) {
     if (event->type() == QEvent::LanguageChange) {
         qInfo() << "A MainWindow::changeEvent() has fired!";
         ui->retranslateUi(this);
+        setWindowTitle(QString("CSMM %1").arg(CSMM_VERSION));
 
         auto descriptors = ui->tableWidget->getDescriptors();
         if(ui->tableWidget->getDescriptors().count()!=0){
