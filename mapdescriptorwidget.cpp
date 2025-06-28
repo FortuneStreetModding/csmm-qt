@@ -20,21 +20,9 @@ static constexpr int ZONE_TYPE = QTableWidgetItem::UserType + 1;
 static constexpr int ORDER_TYPE = QTableWidgetItem::UserType + 2;
 static constexpr int UNLOCK_ID_TYPE = QTableWidgetItem::UserType + 3;
 
-MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent) {
-
-    QStringList labels{"", "", tr("Name"), tr("MapSet [E]"), tr("Zone [E]"), tr("Order [E]"),
-                       tr("Tutorial Map? [E]"), tr("Unlock ID [E]"), tr("Ruleset"), tr("Initial Cash"), tr("Target Amount"),
-                       tr("Base Salary"), tr("Salary Increment"), tr("Maximum Dice Roll"),
-                       tr("Venture Cards"), tr("FRB Files"), tr("Switch Origin Points"),
-                       tr("Board Theme"), tr("Background"), tr("Background Music ID"),
-                       tr("Map Icon"), tr("Looping Mode"), tr("Looping Mode Radius"),
-                       tr("Looping Mode Horizontal Padding"), tr("Looping Mode Vertical Square Count"),
-                       tr("Tour Bankruptcy Limit"), tr("Tour Initial Cash"), tr("Tour Opponents"),
-                       tr("Tour Clear Rank"), tr("Name Msg ID"), tr("Desc Msg ID"),
-                       tr("Description"), tr("Internal Name"), tr("District Names"), tr("District Name IDs")};
-    setColumnCount(labels.size());
-    setHorizontalHeaderLabels(labels);
-    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+MapDescriptorWidget::MapDescriptorWidget(QWidget *parent) : QTableWidget(parent)
+{
+    setWidgetLabels();
 
     connect(this, &MapDescriptorWidget::cellChanged, this, [&](int row, int col) {
         auto theItem = item(row, col);
@@ -273,6 +261,24 @@ void MapDescriptorWidget::retranslate()
         auto column = this->horizontalHeaderItem(col)->text();
         this->setHorizontalHeaderItem(col, new QTableWidgetItem(tr(column.toUtf8().constData())));
     }
+
+    setWidgetLabels();
+}
+
+void MapDescriptorWidget::setWidgetLabels(){
+    QStringList labels{"", "", tr("Name"), tr("MapSet [E]"), tr("Zone [E]"), tr("Order [E]"),
+                       tr("Tutorial Map? [E]"), tr("Unlock ID [E]"), tr("Ruleset"), tr("Initial Cash"), tr("Target Amount"),
+                       tr("Base Salary"), tr("Salary Increment"), tr("Maximum Dice Roll"),
+                       tr("Venture Cards"), tr("FRB Files"), tr("Switch Origin Points"),
+                       tr("Board Theme"), tr("Background"), tr("Background Music ID"),
+                       tr("Map Icon"), tr("Looping Mode"), tr("Looping Mode Radius"),
+                       tr("Looping Mode Horizontal Padding"), tr("Looping Mode Vertical Square Count"),
+                       tr("Tour Bankruptcy Limit"), tr("Tour Initial Cash"), tr("Tour Opponents"),
+                       tr("Tour Clear Rank"), tr("Name Msg ID"), tr("Desc Msg ID"),
+                       tr("Description"), tr("Internal Name"), tr("District Names"), tr("District Name IDs")};
+    setColumnCount(labels.size());
+    setHorizontalHeaderLabels(labels);
+    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 const QVector<QSharedPointer<MapDescriptor>> &MapDescriptorWidget::getDescriptors() {
