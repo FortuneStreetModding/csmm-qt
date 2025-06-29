@@ -29,6 +29,6 @@
 
         "disabled_button":"#aaaaaa",
         "disabled_highlighted_text":"#aaaaaa",
-        "disabled_text":"#444444"
+        "disabled_text":"#555555"
     }
 }
