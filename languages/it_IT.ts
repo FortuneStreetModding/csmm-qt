@@ -1173,6 +1173,10 @@ The following .brstm files are still missing:
       <translation/>
     </message>
     <message>
+      <source>Export Settings</source>
+      <translation>Impostazioni di esportazione</translation>
+    </message>
+    <message>
       <source>Enable Riivolution (optional)</source>
       <translation>Abilita Riivolution (opzionale)</translation>
     </message>

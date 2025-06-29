@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
-    <height>539</height>
+    <width>393</width>
+    <height>595</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -136,46 +136,62 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="enableRiivolutionGroupBox">
+    <widget class="QGroupBox" name="exportSettingsGroupBox">
      <property name="title">
-      <string>Enable Riivolution (optional)</string>
+      <string>Export Settings</string>
      </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="markerCode"/>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Marker Code</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="markerCode"/>
+        </item>
+       </layout>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="riivolutionPatchNameLabel">
-        <property name="text">
-         <string>Patch Name</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="riivolutionPatchName">
-        <property name="text">
-         <string>csmm</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Marker Code</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
+      <item>
        <widget class="QCheckBox" name="separateSaveGame">
         <property name="text">
          <string>Separate Save Game</string>
         </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="enableRiivolutionGroupBox">
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="title">
+         <string>Enable Riivolution (optional)</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLabel" name="riivolutionPatchNameLabel">
+           <property name="text">
+            <string>Patch Name</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="riivolutionPatchName">
+           <property name="text">
+            <string>csmm</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

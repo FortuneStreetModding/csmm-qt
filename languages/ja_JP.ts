@@ -1179,6 +1179,10 @@ The following .brstm files are still missing:
       <translation/>
     </message>
     <message>
+      <source>Export Settings</source>
+      <translation>エクスポート設定</translation>
+    </message>
+    <message>
       <source>Enable Riivolution (optional)</source>
       <translation>Riivolution版を有効 (任意)</translation>
     </message>
