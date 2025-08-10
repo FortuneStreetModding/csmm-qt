@@ -172,10 +172,10 @@ public:
 
 //PYBIND11_EMBEDDED_MODULE(pycsmm, m)
 void init_pycsmm(pybind11::module_ &m) {
-    m.def("convertPngToTpl", [](const QString &src, const QString &dest) {
+    m.def("convertPngToTpl", [](const QString &src, const QString &dest, const QString &format) {
         pybind11::gil_scoped_release release;
-        await(ExeWrapper::convertPngToTpl(src, dest));
-    }, pybind11::arg("src"), pybind11::arg("dest"), R"pycsmmdoc(
+        await(ExeWrapper::convertPngToTpl(src, dest, format));
+    }, pybind11::arg("src"), pybind11::arg("dest"), pybind11::arg("format") = "RGB5A3", R"pycsmmdoc(
     Converts the png file at src to a tpl file at dest, overwriting if necessary.
 )pycsmmdoc");
 
