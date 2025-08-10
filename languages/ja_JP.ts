@@ -1227,11 +1227,11 @@ The following .brstm files are still missing:
       <translation>追加のModパックをインストール (任意)</translation>
     </message>
     <message>
-      <source>Export to File</source>
+      <source>Export as File</source>
       <translation>ファイルにエクスポート</translation>
     </message>
     <message>
-      <source>Export to Folder</source>
+      <source>Export as Folder</source>
       <translation>フォルダにエクスポート</translation>
     </message>
     <message>

@@ -60,12 +60,12 @@ QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaul
         }
     });
 
-    exportToWbfsIso = new QPushButton(tr("Export to File"));
+    exportToWbfsIso = new QPushButton(tr("Export as File"));
     exportToWbfsIso->setEnabled(false);
     exportToWbfsIso->setDefault(true);
     ui->buttonBox->addButton(exportToWbfsIso, QDialogButtonBox::AcceptRole);
 
-    exportToExtractedFolder = new QPushButton(tr("Export to Folder"));
+    exportToExtractedFolder = new QPushButton(tr("Export as Folder"));
     exportToExtractedFolder->setEnabled(false);
     ui->buttonBox->addButton(exportToExtractedFolder, QDialogButtonBox::AcceptRole);
 
@@ -386,8 +386,8 @@ void QuickSetupDialog::changeEvent(QEvent *event) {
         setWindowTitle(QString(tr("CSMM %1: Quick Setup")).arg(CSMM_VERSION));
 
         // retranslate the buttonBox's buttons manually
-        exportToWbfsIso->setText(tr("Export to File"));
-        exportToExtractedFolder->setText(tr("Export to Folder"));
+        exportToWbfsIso->setText(tr("Export as File"));
+        exportToExtractedFolder->setText(tr("Export as Folder"));
         toPreferences->setText(tr("Preferences"));
         toAdvancedMode->setText(tr("Switch to Advanced CSMM"));
     }
